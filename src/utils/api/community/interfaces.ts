@@ -78,6 +78,10 @@ export interface CommunityPost {
   audience: CommunityPostAudience;
   isAnonymous: boolean;
   isImportant: boolean;
+  /** Pinned above the feed by a Community manager until unpinned. */
+  isPinned?: boolean;
+  /** False when a manager turned comments off for this post. */
+  commentsEnabled?: boolean;
   /** True for the viewer's own posts, including anonymous ones. */
   isMine: boolean;
   /** Null when anonymous — member endpoints never leak it. */
@@ -165,7 +169,12 @@ export interface CreateCommunityPostDto {
   departmentId?: number;
   memberIds?: number[];
   isAnonymous?: boolean;
+  /** Sends a high-priority push (and email) to the audience. */
   isImportant?: boolean;
+  /** Managers only. Defaults to isImportant when omitted. */
+  isPinned?: boolean;
+  /** Managers only. Defaults to true. */
+  commentsEnabled?: boolean;
   imageUrls?: string[];
 }
 
@@ -227,8 +236,22 @@ export interface CommunityAdminPost extends CommunityPost {
 export interface CommunityAuditLogEntry {
   id: number;
   actorName: string;
+  /** VIEW_ANON_AUTHOR | REMOVE | RESTORE | WARN | PIN | UNPIN | POST_MESSAGE */
   action: string;
   postId: number | null;
   commentId: number | null;
   createdAt: string;
+  targetAuthorName?: string | null;
+  targetExcerpt?: string | null;
+}
+
+export interface CommunityAdminStats {
+  postsThisWeek: number;
+  memberPostsThisWeek: number;
+  prayerRequestsThisWeek: number;
+  prayerRepliesThisWeek: number;
+  /** Posts/comments with at least one pending report. */
+  pendingReview: number;
+  oldestPendingAt: string | null;
+  removedThisMonth: number;
 }

@@ -19,6 +19,7 @@ import type {
   SaveRidePickupPointDto,
 } from "./rides/interfaces";
 import type { Promotion, UpdatePromotionDto } from "./promotions/interfaces";
+import type { AnnualTheme, AnnualThemePayload } from "./theme/interfaces";
 import type { DecideMembershipRequestPayload } from "./guests/interfaces";
 import type {
   Sermon,
@@ -717,9 +718,9 @@ export class ApiUpdateCalls {
 
   // update annual theme
   updateAnnualTheme = (
-    payload: unknown,
+    payload: Partial<AnnualThemePayload> | unknown,
     query?: QueryType
-  ): Promise<ApiResponse<unknown>> => {
+  ): Promise<ApiResponse<AnnualTheme>> => {
     return this.apiExecution.updateData("theme/update-theme", payload, query);
 }
 

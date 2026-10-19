@@ -7,6 +7,7 @@ import { ApiExecution } from "./apiConstructor";
 import { downloadFile, fetchData } from "./apiFunctions";
 import type {
   CommunityAdminPost,
+  CommunityAdminStats,
   CommunityAuditLogEntry,
   CommunityBlock,
   CommunityDepartment,
@@ -29,6 +30,7 @@ import type {
 } from "./rides/interfaces";
 import type { DownloadedFile } from "./eventReports/interfaces";
 import type { Promotion } from "./promotions/interfaces";
+import type { AnnualTheme } from "./theme/interfaces";
 import type { GuestType, MembershipRequestRow, PagedItems } from "./guests/interfaces";
 import type { Sermon, SermonSeries, SermonTag } from "./sermons/interfaces";
 import type {
@@ -161,6 +163,7 @@ import type {
   MessageDispatch,
   MessageRecipient,
   MessageTemplate,
+  MessagingOverview,
   MessagingSettings,
   PlaceholderInfo,
   TemplateStats,
@@ -980,7 +983,7 @@ export class ApiCalls {
   // Fetch annual theme
   fetchAnnualTheme = (
     query?: QueryType
-  ): Promise<ApiResponse<unknown>> => {
+  ): Promise<ApiResponse<AnnualTheme[]>> => {
     return this.fetchFromApi("theme/get-themes", query);
   }
 
@@ -1066,6 +1069,11 @@ export class ApiCalls {
     return this.fetchFromApi("community/moderation/audit-log", query);
   };
 
+  /** KPI tiles on the admin Community page. */
+  fetchCommunityAdminStats = (): Promise<ApiResponse<CommunityAdminStats>> => {
+    return this.fetchFromApi("community/admin/stats");
+  };
+
   // Promotions (mobile Home banners)
   fetchPromotions = (
     query?: QueryType
@@ -1100,6 +1108,15 @@ export class ApiCalls {
     return this.fetchFromApi("messaging/stats", query);
   };
 
+  /** KPI tiles on the admin Messaging page (one-off messages only). */
+  fetchMessagingOverview = (
+    query?: QueryType
+  ): Promise<ApiResponse<MessagingOverview>> => {
+    return this.fetchFromApi("messaging/overview", query);
+  };
+
+  /** Query: page, limit, kind, filter (all | scheduled | sent | failed).
+   *  Counts per filter come back in `meta.status_counts`. */
   fetchMessageDispatches = (
     query?: QueryType
   ): Promise<ApiResponse<MessageDispatch[]>> => {

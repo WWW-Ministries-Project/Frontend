@@ -1,10 +1,15 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
-import { showNotification } from "@/pages/HomePage/utils";
+import { notify } from "@/components/feedback";
 import { validateUploadFile } from "@/utils/uploadValidation";
 
-const OUTPUT_WIDTH = 1920;
-const OUTPUT_HEIGHT = 640;
+import {
+  ImageDropField,
+} from "../ui/commUi";
+
+// 16:9 to match the app's Home screen artwork slot.
+const OUTPUT_WIDTH = 1600;
+const OUTPUT_HEIGHT = 900;
 const IMAGE_MIME_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 
 export interface CroppedThemeImage {
@@ -104,11 +109,6 @@ const ThemeImageCropper = ({
   const [zoom, setZoom] = useState(1);
   const [hasSelectedImage, setHasSelectedImage] = useState(false);
 
-  const inputId = useMemo(
-    () => `theme-image-upload-${Math.random().toString(36).slice(2)}`,
-    []
-  );
-
   useEffect(() => {
     if (!hasSelectedImage) {
       setPreviewUrl(initialImageUrl || "");
@@ -143,7 +143,7 @@ const ThemeImageCropper = ({
       .catch((error) => {
         const message =
           error instanceof Error ? error.message : "Unable to crop image";
-        showNotification(message, "error", "Theme image");
+        notify.error({ title: "Couldn't crop the image", message: `${message}. Try another image.` });
       });
 
     return () => {
@@ -175,21 +175,16 @@ const ThemeImageCropper = ({
     };
   }, [previewUrl]);
 
-  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = event.target.files?.[0];
-    if (!selectedFile) return;
-
+  const handleFile = (selectedFile: File) => {
     const validation = validateUploadFile(selectedFile, {
       allowedMimeTypes: IMAGE_MIME_TYPES,
     });
 
     if (!validation.valid) {
-      showNotification(
-        validation.message || "Invalid theme image selected.",
-        "error",
-        "Theme image"
-      );
-      event.target.value = "";
+      notify.error({
+        title: "Couldn't use that image",
+        message: validation.message || "Choose a JPG, PNG, WebP or GIF image.",
+      });
       return;
     }
 
@@ -221,92 +216,43 @@ const ThemeImageCropper = ({
     onCroppedImageChange(null);
   };
 
+  const slider = (
+    label: string,
+    value: number,
+    onChange: (value: number) => void,
+    min: number,
+    max: number,
+    step: number
+  ) => (
+    <label className="flex flex-col gap-1 text-sm text-primary">
+      {label}
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(event) => onChange(Number(event.target.value))}
+        className="w-full accent-primary"
+      />
+    </label>
+  );
+
   return (
-    <div className="space-y-3">
-      <div className="overflow-hidden rounded-xl border border-gray-200 bg-gray-100">
-        {previewUrl ? (
-          <img
-            src={previewUrl}
-            alt="Theme preview"
-            className="aspect-[3/1] max-h-56 w-full object-cover"
-          />
-        ) : (
-          <label
-            htmlFor={inputId}
-            className="flex aspect-[3/1] max-h-56 w-full cursor-pointer items-center justify-center px-4 text-center text-sm text-gray-600"
-          >
-            Select a welcome header banner
-          </label>
-        )}
-      </div>
-
-      <div className="flex flex-wrap items-center gap-3">
-        <input
-          id={inputId}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={handleImageChange}
-        />
-        <label
-          htmlFor={inputId}
-          className="cursor-pointer rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-        >
-          {previewUrl ? "Replace image" : "Upload image"}
-        </label>
-        {hasSelectedImage && initialImageUrl && (
-          <button
-            type="button"
-            onClick={handleClearReplacement}
-            className="rounded-md border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
-            Keep current image
-          </button>
-        )}
-      </div>
-
+    <div className="flex flex-col gap-3">
+      <ImageDropField
+        label="Theme artwork"
+        help="16:9, at least 1600×900px. You can crop after uploading."
+        previewUrl={previewUrl}
+        onFile={handleFile}
+        onClear={hasSelectedImage && initialImageUrl ? handleClearReplacement : undefined}
+        clearLabel="Keep current image"
+      />
       {hasSelectedImage && (
-        <div className="grid gap-3 rounded-xl border border-gray-200 p-3 md:grid-cols-3">
-          <label className="text-sm font-medium text-gray-700">
-            Zoom
-            <input
-              type="range"
-              min="1"
-              max="3"
-              step="0.05"
-              value={zoom}
-              onChange={(event) => setZoom(Number(event.target.value))}
-              className="mt-2 w-full"
-            />
-          </label>
-          <label className="text-sm font-medium text-gray-700">
-            Horizontal position
-            <input
-              type="range"
-              min="0"
-              max="100"
-              step="1"
-              value={horizontalPosition}
-              onChange={(event) =>
-                setHorizontalPosition(Number(event.target.value))
-              }
-              className="mt-2 w-full"
-            />
-          </label>
-          <label className="text-sm font-medium text-gray-700">
-            Vertical position
-            <input
-              type="range"
-              min="0"
-              max="100"
-              step="1"
-              value={verticalPosition}
-              onChange={(event) =>
-                setVerticalPosition(Number(event.target.value))
-              }
-              className="mt-2 w-full"
-            />
-          </label>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-3 rounded-lg border border-lightGray p-3">
+          {slider("Zoom", zoom, setZoom, 1, 3, 0.05)}
+          {slider("Left and right", horizontalPosition, setHorizontalPosition, 0, 100, 1)}
+          {slider("Up and down", verticalPosition, setVerticalPosition, 0, 100, 1)}
         </div>
       )}
     </div>
