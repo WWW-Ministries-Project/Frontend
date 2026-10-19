@@ -26,7 +26,9 @@ import { SearchBar } from "../../../../components/SearchBar";
 import PageHeader from "../../Components/PageHeader";
 import PageOutline from "../../Components/PageOutline";
 import TableComponent from "../../Components/reusable/TableComponent";
-import { showNotification } from "../../utils";
+import { confirmAction, showLoader, showNotification } from "../../utils";
+import { notify } from "@/components/feedback";
+import type { BranchDeleteImpact } from "@/utils/api/settings/branchInterfaces";
 import { AttendanceSettings } from "./Components/AttendanceSettings";
 import { EligibilityRules } from "./Components/EligibilityRules";
 import { FormsComponent } from "./Components/FormsComponent";
@@ -109,6 +111,8 @@ function Settings() {
     description: "",
   });
   const [editMode, setEditMode] = useState(false);
+  const [branchError, setBranchError] = useState<string | undefined>();
+  const [deletedPositionName, setDeletedPositionName] = useState("");
   const [similarItemLookbackDays, setSimilarItemLookbackDays] = useState(
     String(DEFAULT_SIMILAR_ITEM_LOOKBACK_DAYS)
   );
@@ -199,32 +203,79 @@ function Settings() {
     error: branchUpdateError,
     loading: branchUpdateLoading,
   } = usePut(api.put.updateBranch);
-  const {
-    executeDelete: deleteBranch,
-    success: branchDeleteSuccess,
-    error: branchDeleteError,
-  } = useDelete(api.delete.deleteBranch);
 
   const handleCloseForm = useCallback(() => {
     setDisplayForm(false);
     setEditMode(false);
+    setBranchError(undefined);
   }, []);
 
-  const handleDelete = useCallback(
-    (itemToDelete: { id: number; is_default?: boolean }) => {
-      if ("is_default" in itemToDelete) {
-        if (itemToDelete.is_default) {
-          showNotification("The default branch cannot be deleted.", "error");
-          return;
-        }
+  const confirmBranchDelete = useCallback(
+    async (branch: { id: number; name?: string }) => {
+      const name = branch.name ?? "this branch";
+      showLoader(true);
+      let impact: BranchDeleteImpact | undefined;
+      try {
+        impact = (await api.fetch.fetchBranchDeleteImpact({ id: String(branch.id) }))
+          ?.data;
+      } catch {
+        return;
+      } finally {
+        showLoader(false);
+      }
+      if (!impact) return;
 
-        deleteBranch({ id: String(itemToDelete.id) });
+      if (!impact.deletable) {
+        confirmAction({
+          title: impact.is_default
+            ? `${name} is the default branch`
+            : `${name} branch can't be deleted yet`,
+          points: impact.is_default
+            ? ["New members and records land here. Make another branch the default first."]
+            : [
+                ...impact.blockers.map((blocker) => `Still has ${blocker.label}.`),
+                "Move them to another branch, then delete it.",
+              ],
+          confirmLabel: "Delete branch",
+          cancelLabel: "Close",
+          blocked: true,
+          onConfirm: () => undefined,
+        });
         return;
       }
 
+      confirmAction({
+        title: `Delete ${name} branch?`,
+        points: [
+          "It has no members or records left.",
+          "It disappears from every branch picker.",
+          "This can't be undone.",
+        ],
+        confirmLabel: "Delete branch",
+        cancelLabel: "Keep branch",
+        tone: "danger",
+        typeToConfirm: name,
+        onConfirm: async () => {
+          await api.delete.deleteBranch({ id: String(branch.id) });
+          notify.success({ title: `${name} branch deleted` });
+          refetchBranches?.();
+        },
+      });
+    },
+    [refetchBranches]
+  );
+
+  const handleDelete = useCallback(
+    (itemToDelete: { id: number; name?: string; is_default?: boolean }) => {
+      if ("is_default" in itemToDelete) {
+        void confirmBranchDelete(itemToDelete);
+        return;
+      }
+
+      setDeletedPositionName(itemToDelete.name?.trim() ?? "");
       deletePosition({ id: itemToDelete.id + "" });
     },
-    [deleteBranch, deletePosition]
+    [confirmBranchDelete, deletePosition]
   );
 
   const {
@@ -261,13 +312,18 @@ function Settings() {
   // Created data effect
   useEffect(() => {
     if (position) {
-      showNotification("Created successfully", "success");
+      const positionName = String(inputValue.name ?? "").trim();
+      notify.success({
+        title: "Position created",
+        message: positionName || undefined,
+      });
       refetchPositions();
       handleCloseForm();
     }
     if (positionError) {
-      const errorMessage = positionError.message || "Something went wrong";
-      showNotification(errorMessage, "error");
+      notify.fromError(positionError, {
+        title: "Couldn't save the position",
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [position, positionError]);
@@ -275,13 +331,18 @@ function Settings() {
   // Updated data effect
   useEffect(() => {
     if (positionUpdate) {
-      showNotification("Updated successfully", "success");
+      const positionName = String(inputValue.name ?? "").trim();
+      notify.success({
+        title: "Position updated",
+        message: positionName || undefined,
+      });
       refetchPositions();
       handleCloseForm();
     }
     if (positionUpdateError) {
-      const errorMessage = positionUpdateError.message || "Something went wrong";
-      showNotification(errorMessage, "error");
+      notify.fromError(positionUpdateError, {
+        title: "Couldn't save the position",
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [positionUpdate, positionUpdateError]);
@@ -289,12 +350,18 @@ function Settings() {
   // Deleted data effect
   useEffect(() => {
     if (positionDelete) {
-      showNotification("Deleted successfully", "success");
+      notify.success({
+        title: "Position deleted",
+        message: deletedPositionName || undefined,
+      });
       refetchPositions();
     }
     if (positionDeleteError) {
-      const errorMessage = positionDeleteError.message || "Something went wrong";
-      showNotification(errorMessage, "error");
+      notify.fromError(positionDeleteError, {
+        title: deletedPositionName
+          ? `Couldn't delete ${deletedPositionName}`
+          : "Couldn't delete the position",
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [positionDelete, positionDeleteError]);
@@ -321,15 +388,6 @@ function Settings() {
     }
   }, [branchUpdateError, branchUpdateResponse, handleCloseForm, refetchBranches]);
 
-  useEffect(() => {
-    if (branchDeleteSuccess) {
-      showNotification("Branch deleted successfully", "success");
-      refetchBranches?.();
-    }
-    if (branchDeleteError) {
-      showNotification(branchDeleteError.message || "Unable to delete branch", "error");
-    }
-  }, [branchDeleteError, branchDeleteSuccess, refetchBranches]);
 
   useEffect(() => {
     const configuredLookbackDays = toPositiveInteger(
@@ -418,7 +476,7 @@ function Settings() {
 
     if (selectedTab === "Position") {
       if (activeBranchId === ALL_BRANCHES && !inputValue.branch_id) {
-        showNotification("Please select a branch before saving.", "error");
+        setBranchError("Choose the branch this position belongs to.");
         return;
       }
       const positionPayload = {
@@ -655,9 +713,11 @@ function Settings() {
                 }
               }
               inputLabel={selectedTab}
-              onChange={(name, value) =>
-                setInputValue((prev) => ({ ...prev, [name]: value }))
-              }
+              onChange={(name, value) => {
+                if (name === "branch_id" && value) setBranchError(undefined);
+                setInputValue((prev) => ({ ...prev, [name]: value }));
+              }}
+              branchError={branchError}
               CloseForm={handleCloseForm}
               onSubmit={handleFormSubmit}
               loading={

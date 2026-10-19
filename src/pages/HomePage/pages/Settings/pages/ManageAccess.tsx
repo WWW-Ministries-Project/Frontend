@@ -1,4 +1,5 @@
 import { Button } from "@/components";
+import { notify } from "@/components/feedback";
 import MultiSelect from "@/components/MultiSelect";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
@@ -295,9 +296,11 @@ export function ManageAccess() {
 
   useEffect(() => {
     if (error || updateError) {
-      const message =
-        error?.message || updateError?.message || "Something went wrong";
-      showNotification(message, "error");
+      notify.fromError(error || updateError, {
+        title: updateError
+          ? "Couldn't save the access level"
+          : "Couldn't create the access level",
+      });
     }
   }, [error, updateError]);
 

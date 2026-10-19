@@ -1,5 +1,4 @@
 import { Button } from "@/components";
-import { Actions } from "@/components/ui/form/Actions";
 import EmptyState from "@/components/EmptyState";
 import TableComponent from "@/pages/HomePage/Components/reusable/TableComponent";
 import { showNotification } from "@/pages/HomePage/utils";
@@ -92,6 +91,7 @@ export const TopicAssessment = ({
   const hasUnsavedChanges = useMemo(() => {
     return serializeTopicState(updatedTopics) !== initialSnapshot;
   }, [initialSnapshot, updatedTopics]);
+  const isSaveDisabled = gradingGuardrailsEnabled && !hasUnsavedChanges;
 
   useEffect(() => {
     if (!gradingGuardrailsEnabled || !editMode || !hasUnsavedChanges) return;
@@ -208,10 +208,8 @@ export const TopicAssessment = ({
   };
 
   const updateTopics = () => {
-    if (gradingGuardrailsEnabled && !hasUnsavedChanges) {
-      showNotification("No changes to save.", "success");
-      return;
-    }
+    // Save is disabled until something changes; this guards stray calls.
+    if (gradingGuardrailsEnabled && !hasUnsavedChanges) return;
 
     if (gradingGuardrailsEnabled && !validateTopics()) {
       return;
@@ -439,11 +437,22 @@ export const TopicAssessment = ({
         )}
 
         {editMode && (
-          <Actions
-            onCancel={handleCancel}
-            onSubmit={updateTopics}
-            loading={loading}
-          />
+          <div className="col-span-full mt-6 flex flex-wrap items-center justify-end gap-3 border-t border-lightGray pt-4">
+            <Button
+              value="Cancel"
+              variant="secondary"
+              onClick={handleCancel}
+              disabled={loading}
+            />
+            <Button
+              value="Submit"
+              variant="primary"
+              type="submit"
+              disabled={loading || isSaveDisabled}
+              loading={loading}
+              onClick={updateTopics}
+            />
+          </div>
         )}
       </div>
     </div>

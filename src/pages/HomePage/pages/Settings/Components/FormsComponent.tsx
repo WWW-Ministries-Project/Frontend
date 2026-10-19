@@ -23,6 +23,8 @@ interface IProps {
   selectId: string;
   className?: string;
   selectOptions: { label: string; value: string | number }[];
+  /** Shown under the branch picker (position form). */
+  branchError?: string;
 }
 
 export const FormsComponent = (props: IProps) => {
@@ -61,6 +63,7 @@ export const FormsComponent = (props: IProps) => {
             value={(props.inputValue.branch_id as number | "") ?? ""}
             onChange={(v) => props.onChange("branch_id", v === "" ? undefined : v)}
             required
+            error={props.branchError}
           />
         )}
         <InputDiv

@@ -18,7 +18,7 @@ import {
   SelectInput,
   UiButton,
 } from "@/pages/HomePage/pages/MembershipManagement/components/membershipUi";
-import { showNotification } from "@/pages/HomePage/utils";
+import { notify } from "@/components/feedback";
 import { resolveScope } from "@/utils";
 
 import { CountTabs, GroupSection, StatGrid, StatTile } from "./Components/attendanceUi";
@@ -214,23 +214,40 @@ export default function EventAttendance() {
       ]),
     ]);
 
+  const exportAll = () => {
+    const filename = "event-attendance.csv";
+    const count = plural(list.length, "check-in");
+    const toast = notify.loading({ title: `Exporting ${count}…` });
+    try {
+      exportRows(list, filename);
+      toast.success({ title: "Export ready", message: `${filename} · ${count}` });
+    } catch {
+      toast.error({ title: "Export didn't finish", message: "Nothing was downloaded. Try again.", retry: exportAll });
+    }
+  };
+
   const recordSelectedAsOfficial = async () => {
     const chosen = new Set(selected);
     const eventIds = [
       ...new Set(list.filter((row) => chosen.has(row.checkIn.id) && !row.checkIn.official).map((row) => row.checkIn.eventId)),
     ];
     if (!eventIds.length) {
-      showNotification("The selected check-ins are already official.", "success", "Event Attendance");
+      notify.info({
+        title: "Already official",
+        message:
+          selected.length === 1
+            ? "The selected check-in was recorded earlier."
+            : `All ${selected.length} selected check-ins were recorded earlier.`,
+      });
       return;
     }
     const started = await recordJobs.start(eventIds, false);
     if (started) {
       setSelected([]);
-      showNotification(
-        `Recording check-ins for ${plural(eventIds.length, "event")} as official attendance.`,
-        "success",
-        "Event Attendance"
-      );
+      notify.info({
+        title: "Recording check-ins",
+        message: `Check-ins for ${plural(eventIds.length, "event")} are being recorded as official attendance.`,
+      });
     }
   };
 
@@ -298,10 +315,7 @@ export default function EventAttendance() {
               <FilterToggleButton open={showFilters} count={filterCount} onClick={() => setShowFilters((open) => !open)} />
               <UiButton
                 disabled={!list.length}
-                onClick={() => {
-                  exportRows(list);
-                  showNotification(`Exported ${plural(list.length, "check-in")}.`, "success", "Event Attendance");
-                }}
+                onClick={exportAll}
               >
                 Export CSV
               </UiButton>

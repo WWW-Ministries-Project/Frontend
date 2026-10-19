@@ -10,7 +10,8 @@ import useWindowSize from "../../../../CustomHooks/useWindowSize";
 import PageOutline from "../../Components/PageOutline";
 import GridComponent from "../../Components/reusable/GridComponent";
 import { PaginationComponent } from "../../Components/reusable/PaginationComponent";
-import { showDeleteDialog, showNotification } from "../../utils";
+import { showDeleteDialog } from "../../utils";
+import { notify } from "@/components/feedback";
 import { EventsCard } from "./Components/EventsCard";
 import { EventsManagerHeader } from "./Components/EventsManagerHeader";
 import { eventColumns } from "./utils/eventHelpers";
@@ -21,6 +22,10 @@ import { useStore } from "@/store/useStore";
 import Calendar from "./Components/Calenda";
 import { eventType } from "./utils/eventInterfaces";
 import { CalendarEvent } from "./Components/calenda/utils/CalendaHelpers";
+
+// Recurring occurrences carry the series id; it isn't on the shared event type.
+const seriesIdOf = (event: object) =>
+  (event as Record<string, unknown>).recurrence_series_id as string | undefined;
 
 const SHOW_UPCOMING_STORAGE_KEY = "eventsShowUpcoming_v2";
 
@@ -312,20 +317,26 @@ const EventsManagement = () => {
 
   // ── Core single-event delete (unchanged) ─────────────────────────────────
   const handleDelete = useCallback(
-    async (id: string | number) => {
-      await executeDelete({ id: String(id) })
-        .then(() => {
-          showNotification("Event deleted successfully");
-          return fetchEventsPage(page, take, activeDateFilter, selectedEventId);
-        })
-        .then((currentPageItemCount) => {
-          if (currentPageItemCount === 0 && page > 1) {
-            setPage(page - 1);
-          }
-        })
-        .catch(() => {
-          showNotification("Event could not be deleted", "error");
-        });
+    async (id: string | number, eventName = "The event") => {
+      const run = async (): Promise<void> => {
+        await executeDelete({ id: String(id) })
+          .then(() => {
+            notify.success({ title: "Event deleted", message: `${eventName} was removed.` });
+            return fetchEventsPage(page, take, activeDateFilter, selectedEventId);
+          })
+          .then((currentPageItemCount) => {
+            if (currentPageItemCount === 0 && page > 1) {
+              setPage(page - 1);
+            }
+          })
+          .catch((error: unknown) => {
+            notify.fromError(error, {
+              title: "Couldn't delete the event",
+              retry: () => void run(),
+            });
+          });
+      };
+      await run();
     },
     [activeDateFilter, executeDelete, fetchEventsPage, page, selectedEventId, setPage, take]
   );
@@ -333,24 +344,39 @@ const EventsManagement = () => {
   // ── Series-scope delete: called after user picks a scope in the modal ─────
   const handleSeriesDelete = useCallback(
     async (event: CalendarEvent, scope: SeriesScope) => {
-      const seriesId = (event as any).recurrence_series_id as string | undefined;
+      const seriesId = seriesIdOf(event);
       const fromDate = event.start_date;
 
-      try {
-        if (scope === "this" || !seriesId) {
-          await executeDelete({ id: String(event.id) });
-        } else if (scope === "following") {
-          await api.delete.deleteEventSeriesFrom({ series_id: seriesId, from_date: fromDate });
-        } else {
-          await api.delete.deleteEventSeries({ series_id: seriesId });
-        }
+      const run = async (): Promise<void> => {
+        try {
+          if (scope === "this" || !seriesId) {
+            await executeDelete({ id: String(event.id) });
+          } else if (scope === "following") {
+            await api.delete.deleteEventSeriesFrom({ series_id: seriesId, from_date: fromDate });
+          } else {
+            await api.delete.deleteEventSeries({ series_id: seriesId });
+          }
 
-        showNotification("Event deleted successfully");
-        const count = await fetchEventsPage(page, take, activeDateFilter, selectedEventId);
-        if (count === 0 && page > 1) setPage(page - 1);
-      } catch {
-        showNotification("Event could not be deleted", "error");
-      }
+          const eventName = event.name ?? event.event_name ?? "The event";
+          notify.success({
+            title: scope === "this" || !seriesId ? "Event deleted" : "Events deleted",
+            message:
+              scope === "all" && seriesId
+                ? `Every occurrence of ${eventName} was removed.`
+                : scope === "following" && seriesId
+                  ? `${eventName} was removed from this date onward.`
+                  : `${eventName} was removed.`,
+          });
+          const count = await fetchEventsPage(page, take, activeDateFilter, selectedEventId);
+          if (count === 0 && page > 1) setPage(page - 1);
+        } catch (error) {
+          notify.fromError(error, {
+            title: "Couldn't delete the event",
+            retry: () => void run(),
+          });
+        }
+      };
+      await run();
     },
     [activeDateFilter, executeDelete, fetchEventsPage, page, selectedEventId, setPage, take]
   );
@@ -358,13 +384,13 @@ const EventsManagement = () => {
   // ── Delete entry-point: show scope modal if recurring, else normal dialog ─
   const handleDeleteModal = useCallback(
     (event: CalendarEvent) => {
-      const seriesId = (event as any).recurrence_series_id as string | undefined;
+      const seriesId = seriesIdOf(event);
       if (seriesId) {
         setSeriesModal({ open: true, action: "delete", event });
       } else {
         showDeleteDialog(
           { id: event.id, name: event.name ?? event.event_name ?? "Event" },
-          handleDelete
+          (id) => handleDelete(id, event.name ?? event.event_name ?? "The event")
         );
       }
     },
@@ -374,7 +400,7 @@ const EventsManagement = () => {
   // ── Edit entry-point: show scope modal if recurring, else navigate directly ─
   const handleEditEvent = useCallback(
     (event: CalendarEvent) => {
-      const seriesId = (event as any).recurrence_series_id as string | undefined;
+      const seriesId = seriesIdOf(event);
       if (seriesId) {
         setSeriesModal({ open: true, action: "edit", event });
       } else {
@@ -398,7 +424,7 @@ const EventsManagement = () => {
         const params = new URLSearchParams({ event_id: String(event.id) });
         if (scope !== "this") {
           params.set("edit_scope", scope);
-          params.set("series_id", (event as any).recurrence_series_id ?? "");
+          params.set("series_id", seriesIdOf(event) ?? "");
           params.set("series_from_date", event.start_date);
         }
         navigate(`/home/manage-event?${params.toString()}`);

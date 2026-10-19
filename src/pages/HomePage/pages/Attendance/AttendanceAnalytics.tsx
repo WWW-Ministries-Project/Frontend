@@ -17,7 +17,7 @@ import {
   SelectInput,
   UiButton,
 } from "@/pages/HomePage/pages/MembershipManagement/components/membershipUi";
-import { showNotification } from "@/pages/HomePage/utils";
+import { notify } from "@/components/feedback";
 
 import {
   AnalyticsCard,
@@ -171,25 +171,31 @@ export const AttendanceAnalytics = () => {
     .join(" ");
 
   const exportCsv = () => {
-    const rows: (string | number)[][] = [
-      ["Section", title],
-      ["Period", `${fmtDate(rFrom)} to ${fmtDate(rTo)}`],
-      [],
-      ["Metric", "Value", "Note"],
-      ...result.kpis.map((kpi) => [kpi.label, kpi.value, kpi.sub]),
-    ];
-    result.charts.forEach((chart) => {
-      rows.push([], [chart.title]);
-      if (chart.kind === "table") {
-        rows.push(chart.head);
-        chart.rows.forEach((row) => rows.push(row.map((cell) => ("pill" in cell ? cell.pill : cell.text))));
-      } else if (chart.kind === "bar") chart.items.forEach((item) => rows.push([item.label, item.value]));
-      else if (chart.kind === "stack") chart.items.forEach((item) => rows.push([item.label, item.tip]));
-      else if (chart.kind === "insight") chart.items.forEach((item) => rows.push([item.title, item.text]));
-      else chart.items.forEach((item) => rows.push([item.label, item.sub]));
-    });
-    downloadCsv(`attendance-analytics-${title.toLowerCase().replace(/\s+/g, "-")}.csv`, rows);
-    showNotification(`Exported ${title} analytics.`, "success", "Attendance");
+    const toast = notify.loading({ title: `Exporting ${title} analytics…` });
+    try {
+      const rows: (string | number)[][] = [
+        ["Section", title],
+        ["Period", `${fmtDate(rFrom)} to ${fmtDate(rTo)}`],
+        [],
+        ["Metric", "Value", "Note"],
+        ...result.kpis.map((kpi) => [kpi.label, kpi.value, kpi.sub]),
+      ];
+      result.charts.forEach((chart) => {
+        rows.push([], [chart.title]);
+        if (chart.kind === "table") {
+          rows.push(chart.head);
+          chart.rows.forEach((row) => rows.push(row.map((cell) => ("pill" in cell ? cell.pill : cell.text))));
+        } else if (chart.kind === "bar") chart.items.forEach((item) => rows.push([item.label, item.value]));
+        else if (chart.kind === "stack") chart.items.forEach((item) => rows.push([item.label, item.tip]));
+        else if (chart.kind === "insight") chart.items.forEach((item) => rows.push([item.title, item.text]));
+        else chart.items.forEach((item) => rows.push([item.label, item.sub]));
+      });
+      const filename = `attendance-analytics-${title.toLowerCase().replace(/\s+/g, "-")}.csv`;
+      downloadCsv(filename, rows);
+      toast.success({ title: "Export ready", message: filename });
+    } catch {
+      toast.error({ title: "Export didn't finish", message: "Nothing was downloaded. Try again.", retry: exportCsv });
+    }
   };
 
   return (

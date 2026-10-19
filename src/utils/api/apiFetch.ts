@@ -100,7 +100,7 @@ import type {
   JoinRequestRow,
   OpenDepartmentToJoin,
 } from "./departmentJoinRequests/interfaces";
-import { Branch } from "./settings/branchInterfaces";
+import { Branch, BranchDeleteImpact } from "./settings/branchInterfaces";
 import type { AttendanceTimingSettingsConfig } from "./settings/attendanceTimingInterfaces";
 import type { EventReportExclusionsConfig } from "./settings/eventReportExclusionInterfaces";
 import type { RoleEligibilityConfig } from "./settings/eligibilityInterfaces";
@@ -325,6 +325,12 @@ export class ApiCalls {
 
   fetchBranches = (query?: QueryType): Promise<ApiResponse<Branch[]>> => {
     return this.fetchFromApi("branch/list-branches", query);
+  };
+
+  fetchBranchDeleteImpact = (
+    query: QueryType
+  ): Promise<ApiResponse<BranchDeleteImpact>> => {
+    return this.fetchFromApi("branch/delete-impact", query);
   };
 
   fetchDepartmentDetails = (

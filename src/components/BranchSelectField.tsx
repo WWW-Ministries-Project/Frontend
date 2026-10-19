@@ -1,5 +1,6 @@
 import { ALL_BRANCHES, useBranchStore } from "@/store/useBranchStore";
 import clsx from "clsx";
+import { FieldMessage } from "@/components/feedback";
 
 interface BranchSelectFieldProps {
   value: number | "";
@@ -33,6 +34,8 @@ export function BranchSelectField({
         name="branch_id"
         value={value}
         required={required}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? "branch-select-field-error" : undefined}
         onChange={(e) => {
           const raw = e.target.value;
           onChange(raw === "" ? "" : Number(raw));
@@ -50,7 +53,7 @@ export function BranchSelectField({
         ))}
       </select>
 
-      {error && <span className="text-xs text-error">{error}</span>}
+      {error && <FieldMessage id="branch-select-field-error">{error}</FieldMessage>}
     </div>
   );
 }

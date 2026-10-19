@@ -8,6 +8,7 @@ import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine"
 import { SelectField } from "@/pages/HomePage/Components/reusable/SelectField";
 import { showLoader, showNotification } from "@/pages/HomePage/utils";
 import { api } from "@/utils/api/apiCalls";
+import { notify } from "@/components/feedback";
 import { XCircleIcon } from "@heroicons/react/24/outline";
 import { useEffect, useMemo, useState } from "react";
 
@@ -74,15 +75,25 @@ export const ViewUser = ({ id, onClose }: IProps) => {
   };
 
   /* Reset password notifications */
-  useEffect(() => {
-    if (resetData) showNotification("email sent to user", "success");
-    if (resetError) showNotification("something went wrong try again", "error");
-  }, [resetData, resetError]);
-
   const handlePasswordReset = () => {
     if (!user) return;
     resetPassword({ email: user.email });
   };
+
+  useEffect(() => {
+    if (resetData)
+      notify.success({
+        title: "Password reset sent",
+        message: `We emailed a reset link to ${user?.email ?? "this user"}. It expires in 15 minutes.`,
+      });
+    if (resetError)
+      notify.error({
+        title: "Reset email didn't send",
+        message: "The mail service didn't respond. Try again in a minute.",
+        retry: handlePasswordReset,
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resetData, resetError]);
 
   /* Roles options */
   const rolesOptions = useMemo(

@@ -1,5 +1,6 @@
 import { formatDatefull, formatTime } from "@/utils";
 import { showNotification } from "@/pages/HomePage/utils";
+import { notify } from "@/components/feedback";
 import { api } from "@/utils/api/apiCalls";
 import { ApiError } from "@/utils/api/errors/ApiError";
 import { Modal } from "@/components/Modal";
@@ -228,8 +229,8 @@ export const EventCard = ({ event, onClose, handleEventClick, showInModal }: IPr
   };
 
   const handleShareWhatsApp = async () => {
+    const text = buildShareMessage();
     try {
-      const text = buildShareMessage();
       if (navigator.share) {
         await navigator.share({ text, title: event.event_name || "Event" });
         setShowShareMenu(false);
@@ -246,7 +247,14 @@ export const EventCard = ({ event, onClose, handleEventClick, showInModal }: IPr
       if (!w) window.location.href = webUrl;
       setShowShareMenu(false);
     } catch {
-      showNotification("Unable to open WhatsApp. Please try again.", "error");
+      notify.error({
+        title: "WhatsApp didn't open",
+        message: "Copy the event details and paste them into WhatsApp yourself.",
+        action: {
+          label: "Copy message",
+          onClick: () => void navigator.clipboard?.writeText(text),
+        },
+      });
     }
   };
 
@@ -307,10 +315,10 @@ export const EventCard = ({ event, onClose, handleEventClick, showInModal }: IPr
       const nw = window.open(url, "_blank", "noopener,noreferrer");
       if (!nw) window.location.href = url;
     } else {
-      showNotification(
-        "Unable to generate calendar link. Please check the event details.",
-        "error"
-      );
+      notify.error({
+        title: "Couldn't create calendar link",
+        message: "The event date or time couldn't be read. Check the event details.",
+      });
     }
     setShowShareMenu(false);
   };

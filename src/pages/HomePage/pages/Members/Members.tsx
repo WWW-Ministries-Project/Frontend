@@ -21,6 +21,7 @@ import {
   UiButton,
 } from "@/pages/HomePage/pages/MembershipManagement/components/membershipUi";
 import useSettingsStore from "@/pages/HomePage/pages/Settings/utils/settingsStore";
+import { notify } from "@/components/feedback";
 import { encodeQuery, showLoader, showNotification } from "@/pages/HomePage/utils";
 import { useBranchStore } from "@/store/useBranchStore";
 import { useStore } from "@/store/useStore";
@@ -204,9 +205,34 @@ export function Members() {
 
   useEffect(() => {
     if (task) {
-      showNotification(
-        task === "add" ? "Member Added Successfully" : "Member Updated Successfully"
-      );
+      // ManageMember may pass the saved member along with the task.
+      const saved = location.state?.member as
+        | { id?: string | number; name?: string }
+        | undefined;
+      const name = saved?.name?.trim();
+      const savedId = saved?.id;
+      const viewAction =
+        savedId !== undefined && savedId !== null
+          ? {
+              label: "View profile",
+              onClick: () => navigate(`/home/members/${encodeQuery(savedId)}`),
+            }
+          : undefined;
+      if (task === "add") {
+        notify.success({
+          title: "Member added",
+          message: name
+            ? `${name} is now in the member directory.`
+            : "The new member is now in the directory.",
+          action: viewAction,
+        });
+      } else {
+        notify.success({
+          title: "Member updated",
+          message: name ? `${name}'s details are saved.` : undefined,
+          action: viewAction,
+        });
+      }
       navigate(location.pathname + location.search, { replace: true, state: {} });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -239,10 +265,9 @@ export function Members() {
       showNotification(message, type);
       if (outcome.succeeded > 0) await refreshAll();
     } catch (error) {
-      showNotification(
-        (error as { message?: string })?.message || "Something went wrong",
-        "error"
-      );
+      notify.fromError(error, {
+        title: "Couldn't update the members",
+      });
     } finally {
       showLoader(false);
     }
@@ -334,7 +359,14 @@ export function Members() {
       onClick: () => {
         const ids = selectedMembers.filter(isUnconfirmed).map((member) => member.id);
         if (ids.length === 0) {
-          showNotification("No unconfirmed members in selection", "error");
+          const n = selectedMembers.length;
+          notify.info({
+            title: "Nothing to confirm",
+            message:
+              n === 1
+                ? "The selected member is already confirmed."
+                : `All ${n} selected members are already confirmed.`,
+          });
           return;
         }
         runAction(() => advanceMembers(ids, "CONFIRMED"), (count) => `${countText(count)} confirmed`);
@@ -369,11 +401,11 @@ export function Members() {
   ];
 
   /* -------------------------------- Export -------------------------------- */
+  const exportDisabled = Boolean(impossibleView) || total === 0;
+
   const exportView = async () => {
-    if (impossibleView || total === 0) {
-      showNotification("There are no members in this view to export", "error");
-      return;
-    }
+    // The Export button is disabled when the view is empty.
+    if (exportDisabled) return;
     showLoader(true);
     try {
       const response = await api.fetch.fetchAllMembers({
@@ -440,7 +472,12 @@ export function Members() {
                 count={filterCount}
                 onClick={() => setShowFilter((open) => !open)}
               />
-              <UiButton tone="secondary" onClick={exportView}>
+              <UiButton
+                tone="secondary"
+                onClick={exportView}
+                disabled={exportDisabled}
+                title={exportDisabled ? "No members match these filters." : undefined}
+              >
                 Export to Excel
               </UiButton>
               {canManageMembers && (

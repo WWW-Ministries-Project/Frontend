@@ -57,7 +57,14 @@ Zustand stores in `src/store/`:
 - Per-feature stores also exist (e.g., `src/pages/HomePage/pages/Settings/utils/settingsStore`, `src/pages/HomePage/store/globalComponentsStore`).
 
 ### Global UI utilities
-`src/pages/HomePage/utils/helperFunctions.ts` exposes `showNotification`, `showLoader`, `showDeleteDialog`, backed by `globalComponentsStore`. Use these instead of ad-hoc toasts, `alert`, or `console.log` for user-facing feedback. The corresponding UI (`Dialog`, `LoaderComponent`, `NotificationCard`) is mounted once at the shell level.
+`src/pages/HomePage/utils/helperFunctions.ts` exposes `showNotification`, `showLoader`, `showDeleteDialog`, `showConfirmDialog`, `confirmAction`, backed by `globalComponentsStore`. Use these instead of ad-hoc toasts, `alert`, or `console.log` for user-facing feedback. The corresponding UI (`Dialog`, `LoaderComponent`, `NotificationCard`) is mounted once at the shell level.
+
+### Feedback & alerts (`src/components/feedback/`)
+- `notify.success|info|warning|error|loading|partial|fromError` is the toast API for new code; `showNotification(message, type, title)` is a legacy wrapper over it. Errors and loading toasts persist until dismissed; others time out (5/6/8s, +3s with actions) and pause on hover.
+- `ApiErrorHandler` already raises a toast for every failed request. A caller's `notify.error` / `fromError` / `showNotification(…, "error")` within 1.5s folds into that toast instead of stacking a second one.
+- Pick by where the problem lives: toast = result of an action; `InlineAlert` = lasting page state; `FieldMessage` / `FormikErrorSummary` = form validation (never a toast); confirm dialog = hard-to-undo action (reversible actions use a toast with `undo` instead).
+- Confirm dialogs: pass `points` (consequences), a verb `confirmLabel`, `typeToConfirm` for branches or >10 records. If `onConfirm` returns a promise the dialog spins and shows failures inside itself.
+- Copy: title says what happened (2–4 words, no "successfully"); message names the record and the next step; errors are "Couldn't …" + reason + next step. No "Please", "Oops", "!", or status codes.
 
 ### Notifications
 `src/features/notifications/` contains `NotificationDeviceConnector` (device registration) and `NotificationRealtimeConnector` (realtime subscription). Both mount at the app root in `main.tsx`. See `docs/DEVICE_NOTIFICATION_BACKEND_CONTRACT.md` and `docs/NOTIFICATION_ACTION_URLS_AND_TRIGGERS.md` for backend contracts.

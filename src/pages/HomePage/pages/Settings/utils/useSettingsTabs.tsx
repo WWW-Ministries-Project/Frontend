@@ -161,11 +161,7 @@ export function useSettingsTabs({
                 src={deleteIcon}
                 alt="delete icon"
                 className="cursor-pointer"
-                onClick={() =>
-                  showDeleteDialog(row.original, () =>
-                    handleDelete(row.original)
-                  )
-                }
+                onClick={() => handleDelete(row.original)}
               />
             )}
           </div>

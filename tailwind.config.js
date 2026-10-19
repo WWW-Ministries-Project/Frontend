@@ -14,6 +14,7 @@ const brandColors = {
   success: colorVar("--color-success"),
   error: colorVar("--color-error"),
   warning: colorVar("--color-warning"),
+  info: colorVar("--color-info"),
 
   shadow: colorVar("--color-shadow"),
   blur: colorVar("--color-blur"),
@@ -95,6 +96,7 @@ export default {
         wiggle: "wiggle 1s",
         fadeIn: "fadeIn 1s",
         fadeOut: "fadeOut 1s",
+        "toast-in": "toast-in 0.2s ease-out",
         "pulse-ring":
           "pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite",
         "divine-glow": "divine-glow 3s ease-in-out infinite",
@@ -106,6 +108,10 @@ export default {
         "accordion-up": "accordion-up 0.2s ease-out",
       },
       keyframes: {
+        "toast-in": {
+          from: { opacity: "0", transform: "translateY(8px)" },
+          to: { opacity: "1", transform: "none" },
+        },
         "accordion-down": {
           from: { height: "0" },
           to: { height: "var(--radix-accordion-content-height)" },

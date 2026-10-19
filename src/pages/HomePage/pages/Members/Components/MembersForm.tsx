@@ -15,7 +15,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { array, boolean, date, mixed, object, string } from "yup";
 
 import { UiButton } from "@/pages/HomePage/pages/MembershipManagement/components/membershipUi";
-import { showNotification } from "@/pages/HomePage/utils";
+import { FormErrorSummary, FormErrorItem } from "@/components/feedback";
 import { ALL_BRANCHES, useBranchStore } from "@/store/useBranchStore";
 
 import {
@@ -39,6 +39,21 @@ import {
   stepHasError,
 } from "./form/memberFormSteps";
 
+/** Flattens Formik's nested errors into `{ field, message }` pairs (dot paths). */
+const flattenErrors = (errors: unknown, prefix = ""): FormErrorItem[] => {
+  if (!errors) return [];
+  if (typeof errors === "string") return [{ field: prefix, message: errors }];
+  if (Array.isArray(errors)) {
+    return errors.flatMap((entry, index) => flattenErrors(entry, `${prefix}.${index}`));
+  }
+  if (typeof errors === "object") {
+    return Object.entries(errors as Record<string, unknown>).flatMap(([key, value]) =>
+      flattenErrors(value, prefix ? `${prefix}.${key}` : key)
+    );
+  }
+  return [];
+};
+
 interface IProps {
   isEditMode: boolean;
   submitting?: boolean;
@@ -58,6 +73,8 @@ const MembersFormComponent = ({ isEditMode, submitting = false, disabled = false
   const steps = useMemo(() => getMemberFormSteps(hasFamily), [hasFamily]);
   const [currentStep, setCurrentStep] = useState<StepKey>("basic");
   const topRef = useRef<HTMLDivElement>(null);
+  // Bumped on each blocked Next/Save so the error summary shows and takes focus.
+  const [failedAttempts, setFailedAttempts] = useState(0);
   const previousIsUserRef = useRef(values.is_user);
   // Rows cleared by switching "ministry worker" off, so switching it back on
   // restores them instead of losing the member's departments.
@@ -80,6 +97,7 @@ const MembersFormComponent = ({ isEditMode, submitting = false, disabled = false
   const validateCurrentStep = useCallback(async () => {
     const errors = await validateForm();
     if (!stepHasError(step.key, errors, isUser)) return true;
+    setFailedAttempts((count) => count + 1);
 
     const errorRecord = errors as Record<string, unknown>;
     const stepTouched = stepFields(step.key, isUser).reduce<Record<string, unknown>>(
@@ -106,7 +124,7 @@ const MembersFormComponent = ({ isEditMode, submitting = false, disabled = false
       setTouched(errorsToTouched(errors) as FormikTouched<IMembersForm>, false);
       const firstInvalid = steps.find((item) => stepHasError(item.key, errors, isUser));
       if (firstInvalid) goTo(firstInvalid.key);
-      showNotification("Please complete all required fields before submitting.", "error");
+      setFailedAttempts((count) => count + 1);
       return;
     }
 
@@ -183,6 +201,14 @@ const MembersFormComponent = ({ isEditMode, submitting = false, disabled = false
     if (!hasFamily && currentStep === "family") setCurrentStep("work");
   }, [hasFamily, currentStep]);
 
+  const stepErrors = useMemo(() => {
+    if (!failedAttempts) return [];
+    const fields = stepFields(step.key, isUser);
+    return flattenErrors(formik.errors).filter((item) =>
+      fields.some((field) => item.field === field || item.field.startsWith(`${field}.`))
+    );
+  }, [failedAttempts, formik.errors, isUser, step.key]);
+
   const saveLabel = isEditMode ? "Save changes" : "Add member";
   const busy = submitting || formik.isSubmitting;
 
@@ -191,6 +217,7 @@ const MembersFormComponent = ({ isEditMode, submitting = false, disabled = false
       <MemberFormStepper steps={steps} current={step.key} onSelect={handleStepSelect} />
 
       <section className="flex flex-col gap-6 rounded-xl border border-[#D8DAE5] bg-white p-4 sm:p-6">
+        <FormErrorSummary errors={stepErrors} focusKey={failedAttempts} />
         {step.key === "basic" && <BasicInfoSection disabled={disabled} />}
         {step.key === "contact" && <ContactInfoSection disabled={disabled} />}
         {step.key === "church" && <ChurchInfoSection disabled={disabled} />}

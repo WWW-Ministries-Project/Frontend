@@ -212,10 +212,8 @@ const StaffAvailabilityFormComponent = ({
   }, [putError]);
 
   const handleSubmitForm = (values: IStaffAvailabilityForm) => {
-    if (activeBranchId === ALL_BRANCHES && !values.branch_id) {
-      showNotification("Please select a branch before saving.", "error");
-      return;
-    }
+    // The branch picker shows a field message for this after submit.
+    if (activeBranchId === ALL_BRANCHES && !values.branch_id) return;
 
     const normalizedTimeSlots = values.timeSlots
       .map((slot) => {
@@ -405,7 +403,7 @@ const StaffAvailabilityFormComponent = ({
               value={values.branch_id}
               onChange={(v) => setFieldValue("branch_id", v)}
               required
-              error={submitCount > 0 && activeBranchId === ALL_BRANCHES && !values.branch_id ? "Branch is required" : undefined}
+              error={submitCount > 0 && activeBranchId === ALL_BRANCHES && !values.branch_id ? "Choose the branch this availability is for." : undefined}
             />
             <Field
               component={FormikSelectField}

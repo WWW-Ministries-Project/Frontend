@@ -1,6 +1,6 @@
 import SkeletonLoader from "@/pages/HomePage/Components/TableSkeleton";
 import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
-import { showNotification } from "@/pages/HomePage/utils";
+import { notify } from "@/components/feedback";
 import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -116,18 +116,24 @@ const ViewEvents = () => {
 
     try {
       await navigator.clipboard.writeText(eventdetails.public_registration_url);
-      showNotification("Public registration URL copied", "success");
+      notify.success({ title: "Link copied", duration: 3000 });
     } catch {
-      showNotification("Unable to copy the registration URL", "error");
+      notify.error({
+        title: "Couldn't copy the link",
+        message: "Your browser blocked the clipboard. Select the link and copy it yourself.",
+      });
     }
   };
 
   const handleCopyOnlineLink = async (link) => {
     try {
       await navigator.clipboard.writeText(link.url);
-      showNotification(`${link.label} link copied`, "success");
+      notify.success({ title: `${link.label} link copied`, duration: 3000 });
     } catch {
-      showNotification("Unable to copy the link", "error");
+      notify.error({
+        title: "Couldn't copy the link",
+        message: "Your browser blocked the clipboard. Select the link and copy it yourself.",
+      });
     }
   };
 
