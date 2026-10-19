@@ -759,6 +759,9 @@ export const DialogShell = ({
   onConfirm,
   loading,
   ctaDisabled,
+  cancelLabel = "Cancel",
+  onCancel,
+  wide,
   children,
 }: {
   open: boolean;
@@ -770,6 +773,11 @@ export const DialogShell = ({
   onConfirm: () => void;
   loading?: boolean;
   ctaDisabled?: boolean;
+  cancelLabel?: string;
+  /** Defaults to onClose. */
+  onCancel?: () => void;
+  /** 672px instead of 520px, for multi-column forms. */
+  wide?: boolean;
   children?: ReactNode;
 }) => (
   <Modal
@@ -780,7 +788,10 @@ export const DialogShell = ({
     persist={false}
     title={title}
     description={typeof subtitle === "string" ? subtitle : title}
-    className="max-w-[520px] p-6 shadow-[0_10px_28px_rgba(8,13,45,0.2)]"
+    className={cn(
+      "p-6 shadow-[0_10px_28px_rgba(8,13,45,0.2)]",
+      wide ? "max-w-[672px]" : "max-w-[520px]"
+    )}
   >
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
@@ -789,8 +800,8 @@ export const DialogShell = ({
       </div>
       {children}
       <div className="flex justify-end gap-2">
-        <UiButton tone="secondary" onClick={onClose} disabled={loading}>
-          Cancel
+        <UiButton tone="secondary" onClick={onCancel ?? onClose} disabled={loading}>
+          {cancelLabel}
         </UiButton>
         <button
           type="button"

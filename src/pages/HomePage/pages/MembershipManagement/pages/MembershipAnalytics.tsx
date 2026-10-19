@@ -11,9 +11,6 @@ import {
   PageHeading,
   PillTabs,
 } from "@/pages/HomePage/pages/MembershipManagement/components/membershipUi";
-import {
-  formatDate,
-} from "@/pages/HomePage/pages/MembershipManagement/components/membershipUiUtils";
 import { buildBranchQuery, useBranchStore } from "@/store/useBranchStore";
 import { api } from "@/utils";
 import { SoulWonListType } from "@/utils/api/lifeCenter/interfaces";
@@ -35,6 +32,7 @@ import {
 import { AnalyticsFilterPanel } from "../components/analytics/AnalyticsFilterPanel";
 import {
   countActiveAnalyticsFilters,
+  describeAnalyticsRange,
   MembershipAnalyticsFilterState,
 } from "../components/analytics/analyticsFilterState";
 import {
@@ -233,17 +231,7 @@ export const MembershipAnalytics = () => {
     ]
   );
 
-  const periodType = filterState.period.periodType ?? "year";
-  const rangeNote =
-    periodType === "specific_date_range"
-      ? "Specific date range uses only the selected From and To dates."
-      : (filterState.period.analysisMode ?? "cumulative") === "cumulative"
-      ? `Cumulative mode starts from the first record (${formatDate(
-          effectiveDateRange.from
-        )}) and runs to ${formatDate(effectiveDateRange.to)}.`
-      : `Point in time shows only the selected period: ${formatDate(
-          effectiveDateRange.from
-        )} to ${formatDate(effectiveDateRange.to)}.`;
+  const rangeNote = describeAnalyticsRange(filterState.period, effectiveDateRange);
 
   const activeFilterCount = countActiveAnalyticsFilters(filterState);
   const memberCount = filteredMembers.length;

@@ -109,7 +109,12 @@ import type {
   SystemNotificationSettingsConfig,
 } from "./settings/systemNotificationInterfaces";
 import { PositionType } from "./settings/positionInterfaces";
-import { VisitorDetailsType, VisitorType } from "./visitors/interfaces";
+import {
+  RawFollowUpType,
+  RawVisitType,
+  VisitorDetailsType,
+  VisitorType,
+} from "./visitors/interfaces";
 import {
   Appointment,
   AppointmentBookingsQuery,
@@ -229,6 +234,17 @@ export class ApiCalls {
     query?: QueryType
   ): Promise<ApiResponse<VisitorDetailsType>> => {
     return this.fetchFromApi(`visitor/visitor`, query);
+  };
+
+  // Every visit / follow-up row the user can see (not branch scoped, no pagination).
+  fetchVisitorVisits = (query?: QueryType): Promise<ApiResponse<RawVisitType[]>> => {
+    return this.fetchFromApi("visitor/visits", query);
+  };
+
+  fetchVisitorFollowUps = (
+    query?: QueryType
+  ): Promise<ApiResponse<RawFollowUpType[]>> => {
+    return this.fetchFromApi("visitor/followups", query);
   };
 
   fetchAllVisits = (query?: QueryType): Promise<ApiResponse<unknown[]>> => {
