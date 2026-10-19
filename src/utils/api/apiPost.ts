@@ -30,6 +30,7 @@ import type {
   SaveRidePickupPointDto,
 } from "./rides/interfaces";
 import type { CreatePromotionDto, Promotion } from "./promotions/interfaces";
+import type { AnnualTheme, AnnualThemePayload } from "./theme/interfaces";
 import type {
   Sermon,
   SermonSeries,
@@ -713,8 +714,8 @@ export class ApiCreationCalls {
 
   //Create theme
   createAnnualTheme = (
-    payload: unknown
-  ): Promise<ApiResponse<unknown>> => {
+    payload: AnnualThemePayload | unknown
+  ): Promise<ApiResponse<AnnualTheme>> => {
     return this.postToApi("theme/create-theme", payload);
   }
 
@@ -826,6 +827,23 @@ export class ApiCreationCalls {
     id: number
   ): Promise<ApiResponse<Promotion>> => {
     return this.postToApi(`promotions/${id}/publish`, {});
+  };
+
+  unpublishPromotion = (id: number): Promise<ApiResponse<Promotion>> => {
+    return this.postToApi(`promotions/${id}/unpublish`, {});
+  };
+
+  /** Rewrites sort_order to 1..n in the order given. */
+  reorderPromotions = (ids: number[]): Promise<ApiResponse<Promotion[]>> => {
+    return this.postToApi("promotions/reorder", { ids });
+  };
+
+  /** Community manager: pin or unpin a post above the feed. */
+  pinCommunityPost = (
+    id: number,
+    pinned: boolean
+  ): Promise<ApiResponse<{ id: number; isPinned: boolean }>> => {
+    return this.postToApi(`community/admin/posts/${id}/pin`, { pinned });
   };
 
   archivePromotion = (

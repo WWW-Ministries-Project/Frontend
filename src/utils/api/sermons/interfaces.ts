@@ -22,6 +22,8 @@ export interface Sermon {
   series_id: number | null;
   branch_id: number | null;
   published_at: string | null;
+  /** Day preached (YYYY-MM-DD…); may be in the future for planned sermons. */
+  preached_at: string | null;
   created_at: string;
   updated_at: string;
   series: SermonSeriesRef | null;
@@ -54,6 +56,8 @@ export interface CreateSermonDto {
   youtube_url: string;
   series_id?: number | null;
   tags?: string[];
+  /** YYYY-MM-DD; null clears it. */
+  preached_at?: string | null;
 }
 
 export interface UpdateSermonDto {
@@ -62,6 +66,8 @@ export interface UpdateSermonDto {
   youtube_url?: string;
   series_id?: number | null;
   tags?: string[];
+  /** YYYY-MM-DD; null clears it. */
+  preached_at?: string | null;
 }
 
 export interface CreateSermonSeriesDto {
