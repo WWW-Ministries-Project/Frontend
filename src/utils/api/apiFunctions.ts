@@ -31,8 +31,10 @@ export const fetchData = async <T>(
     const response: AxiosResponse<
       {
         data: T;
+        meta?: { status_counts?: Record<string, number> };
       } & IPaginationMeta
     > = await axios.get(url);
+    const statusCounts = response.data.meta?.status_counts;
     return {
       data: response.data.data,
       meta: {
@@ -41,6 +43,7 @@ export const fetchData = async <T>(
         total: response.data.total,
         page_size: response.data.page_size,
         totalPages: response.data.totalPages,
+        ...(statusCounts ? { status_counts: statusCounts } : {}),
       },
       status: response.status,
       error: "",

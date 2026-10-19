@@ -1,245 +1,142 @@
-import { Button } from "@/components/Button";
-import EmptyState from "@/components/EmptyState";
-import { useFetch } from "@/CustomHooks/useFetch";
-import {
-  IMembersForm,
-  MembersForm,
-} from "@/pages/HomePage/pages/Members/Components/MembersForm";
-import { VisitorType } from "@/utils";
-import { api } from "@/utils/api/apiCalls";
-import { relativePath } from "@/utils/const";
-import { formatDate, formatPhoneNumber } from "@/utils/helperFunctions";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-type VisitorWithMemberLink = VisitorType & {
-  member_id?: string;
-  memberId?: string;
-  linked_member_id?: string;
-};
+import {
+  CellText,
+  GridColumn,
+  GridTable,
+  Pill,
+  UiButton,
+} from "@/pages/HomePage/pages/MembershipManagement/components/membershipUi";
+import {
+  formatDate,
+  plural,
+} from "@/pages/HomePage/pages/MembershipManagement/components/membershipUiUtils";
+import {
+  ManagerEmpty,
+  ManagerSection,
+  ShowMoreRows,
+} from "@/pages/HomePage/pages/MembershipManagement/components/manager/ManagerSection";
+import { useRowLimit } from "@/pages/HomePage/pages/MembershipManagement/components/manager/useRowLimit";
+import {
+  buildVisitorPrefillForm,
+  matchesQuery,
+  memberManagePath,
+  phoneLabel,
+  visitorMembershipPath,
+  visitorSourceLabel,
+} from "@/pages/HomePage/pages/MembershipManagement/components/manager/managerHelpers";
+import { useManagerData } from "@/pages/HomePage/pages/MembershipManagement/components/manager/useManagerData";
+import type { VisitorType } from "@/utils/api/visitors/interfaces";
 
-const memberManagePath = `${relativePath.home.main}/${relativePath.home.members.manage}`;
-const visitorMembershipPath = `${relativePath.home.main}/${relativePath.home.membership.main}/${relativePath.home.membership.management.main}/${relativePath.home.membership.management.visitorToMembership}`;
-
-const getMemberLinkId = (visitor: VisitorType): string | null => {
-  const visitorWithLink = visitor as VisitorWithMemberLink;
-
-  return (
-    visitorWithLink.member_id ||
-    visitorWithLink.memberId ||
-    visitorWithLink.linked_member_id ||
-    null
-  );
-};
-
-const buildPrefillForm = (visitor: VisitorType): IMembersForm => ({
-  ...MembersForm.initialValues,
-  personal_info: {
-    ...MembersForm.initialValues.personal_info,
-    title: visitor.title || "",
-    first_name: visitor.firstName || "",
-    other_name: visitor.otherName || "",
-    last_name: visitor.lastName || "",
-    gender: visitor.gender || "",
-    marital_status: visitor.marital_status || "",
-    nationality: visitor.nationality || "",
-    has_children: false,
-  },
-  picture: {
-    ...MembersForm.initialValues.picture,
-  },
-  contact_info: {
-    ...MembersForm.initialValues.contact_info,
-    email: visitor.email || "",
-    resident_country: visitor.country || "",
-    state_region: visitor.state || "",
-    city: visitor.city || "",
-    phone: {
-      country_code:
-        visitor.country_code ||
-        MembersForm.initialValues.contact_info.phone.country_code,
-      number: visitor.phone || "",
-    },
-  },
-  work_info: {
-    ...MembersForm.initialValues.work_info,
-  },
-  emergency_contact: {
-    ...MembersForm.initialValues.emergency_contact,
-    phone: {
-      country_code:
-        MembersForm.initialValues.emergency_contact.phone?.country_code ?? "",
-      number: MembersForm.initialValues.emergency_contact.phone?.number ?? "",
-    },
-  },
-  church_info: {
-    ...MembersForm.initialValues.church_info,
-    membership_type: "IN_HOUSE",
-  },
-  department_positions: [],
-  family: [],
-});
-
-const getVisitorSourceLabel = (visitor: VisitorType): string => {
-  const displayName = [visitor.firstName, visitor.lastName]
-    .filter(Boolean)
-    .join(" ")
-    .trim();
-
-  return displayName ? `${displayName} (visitor)` : `Visitor ${visitor.id}`;
-};
-
-const extractVisitors = (source: unknown): VisitorType[] => {
-  let currentSource = source;
-
-  for (let depth = 0; depth < 4; depth += 1) {
-    if (Array.isArray(currentSource)) return currentSource as VisitorType[];
-
-    if (
-      currentSource &&
-      typeof currentSource === "object" &&
-      "data" in currentSource
-    ) {
-      currentSource = (currentSource as { data?: unknown }).data;
-      continue;
-    }
-
-    break;
-  }
-
-  return [];
-};
+const visitorName = (visitor: VisitorType) =>
+  [visitor.title, visitor.firstName, visitor.lastName].filter(Boolean).join(" ") || "—";
 
 export const VisitorToMembership = () => {
   const navigate = useNavigate();
-  const { data, loading } = useFetch(api.fetch.fetchAllVisitors);
+  const { visitors, visitorsLoading } = useManagerData();
+  const [query, setQuery] = useState("");
 
-  const allVisitors = useMemo(() => extractVisitors(data?.data), [data]);
-
-  const convertibleVisitors = useMemo(
+  const rows = useMemo(
     () =>
-      allVisitors
-        .filter((visitor) => !visitor.is_member && !getMemberLinkId(visitor))
-        .sort(
-          (left, right) =>
-            Number(Boolean(right.membershipWish)) -
-            Number(Boolean(left.membershipWish))
-        ),
-    [allVisitors]
+      visitors.filter((visitor) =>
+        matchesQuery(query, [
+          visitor.firstName,
+          visitor.otherName,
+          visitor.lastName,
+          visitor.email,
+          visitor.phone,
+        ])
+      ),
+    [visitors, query]
   );
+  const { visible, remaining, showMore } = useRowLimit(rows, query);
 
-  const handleOpenMemberForm = (visitor: VisitorType) => {
+  const convert = (visitor: VisitorType) =>
     navigate(memberManagePath, {
       state: {
         afterSubmitPath: visitorMembershipPath,
-        prefillMemberForm: buildPrefillForm(visitor),
-        prefillSourceLabel: getVisitorSourceLabel(visitor),
+        prefillMemberForm: buildVisitorPrefillForm(visitor),
+        prefillSourceLabel: visitorSourceLabel(visitor),
         sourceVisitorId: visitor.id,
       },
     });
-  };
+
+  const columns: GridColumn<VisitorType>[] = [
+    {
+      key: "visitor",
+      header: "Visitor",
+      width: "minmax(200px,2fr)",
+      render: (visitor) => (
+        <CellText strong main={visitorName(visitor)} sub={visitor.email || "No email"} />
+      ),
+    },
+    {
+      key: "phone",
+      header: "Phone number",
+      width: "1.2fr",
+      render: (visitor) => <CellText main={phoneLabel(visitor.country_code, visitor.phone)} />,
+    },
+    {
+      key: "visits",
+      header: "Visits",
+      width: "1.2fr",
+      render: (visitor) => {
+        // The list only exposes the first visit date, not the latest one.
+        const first = visitor.visitDate ?? visitor.createdAt;
+        return (
+          <CellText
+            main={plural(visitor.visitCount ?? 0, "visit")}
+            sub={first ? `First visit ${formatDate(first as string)}` : undefined}
+          />
+        );
+      },
+    },
+    {
+      key: "interest",
+      header: "Membership interest",
+      width: "1.2fr",
+      render: (visitor) =>
+        visitor.membershipWish ? (
+          <Pill tone="success">Wants membership</Pill>
+        ) : (
+          <Pill tone="neutral">Not asked yet</Pill>
+        ),
+    },
+  ];
 
   return (
-    <div className="space-y-4">
-      {loading && convertibleVisitors.length === 0 ? (
-        <div className="text-sm text-gray-600">Loading visitors...</div>
-      ) : null}
-
-      {convertibleVisitors.length === 0 ? (
-        <EmptyState
-          scope="page"
-          msg="No visitors are currently available for membership conversion"
-        />
+    <ManagerSection
+      title="Visitors not yet members"
+      description="Visitors who asked about membership are listed first. Converting opens the member form with their details filled in."
+      query={query}
+      onQueryChange={setQuery}
+    >
+      {rows.length > 0 || (visitorsLoading && visitors.length === 0) ? (
+        <>
+          <GridTable
+            columns={columns}
+            rows={visible}
+            getRowId={(visitor) => String(visitor.id)}
+            loading={visitorsLoading}
+            actionsWidth="180px"
+            renderActions={(visitor) => (
+              <UiButton tone="primary" size="sm" onClick={() => convert(visitor)}>
+                Convert to member
+              </UiButton>
+            )}
+          />
+          <ShowMoreRows remaining={remaining} onClick={showMore} />
+        </>
       ) : (
-        <section className="rounded-xl border border-lightGray overflow-hidden">
-          <div className="p-4 border-b border-lightGray">
-            <h2 className="text-lg font-semibold text-primary">
-              Visitor-to-Membership ({convertibleVisitors.length})
-            </h2>
-            <p className="text-sm text-gray-600">
-              Start member creation from visitor records. The standard member
-              form opens with available visitor details already filled in, and
-              interested visitors are listed first.
-            </p>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-lightGray text-primary">
-                <tr>
-                  <th className="px-4 py-3 text-left font-semibold">Title</th>
-                  <th className="px-4 py-3 text-left font-semibold">Name</th>
-                  <th className="px-4 py-3 text-left font-semibold">Email</th>
-                  <th className="px-4 py-3 text-left font-semibold">Phone</th>
-                  <th className="px-4 py-3 text-left font-semibold">
-                    Date Registered
-                  </th>
-                  <th className="px-4 py-3 text-left font-semibold">
-                    Interest
-                  </th>
-                  <th className="px-4 py-3 text-left font-semibold">
-                    Member Link
-                  </th>
-                  <th className="px-4 py-3 text-left font-semibold">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {convertibleVisitors.map((visitor) => {
-                  const linkedMemberId = getMemberLinkId(visitor);
-                  const alreadyConverted = Boolean(
-                    visitor.is_member || linkedMemberId
-                  );
-
-                  return (
-                    <tr
-                      key={visitor.id}
-                      className="border-t border-lightGray"
-                    >
-                      <td className="px-4 py-3">{visitor.title || "-"}</td>
-                      <td className="px-4 py-3">
-                        {visitor.firstName} {visitor.lastName}
-                      </td>
-                      <td className="px-4 py-3">{visitor.email || "-"}</td>
-                      <td className="px-4 py-3">
-                        {formatPhoneNumber(visitor.country_code, visitor.phone)}
-                      </td>
-                      <td className="px-4 py-3">
-                        {formatDate(visitor.createdAt, "long")}
-                      </td>
-                      <td className="px-4 py-3">
-                        {visitor.membershipWish ? "Interested" : "Not marked"}
-                      </td>
-                      <td className="px-4 py-3">
-                        {linkedMemberId
-                          ? `Linked: ${linkedMemberId}`
-                          : visitor.is_member
-                            ? "Linked"
-                            : "Not linked"}
-                      </td>
-                      <td className="px-4 py-3">
-                        <Button
-                          value={
-                            alreadyConverted
-                              ? "Converted"
-                              : "Open Member Form"
-                          }
-                          variant={
-                            alreadyConverted ? "secondary" : "primary"
-                          }
-                          className="min-w-[10rem]"
-                          disabled={alreadyConverted}
-                          onClick={() => handleOpenMemberForm(visitor)}
-                        />
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </section>
+        <ManagerEmpty
+          query={query}
+          onResetQuery={() => setQuery("")}
+          title="No visitors to convert"
+          text="Visitors appear here until they become members."
+        />
       )}
-    </div>
+    </ManagerSection>
   );
 };
 

@@ -41,11 +41,12 @@ const mapDepartmentPositions = (
           const positionId = item.position_id ?? item.position?.id;
 
           if (departmentId === undefined || departmentId === null) return null;
-          if (positionId === undefined || positionId === null) return null;
-
+          // Rows without a position are valid; dropping them here would delete
+          // them on save because the backend replaces every row.
           return {
             department_id: String(departmentId),
-            position_id: String(positionId),
+            position_id:
+              positionId === undefined || positionId === null ? "" : String(positionId),
             start_date: toDateInput(item.start_date),
             end_date: toDateInput(item.end_date),
           };
@@ -121,6 +122,7 @@ export const mapUserData = (input: IMemberInfo): IMembersForm => {
         country_code: input.country_code || "",
         number: formatPhone(input.primary_number),
       },
+      other_number: input.other_number || "",
     },
     work_info: {
       work_name: input.work_info?.name_of_institution || "",

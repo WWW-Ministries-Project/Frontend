@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import Multiselect from "@/components/MultiSelect";
 import { api } from "@/utils/api/apiCalls";
 import { useStore } from "@/store/useStore";
-import type { DepartmentType } from "@/utils/interfaces";
+import type { DepartmentType } from "@/utils/api/settings/departmentInterfaces";
 import type {
   AudienceCount,
   AudienceScope,

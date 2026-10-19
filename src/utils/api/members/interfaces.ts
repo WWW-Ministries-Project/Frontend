@@ -96,6 +96,33 @@ export type MembersType = {
   // Set by the API when the member is on the viewer's Members exclusion
   // list; contact details come back null.
   is_restricted?: boolean;
+  // Added by `list-users` for the membership redesign. Masked (null) for
+  // restricted members.
+  gender?: string | null;
+  city?: string | null;
+  state_region?: string | null;
+  nationality?: string | null;
+  has_emergency_contact?: boolean | null;
+  children_count?: number | null;
+  /** Converted from a visitor record / a life-center soul-won record. */
+  from_visitor?: boolean;
+  from_soul_won?: boolean;
+  // ISO strings; null for members whose stage changed before tracking began.
+  confirmed_at?: string | null;
+  functional_at?: string | null;
+};
+
+/** `list-users` status totals returned with `include_status_counts=true`. */
+export type MemberStatusCounts = {
+  all: number;
+  UNCONFIRMED: number;
+  CONFIRMED: number;
+  MEMBER: number;
+  inactive: number;
+};
+
+export type MembersListMeta = {
+  status_counts?: MemberStatusCounts;
 };
 
 export type AccessLevelType = {
@@ -132,6 +159,10 @@ export interface IEnrolledProgramItem {
     id?: number | string;
     name?: string;
   };
+  /** 0–100, from completed topics over the program's topics. */
+  progress_percent?: number;
+  completed_topics?: number;
+  total_topics?: number;
   status?: {
     completed?: boolean;
     label?: string;
@@ -158,6 +189,7 @@ export interface IMemberInfo {
   gender: string;
   marital_status: string;
   primary_number: string;
+  other_number?: string | null;
   country_code: string;
   email: string;
   isMinistryWorker: boolean;
@@ -200,6 +232,9 @@ export interface IMemberInfo {
   >;
   photo: string;
   country: string;
+  confirmed_at?: string | null;
+  member_source?: MemberSource | null;
+  functional_at?: string | null;
 }
 
 export interface IFamilyMemberRecord {
@@ -255,3 +290,24 @@ export interface IFamilyInformationRaw {
   siblings: IFamilyRelationRaw[];
   others: IFamilyRelationRaw[];
 }
+
+/** Where a member came from before joining (`user/get-user`). */
+export type MemberSource =
+  | {
+      type: "VISITOR";
+      visitor: {
+        id: number;
+        first_visit_at: string | null;
+        last_visit_at: string | null;
+        visit_count: number;
+      };
+    }
+  | {
+      type: "SOUL_WON";
+      soul_won: {
+        id: number;
+        date_won: string | null;
+        life_center_name: string | null;
+        won_by_name: string | null;
+      };
+    };

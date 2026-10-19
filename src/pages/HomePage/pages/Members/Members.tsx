@@ -1,66 +1,71 @@
-import type { ColumnFilter } from "@tanstack/react-table";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   useLocation,
   useNavigate,
   useOutletContext,
   useSearchParams,
 } from "react-router-dom";
-import useState from "react-usestateref";
 
-import { useDelete } from "@/CustomHooks/useDelete";
-import { useFetch } from "@/CustomHooks/useFetch";
 import { useAccessControl } from "@/CustomHooks/useAccessControl";
-import { HeaderControls } from "@/components/HeaderControls";
-import EmptyState from "@/components/EmptyState";
+import { useFetch } from "@/CustomHooks/useFetch";
+import { usePaginate } from "@/CustomHooks/usePaginate";
+import {
+  ActionMenuItem,
+  BulkBar,
+  FilterToggleButton,
+  PageHeading,
+  PillTabs,
+  SearchInput,
+  SectionEmpty,
+  SelectInput,
+  UiButton,
+} from "@/pages/HomePage/pages/MembershipManagement/components/membershipUi";
+import useSettingsStore from "@/pages/HomePage/pages/Settings/utils/settingsStore";
+import { encodeQuery, showLoader, showNotification } from "@/pages/HomePage/utils";
+import { useBranchStore } from "@/store/useBranchStore";
 import { useStore } from "@/store/useStore";
-import { MembersType, relativePath } from "@/utils";
+import { relativePath } from "@/utils";
 import { api } from "@/utils/api/apiCalls";
+import {
+  advanceMembers,
+  BulkOutcome,
+  describeOutcome,
+  exportMembersToExcel,
+  setMembersActive,
+} from "@/utils/api/members/membershipActions";
 import { QueryType } from "@/utils/interfaces";
-import useWindowSize from "../../../../CustomHooks/useWindowSize";
-import { SearchBar } from "../../../../components/SearchBar";
+
 import PageOutline from "../../Components/PageOutline";
-import GridComponent from "../../Components/reusable/GridComponent";
-import { MembersCount } from "../../Components/reusable/MembersCount";
-import { showDeleteDialog, showNotification } from "../../utils";
 import { MemberCard } from "./Components/MemberCard";
 import MembersFilter from "./Components/MembersFilter";
-import { membersColumns } from "./utils";
-import { UserType } from "./utils/membersInterfaces";
+import { DirectoryDialog, DirectoryDialogs } from "./Components/directory/DirectoryDialogs";
+import { DirectoryStats } from "./Components/directory/DirectoryStats";
+import {
+  buildDirectoryQuery,
+  DirectoryFilters,
+  DirectoryMember,
+  EXPORT_TAKE,
+  FILTER_KEYS,
+  PAGE_SIZE,
+  parseSort,
+  parseStatusTab,
+  SORT_OPTIONS,
+  STATUS_TABS,
+  statusTabCount,
+  toExportRow,
+  ViewMode,
+} from "./Components/directory/directoryHelpers";
+import { MembersTable } from "./Components/directory/MembersTable";
 
-const PAGE_SIZE = 12;
-const MEMBER_FILTER_KEYS = [
-  "membership_type",
-  "is_user",
-  "department_id",
-  "status",
-  "is_active",
-] as const;
+const crumbs = [{ label: "Home", link: "/home" }, { label: "Members" }];
 
-const getMembershipTypeLabel = (value: string) => {
-  if (value === "IN_HOUSE") return "In Person";
-  if (value === "ONLINE") return "Online";
-  return value;
-};
+const countText = (count: number) => `${count} ${count === 1 ? "member" : "members"}`;
 
-const getWorkerLabel = (value: string) => {
-  if (value === "true") return "Workers";
-  if (value === "false") return "Non-workers";
-  return value;
-};
+/** The directory stat cards count active members only. */
+const ACTIVE_STATS_QUERY: QueryType = { active_only: "true" };
 
-const getStatusLabel = (value: string) => {
-  if (value === "UNCONFIRMED") return "Unconfirmed";
-  if (value === "CONFIRMED") return "Confirmed";
-  if (value === "MEMBER") return "Functional Member";
-  return value;
-};
-
-const getActivityLabel = (value: string) => {
-  if (value === "true") return "Active";
-  if (value === "false") return "Inactive";
-  return value;
-};
+const isUnconfirmed = (member: DirectoryMember) =>
+  !member.status || member.status === "UNCONFIRMED";
 
 export function Members() {
   const location = useLocation();
@@ -69,598 +74,538 @@ export function Members() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { canManage, isExcluded } = useAccessControl();
   const canManageMembers = canManage("Members");
+  const activeBranchId = useBranchStore((state) => state.activeBranchId);
+  const departments = useSettingsStore((state) => state.departments);
+  const store = useStore();
 
   const { refetchMembersOptions } = useOutletContext<{
     refetchMembersOptions: (query?: QueryType) => void;
   }>();
 
+  /* ------------------------------ URL state ------------------------------ */
   const pageParam = searchParams.get("page")?.trim() || "1";
-  const takeParam = searchParams.get("take")?.trim() || String(PAGE_SIZE);
-  const activeSearchTerm = searchParams.get("search")?.trim() || "";
-  const membershipTypeFilter =
-    searchParams.get("membership_type")?.trim() || "";
-  const ministryRoleFilter = searchParams.get("is_user")?.trim() || "";
-  const departmentFilter = searchParams.get("department_id")?.trim() || "";
-  const statusFilter = searchParams.get("status")?.trim() || "";
-  const activeStateFilter = searchParams.get("is_active")?.trim() || "";
+  const activeSearch = searchParams.get("search")?.trim() || "";
+  const statusTab = parseStatusTab(searchParams.get("status"));
+  const sort = parseSort(searchParams.get("sort"));
+  const viewMode: ViewMode = searchParams.get("view") === "table" ? "table" : "cards";
+  const filters: DirectoryFilters = {
+    membership_type: searchParams.get("membership_type")?.trim() || "",
+    is_user: searchParams.get("is_user")?.trim() || "",
+    department_id: searchParams.get("department_id")?.trim() || "",
+    is_active: searchParams.get("is_active")?.trim() || "",
+  };
+  const filterSignature = FILTER_KEYS.map((key) => filters[key]).join("|");
+  const filterCount = FILTER_KEYS.filter((key) => filters[key]).length;
 
-  const [filterMembers, setFilterMembers] = useState(activeSearchTerm);
-  const [columnFilters, setColumnFilters] = useState<ColumnFilter[]>([]);
-  const [showOptions, setShowOptions] = useState(false);
-  const [, setDataToDelete, dataToDeleteRef] = useState<UserType | object>({});
-  const [showSearch, setShowSearch] = useState(Boolean(activeSearchTerm));
-  const [showFilter, setShowFilter] = useState(
-    Boolean(
-      membershipTypeFilter ||
-      ministryRoleFilter ||
-      departmentFilter ||
-      statusFilter ||
-      activeStateFilter,
-    ),
+  const [searchDraft, setSearchDraft] = useState(activeSearch);
+  const [showFilter, setShowFilter] = useState(filterCount > 0);
+  const [selected, setSelected] = useState<Map<string, DirectoryMember>>(new Map());
+  const [dialog, setDialog] = useState<DirectoryDialog>(null);
+
+  const updateQuery = useCallback(
+    (updates: Record<string, string | null | undefined>, resetPage = true) => {
+      const next = new URLSearchParams(searchParams);
+      Object.entries(updates).forEach(([key, value]) => {
+        const normalized = typeof value === "string" ? value.trim() : value;
+        if (normalized) next.set(key, normalized);
+        else next.delete(key);
+      });
+      if (resetPage) next.set("page", "1");
+      next.set("take", String(PAGE_SIZE));
+      setSearchParams(next, { replace: true });
+    },
+    [searchParams, setSearchParams]
   );
 
-  const membersQuery = useMemo(() => {
-    const query: QueryType = {
+  /* -------------------------------- Queries ------------------------------- */
+  const tabQuery = useMemo(
+    () => buildDirectoryQuery(statusTab, filters, activeSearch),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [statusTab, filterSignature, activeSearch]
+  );
+  // A status tab that contradicts the Activity filter can't match anything.
+  const impossibleView = tabQuery === null;
+
+  const membersQuery = useMemo<QueryType>(() => {
+    const base =
+      tabQuery ??
+      buildDirectoryQuery(statusTab, { ...filters, is_active: "" }, activeSearch) ??
+      {};
+    return {
+      ...base,
+      ...(sort !== "name" ? { sort } : {}),
+      include_status_counts: "true",
       page: pageParam,
-      take: takeParam,
+      take: String(PAGE_SIZE),
     };
-
-    if (activeSearchTerm) query.search = activeSearchTerm;
-    if (membershipTypeFilter) query.membership_type = membershipTypeFilter;
-    if (ministryRoleFilter) query.is_user = ministryRoleFilter;
-    if (departmentFilter) query.department_id = departmentFilter;
-    if (statusFilter) query.status = statusFilter;
-    if (activeStateFilter) query.is_active = activeStateFilter;
-
-    return query;
-  }, [
-    activeSearchTerm,
-    activeStateFilter,
-    departmentFilter,
-    membershipTypeFilter,
-    ministryRoleFilter,
-    pageParam,
-    statusFilter,
-    takeParam,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tabQuery, pageParam, sort]);
 
   const {
-    data: allMembers,
+    data: membersResponse,
     loading: membersLoading,
     refetch: refetchMembers,
   } = useFetch(api.fetch.fetchAllMembers, membersQuery);
-  const { data: departmentsResponse, refetch: refetchDepartments } = useFetch(
-    api.fetch.fetchDepartments,
-    undefined,
-    true,
-  );
-  const members = Array.isArray(allMembers?.data) ? allMembers.data : [];
-  const total = allMembers?.meta?.total ?? members.length;
-
-  const columnVisibility = useMemo(() => {
-    return {
-      membership_type: false,
-      is_user: false,
-      department_id: false,
-      Actions: canManageMembers,
-    };
-  }, [canManageMembers]);
-
-  const { screenWidth } = useWindowSize();
-  const { executeDelete, success } = useDelete(api.delete.deleteMember);
+  // Shared shell stats (all members) stay as HomePage loaded them; refreshed
+  // after changes so other screens see the update.
   const { refetch: refetchUserStats } = useFetch(
     api.fetch.fetchUserStats,
     undefined,
-    true,
+    true
   );
-  const store = useStore();
-  const { userStats } = store;
-
-  const columns = membersColumns;
-  const crumbs = [
-    { label: "Home", link: "/home" },
-    { label: "Members", link: "/members" },
-  ];
-
-  const updateMemberQuery = useCallback(
-    (updates: Record<string, string | null | undefined>) => {
-      const nextParams = new URLSearchParams(searchParams);
-
-      Object.entries(updates).forEach(([key, value]) => {
-        const normalizedValue =
-          typeof value === "string" ? value.trim() : value;
-
-        if (normalizedValue) nextParams.set(key, normalizedValue);
-        else nextParams.delete(key);
-      });
-
-      nextParams.set("page", "1");
-      nextParams.set("take", String(PAGE_SIZE));
-      setSearchParams(nextParams, { replace: true });
-    },
-    [searchParams, setSearchParams],
+  const { data: activeStatsResponse, refetch: refetchActiveStats } = useFetch(
+    api.fetch.fetchUserStats,
+    ACTIVE_STATS_QUERY,
+    false,
+    { silent: true }
   );
+  const activeStats = activeStatsResponse?.data ?? null;
 
-  const departmentOptions = useMemo(() => {
-    const departments = Array.isArray(departmentsResponse?.data)
-      ? departmentsResponse.data
+  const rows = useMemo(() => {
+    if (impossibleView) return [];
+    return Array.isArray(membersResponse?.data)
+      ? (membersResponse.data as DirectoryMember[])
       : [];
+  }, [impossibleView, membersResponse]);
+  const total = impossibleView
+    ? 0
+    : membersResponse?.meta?.total ?? rows.length;
 
-    return [
-      { label: "Unassigned", value: "unassigned" },
-      ...departments.map((department) => ({
-        label: department.name,
-        value: String(department.id),
-      })),
-    ];
-  }, [departmentsResponse]);
+  const { currentPage, totalPages, canGoBack, canGoForward, goBack, goForward } =
+    usePaginate({ total, take: PAGE_SIZE, onPageChange: () => undefined });
 
-  const departmentLabelById = useMemo(() => {
-    return departmentOptions.reduce<Record<string, string>>((acc, option) => {
-      acc[option.value] = option.label;
-      return acc;
-    }, {});
-  }, [departmentOptions]);
+  // After deletes or status moves the last page can disappear; step back to
+  // the new last page instead of showing an empty view without a pager.
+  useEffect(() => {
+    if (membersLoading || !membersResponse) return;
+    const lastPage = Math.max(1, Math.ceil(total / PAGE_SIZE));
+    if (currentPage > lastPage) updateQuery({ page: String(lastPage) }, false);
+  }, [currentPage, membersLoading, membersResponse, total, updateQuery]);
 
-  const activeFilterChips = useMemo(() => {
-    const chips: Array<{ key: string; label: string }> = [];
+  // Tab counts come back with the list (`include_status_counts`). They ignore
+  // the status and activity filters, so apply the Activity filter here.
+  const statusCounts = membersResponse?.meta?.status_counts;
 
-    if (membershipTypeFilter) {
-      chips.push({
-        key: "membership_type",
-        label: `Membership: ${getMembershipTypeLabel(membershipTypeFilter)}`,
-      });
-    }
-
-    if (ministryRoleFilter) {
-      chips.push({
-        key: "is_user",
-        label: `Ministry role: ${getWorkerLabel(ministryRoleFilter)}`,
-      });
-    }
-
-    if (departmentFilter) {
-      chips.push({
-        key: "department_id",
-        label: `Department: ${departmentLabelById[departmentFilter] || "Selected"}`,
-      });
-    }
-
-    if (statusFilter) {
-      chips.push({
-        key: "status",
-        label: `Status: ${getStatusLabel(statusFilter)}`,
-      });
-    }
-
-    if (activeStateFilter) {
-      chips.push({
-        key: "is_active",
-        label: `Activity: ${getActivityLabel(activeStateFilter)}`,
-      });
-    }
-
-    return chips;
-  }, [
-    activeStateFilter,
-    departmentFilter,
-    departmentLabelById,
-    membershipTypeFilter,
-    ministryRoleFilter,
-    statusFilter,
-  ]);
-
-  const hasLoadedMembers = allMembers !== null;
-  const hasActiveSearch = activeSearchTerm.length > 0;
-  const hasActiveFilters = activeFilterChips.length > 0;
-  const showSearchEmptyState =
-    hasLoadedMembers &&
-    !membersLoading &&
-    members.length === 0 &&
-    hasActiveSearch;
-  const showFilterEmptyState =
-    hasLoadedMembers &&
-    !membersLoading &&
-    members.length === 0 &&
-    !hasActiveSearch &&
-    hasActiveFilters;
-  const showPageEmptyState =
-    hasLoadedMembers &&
-    !membersLoading &&
-    members.length === 0 &&
-    !hasActiveSearch &&
-    !hasActiveFilters;
+  /* ------------------------------- Effects -------------------------------- */
+  useEffect(() => {
+    setSearchDraft(activeSearch);
+  }, [activeSearch]);
 
   useEffect(() => {
-    setFilterMembers(activeSearchTerm);
-  }, [activeSearchTerm, setFilterMembers]);
+    const term = searchDraft.trim();
+    if (term === activeSearch) return;
+    const timer = window.setTimeout(() => updateQuery({ search: term || null }), 400);
+    return () => window.clearTimeout(timer);
+  }, [searchDraft, activeSearch, updateQuery]);
 
   useEffect(() => {
-    if (!searchParams.get("page") || !searchParams.get("take")) {
-      const nextParams = new URLSearchParams(searchParams);
-      if (!searchParams.get("page")) nextParams.set("page", "1");
-      if (!searchParams.get("take")) nextParams.set("take", String(PAGE_SIZE));
-      setSearchParams(nextParams, { replace: true });
-    }
-  }, [searchParams, setSearchParams]);
+    setSelected(new Map());
+  }, [activeBranchId]);
 
-  useEffect(() => {
-    if (hasActiveSearch) setShowSearch(true);
-  }, [hasActiveSearch, setShowSearch]);
-
-  useEffect(() => {
-    if (hasActiveFilters) setShowFilter(true);
-  }, [hasActiveFilters, setShowFilter]);
-
-  useEffect(() => {
-    if (showFilter || departmentFilter) {
-      refetchDepartments();
-    }
-  }, [departmentFilter, refetchDepartments, showFilter]);
-
-  // Handle notifications on delete
-  useEffect(() => {
-    const handleEffect = async () => {
-      if (success) {
-        showNotification("Member Deleted Successfully");
-        refetchMembers();
-        refetchMembersOptions();
-        const userStatsData = await refetchUserStats();
-        if (userStatsData) store.setUserStats(userStatsData.data);
-      }
-    };
-    handleEffect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [success]);
-
-  // Show notification after adding a member
   useEffect(() => {
     if (task) {
       showNotification(
-        task === "add"
-          ? "Member Added Successfully"
-          : "Member Updated Successfully",
+        task === "add" ? "Member Added Successfully" : "Member Updated Successfully"
       );
-      navigate(location.pathname, { replace: true, state: {} });
+      navigate(location.pathname + location.search, { replace: true, state: {} });
     }
-  }, [task, location.pathname, navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [task]);
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFilterMembers(e.target.value);
-  };
-
-  const handleSearchSubmit = useCallback(() => {
-    const normalizedName = filterMembers.trim();
-    updateMemberQuery({ search: normalizedName || null });
-  }, [filterMembers, updateMemberQuery]);
-
-  const handleNavigation = () => {
-    navigate(`/home/${relativePath.home.members.manage}`);
-  };
-
-  const handleDelete = async () => {
-    if (!("id" in dataToDeleteRef.current)) return;
-    const id = dataToDeleteRef.current.id;
-    await executeDelete({ id: String(id) });
-  };
-
-  const handleDeleteModal = (val?: MembersType) => {
-    if (val) {
-      setDataToDelete(val);
-      showDeleteDialog(val, handleDelete);
-    }
-  };
-
-  const handleFilterChange = (name: string, value: string) => {
-    updateMemberQuery({ [name]: value || null });
-  };
-
-  const clearSearch = useCallback(() => {
-    setFilterMembers("");
-    updateMemberQuery({ search: null });
-  }, [setFilterMembers, updateMemberQuery]);
-
-  const clearMemberFilters = useCallback(() => {
-    const filterResets = MEMBER_FILTER_KEYS.reduce<
-      Record<string, string | null | undefined>
-    >((acc, key) => {
-      acc[key] = null;
-      return acc;
-    }, {});
-
-    updateMemberQuery(filterResets);
-  }, [updateMemberQuery]);
-
-  const clearAllCriteria = useCallback(() => {
-    const resets = MEMBER_FILTER_KEYS.reduce<
-      Record<string, string | null | undefined>
-    >(
-      (acc, key) => {
-        acc[key] = null;
-        return acc;
-      },
-      { search: null },
-    );
-
-    setFilterMembers("");
-    updateMemberQuery(resets);
-  }, [setFilterMembers, updateMemberQuery]);
-
-  const clearSingleFilter = useCallback(
-    (key: string) => {
-      updateMemberQuery({ [key]: null });
-    },
-    [updateMemberQuery],
+  /* ------------------------------- Helpers -------------------------------- */
+  const isRestricted = useCallback(
+    (member: DirectoryMember) =>
+      Boolean(member.is_restricted) || isExcluded("Members", member.id),
+    [isExcluded]
   );
 
-  const membersCount = [
+  const refreshAll = useCallback(async () => {
+    setSelected(new Map());
+    refetchMembers();
+    refetchMembersOptions();
+    refetchActiveStats();
+    const stats = await refetchUserStats();
+    if (stats) store.setUserStats(stats.data);
+  }, [refetchActiveStats, refetchMembers, refetchMembersOptions, refetchUserStats, store]);
+
+  const runAction = async (
+    action: () => Promise<BulkOutcome>,
+    successText: (count: number) => string
+  ) => {
+    showLoader(true);
+    try {
+      const outcome = await action();
+      const { message, type } = describeOutcome(outcome, successText);
+      showNotification(message, type);
+      if (outcome.succeeded > 0) await refreshAll();
+    } catch (error) {
+      showNotification(
+        (error as { message?: string })?.message || "Something went wrong",
+        "error"
+      );
+    } finally {
+      showLoader(false);
+    }
+  };
+
+  const viewProfile = (member: DirectoryMember) =>
+    navigate(`/home/members/${encodeQuery(member.id)}`);
+
+  const menuItemsFor = (member: DirectoryMember): ActionMenuItem[] => {
+    const restricted = isRestricted(member);
+    const inactive = member.is_active === false;
+    return [
+      { label: "View profile", hidden: restricted, onClick: () => viewProfile(member) },
+      {
+        label: "Edit details",
+        hidden: restricted || !canManageMembers,
+        onClick: () =>
+          navigate(
+            `/home/${relativePath.home.members.manage}?member_id=${encodeQuery(member.id)}`
+          ),
+      },
+      {
+        label: "Confirm membership",
+        hidden: !canManageMembers || !isUnconfirmed(member),
+        onClick: () =>
+          runAction(
+            () => advanceMembers([member.id], "CONFIRMED"),
+            () => `${member.name} confirmed`
+          ),
+      },
+      {
+        label: "Mark as functional member",
+        hidden: !canManageMembers || member.status !== "CONFIRMED",
+        onClick: () =>
+          runAction(
+            () => advanceMembers([member.id], "MEMBER"),
+            () => `${member.name} is now a functional member`
+          ),
+      },
+      {
+        label: "Change status…",
+        hidden: !canManageMembers,
+        onClick: () => setDialog({ kind: "status", members: [member] }),
+      },
+      {
+        label: inactive ? "Reactivate" : "Mark inactive",
+        hidden: !canManageMembers,
+        onClick: () =>
+          runAction(
+            () => setMembersActive([member.id], inactive),
+            () => `${member.name} ${inactive ? "reactivated" : "marked inactive"}`
+          ),
+      },
+      {
+        label: "Delete member",
+        danger: true,
+        hidden: !canManageMembers,
+        onClick: () => setDialog({ kind: "delete", members: [member] }),
+      },
+    ];
+  };
+
+  /* ------------------------------ Selection ------------------------------- */
+  const selectedIds = useMemo(() => Array.from(selected.keys()), [selected]);
+  const selectedMembers = useMemo(() => Array.from(selected.values()), [selected]);
+  const pageIds = rows.map((member) => String(member.id));
+  const allPageSelected = pageIds.length > 0 && pageIds.every((id) => selected.has(id));
+
+  const toggleMember = (member: DirectoryMember) =>
+    setSelected((prev) => {
+      const next = new Map(prev);
+      const id = String(member.id);
+      if (next.has(id)) next.delete(id);
+      else next.set(id, member);
+      return next;
+    });
+
+  const togglePage = () =>
+    setSelected((prev) => {
+      const next = new Map(prev);
+      if (allPageSelected) pageIds.forEach((id) => next.delete(id));
+      else rows.forEach((member) => next.set(String(member.id), member));
+      return next;
+    });
+
+  const bulkActions = [
     {
-      count: userStats.inhouse.total_members,
-      label: "In person church family",
+      label: "Confirm membership",
+      onClick: () => {
+        const ids = selectedMembers.filter(isUnconfirmed).map((member) => member.id);
+        if (ids.length === 0) {
+          showNotification("No unconfirmed members in selection", "error");
+          return;
+        }
+        runAction(() => advanceMembers(ids, "CONFIRMED"), (count) => `${countText(count)} confirmed`);
+      },
     },
-    { count: userStats.inhouse.stats.adults.Male, label: "Adult male" },
-    { count: userStats.inhouse.stats.adults.Female, label: "Adult female" },
-    { count: userStats.inhouse.stats.children.Male, label: "Children male" },
     {
-      count: userStats.inhouse.stats.children.Female,
-      label: "Children female",
+      label: "Change status…",
+      onClick: () => setDialog({ kind: "status", members: selectedMembers }),
+    },
+    {
+      label: "Assign department",
+      onClick: () => setDialog({ kind: "assign", members: selectedMembers }),
+    },
+    {
+      label: "Export selected",
+      onClick: () =>
+        exportMembersToExcel(selectedMembers.map(toExportRow), "Selected members.xlsx"),
+    },
+    {
+      label: "Mark inactive",
+      onClick: () =>
+        runAction(
+          () => setMembersActive(selectedMembers.map((member) => member.id), false),
+          (count) => `${countText(count)} marked inactive`
+        ),
+    },
+    {
+      label: "Delete",
+      danger: true,
+      onClick: () => setDialog({ kind: "delete", members: selectedMembers }),
     },
   ];
 
-  const visitorsCount = [
-    {
-      count: userStats.online.total_members,
-      label: "Online e-church family",
-    },
-    { count: userStats.online.stats.adults.Male, label: "Adult male" },
-    { count: userStats.online.stats.adults.Female, label: "Adult female" },
-    { count: userStats.online.stats.children.Male, label: "Children male" },
-    {
-      count: userStats.online.stats.children.Female,
-      label: "Children female",
-    },
-  ];
+  /* -------------------------------- Export -------------------------------- */
+  const exportView = async () => {
+    if (impossibleView || total === 0) {
+      showNotification("There are no members in this view to export", "error");
+      return;
+    }
+    showLoader(true);
+    try {
+      const response = await api.fetch.fetchAllMembers({
+        ...membersQuery,
+        page: 1,
+        take: EXPORT_TAKE,
+      });
+      const data = Array.isArray(response.data) ? (response.data as DirectoryMember[]) : [];
+      await exportMembersToExcel(data.map(toExportRow));
+      showNotification(`${countText(data.length)} exported`);
+    } catch (error) {
+      showNotification(
+        (error as { message?: string })?.message || "Export failed",
+        "error"
+      );
+    } finally {
+      showLoader(false);
+    }
+  };
 
-  const resultSummary = membersLoading
-    ? "Loading church membership directory..."
-    : total === 1
-      ? "1 member matches the current view."
-      : `${total} members match the current view.`;
+  /* -------------------------------- Render -------------------------------- */
+  const departmentOptions = useMemo(
+    () => [
+      { value: "unassigned", label: "Unassigned" },
+      ...departments.map((department) => ({
+        value: String(department.id),
+        label: department.name,
+      })),
+    ],
+    [departments]
+  );
+
+  const resetFilters = () =>
+    updateQuery(Object.fromEntries(FILTER_KEYS.map((key) => [key, null])));
+
+  const resetView = () => {
+    setSearchDraft("");
+    updateQuery({
+      ...Object.fromEntries(FILTER_KEYS.map((key) => [key, null])),
+      search: null,
+      status: null,
+    });
+  };
+
+  const headerTotal =
+    (activeStats?.online?.total_members ?? 0) + (activeStats?.inhouse?.total_members ?? 0);
+  const initialLoading = membersLoading && membersResponse === null;
+  const pageStart = (currentPage - 1) * PAGE_SIZE + 1;
+  const countLabel = total
+    ? `Showing ${pageStart}–${pageStart + rows.length - 1} of ${countText(total)}`
+    : "0 members match the current view.";
+  const showEmpty = !membersLoading && rows.length === 0 && (membersResponse !== null || impossibleView);
 
   return (
     <PageOutline crumbs={crumbs}>
-      <section className="flex flex-col gap-5 rounded-xl bg-white p-4">
-        <HeaderControls
-          title={`Church Memberships (${
-            (userStats.online?.total_members ?? 0) +
-            (userStats.inhouse?.total_members ?? 0)
-          })`}
-          hasFilter={true}
-          hasSearch={true}
-          showFilter={showFilter}
-          setShowFilter={setShowFilter}
-          showSearch={showSearch}
-          setShowSearch={setShowSearch}
-          handleClick={handleNavigation}
-          screenWidth={screenWidth}
-          btnName={canManageMembers ? "Add Member" : ""}
-          subtitle="Search the member directory and refine by church membership, ministry role, department, status, and activity."
+      <div className="flex flex-col gap-6">
+        <PageHeading
+          title={`Church Memberships (${headerTotal})`}
+          subtitle="Find members, move them through the membership journey and keep their records current."
+          actions={
+            <>
+              <FilterToggleButton
+                open={showFilter}
+                count={filterCount}
+                onClick={() => setShowFilter((open) => !open)}
+              />
+              <UiButton tone="secondary" onClick={exportView}>
+                Export to Excel
+              </UiButton>
+              {canManageMembers && (
+                <UiButton
+                  tone="primary"
+                  onClick={() => navigate(`/home/${relativePath.home.members.manage}`)}
+                >
+                  Add Member
+                </UiButton>
+              )}
+            </>
+          }
         />
 
-        {showSearch ? (
-          <div className="rounded-2xl border border-lightGray bg-lightGray/10 p-4">
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-              <div className="space-y-1">
-                <h2 className="text-base font-semibold text-primary">
-                  Search Directory
-                </h2>
-                <p className="text-sm text-primaryGray">
-                  Search by member name, member ID, email, or primary phone
-                  number.
-                </p>
-              </div>
+        <DirectoryStats stats={activeStats} />
 
-              <button
-                type="button"
-                onClick={clearSearch}
-                disabled={!filterMembers && !hasActiveSearch}
-                className="inline-flex h-10 items-center justify-center rounded-lg border border-lightGray px-4 text-sm font-medium text-primary transition disabled:cursor-not-allowed disabled:opacity-50 hover:bg-lightGray/40"
-              >
-                Clear search
-              </button>
-            </div>
+        {showFilter && (
+          <MembersFilter
+            values={filters}
+            departmentOptions={departmentOptions}
+            onChange={(name, value) => updateQuery({ [name]: value || null })}
+            onReset={resetFilters}
+          />
+        )}
 
-            <div className="mt-4 flex flex-col gap-3 lg:flex-row lg:items-center">
-              <SearchBar
-                className="h-11 max-w-none"
-                placeholder="Search members here..."
-                value={filterMembers}
-                onChange={handleSearchChange}
-                id="searchMembers"
-                onSubmit={handleSearchSubmit}
-              />
+        <div className="flex flex-col gap-4">
+          <PillTabs
+            ariaLabel="Membership status"
+            className="self-start"
+            tabs={STATUS_TABS.map((tab) => ({
+              key: tab.key,
+              label: tab.label,
+              count: statusTabCount(statusCounts, tab.key, filters.is_active),
+            }))}
+            value={statusTab}
+            onChange={(key) => updateQuery({ status: key === "ALL" ? null : key })}
+          />
 
-              <button
-                type="button"
-                onClick={handleSearchSubmit}
-                className="inline-flex h-11 items-center justify-center rounded-lg bg-primary px-5 text-sm font-medium text-white transition hover:opacity-90"
-              >
-                Search
-              </button>
-            </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <SearchInput
+              value={searchDraft}
+              onChange={setSearchDraft}
+              placeholder="Search by name, member ID, email or phone"
+              ariaLabel="Search members"
+              className="max-w-[520px] flex-[1_1_280px]"
+            />
+            <SelectInput
+              aria-label="Sort members"
+              value={sort}
+              options={SORT_OPTIONS}
+              onChange={(event) =>
+                updateQuery({ sort: event.target.value === "name" ? null : event.target.value }, false)
+              }
+              className="w-auto"
+            />
+            <PillTabs
+              ariaLabel="View"
+              size="sm"
+              className="ml-auto"
+              tabs={[
+                { key: "cards", label: "Cards" },
+                { key: "table", label: "Table" },
+              ]}
+              value={viewMode}
+              onChange={(key) => updateQuery({ view: key === "table" ? "table" : null }, false)}
+            />
           </div>
-        ) : null}
 
-        {showFilter ? (
-          <div className="rounded-2xl border border-lightGray bg-[#fafbfc] p-4">
-            <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-              <div className="space-y-1">
-                <h2 className="text-base font-semibold text-primary">
-                  Refine Members
-                </h2>
-                <p className="text-sm text-primaryGray">
-                  Combine filters to narrow the directory without losing the
-                  search term.
-                </p>
-              </div>
+          {canManageMembers && selected.size > 0 && (
+            <BulkBar
+              label={`${countText(selected.size)} selected`}
+              actions={bulkActions}
+              onClear={() => setSelected(new Map())}
+            />
+          )}
 
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-sm text-[#4B5563]">
+              {initialLoading ? "Loading members…" : countLabel}
+            </p>
+            {canManageMembers && rows.length > 0 && (
               <button
                 type="button"
-                onClick={clearMemberFilters}
-                disabled={!hasActiveFilters}
-                className="inline-flex h-10 items-center justify-center rounded-lg border border-lightGray px-4 text-sm font-medium text-primary transition disabled:cursor-not-allowed disabled:opacity-50 hover:bg-lightGray/40"
+                onClick={togglePage}
+                className="bg-transparent p-0 text-sm text-[#4B5563] underline hover:text-primary"
               >
-                Reset filters
+                {allPageSelected ? "Deselect this page" : "Select this page"}
               </button>
-            </div>
+            )}
+          </div>
 
-            <MembersFilter
-              onChange={handleFilterChange}
-              values={{
-                membership_type: membershipTypeFilter,
-                is_user: ministryRoleFilter,
-                department_id: departmentFilter,
-                status: statusFilter,
-                is_active: activeStateFilter,
+          {showEmpty ? (
+            <SectionEmpty
+              badge="Section empty"
+              title="No members match this view"
+              text="Try another status tab, clear the search or reset filters."
+              action={
+                <UiButton tone="secondary" onClick={resetView}>
+                  Reset view
+                </UiButton>
+              }
+            />
+          ) : viewMode === "table" ? (
+            <MembersTable
+              rows={rows}
+              loading={membersLoading}
+              selectable={canManageMembers}
+              selectedIds={selectedIds}
+              onToggleRow={(id) => {
+                const member = rows.find((row) => String(row.id) === id);
+                if (member) toggleMember(member);
               }}
-              departmentOptions={departmentOptions}
+              onToggleAll={togglePage}
+              isRestricted={isRestricted}
+              onView={viewProfile}
+              menuItemsFor={menuItemsFor}
             />
-          </div>
-        ) : null}
-
-        {hasActiveSearch || hasActiveFilters ? (
-          <div className="rounded-2xl border border-lightGray bg-white p-4">
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-primary">
-                  Active search and filters
-                </p>
-                <p className="text-sm text-primaryGray">
-                  The current member view stays in the URL, so refresh and
-                  shared links keep the same results.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={clearAllCriteria}
-                className="inline-flex h-10 items-center justify-center rounded-lg border border-lightGray px-4 text-sm font-medium text-primary transition hover:bg-lightGray/40"
-              >
-                Clear all
-              </button>
+          ) : (
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,320px),1fr))] gap-4">
+              {initialLoading
+                ? Array.from({ length: 6 }).map((_, index) => (
+                    <div
+                      key={index}
+                      className="h-[300px] animate-pulse rounded-2xl border border-lightGray bg-white"
+                    />
+                  ))
+                : rows.map((member) => {
+                    const restricted = isRestricted(member);
+                    return (
+                      <MemberCard
+                        key={member.id}
+                        member={member}
+                        restricted={restricted}
+                        selectable={canManageMembers}
+                        selected={selected.has(String(member.id))}
+                        onToggleSelect={() => toggleMember(member)}
+                        onView={restricted ? undefined : () => viewProfile(member)}
+                        menuItems={menuItemsFor(member)}
+                      />
+                    );
+                  })}
             </div>
+          )}
 
-            <div className="mt-4 flex flex-wrap gap-2">
-              {hasActiveSearch ? (
-                <button
-                  type="button"
-                  onClick={clearSearch}
-                  className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary transition hover:bg-primary/15"
-                >
-                  <span>Search: &quot;{activeSearchTerm}&quot;</span>
-                  <span aria-hidden="true">x</span>
-                </button>
-              ) : null}
-
-              {activeFilterChips.map((chip) => (
-                <button
-                  type="button"
-                  key={chip.key}
-                  onClick={() => clearSingleFilter(chip.key)}
-                  className="inline-flex items-center gap-2 rounded-full bg-lightGray/50 px-3 py-1.5 text-sm font-medium text-primary transition hover:bg-lightGray"
-                >
-                  <span>{chip.label}</span>
-                  <span aria-hidden="true">x</span>
-                </button>
-              ))}
+          {totalPages > 1 && !impossibleView && (
+            <div className="flex items-center justify-end gap-2">
+              <span className="mr-2 text-sm text-[#4B5563]">
+                Page {currentPage} of {totalPages}
+              </span>
+              <UiButton tone="secondary" onClick={goBack} disabled={!canGoBack}>
+                Previous
+              </UiButton>
+              <UiButton tone="secondary" onClick={goForward} disabled={!canGoForward}>
+                Next
+              </UiButton>
             </div>
-          </div>
-        ) : null}
-
-        <div className="hidden w-full gap-4 sm:hidden md:flex md:flex-col lg:flex lg:flex-row xl:flex-row">
-          <MembersCount items={membersCount} />
-          <MembersCount items={visitorsCount} />
+          )}
         </div>
+      </div>
 
-        <div className="w-full rounded-xl bg-transparent">
-          <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-            <p className="text-sm text-primaryGray">{resultSummary}</p>
-            {(hasActiveSearch || hasActiveFilters) && !membersLoading ? (
-              <p className="text-sm text-primaryGray">
-                Showing {members.length} member{members.length === 1 ? "" : "s"}{" "}
-                on this page.
-              </p>
-            ) : null}
-          </div>
-
-          {showSearchEmptyState ? (
-            <EmptyState
-              scope="section"
-              title="No members found"
-              description={
-                hasActiveFilters
-                  ? `No church members match "${activeSearchTerm}" with the current filters. Try broadening the search or clearing some filters.`
-                  : `No church members match "${activeSearchTerm}". Try another name, member ID, email, or phone number.`
-              }
-              actionLabel={
-                hasActiveFilters ? "Clear search and filters" : "Clear search"
-              }
-              onAction={hasActiveFilters ? clearAllCriteria : clearSearch}
-            />
-          ) : null}
-
-          {showFilterEmptyState ? (
-            <EmptyState
-              scope="section"
-              title="No members match these filters"
-              description="Adjust the membership filters or clear them to view more church members."
-              actionLabel="Clear filters"
-              onAction={clearMemberFilters}
-            />
-          ) : null}
-
-          {showPageEmptyState ? (
-            <EmptyState
-              scope="page"
-              title="No church members yet"
-              description="Member records will appear here once profiles are added or synced."
-            />
-          ) : null}
-
-          {!showSearchEmptyState &&
-          !showFilterEmptyState &&
-          !showPageEmptyState ? (
-            <GridComponent
-              columns={columns}
-              data={members}
-              displayedCount={PAGE_SIZE}
-              total={total}
-              filter=""
-              setFilter={() => {}}
-              columnFilters={columnFilters}
-              setColumnFilters={setColumnFilters}
-              columnVisibility={columnVisibility}
-              onPageChange={() => {}}
-              renderRow={(row) => (
-                <MemberCard
-                  member={row.original}
-                  key={row.id}
-                  showOptions={showOptions === row.original.id}
-                  onShowOptions={() =>
-                    setShowOptions((prev) =>
-                      prev === row.original.id ? false : row.original.id,
-                    )
-                  }
-                  onCloseOptions={() => setShowOptions(false)}
-                  onDelete={handleDeleteModal}
-                  canManage={canManageMembers}
-                  isExcluded={isExcluded("Members", row.original.id)}
-                />
-              )}
-            />
-          ) : null}
-        </div>
-      </section>
+      <DirectoryDialogs
+        dialog={dialog}
+        onClose={() => setDialog(null)}
+        onDone={refreshAll}
+      />
     </PageOutline>
   );
 }

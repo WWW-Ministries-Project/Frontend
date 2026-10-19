@@ -1,5 +1,4 @@
 import { pictureInstance as axiosPic } from "@/axiosInstance";
-import { Actions } from "@/components/ui";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
@@ -8,8 +7,8 @@ import { api } from "@/utils/api/apiCalls";
 import { validateFamilyPayload } from "@/utils/familyRelations";
 import { normalizeOptionalOtherNames } from "@/utils/memberPayload";
 import { validateUploadFile } from "@/utils/uploadValidation";
-import { Formik, FormikProps, FormikTouched } from "formik";
-import { useEffect, useMemo, useRef } from "react";
+import { Formik } from "formik";
+import { useEffect, useMemo } from "react";
 import { useLocation, useNavigate, useOutletContext } from "react-router-dom";
 import { object } from "yup";
 import { baseUrl } from "../../../../Authentication/utils/helpers";
@@ -17,6 +16,7 @@ import { IMembersForm, MembersForm } from "../Components/MembersForm";
 import { mapUserData } from "../utils";
 import { showNotification } from "@/pages/HomePage/utils";
 import { ALL_BRANCHES, useBranchStore } from "@/store/useBranchStore";
+import PageOutline from "@/pages/HomePage/Components/PageOutline";
 
 type ManageMemberLocationState = {
   afterSubmitPath?: string;
@@ -24,37 +24,6 @@ type ManageMemberLocationState = {
   prefillSourceLabel?: string;
   sourceSoulWonId?: string | number;
   sourceVisitorId?: string | number;
-};
-
-const mapErrorsToTouched = (errors: unknown): unknown => {
-  if (Array.isArray(errors)) {
-    return errors.map((item) => mapErrorsToTouched(item));
-  }
-
-  if (errors && typeof errors === "object") {
-    return Object.entries(errors as Record<string, unknown>).reduce<
-      Record<string, unknown>
-    >((acc, [key, value]) => {
-      acc[key] = mapErrorsToTouched(value);
-      return acc;
-    }, {});
-  }
-
-  return true;
-};
-
-const hasValidationErrors = (errors: unknown): boolean => {
-  if (Array.isArray(errors)) {
-    return errors.some((item) => hasValidationErrors(item));
-  }
-
-  if (errors && typeof errors === "object") {
-    return Object.values(errors as Record<string, unknown>).some((value) =>
-      hasValidationErrors(value)
-    );
-  }
-
-  return Boolean(errors);
 };
 
 export function ManageMember() {
@@ -84,13 +53,6 @@ export function ManageMember() {
     loading: updateLoading,
     data: updatedData,
   } = usePut(api.put.updateMember);
-
-  const stepControls = useRef<{
-    goNext: () => void;
-    goBack: () => void;
-    isLastStep: boolean;
-    focusFirstErrorStep: (errors: unknown) => void;
-  } | null>(null);
 
   useEffect(() => {
     if (id) refetch();
@@ -206,77 +168,58 @@ export function ManageMember() {
     }
   }
 
-  const handleSubmitWithValidation = async (formik: FormikProps<IMembersForm>) => {
-    const errors = await formik.validateForm();
-
-    if (hasValidationErrors(errors)) {
-      formik.setTouched(
-        mapErrorsToTouched(errors) as FormikTouched<IMembersForm>,
-        false
-      );
-      stepControls.current?.focusFirstErrorStep(errors);
-      showNotification(
-        "Please complete all required fields before submitting.",
-        "error"
-      );
-      return;
-    }
-
-    await formik.submitForm();
-  };
+  const memberRecord = member?.data;
+  const memberName = memberRecord
+    ? [memberRecord.first_name, memberRecord.last_name].filter(Boolean).join(" ")
+    : "";
+  const title = isEditMode ? (memberName ? `Edit ${memberName}` : "Edit member") : "Add member";
+  const backLabel = isEditMode
+    ? "Back to profile"
+    : afterSubmitPath
+    ? "Back to membership management"
+    : "Back to members";
+  const crumbs = [
+    { label: "Home", link: "/home" },
+    { label: "Members", link: "/home/members" },
+    { label: isEditMode ? "Edit member" : "Add member" },
+  ];
 
   return (
-    <div className="p-4">
-      <section className="mx-auto p-6 container lg:w-5/6 bg-white rounded-xl">
-        <div className="flex flex-col gap-1 items-center tablet:items-start">
-          <div className="font-bold text-xl">Member Information</div>
-          <div className="text text-[#8F95B2] mb-4">
-            Fill the form below with the member information
-          </div>
-          {prefillSourceLabel ? (
-            <div className="mb-2 rounded-lg border border-lightGray bg-lightGray/40 px-4 py-3 text-sm text-primary">
-              Prefilled from {prefillSourceLabel}. Complete the remaining required details and save.
-            </div>
-          ) : null}
+    <PageOutline crumbs={crumbs}>
+      <div className="mx-auto flex w-full max-w-[1100px] flex-col gap-6">
+        <div className="flex flex-col gap-2">
+          <button
+            type="button"
+            onClick={handleCancel}
+            className="self-start text-sm text-[#4B5563] transition-colors hover:text-primary"
+          >
+            ← {backLabel}
+          </button>
+          <h1 className="text-2xl font-semibold leading-8 text-primary">{title}</h1>
+          <p className="text-base leading-6 text-[#4B5563]">
+            {isEditMode
+              ? "Update the details below and save when you’re done."
+              : "Register a new member. They start as unconfirmed until they complete the membership class."}
+          </p>
         </div>
+        {prefillSourceLabel ? (
+          <p
+            role="status"
+            className="rounded-lg border border-[#BFDBFE] bg-[#EFF6FF] px-4 py-3 text-sm text-[#1D4ED8]"
+          >
+            Prefilled from {prefillSourceLabel}. Check the details and complete the remaining steps.
+          </p>
+        ) : null}
         <Formik
           enableReinitialize={true}
           initialValues={initialValue}
           onSubmit={(values) => handleSubmit(values)}
           validationSchema={validationSchema}
         >
-          {(formik: FormikProps<IMembersForm>) => (
-            <>
-              <MembersForm
-                onRegisterControls={(controls) => {
-                  stepControls.current = controls;
-                }}
-              />
-
-              <section className="w-full py-5 sticky bottom-0 bg-white">
-                <Actions
-                  goBack={() => stepControls.current?.goBack()}
-                  goNext={
-                    !isEditMode && stepControls.current?.isLastStep
-                      ? undefined
-                      : () => stepControls.current?.goNext()
-                  }
-                  onCancel={handleCancel}
-                  onSubmit={
-                    isEditMode
-                      ? () => handleSubmitWithValidation(formik)
-                      : stepControls.current?.isLastStep
-                      ? () => handleSubmitWithValidation(formik)
-                      : undefined
-                  }
-                  loading={loading || updateLoading}
-                />
-              </section>
-            </>
-          )}
+          <MembersForm isEditMode={isEditMode} submitting={loading || updateLoading} />
         </Formik>
-      </section>
-    </div>
+      </div>
+    </PageOutline>
   );
 }
 

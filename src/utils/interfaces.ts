@@ -9,6 +9,8 @@ export interface IPaginationMeta {
   total: number;
   page_size: number;
   totalPages: number;
+  // `user/list-users?include_status_counts=true` only.
+  status_counts?: Record<string, number>;
 }
 
 export interface ApiResponse<T> {

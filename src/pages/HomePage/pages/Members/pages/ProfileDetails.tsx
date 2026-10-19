@@ -1,17 +1,14 @@
-import { Button, ProfilePicture } from "@/components";
+import { ProfilePicture } from "@/components";
 import { Badge } from "@/components/Badge";
-import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { useFetch } from "@/CustomHooks/useFetch";
-import { navigateRef } from "@/pages/HomePage/navigationRef";
-import { decodeQuery, encodeQuery } from "@/pages/HomePage/utils";
 import { useUserStore } from "@/store/userStore";
 import { decodeToken } from "@/utils/helperFunctions";
 import { IFamilyInformationRaw, IMemberInfo, MembersType } from "@/utils";
 import { api } from "@/utils/api/apiCalls";
 import { EnvelopeIcon, PhoneIcon } from "@heroicons/react/24/outline";
-import { Outlet, useLocation, useParams } from "react-router-dom";
-import { Banner } from "../Components/Banner";
+import { Outlet, useLocation } from "react-router-dom";
 import BannerWrapper from "@/pages/MembersPage/layouts/BannerWrapper";
+import { AdminMemberProfile } from "../Components/profile/AdminMemberProfile";
 
 const normalizeMemberStatus = (
   status?: string | null
@@ -44,18 +41,22 @@ const getMembershipTypeLabel = (membershipType?: string): string => {
   return "";
 };
 
+/**
+ * `/home/members/:id` renders the admin profile; `/member/profile` keeps the
+ * member-portal layout (banner + `MemberInformation` outlet).
+ */
 export const ProfileDetails = () => {
   const location = useLocation();
   const isMemberRoute = location.pathname.startsWith("/member");
-  const { canManage } = useAccessControl();
-  const canManageMembers = canManage("Members");
+  return isMemberRoute ? <MemberPortalProfile /> : <AdminMemberProfile />;
+};
 
-  const { id } = useParams();
-  const routeUserId = id ? decodeQuery(id) : undefined;
+const MemberPortalProfile = () => {
+  const location = useLocation();
   const storedUserId = useUserStore((state) => state.id);
   const tokenPayload = decodeToken();
   const tokenUserId = tokenPayload?.id ? String(tokenPayload.id) : "";
-  const requestedUserId = routeUserId || storedUserId || tokenUserId || undefined;
+  const requestedUserId = storedUserId || tokenUserId || undefined;
   const shouldFetchByUserId = Boolean(requestedUserId);
 
   const { data: memberDataResponse, loading: memberLoading } = useFetch(
@@ -98,19 +99,8 @@ export const ProfileDetails = () => {
     details?.status ?? prefillMember?.status
   );
 
-  const editableMemberId = details?.id || prefillMember?.id;
   const showInitialLoadingState =
     memberLoading && !details && !prefillMember;
-
-  const handleEdit = (memberId: number | string) => {
-    if (navigateRef.current)
-      navigateRef.current(
-        `/home/members/manage-member?member_id=${encodeQuery(memberId)}`,
-        {
-          state: { mode: "edit" },
-        }
-      );
-  };
 
   const profileBannerContent = (
     <div className="w-full relative text-white">
@@ -189,17 +179,6 @@ export const ProfileDetails = () => {
             </article>
           </div>
 
-          {canManageMembers && !isMemberRoute && (
-            <div className="pt-4 md:pt-0">
-              <Button
-                value="Edit Profile"
-                onClick={() =>
-                  editableMemberId && handleEdit(String(editableMemberId))
-                }
-                className="w-full px-5 py-3 bg-transparent min-h-8 bg-white text-primary text-xs md:text-sm lg:text-base "
-              />
-            </div>
-          )}
         </div>
       </div>
     </div>
@@ -207,19 +186,12 @@ export const ProfileDetails = () => {
 
   return (
     <div>
-      {isMemberRoute ? (
-        <BannerWrapper>{profileBannerContent}</BannerWrapper>
-      ) : (
-        <div className="sticky top-0 z-40 w-full">
-          <Banner>{profileBannerContent}</Banner>
-        </div>
-      )}
+      <BannerWrapper>{profileBannerContent}</BannerWrapper>
 
       <section className="bg-white w-full h-full mb-4 mx-auto">
         <div className="pb-4 mx-auto rounded-b-xl overflow-y-auto">
           <Outlet
             context={{
-              handleEdit,
               details,
               familyData,
               loading: memberLoading || familyLoading,
