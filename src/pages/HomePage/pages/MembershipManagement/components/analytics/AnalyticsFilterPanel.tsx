@@ -59,21 +59,20 @@ const weekOptionsFor = (year: string, month: string): SelectOption[] => {
   });
 };
 
-export const AnalyticsFilterPanel = ({
-  value,
+/**
+ * Period, mode, year/month/week and From/To fields shared by the membership
+ * and visitor analytics filter panels. Render inside a FilterPanel.
+ */
+export const AnalyticsPeriodFields = ({
+  period,
   onChange,
-  onReset,
   effectiveRange,
-  departmentOptions,
 }: {
-  value: MembershipAnalyticsFilterState;
-  onChange: (next: MembershipAnalyticsFilterState) => void;
-  onReset: () => void;
+  period: AnalyticsFilters;
+  onChange: (next: AnalyticsFilters) => void;
   /** Range currently applied (resolveFiltersDateRange), shown in From/To. */
   effectiveRange: AnalyticsRange;
-  departmentOptions: string[];
 }) => {
-  const { period } = value;
   const periodType = period.periodType ?? "year";
   const isRange = periodType === "specific_date_range";
   const selectedYear = period.selectedYear ?? String(getCurrentYear());
@@ -96,7 +95,7 @@ export const AnalyticsFilterPanel = ({
     if (nextType === "specific_date_range" && periodType !== "specific_date_range" && !next.dateRange) {
       merged.dateRange = effectiveRange;
     }
-    onChange({ ...value, period: merged });
+    onChange(merged);
   };
 
   const showYear = ["year", "month", "week"].includes(periodType);
@@ -104,11 +103,7 @@ export const AnalyticsFilterPanel = ({
   const showWeek = periodType === "week";
 
   return (
-    <FilterPanel
-      title="Refine analytics"
-      helper="Choose the period and who to include."
-      onReset={onReset}
-    >
+    <>
       <Field label="Filter by">
         <SelectInput
           options={PERIOD_OPTIONS}
@@ -177,32 +172,59 @@ export const AnalyticsFilterPanel = ({
           }
         />
       </Field>
-      <Field label="Membership type">
-        <SelectInput
-          options={TYPE_OPTIONS}
-          value={value.membershipType}
-          onChange={(event) => onChange({ ...value, membershipType: event.target.value })}
-        />
-      </Field>
-      <Field label="Department">
-        <SelectInput
-          options={[
-            { value: "", label: "All departments" },
-            ...departmentOptions.map((name) => ({ value: name, label: name })),
-          ]}
-          value={value.department}
-          onChange={(event) => onChange({ ...value, department: event.target.value })}
-        />
-      </Field>
-      <Field label="Members included">
-        <SelectInput
-          options={SCOPE_OPTIONS}
-          value={value.scope}
-          onChange={(event) =>
-            onChange({ ...value, scope: event.target.value as MembersScope })
-          }
-        />
-      </Field>
-    </FilterPanel>
+    </>
   );
 };
+
+export const AnalyticsFilterPanel = ({
+  value,
+  onChange,
+  onReset,
+  effectiveRange,
+  departmentOptions,
+}: {
+  value: MembershipAnalyticsFilterState;
+  onChange: (next: MembershipAnalyticsFilterState) => void;
+  onReset: () => void;
+  /** Range currently applied (resolveFiltersDateRange), shown in From/To. */
+  effectiveRange: AnalyticsRange;
+  departmentOptions: string[];
+}) => (
+  <FilterPanel
+    title="Refine analytics"
+    helper="Choose the period and who to include."
+    onReset={onReset}
+  >
+    <AnalyticsPeriodFields
+      period={value.period}
+      onChange={(period) => onChange({ ...value, period })}
+      effectiveRange={effectiveRange}
+    />
+    <Field label="Membership type">
+      <SelectInput
+        options={TYPE_OPTIONS}
+        value={value.membershipType}
+        onChange={(event) => onChange({ ...value, membershipType: event.target.value })}
+      />
+    </Field>
+    <Field label="Department">
+      <SelectInput
+        options={[
+          { value: "", label: "All departments" },
+          ...departmentOptions.map((name) => ({ value: name, label: name })),
+        ]}
+        value={value.department}
+        onChange={(event) => onChange({ ...value, department: event.target.value })}
+      />
+    </Field>
+    <Field label="Members included">
+      <SelectInput
+        options={SCOPE_OPTIONS}
+        value={value.scope}
+        onChange={(event) =>
+          onChange({ ...value, scope: event.target.value as MembersScope })
+        }
+      />
+    </Field>
+  </FilterPanel>
+);

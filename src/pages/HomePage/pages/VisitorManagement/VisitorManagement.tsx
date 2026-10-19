@@ -1,672 +1,360 @@
-import EmptyState from "@/components/EmptyState";
-import { HeaderControls } from "@/components/HeaderControls";
-import { Modal } from "@/components/Modal";
-import { SearchBar } from "@/components/SearchBar";
-import { useAccessControl } from "@/CustomHooks/useAccessControl";
-import { useDelete } from "@/CustomHooks/useDelete";
-import { useFetch } from "@/CustomHooks/useFetch";
-import { usePost } from "@/CustomHooks/usePost";
-import { usePut } from "@/CustomHooks/usePut";
-import {
-  api,
-  formatDate,
-  formatPhoneNumber,
-  relativePath,
-  VisitorType,
-} from "@/utils";
-import { QueryType } from "@/utils/interfaces";
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import PageOutline from "../../Components/PageOutline";
-import ActionButton from "../../Components/reusable/ActionButton";
-import SkeletonLoader from "../../Components/TableSkeleton";
-import { showDeleteDialog, showNotification } from "../../utils";
-import { IVisitorForm, VisitorForm } from "./Components/VisitorForm";
-import { mapVisitorToForm } from "./utils";
-import AddAnotherConfirmation from "../../Components/reusable/AddAnotherConfirmation";
-import { Button } from "@/components";
 
-const formatLastFollowUp = (rawValue?: string) => {
-  if (!rawValue) return "—";
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
+import PageOutline from "@/pages/HomePage/Components/PageOutline";
+import { showNotification } from "@/pages/HomePage/utils";
+import {
+  Field,
+  FilterPanel,
+  FilterToggleButton,
+  PageHeading,
+  PillTabs,
+  SearchInput,
+  SectionEmpty,
+  SelectInput,
+  TextInput,
+  UiButton,
+} from "@/pages/HomePage/pages/MembershipManagement/components/membershipUi";
+import { matchesQuery } from "@/pages/HomePage/pages/MembershipManagement/components/manager/managerHelpers";
+import { relativePath } from "@/utils/const";
+import { exportVisitorsToExcel } from "@/utils/api/visitors/visitorActions";
+import type { QueryType } from "@/utils/interfaces";
 
-  const parsedDate = new Date(rawValue);
-  if (Number.isNaN(parsedDate.getTime())) return rawValue;
+import { useVisitorDialogs } from "./Components/useVisitorDialogs";
+import { VisitorCard } from "./Components/VisitorCard";
+import {
+  HEARD_OPTIONS,
+  heardLabel,
+  STAGE_PILL,
+  useVisitorRecords,
+  visitorDetailsPath,
+  VisitorRecord,
+  visitorsPath,
+  VisitorStage,
+} from "./utils/visitorHelpers";
 
-  return formatDate(parsedDate, "long");
-};
+type StageTab = "all" | VisitorStage;
+type GroupBy = "date" | "event";
+
+const MONTHS = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+const STAGE_TABS: { key: StageTab; label: string }[] = [
+  { key: "all", label: "All" },
+  { key: "need", label: "Needs follow-up" },
+  { key: "done", label: "Followed up" },
+  { key: "member", label: "Became members" },
+];
+
+const EMPTY_FILTERS = { month: "", event: "", ref: "" };
+
+const monthLabel = (key: string) =>
+  `${MONTHS[Number(key.slice(5, 7)) - 1] ?? ""} ${key.slice(0, 4)}`.trim();
 
 export function VisitorManagement() {
-  const VISITOR_PAGE_SIZE = "5000";
+  const navigate = useNavigate();
   const { canManage } = useAccessControl();
   const canManageVisitors = canManage("Visitors");
-  const navigate = useNavigate();
-  const [selectedId, setSelectedId] = useState<number | string>("");
-  const actionMenuRef = useRef<HTMLDivElement | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [showRegisterAnother, setShowRegisterAnother] = useState(false);
-  const [selectedVisitor, setSelectedVisitor] = useState<
-    (IVisitorForm & { id: string }) | undefined
-  >(undefined);
-  const [formResetKey, setFormResetKey] = useState(0);
 
-  const [filterVisitors, setFilterVisitors] = useState("");
-  const [appliedSearch, setAppliedSearch] = useState("");
-  const [showFilter, setShowFilter] = useState(false);
-  const [showSearch, setShowSearch] = useState(false);
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFilterVisitors(e.target.value);
-  };
-
-  const [filters, setFilters] = useState({
-    createdMonth: "",
-    visitMonth: "",
-    eventId: "",
-    referral: "",
-  });
-  const visitorQuery = useMemo<QueryType>(() => {
-    const next: QueryType = {
-      page: "1",
-      take: VISITOR_PAGE_SIZE,
-    };
-
-    if (appliedSearch) next.search = appliedSearch;
-    if (filters.createdMonth) next.createdMonth = filters.createdMonth;
-    if (filters.visitMonth) next.visitMonth = filters.visitMonth;
-    if (filters.eventId) next.eventId = filters.eventId;
-    if (filters.referral) next.referral = filters.referral;
-
-    return next;
-  }, [appliedSearch, filters]);
-  const { data, loading, refetch } = useFetch(
-    api.fetch.fetchAllVisitors,
-    visitorQuery,
-  );
-  const visitorsArray: VisitorType[] = Array.isArray(data?.data)
-    ? data.data
-    : [];
-  const { executeDelete, success } = useDelete(api.delete.deleteVisitor);
-  const {
-    postData,
-    loading: postLoading,
-    data: postSuccess,
-  } = usePost(api.post.createVisitor);
-  const {
-    updateData,
-    loading: putLoading,
-    data: putSuccess,
-  } = usePut(api.put.updateVisitor);
-
-  const handleFilterChange = (key: keyof typeof filters, value: string) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
-  };
-
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      const normalizedSearch = filterVisitors.trim();
-      setAppliedSearch((currentSearch) =>
-        currentSearch === normalizedSearch ? currentSearch : normalizedSearch,
-      );
-    }, 300);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [filterVisitors]);
-
-  const visitors = visitorsArray;
-
-  const [groupBy, setGroupBy] = useState<"date" | "event">("date");
-
+  const [query, setQuery] = useState("");
+  const [tab, setTab] = useState<StageTab>("all");
+  const [groupBy, setGroupBy] = useState<GroupBy>("date");
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+  const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState(EMPTY_FILTERS);
 
-  const groupedVisitors = useMemo(() => {
-    const groups: Record<string, VisitorType[]> = {};
-
-    visitors.forEach((visitor) => {
-      let key = "";
-
-      if (groupBy === "date") {
-        const d = new Date(visitor.visitDate!);
-        // Use sortable key internally
-        key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-      } else {
-        key = visitor.eventName || "No Event";
-      }
-
-      if (!groups[key]) groups[key] = [];
-      groups[key].push(visitor);
-    });
-
-    // Sort date groups (latest first) and convert keys to readable labels
-    if (groupBy === "date") {
-      return Object.fromEntries(
-        Object.entries(groups)
-          .sort(
-            ([a], [b]) =>
-              new Date(b + "-01").getTime() - new Date(a + "-01").getTime(),
-          )
-          .map(([key, value]) => {
-            const d = new Date(key + "-01");
-            const label = `${d.toLocaleString("default", { month: "long" })} ${d.getFullYear()}`;
-            return [label, value];
-          }),
-      );
-    }
-
-    return groups;
-  }, [visitors, groupBy]);
-
-  useEffect(() => {
-    const keys = Object.keys(groupedVisitors);
-    if (keys.length === 0) return;
-
-    let defaultKey = keys[0];
-
-    if (groupBy === "date") {
-      defaultKey =
-        keys
-          .map((k) => ({ key: k, date: new Date(k) }))
-          .sort((a, b) => b.date.getTime() - a.date.getTime())[0]?.key ||
-        keys[0];
-    }
-
-    setOpenGroups({ [defaultKey]: true });
-  }, [groupedVisitors, groupBy]);
-
-  const eventOptions = useMemo(() => {
-    return Array.from(
-      new Map(
-        visitorsArray
-          .filter(
-            (visitor) => Boolean(visitor.eventId) && Boolean(visitor.eventName),
-          )
-          .map((visitor) => [
-            String(visitor.eventId),
-            String(visitor.eventName),
-          ]),
-      ),
-      ([id, name]) => ({ id, name }),
-    ).sort((left, right) => left.name.localeCompare(right.name));
-  }, [visitorsArray]);
-
-  const referralOptions = useMemo(() => {
-    return Array.from(
-      new Set(visitorsArray.map((v) => v.howHeard).filter(Boolean)),
-    );
-  }, [visitorsArray]);
-
-  const crumbs = [
-    { label: "Home", link: relativePath.home.main },
-    { label: "Visitor", link: "" },
-  ];
-
-  useEffect(() => {
-    if (success) {
-      refetch();
-      showNotification("Visitor deleted successfully", "success");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [success]);
-
-  useEffect(() => {
-    if (postSuccess) {
-      showNotification("Visitor added successfully", "success");
-      refetch();
-      setShowRegisterAnother(true);
-    }
-
-    if (putSuccess) {
-      showNotification("Visitor updated successfully", "success");
-      refetch().then(() => {
-        setIsModalOpen(false);
-        setShowRegisterAnother(false);
-        setSelectedVisitor(undefined);
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [postSuccess, putSuccess]);
-
-  const handleShowOptions = (id: number | string) => {
-    setSelectedId((prevSelectedId) => (prevSelectedId === id ? "" : id));
-  };
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        actionMenuRef.current &&
-        !actionMenuRef.current.contains(event.target as Node)
-      ) {
-        setSelectedId("");
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-  const handleModalClose = () => {
-    setIsModalOpen(false);
-    setSelectedVisitor(undefined);
-  };
-  const applySearch = () => {
-    const normalizedSearch = filterVisitors.trim();
-    setAppliedSearch(normalizedSearch);
-  };
-  const handleSubmit = (visitor: IVisitorForm & { id?: string }) => {
-    if (selectedVisitor) updateData(visitor, { id: selectedVisitor.id });
-    else postData(visitor);
-  };
-
-  const deleteVisitor = async (visitorId: number | string) => {
-    executeDelete({ id: String(visitorId) });
-  };
-
-  // const headings: ColumnDef<VisitorType>[] = [
-  //   {
-  //     header: "Full Name",
-  //     accessorKey: "lastName",
-  //     cell: ({ row }) => `${row.original.firstName} ${row.original.lastName}`,
-  //   },
-  //   {
-  //     accessorKey: "firstName",
-  //   },
-  //   {
-  //     accessorKey: "email",
-  //     header: "Email",
-  //   },
-  //   {
-  //     accessorKey: "phone",
-  //     header: "Phone",
-  //     cell: ({ row }) =>
-  //       formatPhoneNumber(row.original.country_code, row.original.phone) || "",
-  //   },
-  //   {
-  //     accessorKey: "visitDate",
-  //     header: "Visit Date",
-  //     cell: ({ row }) => formatDate(row.original.visitDate || "") || "",
-  //   },
-
-  //   {
-  //     accessorKey: "eventName",
-  //     header: "Event Name",
-  //   },
-  //   {
-  //     accessorKey: "howHeard",
-  //     header: "Referral",
-  //   },
-  //   {
-  //     accessorKey: "followUp",
-  //     header: "Follow-Up Status",
-  //   },
-  //   {
-  //     accessorKey: "visitCount",
-  //     header: "Visits",
-  //   },
-  //   {
-  //     header: "Actions",
-  //     accessorKey: "actions",
-  //     cell: ({ row }) => (
-  //       <div onClick={() => handleShowOptions(row.original.id)}>
-  //         <ActionButton
-  //           showOptions={row.original.id == selectedId}
-  //           hideDelete={false}
-  //           onView={() => {
-  //             navigate(`visitor/${row.original.id}`);
-  //           }}
-  //           onEdit={() => {
-  //             setSelectedVisitor(mapVisitorToForm(row.original));
-  //             setIsModalOpen(true);
-  //           }}
-  //           onDelete={() => {
-  //             showDeleteDialog(
-  //               {
-  //                 name:
-  //                   row.original.lastName + " " + row.original?.firstName || "",
-  //                 id: row.original.id,
-  //               },
-  //               deleteVisitor
-  //             );
-  //           }}
-  //         />
-  //       </div>
-  //     ),
-  //   },
-  // ];
-
-  const hasActiveQuery = Boolean(
-    appliedSearch ||
-    filters.createdMonth ||
-    filters.visitMonth ||
-    filters.eventId ||
-    filters.referral,
+  // Visit month is matched against every visit on the server.
+  const serverQuery = useMemo<QueryType | undefined>(
+    () => (filters.month ? { visitMonth: filters.month } : undefined),
+    [filters.month]
   );
-  const hasLoadedVisitors = data !== null;
-  const showPageEmptyState =
-    hasLoadedVisitors && !loading && visitors.length === 0 && !hasActiveQuery;
-  const showQueryEmptyState =
-    hasLoadedVisitors && !loading && visitors.length === 0 && hasActiveQuery;
+  const { records, loaded, refetch } = useVisitorRecords(serverQuery);
+
+  const dialogs = useVisitorDialogs({ onChanged: refetch, afterConvertPath: visitorsPath });
+
+  const eventOptions = useMemo(
+    () =>
+      Array.from(new Set(records.map((record) => record.eventName).filter(Boolean))).sort(
+        (a, b) => a.localeCompare(b)
+      ),
+    [records]
+  );
+  const referralOptions = useMemo(() => {
+    const stored = records
+      .map((record) => record.howHeard)
+      .filter((value) => value && !HEARD_OPTIONS.some((option) => option.value === value));
+    return [
+      ...HEARD_OPTIONS,
+      ...Array.from(new Set(stored)).map((value) => ({ value, label: value })),
+    ];
+  }, [records]);
+
+  const filtered = useMemo(
+    () =>
+      records.filter(
+        (record) =>
+          matchesQuery(query, [record.name, record.visitor.phone, record.visitor.email]) &&
+          (!filters.event || record.eventName === filters.event) &&
+          (!filters.ref || record.howHeard === filters.ref)
+      ),
+    [filters.event, filters.ref, query, records]
+  );
+
+  const list = useMemo(
+    () =>
+      filtered
+        .filter((record) => tab === "all" || record.stage === tab)
+        .sort((a, b) => (b.lastVisit > a.lastVisit ? 1 : b.lastVisit < a.lastVisit ? -1 : 0)),
+    [filtered, tab]
+  );
+
+  const sections = useMemo(() => {
+    const groups = new Map<string, VisitorRecord[]>();
+    list.forEach((record) => {
+      const key =
+        groupBy === "event" ? record.eventName || "No event" : record.lastVisit.slice(0, 7);
+      const group = groups.get(key);
+      if (group) group.push(record);
+      else groups.set(key, [record]);
+    });
+    const entries = Array.from(groups.entries());
+    if (groupBy === "event") entries.sort((a, b) => b[1].length - a[1].length);
+    return entries.map(([key, items]) => ({
+      key,
+      label: groupBy === "event" ? key : monthLabel(key),
+      items,
+    }));
+  }, [groupBy, list]);
+
+  const filterCount = Object.values(filters).filter(Boolean).length;
+  const hasQuery = Boolean(query.trim()) || filterCount > 0 || tab !== "all";
+
+  const resetAll = () => {
+    setQuery("");
+    setTab("all");
+    setFilters(EMPTY_FILTERS);
+  };
+
+  const exportList = async () => {
+    try {
+      await exportVisitorsToExcel(
+        list.map((record) => ({
+          title: record.visitor.title || "",
+          firstName: record.visitor.firstName || "",
+          lastName: record.visitor.lastName || "",
+          gender: record.visitor.gender || "",
+          phone: record.phone,
+          email: record.visitor.email || "",
+          city: record.visitor.city || "",
+          firstVisit: record.firstVisit,
+          lastVisit: record.lastVisit,
+          visits: record.visitCount,
+          event: record.eventName,
+          referral: heardLabel(record.howHeard),
+          followUps: record.followUps.length,
+          status: STAGE_PILL[record.stage].label,
+        }))
+      );
+      showNotification(
+        `Exported ${list.length} ${list.length === 1 ? "visitor" : "visitors"}`,
+        "success"
+      );
+    } catch {
+      showNotification("Could not export visitors.", "error");
+    }
+  };
+
+  const cardActions = (record: VisitorRecord) => {
+    const visitor = record.visitor;
+    return [
+      { label: "View profile", onClick: () => navigate(visitorDetailsPath(record.id)) },
+      { label: "Edit visitor", onClick: () => dialogs.edit(visitor), hidden: !canManageVisitors },
+      {
+        label: "Record follow-up",
+        onClick: () => dialogs.recordFollowUp(visitor),
+        hidden: !canManageVisitors,
+      },
+      {
+        label: "Convert to member",
+        onClick: () => dialogs.convert(visitor),
+        hidden: !canManageVisitors || record.stage === "member",
+      },
+      {
+        label: "Delete visitor",
+        onClick: () => dialogs.remove(visitor),
+        danger: true,
+        hidden: !canManageVisitors,
+      },
+    ];
+  };
 
   return (
-    <PageOutline crumbs={crumbs}>
-      {loading && visitors.length === 0 ? (
-        <div className="space-y-4">
-          <div className="animate-pulse space-y-2  w-[40rem] ">
-            <div className="h-8 bg-lightGray rounded w-2/6"></div>
-            <div className="h-6 bg-lightGray rounded w-4/6"></div>
-          </div>
-          <SkeletonLoader />
-        </div>
-      ) : (
-        <div className="space-y-8 ">
-          <HeaderControls
-            title="Visitor Management"
-            subtitle="Register, track, and analyze visitor information"
-            btnName={canManageVisitors ? "Register visitor" : ""}
-            hasFilter
-            hasSearch
-            showFilter={showFilter}
-            setShowFilter={setShowFilter}
-            showSearch={showSearch}
-            setShowSearch={setShowSearch}
-            screenWidth={window.innerWidth}
-            handleClick={() => {
-              setIsModalOpen(true);
-              setSelectedVisitor(undefined);
-            }}
-          />
-          {(showFilter || showSearch) && (
-            <div className="w-full flex flex-wrap gap-3 mb-4">
-              {showSearch && (
-                <SearchBar
-                  className="h-10 max-w-xs"
-                  placeholder="Search visitors..."
-                  value={filterVisitors}
-                  onChange={handleSearchChange}
-                  id="searchVisitors"
-                  onSubmit={applySearch}
-                />
+    <PageOutline
+      crumbs={[{ label: "Home", link: relativePath.home.main }, { label: "Visitors" }]}
+    >
+      <div className="flex flex-col gap-6">
+        <PageHeading
+          title={`Visitor Management (${records.length})`}
+          subtitle="Register, track and follow up with people who visit."
+          actions={
+            <>
+              <FilterToggleButton
+                open={showFilters}
+                count={filterCount}
+                onClick={() => setShowFilters((open) => !open)}
+              />
+              <UiButton onClick={() => void exportList()} disabled={list.length === 0}>
+                Export to Excel
+              </UiButton>
+              {canManageVisitors && (
+                <UiButton tone="primary" onClick={dialogs.register}>
+                  Register visitor
+                </UiButton>
               )}
-              {showFilter && (
-                <>
-                  <div className="flex flex-wrap gap-4">
-                    <div className="flex flex-col">
-                      <label className="text-xs text-gray-600 mb-1">
-                        Created month
-                      </label>
-                      <input
-                        type="month"
-                        className="h-10 border rounded px-3"
-                        value={filters.createdMonth}
-                        onChange={(e) =>
-                          handleFilterChange("createdMonth", e.target.value)
-                        }
-                      />
-                    </div>
-
-                    <div className="flex flex-col">
-                      <label className="text-xs text-gray-600 mb-1">
-                        Visit month
-                      </label>
-                      <input
-                        type="month"
-                        className="h-10 border rounded px-3"
-                        value={filters.visitMonth}
-                        onChange={(e) =>
-                          handleFilterChange("visitMonth", e.target.value)
-                        }
-                      />
-                    </div>
-
-                    <div className="flex flex-col">
-                      <label className="text-xs text-gray-600 mb-1">
-                        Event
-                      </label>
-                      <select
-                        className="h-10 border rounded px-3"
-                        value={filters.eventId}
-                        onChange={(e) =>
-                          handleFilterChange("eventId", e.target.value)
-                        }
-                      >
-                        <option value="">All Events</option>
-                        {eventOptions.map((event) => (
-                          <option key={event.id} value={event.id}>
-                            {event.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="flex flex-col">
-                      <label className="text-xs text-gray-600 mb-1">
-                        Referral
-                      </label>
-                      <select
-                        className="h-10 border rounded px-3"
-                        value={filters.referral}
-                        onChange={(e) =>
-                          handleFilterChange("referral", e.target.value)
-                        }
-                      >
-                        <option value="">All Referrals</option>
-                        {referralOptions.map((ref) => (
-                          <option key={ref} value={ref}>
-                            {ref}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                  <div className="flex flex-col ">
-                    <label className="text-xs text-gray-600 mb-1">Reset</label>
-                    <button
-                      className="h-10 px-4 border rounded text-sm"
-                      onClick={() =>
-                        setFilters({
-                          createdMonth: "",
-                          visitMonth: "",
-                          eventId: "",
-                          referral: "",
-                        })
-                      }
-                    >
-                      Reset Filters
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          )}
-
-          <div className="flex gap-2 mb-4">
-            <button
-              className={`px-3 py-1 rounded text-sm border ${
-                groupBy === "date" ? "bg-primary text-white" : ""
-              }`}
-              onClick={() => setGroupBy("date")}
-            >
-              Group by Date
-            </button>
-            <button
-              className={`px-3 py-1 rounded text-sm border ${
-                groupBy === "event" ? "bg-primary text-white" : ""
-              }`}
-              onClick={() => setGroupBy("event")}
-            >
-              Group by Event
-            </button>
-          </div>
-
-          {showPageEmptyState && (
-            <EmptyState
-              scope="page"
-              title="No visitors yet"
-              description="Visitor records will appear here after a visitor is registered or synced."
-            />
-          )}
-
-          {showQueryEmptyState && (
-            <EmptyState
-              scope="section"
-              title="No visitors found"
-              description="No visitors match the current search or filters. Try a different name, contact detail, event, or referral source."
-            />
-          )}
-
-          {Object.entries(groupedVisitors).map(([group, items]) => (
-            <div key={group} className="space-y-3">
-              <button
-                className="w-full flex justify-between items-center font-semibold text-lg py-2 px-4 bg-gray-50 rounded-lg"
-                onClick={() =>
-                  setOpenGroups((prev) => ({
-                    ...prev,
-                    [group]: !prev[group],
-                  }))
-                }
-              >
-                <div className="flex gap-x-2">
-                  <span>{group}</span>({items.length})
-                </div>
-                <span className="text-sm">{openGroups[group] ? "−" : "+"}</span>
-              </button>
-
-              {openGroups[group] && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {items.map((visitor) => (
-                    <div
-                      key={visitor.id}
-                      className="relative border rounded-lg p-4 space-y-3 bg-white shadow-sm"
-                    >
-                      <div
-                        ref={visitor.id === selectedId ? actionMenuRef : null}
-                        className="absolute top-3 right-3"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleShowOptions(visitor.id);
-                        }}
-                      >
-                        <ActionButton
-                          showOptions={visitor.id === selectedId}
-                          hideDelete={!canManageVisitors}
-                          onView={() => navigate(`visitor/${visitor.id}`)}
-                          onEdit={
-                            canManageVisitors
-                              ? () => {
-                                  setSelectedVisitor(mapVisitorToForm(visitor));
-                                  setIsModalOpen(true);
-                                }
-                              : undefined
-                          }
-                          onDelete={
-                            canManageVisitors
-                              ? () => {
-                                  showDeleteDialog(
-                                    {
-                                      name: `${visitor.lastName} ${visitor.firstName}`,
-                                      id: visitor.id,
-                                    },
-                                    deleteVisitor,
-                                  );
-                                }
-                              : undefined
-                          }
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <div className="text-base font-semibold text-gray-900">
-                          {visitor.title} {visitor.firstName} {visitor.lastName}
-                        </div>
-
-                        <div className="text-sm text-gray-600">
-                          <span className="font-medium text-gray-700">
-                            Visit date:
-                          </span>{" "}
-                          {visitor.visitDate
-                            ? formatDate(visitor.visitDate)
-                            : "—"}
-                        </div>
-
-                        <div className="text-sm text-gray-600">
-                          <span className="font-medium text-gray-700">
-                            Phone:
-                          </span>{" "}
-                          {formatPhoneNumber(
-                            visitor.country_code,
-                            visitor.phone,
-                          )}
-                        </div>
-
-                        <div className="text-sm text-gray-600">
-                          <span className="font-medium text-gray-700">
-                            Event:
-                          </span>{" "}
-                          {visitor.eventName || "—"}
-                        </div>
-
-                        <div className="text-sm text-gray-600">
-                          <span className="font-medium text-gray-700">
-                            Last follow-up:
-                          </span>{" "}
-                          {formatLastFollowUp(visitor.followUp)}
-                        </div>
-
-                        <Button
-                          value="View full profile"
-                          variant="secondary"
-                          className="mt-2 inline-flex items-center text-sm font-medium border-gray-200 text-primary hover:underline w-full"
-                          onClick={() => navigate(`visitor/${visitor.id}`)}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-      <Modal
-        open={isModalOpen}
-        className="max-w-5xl"
-        onClose={() => setIsModalOpen(false)}
-      >
-        <VisitorForm
-          key={formResetKey}
-          onClose={handleModalClose}
-          selectedVisitor={selectedVisitor}
-          onSubmit={handleSubmit}
-          loading={postLoading || putLoading}
-        />
-      </Modal>
-
-      <Modal
-        open={showRegisterAnother}
-        onClose={() => {
-          setShowRegisterAnother(false);
-        }}
-      >
-        <AddAnotherConfirmation
-          content={
-            <div>
-              <h3 className="text-lg font-semibold">
-                Register another visitor?
-              </h3>
-              <p className="text-sm text-gray-600">
-                The visitor was registered successfully. Would you like to add
-                another?
-              </p>
-            </div>
+            </>
           }
-          confirmationAction={() => {
-            setShowRegisterAnother(false);
-            setSelectedVisitor(undefined);
-            setFormResetKey((k) => k + 1);
-            setIsModalOpen(true);
-          }}
-          cancelAction={() => {
-            setShowRegisterAnother(false);
-            setIsModalOpen(false);
-            setSelectedVisitor(undefined);
-          }}
         />
-      </Modal>
+
+        {showFilters && (
+          <FilterPanel
+            title="Refine visitors"
+            helper="Combine filters to narrow the list without losing the search term."
+            onReset={() => setFilters(EMPTY_FILTERS)}
+            resetDisabled={filterCount === 0}
+          >
+            <Field label="Visit month">
+              <TextInput
+                type="month"
+                value={filters.month}
+                onChange={(event) => setFilters({ ...filters, month: event.target.value })}
+              />
+            </Field>
+            <Field label="Event">
+              <SelectInput
+                options={[
+                  { value: "", label: "All events" },
+                  ...eventOptions.map((name) => ({ value: name, label: name })),
+                ]}
+                value={filters.event}
+                onChange={(event) => setFilters({ ...filters, event: event.target.value })}
+              />
+            </Field>
+            <Field label="Referral">
+              <SelectInput
+                options={[{ value: "", label: "All referrals" }, ...referralOptions]}
+                value={filters.ref}
+                onChange={(event) => setFilters({ ...filters, ref: event.target.value })}
+              />
+            </Field>
+          </FilterPanel>
+        )}
+
+        <PillTabs
+          ariaLabel="Follow-up status"
+          tabs={STAGE_TABS.map((entry) => ({
+            ...entry,
+            count: filtered.filter((record) => entry.key === "all" || record.stage === entry.key)
+              .length,
+          }))}
+          value={tab}
+          onChange={setTab}
+        />
+
+        <div className="flex flex-wrap items-center gap-3">
+          <SearchInput
+            value={query}
+            onChange={setQuery}
+            placeholder="Search by name, phone or email"
+            ariaLabel="Search visitors"
+            className="max-w-[420px]"
+          />
+          <div className="ml-auto">
+            <PillTabs
+              ariaLabel="Group visitors"
+              tabs={[
+                { key: "date" as GroupBy, label: "Group by date" },
+                { key: "event" as GroupBy, label: "Group by event" },
+              ]}
+              value={groupBy}
+              onChange={(next) => {
+                setGroupBy(next);
+                setOpenGroups({});
+              }}
+            />
+          </div>
+        </div>
+
+        {!loaded ? (
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,320px),1fr))] gap-4">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <div key={index} className="h-[280px] animate-pulse rounded-2xl bg-[#F3F4F6]" />
+            ))}
+          </div>
+        ) : list.length === 0 ? (
+          hasQuery ? (
+            <SectionEmpty
+              title="No visitors found"
+              text="No visitors match the current search or filters. Try a different name, event or referral source."
+              action={<UiButton onClick={resetAll}>Reset view</UiButton>}
+            />
+          ) : (
+            <SectionEmpty
+              title="No visitors yet"
+              text="Visitor records will appear here after a visitor is registered."
+              action={
+                canManageVisitors ? (
+                  <UiButton tone="primary" onClick={dialogs.register}>
+                    Register visitor
+                  </UiButton>
+                ) : undefined
+              }
+            />
+          )
+        ) : (
+          <>
+            <p className="text-sm text-[#4B5563]">
+              {list.length} {list.length === 1 ? "visitor matches" : "visitors match"} the
+              current view.
+            </p>
+            {sections.map((section, index) => {
+              const open = openGroups[section.key] ?? index === 0;
+              return (
+                <div key={section.key} className="flex flex-col gap-4">
+                  <button
+                    type="button"
+                    aria-expanded={open}
+                    onClick={() => setOpenGroups((prev) => ({ ...prev, [section.key]: !open }))}
+                    className="flex w-full items-center justify-between gap-3 rounded-lg border border-lightGray bg-[#F8F9FC] px-4 py-3 text-left text-base font-semibold text-primary transition-colors hover:bg-lightGray/30"
+                  >
+                    <span>
+                      {section.label} ({section.items.length})
+                    </span>
+                    <span className="text-lg leading-none" aria-hidden="true">
+                      {open ? "−" : "+"}
+                    </span>
+                  </button>
+                  {open && (
+                    <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,320px),1fr))] gap-4">
+                      {section.items.map((record) => (
+                        <VisitorCard
+                          key={record.id}
+                          record={record}
+                          onOpen={() => navigate(visitorDetailsPath(record.id))}
+                          actions={cardActions(record)}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </>
+        )}
+      </div>
+      {dialogs.dialogs}
     </PageOutline>
   );
 }
