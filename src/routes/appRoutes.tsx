@@ -3,7 +3,6 @@ import EventRegister from "@/pages/HomePage/pages/EventsManagement/pages/EventRe
 import { ManageAsset } from "@/pages/HomePage/pages/AssetsManagement/pages/ManageAssets";
 import EventsManagement from "@/pages/HomePage/pages/EventsManagement/EventsManagement";
 import ViewEvent from "@/pages/HomePage/pages/EventsManagement/pages/ViewEvents.jsx";
-import { FamilyInformation } from "@/pages/HomePage/pages/Members/pages/FamilyInformation";
 import { MemberInformation } from "@/pages/HomePage/pages/Members/pages/MemberInformation";
 import { ProfileDetails } from "@/pages/HomePage/pages/Members/pages/ProfileDetails";
 import { MemberExclusionGuard } from "@/routes/MemberExclusionGuard";
@@ -389,16 +388,10 @@ export const routes: AppRoute[] = [
         permissionNeeded: "view_members",
         children: [
           {
-            path: "",
-            name: "Info",
-            element: <MemberInformation />,
-            isPrivate: true,
-            permissionNeeded: "view_members",
-          },
-          {
+            // Legacy link: the family details now live on the profile's Family tab.
             path: "fam-info",
             name: "fam-info",
-            element: <FamilyInformation familyData={[]} />,
+            element: <Navigate to="..?tab=family" relative="path" replace />,
             isPrivate: true,
             permissionNeeded: "view_members",
           },

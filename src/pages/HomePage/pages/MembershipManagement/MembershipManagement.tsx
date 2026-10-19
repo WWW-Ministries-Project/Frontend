@@ -1,43 +1,59 @@
-import PageOutline from "../../Components/PageOutline";
-import { NavLink, Outlet } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 
-const tabs = [
-  { label: "Member Confirmation", path: "member-confirmation" },
-  { label: "Visitor-to-Membership", path: "visitor-to-membership" },
-  { label: "Soulwon-to-Membership", path: "soulwon-to-membership" },
-  { label: "Guest-to-Membership", path: "guest-to-membership" },
-  { label: "Join Department Requests", path: "join-requests" },
-] as const;
+import PageOutline from "@/pages/HomePage/Components/PageOutline";
+import {
+  PageHeading,
+  PillTabs,
+} from "@/pages/HomePage/pages/MembershipManagement/components/membershipUi";
+import {
+  ManagerData,
+  useManagerDataSource,
+} from "@/pages/HomePage/pages/MembershipManagement/components/manager/useManagerData";
+import { relativePath } from "@/utils/const";
+
+const paths = relativePath.home.membership.management;
+
+const TABS: { key: string; label: string; count: keyof ManagerData["counts"] }[] = [
+  { key: paths.memberConfirmation, label: "Member confirmation", count: "confirm" },
+  { key: paths.visitorToMembership, label: "Visitor-to-membership", count: "visitors" },
+  { key: paths.soulwonToMembership, label: "Soulwon-to-membership", count: "souls" },
+  { key: paths.guestToMembership, label: "Guest-to-membership", count: "guests" },
+  { key: paths.joinRequests, label: "Join department requests", count: "joins" },
+];
 
 export const MembershipManagement = () => {
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const data = useManagerDataSource();
+
+  const segments = pathname.split("/").filter(Boolean);
+  const active =
+    TABS.find((tab) => segments.includes(tab.key))?.key ?? paths.memberConfirmation;
+
   return (
-    <PageOutline>
-      <div className="space-y-6">
-        <section className="space-y-2">
-          <h1 className="text-2xl font-semibold text-primary">Membership Management</h1>
-          <p className="text-sm text-gray-600">
-            Confirm members, convert visitors or life center soul-winning records into member records, and decide membership requests from app guests.
-          </p>
-        </section>
-
-        <div className="w-full border border-lightGray rounded-lg p-1 flex flex-wrap gap-2">
-          {tabs.map((tab) => (
-            <NavLink
-              key={tab.path}
-              to={tab.path}
-              end
-              className={({ isActive }) =>
-                `rounded-lg px-4 py-2 text-sm transition ${
-                  isActive ? "bg-lightGray text-primary font-semibold" : "text-primary/80 hover:bg-lightGray/60"
-                }`
-              }
-            >
-              {tab.label}
-            </NavLink>
-          ))}
-        </div>
-
-        <Outlet />
+    <PageOutline
+      crumbs={[
+        { label: "Home", link: "/home" },
+        { label: "Membership", link: "/home/membership" },
+        { label: "Membership manager" },
+      ]}
+    >
+      <div className="flex flex-col gap-6">
+        <PageHeading
+          title="Membership Management"
+          subtitle="Confirm members, convert visitors and soul-winning records into members, and decide requests from app guests."
+        />
+        <PillTabs
+          ariaLabel="Membership management"
+          value={active}
+          onChange={(key) => navigate(key)}
+          tabs={TABS.map((tab) => ({
+            key: tab.key,
+            label: tab.label,
+            count: data.counts[tab.count],
+          }))}
+        />
+        <Outlet context={data} />
       </div>
     </PageOutline>
   );
