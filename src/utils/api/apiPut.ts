@@ -28,7 +28,6 @@ import type {
   UpdateSermonSeriesDto,
 } from "./sermons/interfaces";
 import { patchData, updateData } from "./apiFunctions";
-import { AssetPayloadType } from "./assets/interfaces";
 import type { PledgeDetail, PledgeMutationPayload } from "./pledges/interface";
 import { LifeCenterType, MeetingType } from "./lifeCenter/interfaces";
 import {
@@ -165,11 +164,6 @@ export class ApiUpdateCalls {
       payload,
       query
     );
-  };
-
-  // Update Asset
-  updateAsset = (payload: AssetPayloadType): Promise<ApiResponse<unknown>> => {
-    return this.apiExecution.updateData("assets/update-asset", payload);
   };
 
   // Update Requisition

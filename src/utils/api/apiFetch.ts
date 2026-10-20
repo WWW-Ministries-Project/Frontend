@@ -1,4 +1,9 @@
-import { assetType } from "@/pages/HomePage/pages/AssetsManagement/utils/assetsInterface";
+import type {
+  AssetHistoryResponse,
+  AssetOverviewResponse,
+  StockCheckListResponse,
+  StockCheckResponse,
+} from "./assets/interfaces";
 import { ILifeCernterRoles } from "@/pages/HomePage/pages/LifeCenter/components/RolesForm";
 import { AccessRight } from "@/pages/HomePage/pages/Settings/utils/settingsInterfaces";
 import type { ApiResponse, QueryType } from "../interfaces";
@@ -365,11 +370,17 @@ export class ApiCalls {
   };
 
   // Asset Management
-  fetchAssets = (): Promise<ApiResponse<assetType[]>> => {
-    return this.fetchFromApi("assets/list-assets");
+  fetchAssetOverview = (query?: QueryType): Promise<ApiResponse<AssetOverviewResponse>> => {
+    return this.fetchFromApi("assets/overview", query);
   };
-  fetchAnAsset = (query?: QueryType): Promise<ApiResponse<assetType>> => {
-    return this.fetchFromApi("assets/get-asset", query);
+  fetchAssetHistory = (query?: QueryType): Promise<ApiResponse<AssetHistoryResponse>> => {
+    return this.fetchFromApi("assets/history", query);
+  };
+  fetchStockChecks = (query?: QueryType): Promise<ApiResponse<StockCheckListResponse>> => {
+    return this.fetchFromApi("assets/stock-checks", query);
+  };
+  fetchStockCheckDetail = (query?: QueryType): Promise<ApiResponse<StockCheckResponse>> => {
+    return this.fetchFromApi("assets/stock-checks/detail", query);
   };
 
   // Access Levels

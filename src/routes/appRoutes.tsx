@@ -1,6 +1,5 @@
 import CreateEvent from "@/pages/HomePage/pages/EventsManagement/pages/CreateEvent";
 import EventRegister from "@/pages/HomePage/pages/EventsManagement/pages/EventRegister.jsx";
-import { ManageAsset } from "@/pages/HomePage/pages/AssetsManagement/pages/ManageAssets";
 import EventsManagement from "@/pages/HomePage/pages/EventsManagement/EventsManagement";
 import ViewEvent from "@/pages/HomePage/pages/EventsManagement/pages/ViewEvents.jsx";
 import { MemberInformation } from "@/pages/HomePage/pages/Members/pages/MemberInformation";
@@ -22,7 +21,6 @@ import LoginPage from "../pages/Authentication/pages/LoginPage/LoginPage.jsx";
 import ResetPassword from "../pages/Authentication/pages/ResetPassword/ResetPassword.jsx";
 import ErrorPage from "../pages/ErrorPage.jsx";
 import { HomePage } from "../pages/HomePage/HomePage";
-import { AssetManagement } from "../pages/HomePage/pages/AssetsManagement/AssetManagement";
 import { Members } from "../pages/HomePage/pages/Members/Members";
 import { ManageMember } from "../pages/HomePage/pages/Members/pages/ManageMember";
 import Settings from "../pages/HomePage/pages/Settings/Settings";
@@ -113,7 +111,6 @@ import AppointmentManager from "@/pages/HomePage/pages/AppointmentsManagement/Ap
 import AppointmentsAnalytics from "@/pages/HomePage/pages/AppointmentsManagement/pages/AppointmentsAnalytics";
 import ManageAvailability from "@/pages/HomePage/pages/AppointmentsManagement/pages/ManageAvailability.js";
 import AppointmentSettings from "@/pages/HomePage/pages/AppointmentsManagement/pages/AppointmentSettings";
-import AssetsAnalytics from "@/pages/HomePage/pages/AssetsManagement/pages/AssetsAnalytics";
 import EventsAnalytics from "@/pages/HomePage/pages/EventsManagement/pages/EventsAnalytics";
 import MyAppointments from "@/pages/MembersPage/Pages/MyAppointments.js";
 import FinanceManager from "@/pages/HomePage/pages/FinanceManagement/FinanaceManagement.js";
@@ -137,6 +134,12 @@ import EventReportDetails from "@/pages/HomePage/pages/Reports/pages/EventReport
 import EventReports from "@/pages/HomePage/pages/Reports/pages/EventReports";
 import CertificateVerificationPage from "@/pages/CertificateVerification/CertificateVerificationPage";
 import { Navigate } from "react-router-dom";
+import {
+  AssetAnalytics,
+  AssetCountPage,
+  AssetManager,
+  AssetReconciliation,
+} from "@/pages/HomePage/pages/AssetsManagement/lazyPages";
 import ChangePassword from "@/pages/Authentication/pages/ChangePassword/ChangePassword";
 import { AIConsole } from "@/pages/HomePage/pages/AI/AIConsole";
 
@@ -762,7 +765,15 @@ export const routes: AppRoute[] = [
           {
             path: "",
             name: "Assets",
-            element: <AssetManagement />,
+            element: <Suspense fallback={null}><AssetManager /></Suspense>,
+            isPrivate: true,
+            permissionNeeded: "view_asset",
+            sideTab: true,
+          },
+          {
+            path: "reconciliation",
+            name: "Reconciliation",
+            element: <Suspense fallback={null}><AssetReconciliation /></Suspense>,
             isPrivate: true,
             permissionNeeded: "view_asset",
             sideTab: true,
@@ -770,7 +781,7 @@ export const routes: AppRoute[] = [
           {
             path: "analytics",
             name: "Analytics",
-            element: <AssetsAnalytics />,
+            element: <Suspense fallback={null}><AssetAnalytics /></Suspense>,
             isPrivate: true,
             permissionNeeded: "view_asset",
             sideTab: true,
@@ -778,11 +789,19 @@ export const routes: AppRoute[] = [
         ],
       },
       {
-        path: "assets/manage-asset",
-        element: <ManageAsset />,
-        name: "Manage Asset",
+        // Stock-check notification links. Department heads count their own
+        // items here without needing Asset access; the server scopes the list.
+        // Kept outside the Assets menu so it doesn't show for everyone.
+        path: "assets/count",
+        name: "Stock check",
+        element: <Suspense fallback={null}><AssetCountPage /></Suspense>,
         isPrivate: true,
-        permissionNeeded: "manage_asset",
+      },
+      {
+        path: "assets/manage-asset",
+        name: "Manage Asset",
+        element: <Navigate to="/home/assets" replace />,
+        isPrivate: true,
       },
       {
         path: "finance",
