@@ -121,6 +121,7 @@ import {
   Appointment,
   AppointmentBookingsQuery,
   AppointmentReason,
+  AppointmentSettings,
   StaffAvailability,
   StaffAvailabilityStatusResponse,
 } from "./appointment/interfaces";
@@ -952,6 +953,13 @@ export class ApiCalls {
     query?: AppointmentBookingsQuery
   ): Promise<ApiResponse<Appointment[]>> => {
     return this.fetchFromApi("appointment/bookings", query);
+  };
+
+  // Booking rules and the notification matrix — Appointments view permission.
+  fetchAppointmentSettings = (
+    query?: QueryType
+  ): Promise<ApiResponse<AppointmentSettings>> => {
+    return this.fetchFromApi("appointment/settings", query);
   };
 
   // Fetch church attendance records

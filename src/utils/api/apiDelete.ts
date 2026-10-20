@@ -206,6 +206,18 @@ export class ApiDeletionCalls {
     return this.apiExecution.deleteData(`appointment/reasons/${reasonId}`);
   };
 
+  deleteStaffTimeOff = (query: QueryType): Promise<ApiResponse<void>> => {
+    const timeOffId = query?.id;
+
+    if (!timeOffId) {
+      throw new Error("Time off id is required for delete");
+    }
+
+    return this.apiExecution.deleteData(
+      `appointment/availability/time-off/${timeOffId}`
+    );
+  };
+
   // Delete Church Attendance Record
   deleteChurchAttendance = (
     query: QueryType
