@@ -53,6 +53,8 @@ import type {
   InitializePledgePaymentResult,
   PledgeDetail,
   PledgeMutationPayload,
+  PledgePayment,
+  PledgeRemindResult,
   PledgerInput,
   Redemption,
   RetryPledgePaymentPayload,
@@ -145,8 +147,10 @@ import {
 } from "./appointment/interfaces";
 import type {
   FinanceApprovalConfig,
+  FinanceApprovalConfigPayload,
   FinanceMutationRequest,
   FinancialRecord,
+  GivingContribution,
   GivingOption,
   GivingOptionPayload,
   InitializeGivingPayload,
@@ -1030,9 +1034,47 @@ export class ApiCreationCalls {
   };
 
   upsertFinanceApprovalConfig = (
-    payload: FinanceApprovalConfig
+    payload: FinanceApprovalConfigPayload
   ): Promise<ApiResponse<FinanceApprovalConfig>> => {
     return this.postToApi("financials/upsert-approval-config", payload);
+  };
+
+  // finance approver approves a submitted weekly record. Query: { id }
+  approveFinancial = (id: string): Promise<ApiResponse<FinancialRecord>> => {
+    return this.postToApi(`financials/approve-financial?id=${encodeURIComponent(id)}`, {});
+  };
+
+  // finance approver sends a submitted weekly record back as a draft
+  returnFinancial = (
+    id: string,
+    note: string
+  ): Promise<ApiResponse<FinancialRecord>> => {
+    return this.postToApi(`financials/return-financial?id=${encodeURIComponent(id)}`, { note });
+  };
+
+  // ask Paystack for the latest status of unsettled contributions
+  recheckContributions = (
+    references: string[]
+  ): Promise<ApiResponse<GivingContribution[]> & { checked?: number; failed?: number }> => {
+    return this.postToApi("givingoption/contributions/recheck", { references });
+  };
+
+  // invite a member whose gift failed or was abandoned to give again
+  nudgeContribution = (reference: string): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("givingoption/contributions/nudge", { reference });
+  };
+
+  // record the redemption for a settled pledge payment that wasn't credited
+  creditPledgePayment = (paymentId: string): Promise<ApiResponse<PledgePayment>> => {
+    return this.postToApi("pledges/credit-payment", { payment_id: paymentId });
+  };
+
+  // remind pledgers with a balance (all, or the given pledgers)
+  remindPledgers = (payload: {
+    pledge_id: number;
+    pledger_ids?: number[];
+  }): Promise<ApiResponse<PledgeRemindResult>> => {
+    return this.postToApi("pledges/remind-pledgers", payload);
   };
 
   createAiCredential = (

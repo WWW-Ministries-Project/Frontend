@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { showDeleteDialog, showNotification } from "@/pages/HomePage/utils";
@@ -77,6 +78,19 @@ const MemberGiving = () => {
     () => (Array.isArray(optionsData?.data) ? optionsData.data : []),
     [optionsData]
   );
+
+  // Shared giving links (/member/giving?option=<id>) open with that option picked.
+  const [searchParams] = useSearchParams();
+  const linkedOptionId = searchParams.get("option");
+  const linkApplied = useRef(false);
+  useEffect(() => {
+    if (!linkedOptionId || linkApplied.current) return;
+    const match = options.find((option) => option.id === linkedOptionId);
+    if (match) {
+      linkApplied.current = true;
+      setSelected(match);
+    }
+  }, [linkedOptionId, options]);
   const contributions = useMemo(
     () => (Array.isArray(historyData?.data) ? historyData.data : []),
     [historyData]

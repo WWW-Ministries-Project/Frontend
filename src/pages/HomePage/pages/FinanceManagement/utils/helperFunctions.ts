@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- normalizes untyped finance API payloads */
 export const sumBy = <T>(
   items: T[],
   selector: (item: T) => number | null | undefined

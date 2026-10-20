@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- normalizes untyped finance API payloads */
 import {
   AlignmentType,
   Document,
