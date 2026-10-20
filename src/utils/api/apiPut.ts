@@ -80,6 +80,7 @@ import type {
 import type {
   Appointment,
   AppointmentReason,
+  AppointmentSettings,
   ReorderAppointmentReasonsPayload,
   StaffAvailability,
   UpdateAppointmentBookingPayload,
@@ -664,6 +665,29 @@ export class ApiUpdateCalls {
     payload: ReorderAppointmentReasonsPayload
   ): Promise<ApiResponse<AppointmentReason[]>> => {
     return this.apiExecution.updateData("appointment/reasons/reorder", payload);
+  };
+
+  updateAppointmentSettings = (
+    payload: Partial<AppointmentSettings>
+  ): Promise<ApiResponse<AppointmentSettings>> => {
+    return this.apiExecution.updateData("appointment/settings", payload);
+  };
+
+  // Stop or restart new bookings for one person. Existing bookings stay.
+  setStaffBookingsPaused = (
+    payload: { paused: boolean },
+    query?: QueryType
+  ): Promise<ApiResponse<{ userId: string; paused: boolean }>> => {
+    const userId = query?.id;
+
+    if (!userId) {
+      throw new Error("Staff id is required to pause bookings");
+    }
+
+    return this.apiExecution.updateData(
+      `appointment/availability/staff/${userId}/pause`,
+      payload
+    );
   };
 
   updateAppointmentStatus = (

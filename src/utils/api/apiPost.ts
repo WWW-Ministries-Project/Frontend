@@ -124,11 +124,14 @@ import type {
 } from "./marketPlace/interface";
 import {
   Appointment,
+  AppointmentActionPayload,
   AppointmentReason,
   CreateAppointmentBookingPayload,
   CreateAppointmentReasonPayload,
   CreateStaffAvailabilityPayload,
+  CreateStaffTimeOffPayload,
   StaffAvailability,
+  StaffTimeOff,
 } from "./appointment/interfaces";
 import type {
   FinanceApprovalConfig,
@@ -679,6 +682,24 @@ export class ApiCreationCalls {
     payload: CreateAppointmentReasonPayload
   ): Promise<ApiResponse<AppointmentReason>> => {
     return this.postToApi("appointment/reasons", payload);
+  };
+
+  // Accept, suggest, decline, cancel, record outcome, remind, reassign…
+  appointmentBookingAction = (
+    id: string | number,
+    payload: AppointmentActionPayload
+  ): Promise<ApiResponse<Appointment>> => {
+    return this.postToApi(`appointment/bookings/${id}/actions`, payload);
+  };
+
+  createStaffTimeOff = (
+    userId: string | number,
+    payload: CreateStaffTimeOffPayload
+  ): Promise<ApiResponse<StaffTimeOff>> => {
+    return this.postToApi(
+      `appointment/availability/staff/${userId}/time-off`,
+      payload
+    );
   };
 
   // Record Attendance
