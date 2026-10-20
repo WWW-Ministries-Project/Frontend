@@ -144,6 +144,7 @@ import type {
 import type {
   AvailableGivingOption,
   FinanceApprovalConfig,
+  FinanceAutoAmounts,
   FinanceData,
   FinancialRecord,
   GivingContribution,
@@ -1356,6 +1357,13 @@ export class ApiCalls {
     query?: QueryType
   ): Promise<ApiResponse<PledgePayment[]>> => {
     return this.fetchFromApi("pledges/pledge-payments", query);
+  };
+
+  // online giving and pledges redeemed for one week. Query: { from, to }
+  fetchFinanceAutoAmounts = (
+    query?: QueryType
+  ): Promise<ApiResponse<FinanceAutoAmounts>> => {
+    return this.fetchFromApi("financials/auto-amounts", query);
   };
 
   fetchFinanceApprovalConfig = (

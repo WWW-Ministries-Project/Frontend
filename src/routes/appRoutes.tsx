@@ -113,16 +113,15 @@ import ManageAvailability from "@/pages/HomePage/pages/AppointmentsManagement/pa
 import AppointmentSettings from "@/pages/HomePage/pages/AppointmentsManagement/pages/AppointmentSettings";
 import EventsAnalytics from "@/pages/HomePage/pages/EventsManagement/pages/EventsAnalytics";
 import MyAppointments from "@/pages/MembersPage/Pages/MyAppointments.js";
-import FinanceManager from "@/pages/HomePage/pages/FinanceManagement/FinanaceManagement.js";
-import FinanceDetailPage from "@/pages/HomePage/pages/FinanceManagement/pages/FinanceDetailPage.js";
-import FianancialsForm from "@/pages/HomePage/pages/FinanceManagement/pages/FinancialsForm.js";
-import FinanceConfiguration from "@/pages/HomePage/pages/FinanceManagement/pages/FinanceConfiguration.js";
-import GivingOptionsOverview from "@/pages/HomePage/pages/FinanceManagement/GivingOptions/GivingOptionsOverview";
-import GivingContributions from "@/pages/HomePage/pages/FinanceManagement/GivingOptions/GivingContributions";
-import GivingOptionDetail from "@/pages/HomePage/pages/FinanceManagement/GivingOptions/GivingOptionDetail";
-import PledgesOverview from "@/pages/HomePage/pages/FinanceManagement/Pledges/PledgesOverview";
-import PledgeForm from "@/pages/HomePage/pages/FinanceManagement/Pledges/PledgeForm";
-import PledgeDetail from "@/pages/HomePage/pages/FinanceManagement/Pledges/PledgeDetail";
+import {
+  FinanceConfiguration,
+  FinanceManager,
+  FinanceRecord,
+  GivingContributions,
+  GivingOptions,
+  PledgeDetail,
+  Pledges,
+} from "@/pages/HomePage/pages/FinanceManagement/lazyPages";
 import {
   AllRequisitionsPage,
   LegacyRequestRedirect,
@@ -813,29 +812,22 @@ export const routes: AppRoute[] = [
           {
             path: "",
             name: "Finance Manager",
-            element: <FinanceManager />,
+            element: <Suspense fallback={null}><FinanceManager /></Suspense>,
             isPrivate: true,
             permissionNeeded: "view_financials",
             sideTab: true,
           },
           {
-            path: ":id",
-            name: "Finance Detail",
-            element: <FinanceDetailPage />,
-            isPrivate: true,
-            permissionNeeded: "view_financials",
-          },
-          {
             path: "create",
-            name: "Create Financials",
-            element: <FianancialsForm />,
+            name: "New weekly record",
+            element: <Suspense fallback={null}><FinanceRecord /></Suspense>,
             isPrivate: true,
             permissionNeeded: "manage_financials",
           },
           {
             path: "configuration",
             name: "Configuration",
-            element: <FinanceConfiguration />,
+            element: <Suspense fallback={null}><FinanceConfiguration /></Suspense>,
             isPrivate: true,
             permissionNeeded: "manage_financials",
             sideTab: true,
@@ -843,23 +835,23 @@ export const routes: AppRoute[] = [
           {
             path: "giving-options",
             name: "Manage Giving Options",
-            element: <GivingOptionsOverview />,
+            element: <Suspense fallback={null}><GivingOptions /></Suspense>,
             isPrivate: true,
             permissionNeeded: "view_giving",
             sideTab: true,
           },
           {
-            // Not a sideTab: reached by clicking an option on the overview.
+            // Option details now live on the overview cards and contributions.
             path: "giving-options/:id",
             name: "Giving Option Detail",
-            element: <GivingOptionDetail />,
+            element: <Navigate to="/home/finance/giving-options" replace />,
             isPrivate: true,
             permissionNeeded: "view_giving",
           },
           {
             path: "giving-contributions",
             name: "Giving Contributions",
-            element: <GivingContributions />,
+            element: <Suspense fallback={null}><GivingContributions /></Suspense>,
             isPrivate: true,
             permissionNeeded: "view_giving",
             sideTab: true,
@@ -867,31 +859,39 @@ export const routes: AppRoute[] = [
           {
             path: "pledges",
             name: "Pledges",
-            element: <PledgesOverview />,
+            element: <Suspense fallback={null}><Pledges /></Suspense>,
             isPrivate: true,
-            permissionNeeded: "view_financials",
+            permissionNeeded: "view_pledges",
             sideTab: true,
           },
           {
+            // Pledges are created from a dialog on the Pledges page.
             path: "pledges/create",
             name: "Create Pledge",
-            element: <PledgeForm mode="create" />,
+            element: <Navigate to="/home/finance/pledges" replace />,
             isPrivate: true,
-            permissionNeeded: "manage_financials",
+            permissionNeeded: "manage_pledges",
           },
           {
             path: "pledges/:id",
             name: "Pledge Detail",
-            element: <PledgeDetail />,
+            element: <Suspense fallback={null}><PledgeDetail /></Suspense>,
             isPrivate: true,
-            permissionNeeded: "view_financials",
+            permissionNeeded: "view_pledges",
           },
           {
             path: "pledges/:id/edit",
             name: "Edit Pledge",
-            element: <PledgeForm mode="edit" />,
+            element: <Suspense fallback={null}><PledgeDetail /></Suspense>,
             isPrivate: true,
-            permissionNeeded: "manage_financials",
+            permissionNeeded: "manage_pledges",
+          },
+          {
+            path: ":id",
+            name: "Weekly record",
+            element: <Suspense fallback={null}><FinanceRecord /></Suspense>,
+            isPrivate: true,
+            permissionNeeded: "view_financials",
           },
         ],
       },
