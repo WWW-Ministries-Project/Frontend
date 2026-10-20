@@ -32,10 +32,11 @@ import { NotificationCenterPage } from "@/features/notifications/NotificationCen
 import { DashBoardPage } from "@/pages/HomePage/pages/DashBoard/DashboardPage.js";
 import AllEvent from "@/pages/HomePage/pages/EventsManagement/pages/AllEvent";
 import EventSchedulesByEvent from "@/pages/HomePage/pages/EventsManagement/pages/EventSchedulesByEvent";
-import { LifeCenter } from "@/pages/HomePage/pages/LifeCenter/LifeCenter";
-import { LifeCenterAnalytics } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterAnalytics";
-import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles";
-import { ViewLifeCenter } from "@/pages/HomePage/pages/LifeCenter/pages/ViewLifeCenter";
+import {
+  LifeCenterAnalytics,
+  LifeCenterDetail,
+  LifeCenterList,
+} from "@/pages/HomePage/pages/LifeCenter/lazyPages";
 import { MembershipManagement } from "@/pages/HomePage/pages/MembershipManagement/MembershipManagement";
 import { DepartmentDetails } from "@/pages/HomePage/pages/MembershipManagement/pages/DepartmentDetails";
 import { DepartmentsAndMinistries } from "@/pages/HomePage/pages/MembershipManagement/pages/DepartmentsAndMinistries";
@@ -159,7 +160,6 @@ import {
   AllOrders,
   AdminOrderDetail,
 } from "./lazyMarketplaceRoutes";
-// import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles.js";
 
 // Define a Route type
 export interface AppRoute {
@@ -898,7 +898,6 @@ export const routes: AppRoute[] = [
       {
         path: relativePath.home.lifeCenter.main,
         name: "Life Centers",
-        // element: <LifeCenter />,
         isPrivate: true,
         permissionNeeded: "view_life_center",
         sideTab: true,
@@ -906,7 +905,7 @@ export const routes: AppRoute[] = [
           {
             path: "",
             name: "Life Centers",
-            element: <LifeCenter />,
+            element: <Suspense fallback={null}><LifeCenterList /></Suspense>,
             isPrivate: true,
             permissionNeeded: "view_life_center",
             sideTab: true,
@@ -914,21 +913,22 @@ export const routes: AppRoute[] = [
           {
             path: relativePath.home.lifeCenter.detail,
             name: "Life Center",
-            element: <ViewLifeCenter />,
+            element: <Suspense fallback={null}><LifeCenterDetail /></Suspense>,
             isPrivate: true,
             permissionNeeded: "view_life_center",
           },
           {
             path: "roles",
             name: "Life Center Roles",
-            element: <LifeCenterRoles />,
+            // Roles are managed from the list page's "Manage roles" dialog.
+            element: <Navigate to=".." relative="path" replace />,
             isPrivate: true,
             permissionNeeded: "manage_life_center",
           },
           {
             path: "life-center-analytics",
             name: "Life Centers Analytic",
-            element: <LifeCenterAnalytics />,
+            element: <Suspense fallback={null}><LifeCenterAnalytics /></Suspense>,
             isPrivate: true,
             permissionNeeded: "view_life_center",
             sideTab: true,

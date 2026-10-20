@@ -4,7 +4,6 @@ import type {
   StockCheckListResponse,
   StockCheckResponse,
 } from "./assets/interfaces";
-import { ILifeCernterRoles } from "@/pages/HomePage/pages/LifeCenter/components/RolesForm";
 import { AccessRight } from "@/pages/HomePage/pages/Settings/utils/settingsInterfaces";
 import type { ApiResponse, QueryType } from "../interfaces";
 import type { AssignableUser } from "./settings/accessLevelAssignmentInterfaces";
@@ -58,6 +57,8 @@ import {
 } from "./events/interfaces";
 import {
   LifeCenterDetailsType,
+  LifeCenterOverview,
+  LifeCenterRole,
   LifeCenterMemberType,
   LifeCenterStatsType,
   LifeCenterType,
@@ -794,6 +795,13 @@ export class ApiCalls {
     return this.fetchFromApi(`lifecenter/get-lifecenters`, query);
   };
 
+  /** Centers, roles, and the meetings/souls in `from`–`to`, for the list and analytics pages. */
+  fetchLifeCenterOverview = (
+    query?: QueryType
+  ): Promise<ApiResponse<LifeCenterOverview>> => {
+    return this.fetchFromApi(`lifecenter/overview`, query);
+  };
+
   fetchLifeCenterById = (
     query?: QueryType
   ): Promise<ApiResponse<LifeCenterDetailsType>> => {
@@ -820,7 +828,7 @@ export class ApiCalls {
 
   fetchLifCenterRoles = (
     query?: QueryType
-  ): Promise<ApiResponse<ILifeCernterRoles[]>> => {
+  ): Promise<ApiResponse<LifeCenterRole[]>> => {
     return this.fetchFromApi(`lifecenter/get-roles`, query);
   };
 

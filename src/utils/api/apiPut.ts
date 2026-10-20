@@ -1,6 +1,3 @@
-import { LifeCenterMemberForm } from "@/pages/HomePage/pages/LifeCenter/components/LifeCenterMemberForm";
-import { ILifeCernterRoles } from "@/pages/HomePage/pages/LifeCenter/components/RolesForm";
-import { ISoulsWonForm } from "@/pages/HomePage/pages/LifeCenter/components/SoulsWonForm";
 import { AccessRight } from "@/pages/HomePage/pages/Settings/utils/settingsInterfaces";
 import { ApiResponse, QueryType } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
@@ -29,7 +26,12 @@ import type {
 } from "./sermons/interfaces";
 import { patchData, updateData } from "./apiFunctions";
 import type { PledgeDetail, PledgeMutationPayload } from "./pledges/interface";
-import { LifeCenterType, MeetingType } from "./lifeCenter/interfaces";
+import {
+  LifeCenterMemberPayload,
+  LifeCenterRole,
+  LifeCenterType,
+  MeetingType,
+} from "./lifeCenter/interfaces";
 import {
   activateMemberPayloadType,
   activateMemberType,
@@ -534,7 +536,7 @@ export class ApiUpdateCalls {
   updateSoul = (
     payload: unknown,
     query?: QueryType
-  ): Promise<ApiResponse<ISoulsWonForm>> => {
+  ): Promise<ApiResponse<unknown>> => {
     return this.apiExecution.updateData("lifecenter/soulwon", payload, query);
   };
 
@@ -546,9 +548,9 @@ export class ApiUpdateCalls {
   };
 
   updateLifeCenterRole = (
-    payload: ILifeCernterRoles,
+    payload: Pick<LifeCenterRole, "name">,
     query?: QueryType
-  ): Promise<ApiResponse<ILifeCernterRoles>> => {
+  ): Promise<ApiResponse<LifeCenterRole>> => {
     return this.apiExecution.updateData(
       "lifecenter/update-role",
       payload,
@@ -557,9 +559,9 @@ export class ApiUpdateCalls {
   };
 
   updateLifeCenterMember = (
-    payload: LifeCenterMemberForm,
+    payload: LifeCenterMemberPayload,
     query?: QueryType
-  ): Promise<ApiResponse<LifeCenterMemberForm>> => {
+  ): Promise<ApiResponse<unknown>> => {
     return this.apiExecution.updateData(
       "lifecenter/update-member-role",
       payload,

@@ -1,7 +1,4 @@
 import type { RequisitionReminderResponse } from "./requisitions/interfaces";
-import { LifeCenterMemberForm } from "@/pages/HomePage/pages/LifeCenter/components/LifeCenterMemberForm";
-import { ILifeCernterRoles } from "@/pages/HomePage/pages/LifeCenter/components/RolesForm";
-import { ISoulsWonForm } from "@/pages/HomePage/pages/LifeCenter/components/SoulsWonForm";
 import type { ApiResponse, QueryType } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import { postData } from "./apiFunctions";
@@ -59,7 +56,15 @@ import type {
   Redemption,
   RetryPledgePaymentPayload,
 } from "./pledges/interface";
-import { LifeCenterType, MeetingType } from "./lifeCenter/interfaces";
+import {
+  LeaderReminderReason,
+  LifeCenterMemberPayload,
+  LifeCenterSavePayload,
+  LifeCenterType,
+  MeetingPayload,
+  MeetingType,
+  SoulWonPayload,
+} from "./lifeCenter/interfaces";
 import {
   CohortPayloadType,
   BankQuestion,
@@ -613,13 +618,13 @@ export class ApiCreationCalls {
   // };
 
   createLifeCenter = (
-    payload: LifeCenterType
+    payload: LifeCenterSavePayload
   ): Promise<ApiResponse<LifeCenterType>> => {
     return this.postToApi("lifecenter/create-lifecenter", payload);
   };
 
   createSoul = (
-    payload: ISoulsWonForm
+    payload: SoulWonPayload
   ): Promise<
     ApiResponse<{
       id: string | number;
@@ -630,29 +635,27 @@ export class ApiCreationCalls {
     return this.postToApi("lifecenter/soulwon", payload);
   };
 
-  createMeeting = (payload: {
-    lifeCenterId: string;
-    date: string;
-    offeringAmount: string;
-    currency: string;
-    note: string | null;
-    attendeeSoulWonIds: number[];
-    firstTimerSoulWonIds: number[];
-    newFirstTimers: unknown[];
-  }): Promise<ApiResponse<MeetingType>> => {
+  createMeeting = (payload: MeetingPayload): Promise<ApiResponse<MeetingType>> => {
     return this.postToApi("lifecenter/meeting", payload);
   };
 
-  createLifeCenterRole = (
-    payload: ILifeCernterRoles
-  ): Promise<ApiResponse<{ id: string; name: string }>> => {
+  createLifeCenterRole = (payload: {
+    name: string;
+  }): Promise<ApiResponse<{ id: string; name: string }>> => {
     return this.postToApi("lifecenter/create-role", payload);
   };
 
   createLifeCenterMember = (
-    payload: LifeCenterMemberForm
-  ): Promise<ApiResponse<LifeCenterMemberForm>> => {
+    payload: LifeCenterMemberPayload
+  ): Promise<ApiResponse<unknown>> => {
     return this.postToApi("lifecenter/add-lifecenter-member", payload);
+  };
+
+  remindLifeCenterLeader = (payload: {
+    lifeCenterId: number | string;
+    reason: LeaderReminderReason;
+  }): Promise<ApiResponse<{ sent_to: string }>> => {
+    return this.postToApi("lifecenter/remind-leader", payload);
   };
 
   //marketPlace
