@@ -29,6 +29,11 @@ import type {
   RideSearchResult,
 } from "./rides/interfaces";
 import type { DownloadedFile } from "./eventReports/interfaces";
+import type {
+  RequisitionAnalyticsResponse,
+  RequisitionOverviewDetail,
+  RequisitionOverviewResponse,
+} from "./requisitions/interfaces";
 import type { Promotion } from "./promotions/interfaces";
 import type { AnnualTheme } from "./theme/interfaces";
 import type { GuestType, MembershipRequestRow, PagedItems } from "./guests/interfaces";
@@ -395,6 +400,25 @@ export class ApiCalls {
 
   fetchMyRequests = (query?: QueryType): Promise<ApiResponse<unknown[]>> => {
     return this.fetchFromApi("requisitions/my-requisitions", query);
+  };
+
+  /** query.scope: "mine" (incl. drafts) or "all" (submitted, viewer-scoped). */
+  fetchRequisitionOverview = (
+    query?: QueryType
+  ): Promise<ApiResponse<RequisitionOverviewResponse>> => {
+    return this.fetchFromApi("requisitions/overview", query);
+  };
+
+  fetchRequisitionOverviewDetail = (
+    query?: QueryType
+  ): Promise<ApiResponse<RequisitionOverviewDetail>> => {
+    return this.fetchFromApi("requisitions/overview-detail", query);
+  };
+
+  fetchRequisitionAnalytics = (
+    query?: QueryType
+  ): Promise<ApiResponse<RequisitionAnalyticsResponse>> => {
+    return this.fetchFromApi("requisitions/analytics", query);
   };
 
   fetchRequisitionApprovalConfig = (query?: QueryType): Promise<

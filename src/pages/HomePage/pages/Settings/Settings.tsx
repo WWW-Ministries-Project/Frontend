@@ -43,6 +43,8 @@ import {
 import { useSettingsTabs } from "./utils/useSettingsTabs";
 
 const DEFAULT_SIMILAR_ITEM_LOOKBACK_DAYS = 30;
+const DEFAULT_APPROVAL_REPLY_DAYS = 3;
+const MAX_APPROVAL_REPLY_DAYS = 30;
 
 const getResponseMessage = (payload: unknown, fallback: string): string => {
   if (!payload || typeof payload !== "object") {
@@ -118,6 +120,12 @@ function Settings() {
   );
   const [initialSimilarItemLookbackDays, setInitialSimilarItemLookbackDays] =
     useState(String(DEFAULT_SIMILAR_ITEM_LOOKBACK_DAYS));
+  const [approvalReplyDays, setApprovalReplyDays] = useState(
+    String(DEFAULT_APPROVAL_REPLY_DAYS)
+  );
+  const [initialApprovalReplyDays, setInitialApprovalReplyDays] = useState(
+    String(DEFAULT_APPROVAL_REPLY_DAYS)
+  );
   const [isSavingRequisitionSettings, setIsSavingRequisitionSettings] =
     useState(false);
   const [isSavingEligibilityRules, setIsSavingEligibilityRules] =
@@ -308,6 +316,11 @@ function Settings() {
   const parsedSimilarItemLookbackDays = toPositiveInteger(similarItemLookbackDays);
   const hasLookbackDaysChanged =
     similarItemLookbackDays.trim() !== initialSimilarItemLookbackDays.trim();
+  const parsedReplyDays = toPositiveInteger(approvalReplyDays);
+  const isReplyDaysValid =
+    parsedReplyDays !== null && parsedReplyDays <= MAX_APPROVAL_REPLY_DAYS;
+  const hasReplyDaysChanged =
+    approvalReplyDays.trim() !== initialApprovalReplyDays.trim();
 
   // Created data effect
   useEffect(() => {
@@ -399,6 +412,13 @@ function Settings() {
 
     setSimilarItemLookbackDays(defaultValue);
     setInitialSimilarItemLookbackDays(defaultValue);
+
+    const replyValue = String(
+      toPositiveInteger(requisitionConfig?.approval_reply_days) ??
+        DEFAULT_APPROVAL_REPLY_DAYS
+    );
+    setApprovalReplyDays(replyValue);
+    setInitialApprovalReplyDays(replyValue);
   }, [requisitionConfig]);
 
   useEffect(() => {
@@ -505,6 +525,14 @@ function Settings() {
       return;
     }
 
+    if (!isReplyDaysValid || parsedReplyDays === null) {
+      showNotification(
+        `Reply time must be a whole number from 1 to ${MAX_APPROVAL_REPLY_DAYS} days.`,
+        "error"
+      );
+      return;
+    }
+
     const payload: RequisitionApprovalConfigPayload = {
       module: "REQUISITION",
       requester_user_ids: requisitionConfig?.requester_user_ids ?? [],
@@ -512,6 +540,7 @@ function Settings() {
       notification_user_ids: requisitionConfig?.notification_user_ids ?? [],
       is_active: requisitionConfig?.is_active ?? true,
       similar_item_lookback_days: parsedSimilarItemLookbackDays,
+      approval_reply_days: parsedReplyDays,
     };
 
     setIsSavingRequisitionSettings(true);
@@ -522,12 +551,13 @@ function Settings() {
       showNotification(
         getResponseMessage(
           response.data,
-          "Requisition lookback setting saved successfully."
+          "Requisition settings saved."
         ),
         "success"
       );
 
       setInitialSimilarItemLookbackDays(String(parsedSimilarItemLookbackDays));
+      setInitialApprovalReplyDays(String(parsedReplyDays));
       await refetchApprovalConfig();
     } catch (error) {
       if (error instanceof ApiError) {
@@ -827,6 +857,42 @@ function Settings() {
               )}
             </div>
 
+            <div className="space-y-1 border-t border-lightGray pt-4">
+              <h4 className="text-base font-semibold text-primary">
+                Approval reply time (days)
+              </h4>
+              <p className="text-sm text-primaryGray">
+                How long an approver has before a requisition is marked
+                overdue. Overdue approvers get an automatic reminder each
+                morning, and admins can chase them from the list.
+              </p>
+            </div>
+
+            <div className="max-w-[18rem]">
+              <label
+                htmlFor="requisition-reply-days"
+                className="mb-1 block text-sm font-medium text-primary"
+              >
+                Number of days
+              </label>
+              <input
+                id="requisition-reply-days"
+                type="number"
+                min={1}
+                max={MAX_APPROVAL_REPLY_DAYS}
+                step={1}
+                className="app-input w-full"
+                value={approvalReplyDays}
+                onChange={(event) => setApprovalReplyDays(event.target.value)}
+                placeholder="e.g. 3"
+              />
+              {!isReplyDaysValid && (
+                <p className="mt-1 text-xs text-error">
+                  Enter a whole number from 1 to {MAX_APPROVAL_REPLY_DAYS}.
+                </p>
+              )}
+            </div>
+
             {approvalConfigLoading && (
               <p className="text-xs text-primaryGray">
                 Loading requisition settings...
@@ -846,7 +912,8 @@ function Settings() {
                 disabled={
                   isSavingRequisitionSettings ||
                   !parsedSimilarItemLookbackDays ||
-                  !hasLookbackDaysChanged
+                  !isReplyDaysValid ||
+                  (!hasLookbackDaysChanged && !hasReplyDaysChanged)
                 }
                 loading={isSavingRequisitionSettings}
               />

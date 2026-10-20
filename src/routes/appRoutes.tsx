@@ -126,10 +126,13 @@ import GivingOptionDetail from "@/pages/HomePage/pages/FinanceManagement/GivingO
 import PledgesOverview from "@/pages/HomePage/pages/FinanceManagement/Pledges/PledgesOverview";
 import PledgeForm from "@/pages/HomePage/pages/FinanceManagement/Pledges/PledgeForm";
 import PledgeDetail from "@/pages/HomePage/pages/FinanceManagement/Pledges/PledgeDetail";
-import MyRequisitions from "@/pages/HomePage/pages/Requisitions/pages/MyRequests";
-import RequestDetails from "@/pages/HomePage/pages/Requisitions/pages/RequestDetails";
-import Request from "@/pages/HomePage/pages/Requisitions/pages/Request";
-import Requisitions from "@/pages/HomePage/pages/Requisitions/pages/Requisitions";
+import {
+  AllRequisitionsPage,
+  LegacyRequestRedirect,
+  MyRequisitionsPage,
+  RequisitionDeepLinkPage,
+} from "@/pages/HomePage/pages/Requisitions/RequisitionManager";
+import RequisitionsAnalytics from "@/pages/HomePage/pages/Requisitions/pages/RequisitionsAnalytics";
 import EventReportDetails from "@/pages/HomePage/pages/Reports/pages/EventReportDetails";
 import EventReports from "@/pages/HomePage/pages/Reports/pages/EventReports";
 import CertificateVerificationPage from "@/pages/CertificateVerification/CertificateVerificationPage";
@@ -707,35 +710,45 @@ export const routes: AppRoute[] = [
           {
             path: "",
             name: "My Requisition",
-            element: <MyRequisitions />,
+            element: <MyRequisitionsPage />,
             isPrivate: true,
             sideTab: true,
           },
           {
-            path: ":id",
-            name: "Requisition Details",
-            element: <RequestDetails />,
+            // Managers see every submitted requisition; approvers see the
+            // ones that pass through their steps (scoped by the backend).
+            // Anyone else is sent back to My Requisition.
+            path: "staff_requests",
+            name: "Requisitions",
+            element: <AllRequisitionsPage />,
             isPrivate: true,
+            sideTab: true,
+          },
+          {
+            path: "analytics",
+            name: "Analytics",
+            element: <RequisitionsAnalytics />,
+            isPrivate: true,
+            sideTab: true,
           },
           {
             path: "request",
-            name: "Requisition",
-            element: <Request />,
+            name: "New Requisition",
+            element: <Navigate to="/home/requests?new=1" replace />,
             isPrivate: true,
           },
           {
             path: "request/:id",
-            name: "Requisition",
-            element: <Request />,
+            name: "Edit Requisition",
+            element: <LegacyRequestRedirect />,
             isPrivate: true,
           },
           {
-            path: "staff_requests",
-            name: "Requisitions",
-            element: <Requisitions />,
+            // Notification deep links: /home/requests/{base64 id}.
+            path: ":id",
+            name: "Requisition Details",
+            element: <RequisitionDeepLinkPage />,
             isPrivate: true,
-            permissionNeeded: "manage_requisition",
-            sideTab: true,
           },
         ],
       },
