@@ -1,3 +1,4 @@
+import type { RequisitionReminderResponse } from "./requisitions/interfaces";
 import { LifeCenterMemberForm } from "@/pages/HomePage/pages/LifeCenter/components/LifeCenterMemberForm";
 import { ILifeCernterRoles } from "@/pages/HomePage/pages/LifeCenter/components/RolesForm";
 import { ISoulsWonForm } from "@/pages/HomePage/pages/LifeCenter/components/SoulsWonForm";
@@ -381,6 +382,17 @@ export class ApiCreationCalls {
     payload: RequisitionApprovalActionPayload
   ): Promise<ApiResponse<unknown>> => {
     return this.postToApi("requisitions/approval-action", payload);
+  };
+  addRequisitionComment = (payload: {
+    requisition_id: number;
+    comment: string;
+  }): Promise<ApiResponse<{ id: number; created_at: string }>> => {
+    return this.postToApi("requisitions/add-comment", payload);
+  };
+  sendRequisitionReminder = (payload: {
+    requisition_id: number;
+  }): Promise<ApiResponse<RequisitionReminderResponse>> => {
+    return this.postToApi("requisitions/send-reminder", payload);
   };
 
   subscribeToNotificationPush = (
