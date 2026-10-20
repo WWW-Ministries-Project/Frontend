@@ -69,9 +69,6 @@ export interface LifeCenterMemberType {
   email?: string | null;
   phone?: string | null;
   role: { id: string | number; name: string };
-  /** Meetings attended out of the center's last 10 (`of`). */
-  attended?: number;
-  of?: number;
 }
 
 export interface LifeCenterSoul {
@@ -94,6 +91,7 @@ export interface LifeCenterSoul {
   memberId?: string | number | null;
   memberName?: string | null;
   first_meeting_date?: string | null;
+  meetings_attended?: number;
 }
 
 export interface LifeCenterDetailsType extends Omit<LifeCenterType, "totalMembers" | "totalSoulsWon"> {
@@ -117,14 +115,16 @@ export interface LifeCenterOverviewCenter {
   souls_total: number;
   souls_to_follow_up: number;
   last_meeting_date: string | null;
-  recent_meetings: { date: string; members: number; first_timers: number }[];
+  recent_meetings: { date: string; attendees: number; first_timers: number }[];
 }
 
 export interface LifeCenterOverviewMeeting {
   id: number;
   life_center_id: number;
   date: string;
-  member_user_ids: number[];
+  /** Souls won who came (not their first meeting). */
+  attendee_ids: number[];
+  /** Souls won at their first meeting. */
   first_timer_ids: number[];
   offering: number;
   currency: string;
@@ -135,6 +135,8 @@ export interface LifeCenterOverviewSoul {
   life_center_id: number;
   date_won: string;
   converted: boolean;
+  won_by: string | null;
+  city: string;
 }
 
 export interface LifeCenterOverview {
@@ -169,7 +171,6 @@ export type MeetingType = {
   createdById: string | number;
   createdAt: string;
   created_by?: { id: string | number; name: string } | null;
-  members?: { user_id: string | number; name: string; role?: string | null }[];
   attendees: MeetingAttendeeType[];
 };
 
@@ -187,7 +188,6 @@ export interface MeetingPayload {
   offeringAmount: string;
   currency: string;
   note: string | null;
-  memberUserIds: number[];
   attendeeSoulWonIds: number[];
   firstTimerSoulWonIds: number[];
   newFirstTimers: NewFirstTimerPayload[];

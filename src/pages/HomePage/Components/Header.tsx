@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import ChurchLogo from "@/components/ChurchLogo";
@@ -136,6 +136,7 @@ export const Header = ({ handleShowNav }: IProps) => {
     location.pathname.startsWith(relativePath.member.giving) ||
     location.pathname.startsWith(relativePath.member.pledges) ||
     location.pathname.startsWith(relativePath.member.rides) ||
+    location.pathname.startsWith(relativePath.member.lifeCenter) ||
     location.pathname.startsWith(relativePath.member.appointments);
   const adminAIPath = `${relativePath.home.main}/${relativePath.home.ai}`;
   const showAdminAiEntry = !isMemberRoute && canView("AI");
@@ -158,9 +159,6 @@ export const Header = ({ handleShowNav }: IProps) => {
       ? [{ label: "Community", path: relativePath.member.community }]
       : []),
     { label: "Marketplace", path: relativePath.member.market, dropdown: "market" as const },
-    ...(isLifeCenterLeader
-      ? [{ label: "Life Center", path: relativePath.member.lifeCenter }]
-      : []),
   ];
 
   const schoolItems = learnerMenu(Boolean(isInstructor));
@@ -171,7 +169,9 @@ export const Header = ({ handleShowNav }: IProps) => {
 
   // Everything a member can reach that is not one of the top-level tabs. Kept
   // as a list so the desktop dropdown and the mobile accordion cannot drift.
-  const moreItems = [
+  type MoreItem = { label: string; path: string; group?: string; exact?: boolean };
+  const lcPath = relativePath.member.lifeCenter;
+  const moreItems: MoreItem[] = [
     { label: "Giving", path: relativePath.member.giving },
     { label: "Pledges", path: relativePath.member.pledges },
     { label: "Appointments", path: relativePath.member.appointments },
@@ -179,7 +179,24 @@ export const Header = ({ handleShowNav }: IProps) => {
     ...(!isGuest
       ? [{ label: "Ride to church", path: relativePath.member.rides }]
       : []),
+    // Life center leaders get their center's sections, as a group.
+    ...(isLifeCenterLeader
+      ? [
+          { label: "Overview", path: lcPath, group: "My life center", exact: true },
+          { label: "Meetings", path: `${lcPath}/meetings`, group: "My life center" },
+          { label: "Souls won", path: `${lcPath}/souls-won`, group: "My life center" },
+          { label: "Members", path: `${lcPath}/members`, group: "My life center" },
+          { label: "Analytics", path: `${lcPath}/analytics`, group: "My life center" },
+        ]
+      : []),
   ];
+  const isMoreItemActive = (item: MoreItem) =>
+    item.exact ? location.pathname.replace(/\/$/, "") === item.path : isActive(item.path);
+  /** Group heading to show before this item, if it starts a group. */
+  const groupStart = (index: number) => {
+    const group = moreItems[index].group;
+    return group && moreItems[index - 1]?.group !== group ? group : null;
+  };
 
   const handleNavigate = (path: string) => {
     navigate(path);
@@ -469,18 +486,27 @@ export const Header = ({ handleShowNav }: IProps) => {
                 onClose={() => setIsMoreMenuOpen(false)}
                 triggerRef={moreButtonRef}
               >
-                {moreItems.map(item => (
-                  <button
-                    role="menuitem"
-                    tabIndex={0}
-                    key={item.label}
-                    onClick={() => handleNavigate(item.path)}
-                    className={`block w-full text-left px-4 py-3 text-sm hover:bg-gray-100 ${
-                      isActive(item.path) ? "text-primary font-semibold" : ""
-                    }`}
-                  >
-                    {item.label}
-                  </button>
+                {moreItems.map((item, index) => (
+                  <Fragment key={item.path}>
+                    {groupStart(index) && (
+                      <p
+                        role="presentation"
+                        className="mt-1 border-t border-[#E5E7EB] px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wide text-[#6B7280]"
+                      >
+                        {groupStart(index)}
+                      </p>
+                    )}
+                    <button
+                      role="menuitem"
+                      tabIndex={0}
+                      onClick={() => handleNavigate(item.path)}
+                      className={`block w-full text-left py-3 text-sm hover:bg-gray-100 ${item.group ? "pl-6 pr-4" : "px-4"} ${
+                        isMoreItemActive(item) ? "text-primary font-semibold" : ""
+                      }`}
+                    >
+                      {item.label}
+                    </button>
+                  </Fragment>
                 ))}
               </AccessibleMenu>
             </div>
@@ -740,17 +766,25 @@ export const Header = ({ handleShowNav }: IProps) => {
               <div
                 id="mobile-more-items"
                 className={`overflow-hidden transition-[max-height] duration-200 ${
-                  isMobileMoreOpen ? "max-h-96" : "max-h-0"
+                  isMobileMoreOpen ? "max-h-[640px]" : "max-h-0"
                 }`}
               >
-                {moreItems.map(item => (
-                  <button
-                    key={item.label}
-                    onClick={() => handleNavigate(item.path)}
-                    className="block w-full text-left px-6 py-2 text-sm hover:bg-gray-100"
-                  >
-                    {item.label}
-                  </button>
+                {moreItems.map((item, index) => (
+                  <Fragment key={item.path}>
+                    {groupStart(index) && (
+                      <p className="px-6 pb-1 pt-3 text-xs font-semibold uppercase tracking-wide text-[#6B7280]">
+                        {groupStart(index)}
+                      </p>
+                    )}
+                    <button
+                      onClick={() => handleNavigate(item.path)}
+                      className={`block w-full text-left py-2 text-sm hover:bg-gray-100 ${item.group ? "pl-8 pr-6" : "px-6"} ${
+                        isMoreItemActive(item) ? "font-semibold text-primary" : ""
+                      }`}
+                    >
+                      {item.label}
+                    </button>
+                  </Fragment>
                 ))}
               </div>
             </div>

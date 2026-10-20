@@ -20,7 +20,7 @@ export interface Center {
   followUp: number;
   last: string | null;
   /** Last 8 meetings, newest first. */
-  recent: { date: string; members: number; first_timers: number }[];
+  recent: { date: string; attendees: number; first_timers: number }[];
 }
 
 export const toCenter = (c: LifeCenterOverviewCenter): Center => ({
@@ -39,19 +39,19 @@ export const toCenter = (c: LifeCenterOverviewCenter): Center => ({
   recent: (c.recent_meetings ?? []).map((r) => ({ ...r, date: dayKey(r.date) })),
 });
 
-/** Average people per meeting (members + first-timers) over the recent meetings. */
+/** Average people per meeting (attendees + first-timers) over the recent meetings. */
 export const recentAverage = (center: Center) =>
   center.recent.length
-    ? center.recent.reduce((total, r) => total + r.members + r.first_timers, 0) / center.recent.length
+    ? center.recent.reduce((total, r) => total + r.attendees + r.first_timers, 0) / center.recent.length
     : 0;
 
 /**
- * Centers plus the meetings and souls won between `from` and `to` (inclusive),
+ * Centers plus the meetings and souls won between `from` (empty = all time) and `to` (inclusive),
  * scoped to the active branch and, for leaders, to their own center.
  */
 export const useLifeCenterOverview = (from: string, to: string, lifeCenterId?: string | number | null) => {
   const query = useMemo(
-    () => ({ from, to, ...(lifeCenterId ? { lifeCenterId: String(lifeCenterId) } : {}) }),
+    () => ({ ...(from ? { from } : {}), to, ...(lifeCenterId ? { lifeCenterId: String(lifeCenterId) } : {}) }),
     [from, to, lifeCenterId]
   );
   const response = useFetch(api.fetch.fetchLifeCenterOverview, query);
