@@ -38,7 +38,16 @@ import type {
   CreateSermonDto,
   CreateSermonSeriesDto,
 } from "./sermons/interfaces";
-import { AssetPayloadType } from "./assets/interfaces";
+import type {
+  AssetSavePayload,
+  AssetSnapshot,
+  AssetStatusPayload,
+  AssetStatusResponse,
+  AssetRow,
+  RepairRequisitionPayload,
+  RepairRequisitionResponse,
+  StockCheckResponse,
+} from "./assets/interfaces";
 import type {
   InitializePledgePaymentPayload,
   InitializePledgePaymentResult,
@@ -295,10 +304,31 @@ export class ApiCreationCalls {
     return this.postToApi<EventType>("event/create-event-type", payload);
   };
 
-  createAsset = (
-    payload: AssetPayloadType
-  ): Promise<ApiResponse<unknown>> => {
-    return this.postToApi("assets/create-asset", payload);
+  // Assets
+  saveAsset = (payload: AssetSavePayload): Promise<ApiResponse<AssetRow>> => {
+    return this.postToApi<AssetRow>("assets/save-asset", payload);
+  };
+  updateAssetStatus = (payload: AssetStatusPayload): Promise<ApiResponse<AssetStatusResponse>> => {
+    return this.postToApi<AssetStatusResponse>("assets/update-status", payload);
+  };
+  restoreAssets = (payload: { snapshots: AssetSnapshot[] }): Promise<ApiResponse<{ assets: AssetRow[] }>> => {
+    return this.postToApi<{ assets: AssetRow[] }>("assets/restore", payload);
+  };
+  confirmAssetLost = (payload: { id: number }): Promise<ApiResponse<{ asset: AssetRow; previous: AssetSnapshot }>> => {
+    return this.postToApi<{ asset: AssetRow; previous: AssetSnapshot }>("assets/confirm-lost", payload);
+  };
+  raiseRepairRequisition = (payload: RepairRequisitionPayload): Promise<ApiResponse<RepairRequisitionResponse>> => {
+    return this.postToApi<RepairRequisitionResponse>("assets/repair-requisition", payload);
+  };
+  clearRepairRequisition = (payload: { id: number }): Promise<ApiResponse<{ asset: AssetRow }>> => {
+    return this.postToApi<{ asset: AssetRow }>("assets/clear-repair-requisition", payload);
+  };
+  /** action: start | cancel | mark | set-fix | add-extra | remove-extra | submit | reopen | remind | recount | mark-rest-missing | close */
+  stockCheckAction = <T = StockCheckResponse>(
+    action: string,
+    payload: Record<string, unknown>
+  ): Promise<ApiResponse<T>> => {
+    return this.postToApi<T>(`assets/stock-checks/${action}`, payload);
   };
   createRequisition = <T = unknown>(
     payload: Record<string, unknown>
