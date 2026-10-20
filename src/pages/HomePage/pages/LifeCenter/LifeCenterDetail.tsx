@@ -6,6 +6,7 @@ import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { confirmAction, decodeQuery } from "@/pages/HomePage/utils/helperFunctions";
 import { api } from "@/utils/api/apiCalls";
+import { relativePath } from "@/utils/const";
 import type { LifeCenterMemberType, LifeCenterSoul, MeetingType } from "@/utils/api/lifeCenter/interfaces";
 
 import {
@@ -63,7 +64,9 @@ const soulName = (s: Pick<LifeCenterSoul, "first_name" | "last_name">) => `${s.f
 const isLeader = (m: LifeCenterMemberType) => m.role.name.trim().toLowerCase() === "leader";
 const isPlainMember = (m: LifeCenterMemberType) => m.role.name.trim().toLowerCase() === "member";
 const meetingDay = (g: MeetingType) => dayKey(g.day || g.date);
-const membersAt = (g: MeetingType) => g.members?.length ?? 0;
+/** Souls won who came, not counting first-timers. */
+const attendeesAt = (g: MeetingType) => g.attendees.filter((a) => !a.isFirstTimer).length;
+const firstTimersAt = (g: MeetingType) => g.attendees.filter((a) => a.isFirstTimer).length;
 
 const Panel = ({ title, sub, action, children }: { title: string; sub?: string; action?: ReactNode; children: ReactNode }) => (
   <section className="flex min-w-0 flex-col gap-4 rounded-xl border border-lightGray p-5 tablet:p-6">
@@ -78,7 +81,9 @@ const Panel = ({ title, sub, action, children }: { title: string; sub?: string; 
   </section>
 );
 
-const TabHeading = ({ title, sub, actions }: { title: string; sub: string; actions?: ReactNode }) => (
+type Head = { title: string; sub: string; actions?: ReactNode };
+
+const TabHeading = ({ title, sub, actions }: Head) => (
   <div className="flex flex-wrap items-center justify-between gap-4">
     <div className="flex flex-col gap-1">
       <h2 className="text-xl font-semibold leading-7 text-primary">{title}</h2>
@@ -95,9 +100,22 @@ const Dashed = ({ children }: { children: ReactNode }) => (
 /**
  * One life center: header band with tabs, overview, meetings, souls won and
  * members. `leaderView` is the member-portal version for a center's own
+ * leader; with `section` it drops the band and tabs for the portal layout
  * leader: no back link, and an Analytics tab for their center.
  */
-export const LifeCenterDetailView = ({ id, leaderView }: { id: string; leaderView?: boolean }) => {
+export type LifeCenterSection = Tab;
+
+export const LifeCenterDetailView = ({
+  id,
+  leaderView,
+  section,
+}: {
+  id: string;
+  leaderView?: boolean;
+  /** Member portal: the section picked from the header menu. Renders without the band and tabs. */
+  section?: Tab;
+}) => {
+  const embedded = !!section;
   const navigate = useNavigate();
   const today = useToday();
   const year = today.slice(0, 4);
@@ -127,7 +145,8 @@ export const LifeCenterDetailView = ({ id, leaderView }: { id: string; leaderVie
   );
   const roles = rolesFetch.data?.data ?? [];
 
-  const [tab, setTab] = useState<Tab>("overview");
+  const [tabState, setTab] = useState<Tab>("overview");
+  const tab = section ?? tabState;
   const [mShow, setMShow] = useState(10);
   const [sq, setSq] = useState("");
   const [drawer, setDrawer] = useState<MeetingType | null>(null);
@@ -186,9 +205,9 @@ export const LifeCenterDetailView = ({ id, leaderView }: { id: string; leaderVie
   /* -------------------------------- overview ------------------------------- */
 
   const l8 = ms.slice(0, 8);
-  const total = (g: MeetingType) => membersAt(g) + g.attendees.length;
+  const total = (g: MeetingType) => g.attendees.length;
   const avg8 = l8.length ? l8.reduce((a, g) => a + total(g), 0) / l8.length : 0;
-  const mem8 = l8.length ? l8.reduce((a, g) => a + membersAt(g), 0) / l8.length : 0;
+  const ft8 = l8.reduce((a, g) => a + firstTimersAt(g), 0);
   const max = Math.max(1, ...l8.map(total));
   const soulsY = souls.filter((s) => dayKey(s.date_won) >= y0);
   const convY = soulsY.filter((s) => s.isMember).length;
@@ -219,7 +238,7 @@ export const LifeCenterDetailView = ({ id, leaderView }: { id: string; leaderVie
           {
             l: "Average attendance",
             v: n1(avg8),
-            s: l8.length ? `${pctN(mem8, members.length)}% of members, last ${plural(l8.length, "meeting")}` : "No meetings yet",
+            s: l8.length ? `People per meeting, last ${plural(l8.length, "meeting")} · ${plural(ft8, "first-timer")}` : "No meetings yet",
           },
         ].map((k) => (
           <div key={k.l} className="flex flex-col gap-1 rounded-xl border border-lightGray bg-white px-5 py-4">
@@ -239,7 +258,7 @@ export const LifeCenterDetailView = ({ id, leaderView }: { id: string; leaderVie
             <div className="flex flex-wrap gap-3 text-xs text-[#4B5563]">
               <span className="inline-flex items-center gap-1.5">
                 <span className="h-2.5 w-2.5 rounded-sm bg-primary" />
-                Members
+                Attendees
               </span>
               <span className="inline-flex items-center gap-1.5">
                 <span className="h-2.5 w-2.5 rounded-sm bg-[#9A5D1A]" />
@@ -256,18 +275,18 @@ export const LifeCenterDetailView = ({ id, leaderView }: { id: string; leaderVie
                     key={g.id}
                     type="button"
                     onClick={() => openMeeting(g)}
-                    title={`${fmtD(meetingDay(g))}: ${plural(membersAt(g), "member")}, ${plural(g.attendees.length, "first-timer")}`}
+                    title={`${fmtD(meetingDay(g))}: ${plural(attendeesAt(g), "attendee")}, ${plural(firstTimersAt(g), "first-timer")}`}
                     aria-label={`${fmtD(meetingDay(g))}: ${total(g)} people`}
                     className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1 text-primary"
                   >
                     <span className="text-xs font-semibold">{total(g)}</span>
                     <span
                       className="w-full max-w-10 rounded-t bg-[#9A5D1A]"
-                      style={{ height: `${(g.attendees.length / max) * 100}%` }}
+                      style={{ height: `${(firstTimersAt(g) / max) * 100}%` }}
                     />
                     <span
-                      className={`w-full max-w-10 bg-primary ${g.attendees.length ? "" : "rounded-t"}`}
-                      style={{ height: `${(membersAt(g) / max) * 100}%` }}
+                      className={`w-full max-w-10 bg-primary ${firstTimersAt(g) ? "" : "rounded-t"}`}
+                      style={{ height: `${(attendeesAt(g) / max) * 100}%` }}
                     />
                   </button>
                 ))}
@@ -288,7 +307,7 @@ export const LifeCenterDetailView = ({ id, leaderView }: { id: string; leaderVie
           title="Recent souls won"
           sub="Follow up with anyone not yet a member"
           action={
-            <UiButton tone="ghost" size="sm" className="text-primary hover:bg-primary/5" onClick={() => setTab("souls")}>
+            <UiButton tone="ghost" size="sm" className="text-primary hover:bg-primary/5" onClick={() => (embedded ? navigate(`${relativePath.member.lifeCenter}/souls-won`) : setTab("souls"))}>
               View all
             </UiButton>
           }
@@ -323,12 +342,11 @@ export const LifeCenterDetailView = ({ id, leaderView }: { id: string; leaderVie
   const shown = ms.slice(0, mShow);
   const exportMeetings = () => {
     downloadCsv(`${slug(c.name)}-meetings.csv`, [
-      ["Date", "Members present", "Members total", "First-timers", "Total attendance", "Offering", "Currency", "Recorded by", "Note"],
+      ["Date", "Attendees", "First-timers", "Total attendance", "Offering", "Currency", "Recorded by", "Note"],
       ...ms.map((g) => [
         meetingDay(g),
-        membersAt(g),
-        members.length,
-        g.attendees.length,
+        attendeesAt(g),
+        firstTimersAt(g),
         total(g),
         Number(g.offeringAmount) || 0,
         g.currency,
@@ -338,24 +356,25 @@ export const LifeCenterDetailView = ({ id, leaderView }: { id: string; leaderVie
     ]);
     notify.success({ title: "CSV downloaded", message: `${plural(ms.length, "meeting")} saved.` });
   };
+  const meetingsHead: Head = {
+    title: "Meetings",
+    sub: `${ms.length} recorded · ${msY.length} of ${exp} scheduled meetings held this year`,
+    actions: (
+      <>
+        <UiButton onClick={exportMeetings} disabled={!ms.length}>
+          Export CSV
+        </UiButton>
+        {canRecord && (
+          <UiButton tone="primary" onClick={record}>
+            Record meeting
+          </UiButton>
+        )}
+      </>
+    ),
+  };
   const meetingsTab = (
     <>
-      <TabHeading
-        title="Meetings"
-        sub={`${ms.length} recorded · ${msY.length} of ${exp} scheduled meetings held this year`}
-        actions={
-          <>
-            <UiButton onClick={exportMeetings} disabled={!ms.length}>
-              Export CSV
-            </UiButton>
-            {canRecord && (
-              <UiButton tone="primary" onClick={record}>
-                Record meeting
-              </UiButton>
-            )}
-          </>
-        }
-      />
+      {!embedded && <TabHeading {...meetingsHead} />}
       {ms.length ? (
         <>
           <div className="hidden md:block">
@@ -379,8 +398,8 @@ export const LifeCenterDetailView = ({ id, leaderView }: { id: string; leaderVie
                     <CellText strong main={fmtDL(meetingDay(g))} sub={g.note ? (g.note.length > 48 ? `${g.note.slice(0, 48)}…` : g.note) : undefined} />
                   ),
                 },
-                { key: "present", header: "Members present", width: "150px", render: (g) => `${membersAt(g)} / ${members.length}` },
-                { key: "ft", header: "First-timers", width: "120px", render: (g) => g.attendees.length },
+                { key: "present", header: "Attendees", width: "120px", render: (g) => attendeesAt(g) },
+                { key: "ft", header: "First-timers", width: "120px", render: (g) => firstTimersAt(g) },
                 { key: "total", header: "Total", width: "100px", render: (g) => <span className="font-semibold">{total(g)}</span> },
                 { key: "off", header: "Offering", width: "140px", render: (g) => `${g.currency} ${n0(Number(g.offeringAmount) || 0)}` },
                 { key: "by", header: "Recorded by", width: "minmax(140px,1fr)", render: (g) => <CellText main={g.created_by?.name} /> },
@@ -402,7 +421,7 @@ export const LifeCenterDetailView = ({ id, leaderView }: { id: string; leaderVie
                   </span>
                 </div>
                 <p className="text-[#4B5563]">
-                  {plural(membersAt(g), "member")} · {plural(g.attendees.length, "first-timer")}
+                  {plural(attendeesAt(g), "attendee")} · {plural(firstTimersAt(g), "first-timer")}
                 </p>
                 {g.created_by?.name && <p className="text-xs text-[#6B7280]">Recorded by {g.created_by.name}</p>}
               </button>
@@ -447,24 +466,25 @@ export const LifeCenterDetailView = ({ id, leaderView }: { id: string; leaderVie
   const soulPill = (s: LifeCenterSoul) => (
     <Pill tone={s.isMember ? "success" : "neutral"}>{s.isMember ? "Member" : "Not yet a member"}</Pill>
   );
+  const soulsHead: Head = {
+    title: "Souls won",
+    sub: `${souls.length} recorded · ${followUp} still to follow up`,
+    actions: (
+      <>
+        <UiButton onClick={exportSouls} disabled={!sl.length}>
+          Export CSV
+        </UiButton>
+        {canRecord && (
+          <UiButton tone="primary" onClick={() => setSoulOpen(true)} disabled={!members.length}>
+            Add soul won
+          </UiButton>
+        )}
+      </>
+    ),
+  };
   const soulsTab = (
     <>
-      <TabHeading
-        title="Souls won"
-        sub={`${souls.length} recorded · ${followUp} still to follow up`}
-        actions={
-          <>
-            <UiButton onClick={exportSouls} disabled={!sl.length}>
-              Export CSV
-            </UiButton>
-            {canRecord && (
-              <UiButton tone="primary" onClick={() => setSoulOpen(true)} disabled={!members.length}>
-                Add soul won
-              </UiButton>
-            )}
-          </>
-        }
-      />
+      {!embedded && <TabHeading {...soulsHead} />}
       {souls.length > 0 && (
         <SearchInput
           value={sq}
@@ -480,7 +500,7 @@ export const LifeCenterDetailView = ({ id, leaderView }: { id: string; leaderVie
             <GridTable
               rows={sl}
               getRowId={(s) => String(s.id)}
-              minWidth="900px"
+              minWidth="980px"
               actionsWidth="150px"
               renderActions={(s) =>
                 !s.isMember && canConvert ? (
@@ -494,6 +514,7 @@ export const LifeCenterDetailView = ({ id, leaderView }: { id: string; leaderVie
                 { key: "phone", header: "Phone", width: "140px", render: (s) => <CellText main={s.contact_number} /> },
                 { key: "city", header: "City", width: "120px", render: (s) => <CellText main={s.city} /> },
                 { key: "date", header: "Date won", width: "110px", render: (s) => fmtL(dayKey(s.date_won)) },
+                { key: "meet", header: "Meetings", width: "90px", render: (s) => s.meetings_attended ?? 0 },
                 { key: "by", header: "Won by", width: "minmax(140px,1fr)", render: (s) => <CellText main={s.wonByName} /> },
                 { key: "status", header: "Status", width: "150px", render: soulPill },
               ]}
@@ -570,32 +591,26 @@ export const LifeCenterDetailView = ({ id, leaderView }: { id: string; leaderVie
     ) : (
       <span className="text-sm text-primary">{m.role.name}</span>
     );
-  const rateOf = (m: LifeCenterMemberType) => {
-    const of = m.of ?? 0;
-    const r = pctN(m.attended ?? 0, of);
-    return { of, r, text: of ? `${m.attended ?? 0} of last ${plural(of, "meeting")}` : "No meetings yet", color: r >= 70 ? "#080D2D" : r >= 40 ? "#B45309" : "#B91C1C" };
-  };
   const canRemove = (m: LifeCenterMemberType) => admin && !isLeader(m);
+  const membersHead: Head = {
+    title: "Members",
+    sub: "Church members serving in this center. Roles are set in Manage roles.",
+    actions: manage ? (
+      <UiButton tone="primary" onClick={() => setMemberOpen(true)}>
+        Add member
+      </UiButton>
+    ) : undefined,
+  };
   const membersTab = (
     <>
-      <TabHeading
-        title="Members"
-        sub="Attendance is over this center’s last 10 meetings. Roles are set in Manage roles."
-        actions={
-          manage ? (
-            <UiButton tone="primary" onClick={() => setMemberOpen(true)}>
-              Add member
-            </UiButton>
-          ) : undefined
-        }
-      />
+      {!embedded && <TabHeading {...membersHead} />}
       {members.length ? (
         <>
           <div className="hidden md:block">
             <GridTable
               rows={members}
               getRowId={(m) => String(m.userId)}
-              minWidth="760px"
+              minWidth="640px"
               actionsWidth="100px"
               renderActions={(m) =>
                 canRemove(m) ? (
@@ -619,23 +634,7 @@ export const LifeCenterDetailView = ({ id, leaderView }: { id: string; leaderVie
                   ),
                 },
                 { key: "phone", header: "Phone", width: "150px", render: (m) => <CellText main={m.phone} /> },
-                { key: "role", header: "Role", width: "200px", render: (m) => roleControl(m) },
-                {
-                  key: "rate",
-                  header: "Attendance",
-                  width: "minmax(160px,1fr)",
-                  render: (m) => {
-                    const a = rateOf(m);
-                    return (
-                      <div className="flex flex-col gap-1">
-                        <div className="h-2 overflow-hidden rounded-full bg-[#E5E7EB]">
-                          <div className="h-full" style={{ width: `${a.r}%`, background: a.color }} />
-                        </div>
-                        <span className="text-xs text-[#6B7280]">{a.text}</span>
-                      </div>
-                    );
-                  },
-                },
+                { key: "role", header: "Role", width: "minmax(200px,1fr)", render: (m) => roleControl(m) },
               ]}
             />
           </div>
@@ -649,7 +648,7 @@ export const LifeCenterDetailView = ({ id, leaderView }: { id: string; leaderVie
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-primary">{m.name}</p>
                     <p className="text-xs text-[#6B7280]">
-                      {m.phone || "—"} · {rateOf(m).text}
+                      {m.phone || "—"}
                     </p>
                   </div>
                 </div>
@@ -671,8 +670,64 @@ export const LifeCenterDetailView = ({ id, leaderView }: { id: string; leaderVie
     </>
   );
 
+  const content = (
+    <>
+        {tab === "overview" && overview}
+        {tab === "meetings" && meetingsTab}
+        {tab === "souls" && soulsTab}
+        {tab === "members" && membersTab}
+        {tab === "analytics" && (
+          <Suspense fallback={<div className="h-40 animate-pulse rounded-xl bg-[#F3F4F6]" />}>
+            <LifeCenterAnalyticsView
+              fixedCenterId={c.id}
+              embedded
+              eyebrow={embedded ? `MY LIFE CENTER · ${c.name.toUpperCase()}` : undefined}
+            />
+          </Suspense>
+        )}
+    </>
+  );
+
+  const overviewHead: Head = {
+    title: c.name,
+    sub: [c.location, days.length ? `Meets ${days.map((d) => DAYF[d]).join(", ")}` : "", next ? `Next meeting ${next === today ? "today" : fmtD(next)}` : ""]
+      .filter(Boolean)
+      .join(" · "),
+    actions: (
+      <>
+        {manage && <UiButton onClick={() => setEditOpen(true)}>Edit details</UiButton>}
+        {canRecord && (
+          <UiButton tone="primary" onClick={record}>
+            Record meeting
+          </UiButton>
+        )}
+      </>
+    ),
+  };
+  const head = ({ overview: overviewHead, meetings: meetingsHead, souls: soulsHead, members: membersHead } as Partial<Record<Tab, Head>>)[tab];
+
   return (
     <div className="flex min-h-full flex-col">
+      {embedded ? (
+        tab === "analytics" ? (
+          <div className="flex flex-col gap-6 px-4 py-6 tablet:px-6">{content}</div>
+        ) : (
+          <>
+            <div className="flex flex-wrap items-end justify-between gap-4 px-4 pt-4 tablet:px-6 tablet:pt-6">
+              <div className="flex min-w-0 flex-[1_1_320px] flex-col gap-1">
+                <p className="text-xs font-semibold tracking-[0.04em] text-[#6B7280]">MY LIFE CENTER · {c.name.toUpperCase()}</p>
+                <h1 className="text-xl font-semibold leading-8 text-primary tablet:text-2xl">{head?.title}</h1>
+                {head?.sub && <p className="text-base text-[#4B5563]">{head.sub}</p>}
+              </div>
+              {head?.actions && <div className="flex flex-wrap gap-2">{head.actions}</div>}
+            </div>
+            <div className="flex flex-1 flex-col p-4 tablet:p-6">
+              <div className="flex flex-1 flex-col gap-6 rounded-xl border border-lightGray bg-white p-4 tablet:p-6">{content}</div>
+            </div>
+          </>
+        )
+      ) : (
+        <>
       <div className="flex flex-col gap-4 bg-primary px-[var(--app-page-padding-inline)] pt-5 text-white">
         {!leaderView && (
           <button
@@ -728,23 +783,13 @@ export const LifeCenterDetailView = ({ id, leaderView }: { id: string; leaderVie
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col gap-6 bg-white px-[var(--app-page-padding-inline)] py-6">
-        {tab === "overview" && overview}
-        {tab === "meetings" && meetingsTab}
-        {tab === "souls" && soulsTab}
-        {tab === "members" && membersTab}
-        {tab === "analytics" && (
-          <Suspense fallback={<div className="h-40 animate-pulse rounded-xl bg-[#F3F4F6]" />}>
-            <LifeCenterAnalyticsView fixedCenterId={c.id} embedded />
-          </Suspense>
-        )}
-      </div>
+          <div className="flex flex-1 flex-col gap-6 bg-white px-[var(--app-page-padding-inline)] py-6">{content}</div>
+        </>
+      )}
 
       <MeetingDrawer
         meeting={drawer}
         centerName={c.name}
-        members={members}
-        souls={souls}
         canEdit={canRecord}
         canDelete={admin}
         onClose={() => setDrawer(null)}

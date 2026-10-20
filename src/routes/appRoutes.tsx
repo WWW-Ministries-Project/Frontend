@@ -1512,7 +1512,8 @@ export const routes: AppRoute[] = [
       },
 
       {
-        path: relativePath.member.lifeCenter,
+        // Sections (meetings, souls-won, members, analytics) are picked from the header's More menu.
+        path: `${relativePath.member.lifeCenter}/:section?`,
         name: "member_life_center",
         element: <MyLifeCenter />,
         isPrivate: false,

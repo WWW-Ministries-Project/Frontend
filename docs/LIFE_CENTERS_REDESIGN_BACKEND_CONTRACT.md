@@ -110,3 +110,27 @@ notification asking them to record or check on meetings
 `"A reminder was already sent to this leader today."`; no leader → 400
 `"This life center has no leader to remind."`. Returns
 `{ sent_to: string }`.
+
+## Revision 2 — original attendance model (stakeholder-approved)
+
+Supersedes the member-attendance parts above. **Meeting attendees are souls
+won only**, as before the redesign. Life center members (church members with a
+role) are the center's leadership team, not an attendance list.
+
+- Drop `life_center_meeting_member` (new migration) and `memberUserIds`.
+  A meeting needs at least one attendee or first-timer (souls won).
+  - `attendeeSoulWonIds`: souls won of the center who came.
+  - `firstTimerSoulWonIds`: souls won attending for the first time
+    (`GET soulswon-eligible-first-timers` lists those who never attended).
+  - `newFirstTimers`: unchanged (creates the soul won, marked first-timer).
+- Meetings drop `members`; keep `day`, `created_by`, `attendees`.
+- `get-lifecenter`: `members[]` drops `attended`/`of`. `soulsWon[]` adds
+  `meetings_attended` (count) alongside `first_meeting_date`.
+- `overview`:
+  - `meetings[]`: `attendee_ids` (isFirstTimer = false) and
+    `first_timer_ids` (isFirstTimer = true) replace `member_user_ids`.
+  - `centers[].recent_meetings[]`: `{ date, attendees, first_timers }`.
+  - `souls[]` adds `won_by: string | null` (name) and `city: string`.
+  - `from` may be omitted for "all time".
+- Meetings stay visible to anyone whose scope covers the center (not
+  creator-only).

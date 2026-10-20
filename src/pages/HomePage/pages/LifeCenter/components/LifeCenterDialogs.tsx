@@ -25,7 +25,6 @@ import {
   addDaysKey,
   dayKey,
   dayNames,
-  daysBetween,
   dow,
   errorText,
   fmtD,
@@ -248,9 +247,16 @@ const CheckTile = ({
   </label>
 );
 
+/** Filter box shown above a tick list once it gets long. */
+const ListFilter = ({ value, onChange, label }: { value: string; onChange: (v: string) => void; label: string }) => (
+  <TextInput type="search" value={value} onChange={(e) => onChange(e.target.value)} placeholder="Find by name" aria-label={label} />
+);
+
 /**
- * Record or edit one meeting. Pass `detail` when the page already has the
- * center loaded; otherwise it is fetched when the dialog opens.
+ * Record or edit one meeting. Attendees are the center's souls won; first-timers
+ * are souls won who have never attended, or new people added here (saved to
+ * Souls won). Pass `detail` when the page already has the center loaded;
+ * otherwise it is fetched when the dialog opens.
  */
 export const MeetingDialog = ({
   open,
@@ -273,6 +279,7 @@ export const MeetingDialog = ({
 }) => {
   const today = useToday();
   const [fetched, setFetched] = useState<LifeCenterDetailsType | null>(null);
+  const [eligible, setEligible] = useState<{ id: string; name: string }[]>([]);
   const detail = given ?? fetched;
   const [date, setDate] = useState("");
   const [att, setAtt] = useState<string[]>([]);
@@ -281,18 +288,29 @@ export const MeetingDialog = ({
   const [off, setOff] = useState("");
   const [cur, setCur] = useState("GHS");
   const [note, setNote] = useState("");
+  const [qa, setQa] = useState("");
   const [tried, setTried] = useState(false);
   const [busy, setBusy] = useState(false);
   const [serverError, setServerError] = useState("");
 
   useEffect(() => {
-    if (!open || given || !lifeCenterId) return;
+    if (!open || !lifeCenterId) return;
     let live = true;
-    setFetched(null);
+    if (!given) {
+      setFetched(null);
+      api.fetch
+        .fetchLifeCenterById({ id: String(lifeCenterId) })
+        .then((response) => live && setFetched(response.data))
+        .catch(() => undefined);
+    }
     api.fetch
-      .fetchLifeCenterById({ id: String(lifeCenterId) })
-      .then((response) => live && setFetched(response.data))
-      .catch(() => undefined);
+      .fetchEligibleFirstTimers({ lifeCenterId: String(lifeCenterId) })
+      .then(
+        (response) =>
+          live &&
+          setEligible((response.data ?? []).map((s) => ({ id: String(s.id), name: `${s.first_name} ${s.last_name}`.trim() })))
+      )
+      .catch(() => live && setEligible([]));
     return () => {
       live = false;
     };
@@ -309,10 +327,11 @@ export const MeetingDialog = ({
     setTried(false);
     setServerError("");
     setNews([]);
+    setQa("");
     if (meeting) {
       setDate(dayKey(meeting.day || meeting.date));
-      setAtt((meeting.members ?? []).map((m) => String(m.user_id)));
-      setFt(meeting.attendees.map((a) => String(a.soulWonId)));
+      setAtt(meeting.attendees.filter((a) => !a.isFirstTimer).map((a) => String(a.soulWonId)));
+      setFt(meeting.attendees.filter((a) => a.isFirstTimer).map((a) => String(a.soulWonId)));
       setOff(String(Number(meeting.offeringAmount) || 0));
       setCur(meeting.currency || "GHS");
       setNote(meeting.note ?? "");
@@ -336,15 +355,18 @@ export const MeetingDialog = ({
     setDate(pick || (taken.has(today) ? "" : today));
   }, [open, meeting, detail, days, taken, today]);
 
-  const members = detail?.members ?? [];
-  const souls = detail?.soulsWon ?? [];
-  const recent = souls
-    .filter(
-      (s) =>
-        ft.includes(String(s.id)) ||
-        (!s.isMember && date && dayKey(s.date_won) < date && daysBetween(dayKey(s.date_won), date) <= 60)
-    )
-    .sort((a, b) => dayKey(b.date_won).localeCompare(dayKey(a.date_won)));
+  const souls = useMemo(
+    () => [...(detail?.soulsWon ?? [])].sort((a, b) => soulName(a).localeCompare(soulName(b))),
+    [detail]
+  );
+  const nameById = new Map(souls.map((s) => [String(s.id), soulName(s)]));
+  // As before: anyone can be ticked as an attendee unless they're down as a first-timer…
+  const term = qa.trim().toLowerCase();
+  const attendeeList = souls.filter((s) => !ft.includes(String(s.id)));
+  const attendeeShown = attendeeList.filter((s) => !term || soulName(s).toLowerCase().includes(term) || att.includes(String(s.id)));
+  // …and first-timers come from souls won who have never attended (plus whoever is already ticked).
+  const ftIds = Array.from(new Set([...eligible.map((e) => e.id), ...ft])).filter((id) => !att.includes(id));
+  const ftList = ftIds.map((id) => ({ id, name: nameById.get(id) ?? eligible.find((e) => e.id === id)?.name ?? "Soul won" }));
 
   const named = news.filter((n) => n.first.trim());
   const errors: Record<string, string> = {};
@@ -352,16 +374,16 @@ export const MeetingDialog = ({
   else if (date > today) errors.date = "You can’t record a meeting in the future.";
   else if (taken.has(date)) errors.date = "A meeting is already recorded for this date.";
   if (off === "" || Number.isNaN(Number(off)) || Number(off) < 0) errors.off = "Enter the offering, or 0 if none was taken.";
-  if (!att.length && !ft.length && !named.length) errors.att = "Tick at least one person who came.";
-  if (news.some((n) => (n.first.trim() || n.last.trim() || n.phone.trim()) && (!n.first.trim() || !n.phone.trim())))
-    errors.news = "Each new first-timer needs a first name and phone number.";
+  if (!att.length && !ft.length && !named.length) errors.att = "Add at least one attendee or first-timer.";
+  if (news.some((n) => (n.first.trim() || n.last.trim() || n.phone.trim()) && (!n.first.trim() || !n.last.trim() || !n.phone.trim())))
+    errors.news = "Each new first-timer needs a first name, last name and phone number.";
   const shown = tried ? errors : {};
   const dateHint =
     !shown.date && date && date <= today && days.length && !days.includes(dow(date))
       ? `${DAYF[dow(date)]} isn’t a usual meeting day. That’s fine if it was a special meeting.`
       : undefined;
 
-  const allTicked = members.length > 0 && members.every((m) => att.includes(String(m.userId)));
+  const allTicked = attendeeList.length > 0 && attendeeList.every((s) => att.includes(String(s.id)));
   const toggle = (list: string[], set: (l: string[]) => void, id: string) =>
     set(list.includes(id) ? list.filter((x) => x !== id) : [...list, id]);
 
@@ -370,21 +392,14 @@ export const MeetingDialog = ({
     if (Object.keys(errors).length || !lifeCenterId) return;
     setBusy(true);
     setServerError("");
-    const soulById = new Map(souls.map((s) => [String(s.id), s]));
-    const firstVisit = (id: string) => {
-      const s = soulById.get(id);
-      const first = dayKey(s?.first_meeting_date) || "";
-      return !first || first >= date || dayKey(s?.date_won) === date;
-    };
     const payload = {
       lifeCenterId,
       date,
       offeringAmount: String(Number(off)),
       currency: cur,
       note: note.trim() || null,
-      memberUserIds: att.map(Number),
-      firstTimerSoulWonIds: ft.filter(firstVisit).map(Number),
-      attendeeSoulWonIds: ft.filter((id) => !firstVisit(id)).map(Number),
+      attendeeSoulWonIds: att.map(Number),
+      firstTimerSoulWonIds: ft.map(Number),
       newFirstTimers: named.map((n) => ({
         first_name: n.first.trim(),
         last_name: n.last.trim(),
@@ -395,10 +410,9 @@ export const MeetingDialog = ({
     try {
       if (meeting) await api.put.updateMeeting({ ...payload, id: meeting.id }, { id: String(meeting.id) });
       else await api.post.createMeeting(payload);
-      const total = ft.length + named.length;
       notify.success({
         title: meeting ? "Meeting updated" : "Meeting recorded",
-        message: `${fmtD(date)} · ${plural(att.length, "member")}, ${plural(total, "first-timer")}${
+        message: `${fmtD(date)} · ${plural(att.length, "attendee")}, ${plural(ft.length + named.length, "first-timer")}${
           named.length ? `. ${named.length} added to Souls won.` : "."
         }`,
       });
@@ -419,8 +433,8 @@ export const MeetingDialog = ({
       title={`${meeting ? "Edit meeting" : "Record meeting"} · ${centerName}`}
       subtitle={
         days.length
-          ? `Meets ${joinAnd(dayNames(days))}. Tick who came and note the offering.`
-          : "Tick who came and note the offering."
+          ? `Meets ${joinAnd(dayNames(days))}. Log who attended, the offering gathered, and any notes.`
+          : "Log who attended, the offering gathered, and any notes."
       }
       errors={serverError ? [serverError] : undefined}
       buttons={[
@@ -462,36 +476,37 @@ export const MeetingDialog = ({
           <section className="flex flex-col gap-3">
             <div className="flex flex-wrap items-end justify-between gap-2">
               <div>
-                <h3 className="text-base font-semibold text-primary">Who came</h3>
+                <h3 className="text-base font-semibold text-primary">Attendees</h3>
                 <p className="text-sm text-[#4B5563]">
-                  {att.length} of {plural(members.length, "member")} ticked
+                  Souls won who came · {att.length} of {attendeeList.length} ticked
                 </p>
               </div>
-              {members.length > 0 && (
+              {attendeeList.length > 0 && (
                 <UiButton
                   tone="ghost"
                   size="sm"
                   className="text-primary hover:bg-primary/5"
-                  onClick={() => setAtt(allTicked ? [] : members.map((m) => String(m.userId)))}
+                  onClick={() => setAtt(allTicked ? [] : attendeeList.map((s) => String(s.id)))}
                 >
                   {allTicked ? "Clear all" : "Tick everyone"}
                 </UiButton>
               )}
             </div>
-            {members.length ? (
-              <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,200px),1fr))] gap-2">
-                {members.map((m) => (
+            {attendeeList.length > 12 && <ListFilter value={qa} onChange={setQa} label="Find an attendee" />}
+            {attendeeList.length ? (
+              <div className="grid max-h-[320px] grid-cols-[repeat(auto-fill,minmax(min(100%,200px),1fr))] gap-2 overflow-y-auto">
+                {attendeeShown.map((s) => (
                   <CheckTile
-                    key={m.userId}
-                    on={att.includes(String(m.userId))}
-                    onToggle={() => toggle(att, setAtt, String(m.userId))}
-                    name={m.name}
-                    sub={m.role.name}
+                    key={s.id}
+                    on={att.includes(String(s.id))}
+                    onToggle={() => toggle(att, setAtt, String(s.id))}
+                    name={soulName(s)}
+                    sub={`Won ${fmtS(dayKey(s.date_won))}${s.meetings_attended ? ` · ${plural(s.meetings_attended, "meeting")}` : ""}`}
                   />
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-[#6B7280]">This center has no members yet. Add them on the Members tab.</p>
+              <p className="text-sm text-[#6B7280]">No souls won recorded for this center yet. Add first-timers below.</p>
             )}
             {shown.att && (
               <span role="alert" className="text-xs text-[#B91C1C]">
@@ -504,18 +519,18 @@ export const MeetingDialog = ({
             <div>
               <h3 className="text-base font-semibold text-primary">First-timers</h3>
               <p className="text-sm text-[#4B5563]">
-                Tick anyone from a recent visit who came back, or add someone new. New people are saved to Souls won.
+                Souls won attending for the first time, or someone new. New people are saved to Souls won.
               </p>
             </div>
-            {recent.length > 0 && (
-              <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,200px),1fr))] gap-2">
-                {recent.map((s) => (
+            {ftList.length > 0 && (
+              <div className="grid max-h-[240px] grid-cols-[repeat(auto-fill,minmax(min(100%,200px),1fr))] gap-2 overflow-y-auto">
+                {ftList.map((s) => (
                   <CheckTile
                     key={s.id}
-                    on={ft.includes(String(s.id))}
-                    onToggle={() => toggle(ft, setFt, String(s.id))}
-                    name={soulName(s)}
-                    sub={`First came ${fmtS(dayKey(s.first_meeting_date) || dayKey(s.date_won))}`}
+                    on={ft.includes(s.id)}
+                    onToggle={() => toggle(ft, setFt, s.id)}
+                    name={s.name}
+                    sub="Hasn’t attended a meeting yet"
                   />
                 ))}
               </div>

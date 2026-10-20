@@ -15,7 +15,6 @@ import {
   PillTabs,
   type PillTone,
   SelectInput,
-  TextInput,
   UiButton,
 } from "../MembershipManagement/components/membershipUi";
 import {
@@ -25,21 +24,17 @@ import {
   MONF,
   OVERDUE_DAYS,
   addDaysKey,
-  daysBetween,
   dow,
   downloadCsv,
   errorText,
-  expectedMeetings,
   firstWord,
   fmtD,
-  fmtL,
   fmtS,
   gapOf,
   ghsOf,
   joinAnd,
   lcDetailPath,
   moneyMix,
-  mondayOf,
   n0,
   n1,
   pctN,
@@ -50,51 +45,53 @@ import {
 } from "./utils/lcModel";
 import { Center, useLifeCenterOverview } from "./utils/useLifeCenterOverview";
 
-type By = "year" | "month" | "week" | "range";
-type Metric = "meetings" | "attendance" | "souls" | "offering";
-type Sort = "souls" | "rate" | "avg" | "off" | "last";
-type Bucket = { l: string; a: string; b: string };
+type Metric = "meetings" | "attendance" | "offering";
+type Sort = "held" | "rate" | "avg" | "off" | "last";
+type Bucket = { key: string; l: string };
+type Meeting = ReturnType<typeof useLifeCenterOverview>["meetings"][number];
+type Soul = ReturnType<typeof useLifeCenterOverview>["souls"][number];
 
-const pad = (n: number) => String(n).padStart(2, "0");
+/** Week of the month as the original analytics counted it: days 1–7 are week 1. */
+const weekOfMonth = (day: string) => String(Math.ceil(Number(day.slice(8, 10)) / 7));
+const peopleAt = (g: Meeting) => g.attendee_ids.length + g.first_timer_ids.length;
 
-/** Calendar months, weeks or days covering `from`–`to`, depending on the span. */
-const bucketsOf = (from: string, to: string, by: By): Bucket[] => {
-  const span = daysBetween(from, to) + 1;
-  const out: Bucket[] = [];
-  if (by === "year" || span > 92) {
-    let y = Number(from.slice(0, 4));
-    let m = Number(from.slice(5, 7));
-    for (let i = 0; i < 36; i++) {
-      const a = `${y}-${pad(m)}-01`;
-      if (a > to) break;
-      const next = m === 12 ? `${y + 1}-01-01` : `${y}-${pad(m + 1)}-01`;
-      const e = addDaysKey(next, -1);
-      out.push({ l: MON[m - 1], a: a < from ? from : a, b: e > to ? to : e });
-      m++;
-      if (m > 12) {
-        m = 1;
-        y++;
-      }
-    }
-  } else if (span > 14) {
-    let a = from;
-    while (a <= to) {
-      const mon = mondayOf(a);
-      const b = addDaysKey(mon, 6);
-      out.push({ l: `w/c ${fmtS(mon)}`, a, b: b > to ? to : b });
-      a = addDaysKey(b, 1);
-    }
-  } else {
-    for (let a = from; a <= to; a = addDaysKey(a, 1)) out.push({ l: `${dow(a)} ${Number(a.slice(8))}`, a, b: a });
-  }
-  return out;
+/** The original performance rating: compared with the average souls won per center. */
+const performanceOf = (count: number, average: number): { label: string; tone: PillTone } => {
+  if (average <= 0) return { label: "No data", tone: "neutral" };
+  if (count > average) return { label: "Excellent", tone: "primary" };
+  if (Math.abs(count - average) < 0.001) return { label: "Good", tone: "info" };
+  return { label: "Needs support", tone: "warning" };
 };
 
-const Card = ({ title, sub, children }: { title: string; sub?: string; children: ReactNode }) => (
+const Section = ({ title, sub }: { title: string; sub: string }) => (
+  <div className="flex flex-col gap-1 border-t border-lightGray pt-6 first:border-t-0 first:pt-0">
+    <h2 className="text-xl font-semibold leading-7 text-primary">{title}</h2>
+    <p className="text-sm text-[#4B5563]">{sub}</p>
+  </div>
+);
+
+const Kpis = ({ items, loaded }: { items: { l: string; v: string; s: string; c?: string }[]; loaded: boolean }) => (
+  <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,180px),1fr))] gap-4">
+    {items.map((k) => (
+      <div key={k.l} className="flex min-w-0 flex-col gap-1 rounded-xl border border-lightGray bg-white px-5 py-4">
+        <p className="text-sm text-[#4B5563]">{k.l}</p>
+        <p className="break-words text-2xl font-semibold leading-8 text-primary">{loaded ? k.v : "—"}</p>
+        <p className="text-xs" style={{ color: k.c ?? "#6B7280" }}>
+          {loaded ? k.s : " "}
+        </p>
+      </div>
+    ))}
+  </div>
+);
+
+const Card = ({ title, sub, action, children }: { title: string; sub?: string; action?: ReactNode; children: ReactNode }) => (
   <section className="flex min-w-0 flex-col gap-3 rounded-xl border border-lightGray bg-white p-5 tablet:p-6">
-    <div>
-      <h3 className="text-base font-semibold text-primary">{title}</h3>
-      {sub && <p className="text-sm text-[#4B5563]">{sub}</p>}
+    <div className="flex flex-wrap items-start justify-between gap-3">
+      <div>
+        <h3 className="text-base font-semibold text-primary">{title}</h3>
+        {sub && <p className="text-sm text-[#4B5563]">{sub}</p>}
+      </div>
+      {action}
     </div>
     {children}
   </section>
@@ -104,7 +101,7 @@ const HBar = ({ label, value, width, sub }: { label: string; value: ReactNode; w
   <div className="flex flex-col gap-1">
     <div className="flex justify-between gap-3 text-sm text-primary">
       <span className="min-w-0 truncate">{label}</span>
-      <span className="font-semibold">{value}</span>
+      <span className="whitespace-nowrap font-semibold">{value}</span>
     </div>
     <div className="h-2 overflow-hidden rounded-full bg-[#E5E7EB]">
       <div className="h-full bg-primary" style={{ width }} />
@@ -113,296 +110,437 @@ const HBar = ({ label, value, width, sub }: { label: string; value: ReactNode; w
   </div>
 );
 
+const Legend = ({ items }: { items: { label: string; className: string }[] }) => (
+  <div className="flex flex-wrap gap-3 text-xs text-[#4B5563]">
+    {items.map((i) => (
+      <span key={i.label} className="inline-flex items-center gap-1.5">
+        <span className={`h-2.5 w-2.5 rounded-sm ${i.className}`} />
+        {i.label}
+      </span>
+    ))}
+  </div>
+);
+
+/** Vertical bars, one or two series per bucket. Scrolls sideways when there are many buckets. */
+const Bars = ({
+  rows,
+  loaded,
+}: {
+  rows: { key: string; l: string; label: string; tip: string; a?: number; b: number; max: number; aClass?: string; bClass?: string; stack?: boolean }[];
+  loaded: boolean;
+}) => (
+  <div className="overflow-x-auto">
+    <div className="flex flex-col gap-2" style={{ minWidth: Math.max(320, rows.length * 48) }}>
+      <div className="flex h-[220px] items-end gap-2 border-b border-[#E5E7EB]">
+        {rows.map((r) => (
+          <div key={r.key} title={r.tip} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1">
+            <span className="whitespace-nowrap text-xs font-semibold text-primary">{loaded ? r.label : ""}</span>
+            {r.stack ? (
+              <div className="flex h-full w-full max-w-14 flex-col justify-end">
+                <div className={`w-full rounded-t ${r.aClass}`} style={{ height: `${((r.a ?? 0) / r.max) * 100}%` }} />
+                <div className={`w-full ${r.a ? "" : "rounded-t"} ${r.bClass}`} style={{ height: `${(r.b / r.max) * 100}%` }} />
+              </div>
+            ) : (
+              <div className="flex h-full w-full max-w-14 items-end" style={{ gap: r.a !== undefined ? 3 : 0 }}>
+                {r.a !== undefined && <div className={`flex-1 rounded-t ${r.aClass}`} style={{ height: `${(r.a / r.max) * 100}%` }} />}
+                <div className={`flex-1 rounded-t ${r.bClass}`} style={{ height: `${(r.b / r.max) * 100}%` }} />
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+      <div className="flex gap-2">
+        {rows.map((r) => (
+          <span key={r.key} className="min-w-0 flex-1 truncate text-center text-xs text-[#6B7280]">
+            {r.l}
+          </span>
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
 /**
- * Souls won, how regularly each center meets, and who turns up. With
+ * Souls won through life centers (the original analytics, filtered by year,
+ * month and week of the month), followed by meetings and offering. With
  * `fixedCenterId` it shows one center only (the leader's view).
  */
-export const LifeCenterAnalyticsView = ({ fixedCenterId, embedded }: { fixedCenterId?: string | number; embedded?: boolean }) => {
+export const LifeCenterAnalyticsView = ({
+  fixedCenterId,
+  embedded,
+  eyebrow,
+}: {
+  fixedCenterId?: string | number;
+  embedded?: boolean;
+  /** Small caps label above the title (member portal). */
+  eyebrow?: string;
+}) => {
   const navigate = useNavigate();
   const today = useToday();
-  const year = today.slice(0, 4);
+  const thisYear = Number(today.slice(0, 4));
   const { canManage } = useAccessControl();
   const manage = canManage("Life Center") && !fixedCenterId;
 
-  const [by, setBy] = useState<By>("year");
-  const [month, setMonth] = useState(today.slice(0, 7));
-  const [week, setWeek] = useState("0");
-  const [from, setFrom] = useState(addDaysKey(today, -49));
-  const [to, setTo] = useState(today);
+  const [year, setYear] = useState(String(thisYear));
+  const [month, setMonth] = useState("all");
+  const [week, setWeek] = useState("all");
   const [lcSel, setLcSel] = useState("");
   const [metric, setMetric] = useState<Metric>("meetings");
-  const [sort, setSort] = useState<Sort>("souls");
+  const [sort, setSort] = useState<Sort>("held");
   const [reminded, setReminded] = useState<Record<number, boolean>>({});
 
-  const mon0 = mondayOf(today);
-  const P = useMemo(() => {
-    if (by === "month") {
-      const [y, m] = month.split("-").map(Number);
-      const a = `${y}-${pad(m)}-01`;
-      const b = addDaysKey(m === 12 ? `${y + 1}-01-01` : `${y}-${pad(m + 1)}-01`, -1);
-      return { from: a, to: b > today ? today : b, label: `${MONF[m - 1]} ${y}` };
-    }
-    if (by === "week") {
-      const a = addDaysKey(mon0, -7 * Number(week));
-      const b = addDaysKey(a, 6);
-      return { from: a, to: b > today ? today : b, label: `Week of ${fmtL(a)}` };
-    }
-    if (by === "range") {
-      let a = from || addDaysKey(today, -49);
-      let b = to || today;
-      if (b < a) [a, b] = [b, a];
-      if (b > today) b = today;
-      return { from: a, to: b, label: `${fmtL(a)} – ${fmtL(b)}` };
-    }
-    return { from: `${year}-01-01`, to: today, label: `1 Jan – ${fmtL(today)}` };
-  }, [by, month, week, from, to, today, year, mon0]);
-
-  const L = daysBetween(P.from, P.to) + 1;
-  const pTo = addDaysKey(P.from, -1);
-  const pFrom = addDaysKey(P.from, -L);
+  const allYears = year === "all";
+  const fetchFrom = allYears ? "" : `${year}-01-01`;
+  const fetchTo = allYears || year === String(thisYear) ? today : `${year}-12-31`;
+  const { centers: allCenters, meetings: allMeetings, souls: allSouls, loaded } = useLifeCenterOverview(
+    fetchFrom,
+    fetchTo,
+    fixedCenterId ?? null
+  );
 
   const centerFilter = fixedCenterId ? String(fixedCenterId) : lcSel;
-  const { centers: allCenters, meetings, souls, loaded } = useLifeCenterOverview(pFrom, P.to, fixedCenterId ?? null);
   const cs = allCenters.filter((c) => !centerFilter || String(c.id) === centerFilter);
+  const ids = new Set(cs.map((c) => c.id));
+  const byId = new Map(allCenters.map((c) => [c.id, c]));
 
-  const memberCount = useMemo(() => new Map(allCenters.map((c) => [c.id, c.memberCount])), [allCenters]);
-  const agg = (list: Center[], a: string, b: string) => {
-    const ids = new Set(list.map((c) => c.id));
-    const ms = meetings.filter((g) => ids.has(g.life_center_id) && g.date >= a && g.date <= b);
-    const ss = souls.filter((s) => ids.has(s.life_center_id) && s.date_won >= a && s.date_won <= b);
-    const exp = list.reduce((t, c) => t + expectedMeetings(c, a, b, today), 0);
-    const att = ms.reduce((t, g) => t + g.member_user_ids.length + g.first_timer_ids.length, 0);
-    const memAtt = ms.reduce((t, g) => t + g.member_user_ids.length, 0);
-    const memSlots = ms.reduce((t, g) => t + (memberCount.get(g.life_center_id) ?? 0), 0);
-    const ft = ms.reduce((t, g) => t + g.first_timer_ids.length, 0);
+  /* --------------------------------- period --------------------------------- */
+
+  const inPeriod = (day: string) =>
+    (allYears || day.slice(0, 4) === year) &&
+    (month === "all" || String(Number(day.slice(5, 7))) === month) &&
+    (week === "all" || weekOfMonth(day) === week);
+
+  const souls = allSouls.filter((s) => ids.has(s.life_center_id) && inPeriod(s.date_won));
+  const meetings = allMeetings.filter((g) => ids.has(g.life_center_id) && inPeriod(g.date));
+
+  const firstYear = useMemo(() => {
+    const seen = [...allSouls.map((s) => s.date_won), ...allMeetings.map((g) => g.date), ...allCenters.map((c) => c.created)]
+      .map((d) => Number(d.slice(0, 4)))
+      .filter((y) => y > 1990);
+    return Math.min(thisYear, ...seen);
+  }, [allSouls, allMeetings, allCenters, thisYear]);
+
+  // Chart buckets: years for "All years", months for a year, weeks of the month for a month, days for a week.
+  const bucketKey = (day: string) =>
+    allYears ? day.slice(0, 4) : month === "all" ? day.slice(5, 7) : week === "all" ? weekOfMonth(day) : day;
+  const buckets: Bucket[] = useMemo(() => {
+    if (allYears) return Array.from({ length: thisYear - firstYear + 1 }, (_, i) => String(firstYear + i)).map((y) => ({ key: y, l: y }));
+    if (month === "all") {
+      const last = Number(year) === thisYear ? Number(today.slice(5, 7)) : 12;
+      return Array.from({ length: last }, (_, i) => ({ key: String(i + 1).padStart(2, "0"), l: MON[i] }));
+    }
+    if (week === "all") return ["1", "2", "3", "4", "5"].map((w) => ({ key: w, l: `Week ${w}` }));
+    const m = month.padStart(2, "0");
+    const out: Bucket[] = [];
+    for (let d = Number(week) * 7 - 6; d <= Number(week) * 7; d++) {
+      const day = `${year}-${m}-${String(d).padStart(2, "0")}`;
+      if (Number(day.slice(8)) !== d || new Date(`${day}T00:00:00`).getMonth() + 1 !== Number(month)) continue;
+      out.push({ key: day, l: `${dow(day)} ${d}` });
+    }
+    return out;
+  }, [allYears, month, week, year, thisYear, firstYear, today]);
+
+  /** Scheduled meetings per center and bucket, counted from each center's meeting days up to yesterday. */
+  const scheduled = useMemo(() => {
+    const yesterday = addDaysKey(today, -1);
+    const out = new Map<number, Map<string, number>>();
+    cs.forEach((c) => {
+      const per = new Map<string, number>();
+      const start = allYears ? c.created : `${year}-01-01` > c.created ? `${year}-01-01` : c.created;
+      const end = allYears ? yesterday : `${year}-12-31` < yesterday ? `${year}-12-31` : yesterday;
+      if (c.days.length) {
+        for (let d = start; d <= end; d = addDaysKey(d, 1)) {
+          if (c.days.includes(dow(d)) && inPeriod(d)) per.set(bucketKey(d), (per.get(bucketKey(d)) ?? 0) + 1);
+        }
+      }
+      out.set(c.id, per);
+    });
+    return out;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cs.map((c) => c.id).join(","), allCenters, year, month, week, today]);
+  const expectedFor = (centerIds: number[], key?: string) =>
+    centerIds.reduce((t, id) => {
+      const per = scheduled.get(id);
+      if (!per) return t;
+      if (key !== undefined) return t + (per.get(key) ?? 0);
+      let sum = 0;
+      per.forEach((n) => (sum += n));
+      return t + sum;
+    }, 0);
+
+  const periodLabel = allYears
+    ? "All years"
+    : `${month === "all" ? "" : `${MONF[Number(month) - 1]} `}${year}${week === "all" ? "" : ` · week ${week}`}`;
+
+  /* -------------------------------- souls won -------------------------------- */
+
+  const soulsByCenter = cs
+    .map((c) => {
+      const list = souls.filter((s) => s.life_center_id === c.id);
+      return { c, list, count: list.length, conv: list.filter((s) => s.converted).length };
+    })
+    .sort((a, b) => b.count - a.count);
+  const activeCenters = soulsByCenter.filter((r) => r.count > 0);
+  const average = activeCenters.length ? souls.length / activeCenters.length : 0;
+  const topCenter = activeCenters[0];
+  const converted = souls.filter((s) => s.converted).length;
+  const locations = new Set(souls.map((s) => s.city.trim().toLowerCase()).filter(Boolean)).size;
+  const below = average > 0 ? activeCenters.filter((r) => r.count < average).length : 0;
+  const consistent = activeCenters.filter((r) => r.count >= 2).length;
+
+  const soulKpis = [
+    { l: "Souls won", v: String(souls.length), s: `${converted} have become members (${pctN(converted, souls.length)}%)` },
+    { l: "Active life centers", v: String(activeCenters.length), s: `of ${plural(cs.length, "center")} won souls` },
+    { l: "Average per center", v: n1(average), s: "souls won per active center" },
+    { l: "Still to follow up", v: String(souls.length - converted), s: "not yet church members" },
+    { l: "Locations reached", v: String(locations), s: "cities or areas recorded" },
+  ];
+
+  const soulTrend = buckets.map((b) => {
+    const list = souls.filter((s) => bucketKey(s.date_won) === b.key);
+    return { b, n: list.length, conv: list.filter((s) => s.converted).length };
+  });
+  const soulMax = Math.max(1, ...soulTrend.map((t) => t.n));
+  const peak = [...soulTrend].sort((a, b) => b.n - a.n)[0];
+  const lastTwo = soulTrend.filter((t, i) => i < soulTrend.length && (t.n > 0 || i >= soulTrend.length - 2)).slice(-2);
+
+  const insights: { tone: PillTone; p: string; s: string }[] = [];
+  if (peak && peak.n) insights.push({ tone: "success", p: "Peak period", s: `${peak.b.l} was the most productive with ${plural(peak.n, "soul")} won.` });
+  if (topCenter) insights.push({ tone: "info", p: "Top center", s: `${topCenter.c.name} leads with ${plural(topCenter.count, "soul")}, led by ${topCenter.c.leader ?? "no one yet"}.` });
+  if (activeCenters.length) insights.push({ tone: "info", p: "Average", s: `Active centers are winning ${n1(average)} souls each in this period.` });
+  if (below) insights.push({ tone: "warning", p: "Growth", s: `${plural(below, "center")} ${below === 1 ? "is" : "are"} below average and could use support.` });
+  if (activeCenters.length) insights.push({ tone: "success", p: "Consistency", s: `${pctN(consistent, activeCenters.length)}% of active centers won more than one soul.` });
+  if (locations) insights.push({ tone: "info", p: "Reach", s: `Souls were won in ${plural(locations, "location")}.` });
+  if (lastTwo.length === 2 && !allYears && month === "all") {
+    const [prev, last] = lastTwo;
+    insights.push(
+      prev.n === 0
+        ? { tone: last.n ? "success" : "neutral", p: "Trend", s: last.n ? `New growth in ${last.b.l} after none in ${prev.b.l}.` : `No souls won in ${prev.b.l} or ${last.b.l}.` }
+        : {
+            tone: last.n >= prev.n ? "success" : "warning",
+            p: "Trend",
+            s: `${last.n >= prev.n ? "Up" : "Down"} ${Math.abs(pctN(last.n - prev.n, prev.n))}% from ${prev.b.l} to ${last.b.l}.`,
+          }
+    );
+  }
+  if (!insights.length) insights.push({ tone: "neutral", p: "No data", s: "No souls won in this period yet." });
+
+  /* --------------------------------- meetings -------------------------------- */
+
+  const agg = (list: Meeting[], centerIds: number[], key?: string) => {
+    const people = list.reduce((t, g) => t + peopleAt(g), 0);
+    const exp = expectedFor(centerIds, key);
     return {
-      ms,
-      ss,
+      held: list.length,
       exp,
-      held: ms.length,
-      avg: ms.length ? att / ms.length : 0,
-      memAtt,
-      memSlots,
-      ft,
-      ftUniq: new Set(ms.flatMap((g) => g.first_timer_ids)).size,
-      conv: ss.filter((s) => s.converted).length,
-      rate: Math.min(100, pctN(ms.length, exp)),
+      rate: Math.min(100, pctN(list.length, exp)),
+      people,
+      attendees: list.reduce((t, g) => t + g.attendee_ids.length, 0),
+      ft: list.reduce((t, g) => t + g.first_timer_ids.length, 0),
+      avg: list.length ? people / list.length : 0,
+      ghs: ghsOf(list),
+      ghsMeetings: list.filter((g) => g.currency === "GHS").length,
+      money: moneyMix(list),
     };
   };
-  type Agg = ReturnType<typeof agg>;
-
-  const A = agg(cs, P.from, P.to);
-  const B = agg(cs, pFrom, pTo);
-  const delta = (a: number, b: number) => {
-    if (!b) return null;
-    const d = pctN(a - b, b);
-    return { s: `${d >= 0 ? "+" : "−"}${Math.abs(d)}% vs previous period`, c: d >= 0 ? "#15803D" : "#B91C1C" };
-  };
-  const dS = delta(A.ss.length, B.ss.length);
-  const dA = B.held ? delta(A.avg, B.avg) : null;
-  const ghsMeetings = A.ms.filter((g) => g.currency === "GHS").length;
-
-  const kpis = [
-    { l: "Souls won", v: String(A.ss.length), s: dS ? dS.s : `${A.conv} have become members`, c: dS?.c },
+  const csIds = cs.map((c) => c.id);
+  const M = agg(meetings, csIds);
+  const meetKpis = [
     {
       l: "Meetings held",
-      v: `${A.held} of ${A.exp}`,
-      s: A.exp ? `${A.rate}% of scheduled meetings` : "None scheduled in this period",
-      c: A.exp ? rateColor(A.rate) : undefined,
+      v: `${M.held} of ${M.exp}`,
+      s: M.exp ? `${M.rate}% of scheduled meetings` : "None scheduled in this period",
+      c: M.exp ? rateColor(M.rate) : undefined,
     },
-    { l: "Average attendance", v: n1(A.avg), s: dA ? dA.s : "people per meeting", c: dA?.c },
-    { l: "Member turnout", v: `${pctN(A.memAtt, A.memSlots)}%`, s: "of members came to a typical meeting" },
-    { l: "First-timers at meetings", v: String(A.ft), s: `${plural(A.ftUniq, "different person", "different people")}` },
+    { l: "Total attendance", v: n0(M.people), s: `${n0(M.attendees)} attendees · ${n0(M.ft)} first-timers` },
+    { l: "Average attendance", v: n1(M.avg), s: "people per meeting" },
+    { l: "First-timers", v: String(M.ft), s: M.held ? `${n1(M.ft / M.held)} per meeting` : "No meetings yet" },
+    { l: "Offering raised", v: M.money, s: `across ${plural(M.held, "meeting")}` },
     {
-      l: "Offering recorded",
-      v: moneyMix(A.ms),
-      s: A.held ? `GHS ${n0(ghsOf(A.ms) / Math.max(1, ghsMeetings))} per meeting on average` : "No meetings yet",
+      l: "Average offering",
+      v: `GHS ${n0(M.ghsMeetings ? M.ghs / M.ghsMeetings : 0)}`,
+      s: M.ghsMeetings ? "per meeting (cedi meetings)" : "No cedi offerings yet",
     },
   ];
 
-  /* ------------------------------ per-center rows ----------------------------- */
-
-  const rows = cs.map((c) => ({ c, a: agg([c], P.from, P.to), b: agg([c], pFrom, pTo), gap: gapOf(c.last, today) }));
-  const sorters: Record<Sort, (x: (typeof rows)[number], y: (typeof rows)[number]) => number> = {
-    souls: (x, y) => y.a.ss.length - x.a.ss.length,
-    rate: (x, y) => y.a.rate - x.a.rate,
-    avg: (x, y) => y.a.avg - x.a.avg,
-    off: (x, y) => ghsOf(y.a.ms) - ghsOf(x.a.ms),
-    last: (x, y) => y.gap - x.gap,
+  const meetTrend = buckets.map((b) => {
+    const list = meetings.filter((g) => bucketKey(g.date) === b.key);
+    return { b, x: agg(list, csIds, b.key) };
+  });
+  const meetMax = Math.max(
+    1,
+    ...meetTrend.map((t) => (metric === "meetings" ? Math.max(t.x.held, t.x.exp) : metric === "attendance" ? t.x.people : t.x.ghs))
+  );
+  const chartText: Record<Metric, [string, string]> = {
+    meetings: ["Meetings held against scheduled", "Based on each center’s meeting days"],
+    attendance: ["Attendance", "Attendees and first-timers at meetings"],
+    offering: ["Offering raised", "GHS only. Other currencies are listed in the totals and table."],
   };
-  const sorted = [...rows].sort(sorters[sort]);
-  const open = (id: number) => navigate(lcDetailPath(id));
-  const regPill = (a: Agg): { label: string; tone: PillTone } =>
-    !a.exp
+
+  const meetRows = cs.map((c) => {
+    const list = meetings.filter((g) => g.life_center_id === c.id);
+    return { c, x: agg(list, [c.id]), gap: gapOf(c.last, today) };
+  });
+  const sorters: Record<Sort, (a: (typeof meetRows)[number], b: (typeof meetRows)[number]) => number> = {
+    held: (a, b) => b.x.held - a.x.held,
+    rate: (a, b) => b.x.rate - a.x.rate,
+    avg: (a, b) => b.x.avg - a.x.avg,
+    off: (a, b) => b.x.ghs - a.x.ghs,
+    last: (a, b) => b.gap - a.gap,
+  };
+  const meetSorted = [...meetRows].sort(sorters[sort]);
+  const offerTop = meetRows.filter((r) => r.x.held).sort(sorters.off).slice(0, 6);
+  const offerMax = Math.max(1, ...offerTop.map((r) => r.x.ghs));
+  const regPill = (x: ReturnType<typeof agg>): { label: string; tone: PillTone } =>
+    !x.exp
       ? { label: "None scheduled", tone: "neutral" }
-      : { label: `${a.rate}% · ${a.rate >= 85 ? "Regular" : a.rate >= 60 ? "Irregular" : "Often missed"}`, tone: rateTone(a.rate) };
-  const lastText = (r: (typeof rows)[number]) => (r.c.last ? `${fmtS(r.c.last)} (${r.gap}d)` : "Never");
+      : { label: `${x.rate}% · ${x.rate >= 85 ? "Regular" : x.rate >= 60 ? "Irregular" : "Often missed"}`, tone: rateTone(x.rate) };
+  const lastText = (r: (typeof meetRows)[number]) => (r.c.last ? `${fmtS(r.c.last)} (${r.gap}d)` : "Never");
 
-  /* --------------------------------- attention -------------------------------- */
+  const byDay: Record<string, number[]> = {};
+  meetings.forEach((g) => {
+    const d = dow(g.date);
+    (byDay[d] = byDay[d] || []).push(peopleAt(g));
+  });
+  const dayList = DAYS.filter((d) => byDay[d]).map((d) => ({ d, avg: byDay[d].reduce((a, b) => a + b, 0) / byDay[d].length, n: byDay[d].length }));
+  const dMax = Math.max(1, ...dayList.map((x) => x.avg));
 
-  const remind = async (r: (typeof rows)[number], reason: LeaderReminderReason) => {
+  /* -------------------------------- attention -------------------------------- */
+
+  const remind = async (c: Center, reason: LeaderReminderReason) => {
     try {
-      const response = await api.post.remindLifeCenterLeader({ lifeCenterId: r.c.id, reason });
-      setReminded((prev) => ({ ...prev, [r.c.id]: true }));
+      const response = await api.post.remindLifeCenterLeader({ lifeCenterId: c.id, reason });
+      setReminded((prev) => ({ ...prev, [c.id]: true }));
       notify.success({
         title: "Reminder sent",
-        message: `${response?.data?.sent_to || r.c.leader || "The leader"} has been asked to update ${r.c.name}.`,
+        message: `${response?.data?.sent_to || c.leader || "The leader"} has been asked to update ${c.name}.`,
       });
     } catch (error) {
       notify.error({ title: "Couldn’t send the reminder", message: errorText(error, "Try again later.") });
     }
   };
-  type Att = { r: (typeof rows)[number]; tone: PillTone; pill: string; title: string; text: string; reason: LeaderReminderReason; verb: string; k: number; g: number };
-  const attention: Att[] = [];
-  rows.forEach((r) => {
-    const leader = r.c.leader ?? "the leader";
-    const daysText = r.c.days.length ? `Meets on ${joinAnd(r.c.days.map((d) => DAYF[d]))}, led by ${leader}.` : `Led by ${leader}.`;
-    if (r.gap > OVERDUE_DAYS)
-      attention.push({
-        r,
-        tone: "danger",
-        pill: "Overdue",
-        title: r.c.last ? `${r.c.name} hasn’t met in ${r.gap} days` : `${r.c.name} has never recorded a meeting`,
-        text: `${r.c.last ? `Last meeting ${fmtD(r.c.last)}. ` : ""}${daysText}`,
-        reason: "overdue",
-        verb: "Remind",
-        k: 0,
-        g: r.gap,
-      });
-    else if (r.a.exp >= 3 && r.a.rate < 60)
-      attention.push({
-        r,
-        tone: "warning",
-        pill: "Irregular",
-        title: `${r.c.name} held ${r.a.held} of ${r.a.exp} scheduled meetings`,
-        text: "Meetings are often skipped in this period. Check whether the meeting day still works for members.",
-        reason: "irregular",
-        verb: "Remind",
-        k: 1,
-        g: r.a.rate,
-      });
-    else if (r.b.held >= 2 && r.a.held >= 2 && r.a.avg < r.b.avg * 0.8)
-      attention.push({
-        r,
-        tone: "warning",
-        pill: "Attendance down",
-        title: `${r.c.name} attendance fell from ${n1(r.b.avg)} to ${n1(r.a.avg)}`,
-        text: `Average turnout dropped by ${pctN(r.b.avg - r.a.avg, r.b.avg)}% against the previous period.`,
-        reason: "attendance",
-        verb: "Check in with",
-        k: 2,
-        g: 0,
-      });
-  });
-  attention.sort((a, b) => a.k - b.k || b.g - a.g);
+  const attention = meetRows
+    .map((r) => {
+      const leader = r.c.leader ?? "the leader";
+      const daysText = r.c.days.length ? `Meets on ${joinAnd(r.c.days.map((d) => DAYF[d]))}, led by ${leader}.` : `Led by ${leader}.`;
+      if (r.gap > OVERDUE_DAYS)
+        return {
+          r,
+          tone: "danger" as PillTone,
+          pill: "Overdue",
+          title: r.c.last ? `${r.c.name} hasn’t met in ${r.gap} days` : `${r.c.name} has never recorded a meeting`,
+          text: `${r.c.last ? `Last meeting ${fmtD(r.c.last)}. ` : ""}${daysText}`,
+          reason: "overdue" as LeaderReminderReason,
+          k: 0,
+          g: r.gap,
+        };
+      if (r.x.exp >= 3 && r.x.rate < 60)
+        return {
+          r,
+          tone: "warning" as PillTone,
+          pill: "Irregular",
+          title: `${r.c.name} held ${r.x.held} of ${r.x.exp} scheduled meetings`,
+          text: "Meetings are often skipped in this period. Check whether the meeting day still works.",
+          reason: "irregular" as LeaderReminderReason,
+          k: 1,
+          g: r.x.rate,
+        };
+      return null;
+    })
+    .filter(Boolean)
+    .sort((a, b) => a!.k - b!.k || b!.g - a!.g) as {
+    r: (typeof meetRows)[number];
+    tone: PillTone;
+    pill: string;
+    title: string;
+    text: string;
+    reason: LeaderReminderReason;
+  }[];
 
-  /* ----------------------------------- chart ---------------------------------- */
-
-  const buckets = bucketsOf(P.from, P.to, by);
-  const vals = buckets.map((b) => {
-    const x = agg(cs, b.a, b.b);
-    const v = metric === "souls" ? x.ss.length : metric === "meetings" ? x.held : metric === "attendance" ? x.avg : ghsOf(x.ms);
-    return { b, x, v, e: x.exp };
-  });
-  const mx = Math.max(1, ...vals.map((o) => (metric === "meetings" ? Math.max(o.v, o.e) : o.v)));
-  const chartLabel: Record<Metric, [string, string]> = {
-    souls: ["Souls won over time", "New people won through life centers"],
-    meetings: ["Meetings held against scheduled", "Based on each center’s meeting days"],
-    attendance: ["Average attendance per meeting", "Members and first-timers together"],
-    offering: ["Offering recorded", "GHS only. Other currencies are left out of the chart."],
-  };
-  const fmtV = (o: (typeof vals)[number]) =>
-    metric === "meetings" ? `${o.v}/${o.e}` : metric === "attendance" ? n1(o.v) : metric === "offering" ? (o.v >= 1000 ? `${n1(o.v / 1000)}k` : n0(o.v)) : String(o.v);
-
-  /* ---------------------------------- side cards ------------------------------ */
-
-  const top = rows.filter((r) => r.a.ss.length).sort(sorters.souls).slice(0, 6);
-  const tMax = Math.max(1, ...top.map((r) => r.a.ss.length));
-  const byDay: Record<string, number[]> = {};
-  A.ms.forEach((g) => {
-    const d = dow(g.date);
-    (byDay[d] = byDay[d] || []).push(g.member_user_ids.length + g.first_timer_ids.length);
-  });
-  const dayList = DAYS.filter((d) => byDay[d]).map((d) => ({ d, avg: byDay[d].reduce((a, b) => a + b, 0) / byDay[d].length, n: byDay[d].length }));
-  const dMax = Math.max(1, ...dayList.map((x) => x.avg));
-
-  const insights: { tone: PillTone; p: string; s: string }[] = [];
-  const peak = [...vals].sort((a, b) => b.x.ss.length - a.x.ss.length)[0];
-  if (peak && peak.x.ss.length) insights.push({ tone: "success", p: "Peak", s: `${peak.b.l} had the most souls won (${peak.x.ss.length}).` });
-  const reg = rows.filter((r) => r.a.exp >= 2).sort((a, b) => b.a.rate - a.a.rate || b.a.avg - a.a.avg)[0];
-  if (reg) insights.push({ tone: "success", p: "Most regular", s: `${reg.c.name} held ${reg.a.held} of ${reg.a.exp} scheduled meetings (${reg.a.rate}%).` });
-  const big = rows.filter((r) => r.a.held).sort((a, b) => b.a.avg - a.a.avg)[0];
-  if (big && rows.length > 1) insights.push({ tone: "info", p: "Attendance", s: `${big.c.name} draws the most people, ${n1(big.a.avg)} per meeting.` });
-  if (A.ss.length) insights.push({ tone: "warning", p: "Follow-up", s: `${A.ss.length - A.conv} of ${A.ss.length} souls won in this period are not yet members.` });
-  if (A.ft && A.held) insights.push({ tone: "info", p: "Visitors", s: `Each meeting brings ${n1(A.ft / A.held)} first-timers on average.` });
-  if (!insights.length) insights.push({ tone: "neutral", p: "No data", s: "Nothing recorded in this period yet." });
-
-  /* ----------------------------------- export --------------------------------- */
+  /* ---------------------------------- export --------------------------------- */
 
   const exportCsv = () => {
-    downloadCsv("life-center-analytics.csv", [
-      ["Period", P.label],
+    downloadCsv(`life-center-analytics-${periodLabel.replace(/\W+/g, "-").toLowerCase()}.csv`, [
+      ["Period", periodLabel],
       [],
-      ["Life center", "Leader", "Souls won", "Became members", "Meetings held", "Meetings scheduled", "Held %", "Avg attendance", "Member turnout %", "First-timers", "Offering", "Last met"],
-      ...sorted.map((r) => [
-        r.c.name,
-        r.c.leader ?? "",
-        r.a.ss.length,
-        r.a.conv,
-        r.a.held,
-        r.a.exp,
-        r.a.rate,
-        n1(r.a.avg),
-        pctN(r.a.memAtt, r.a.memSlots),
-        r.a.ft,
-        moneyMix(r.a.ms),
-        r.c.last ?? "",
-      ]),
+      [
+        "Life center",
+        "Leader",
+        "Souls won",
+        "Became members",
+        "Performance",
+        "Meetings held",
+        "Meetings scheduled",
+        "Held %",
+        "Total attendance",
+        "Avg attendance",
+        "First-timers",
+        "Offering",
+        "Last met",
+      ],
+      ...cs.map((c) => {
+        const s = soulsByCenter.find((r) => r.c.id === c.id);
+        const m = meetRows.find((r) => r.c.id === c.id)!;
+        return [
+          c.name,
+          c.leader ?? "",
+          s?.count ?? 0,
+          s?.conv ?? 0,
+          performanceOf(s?.count ?? 0, average).label,
+          m.x.held,
+          m.x.exp,
+          m.x.rate,
+          m.x.people,
+          n1(m.x.avg),
+          m.x.ft,
+          m.x.money,
+          c.last ?? "",
+        ];
+      }),
     ]);
-    notify.success({ title: "CSV downloaded", message: `Analytics for ${P.label} saved.` });
+    notify.success({ title: "CSV downloaded", message: `Analytics for ${periodLabel} saved.` });
   };
 
-  /* ---------------------------------- options --------------------------------- */
+  /* --------------------------------- controls -------------------------------- */
 
-  const monthOpts = useMemo(() => {
-    const out: { value: string; label: string }[] = [];
-    const d = new Date(`${today.slice(0, 7)}-01T00:00:00`);
-    for (let i = 0; i < 12; i++) {
-      out.push({ value: `${d.getFullYear()}-${pad(d.getMonth() + 1)}`, label: `${MONF[d.getMonth()]} ${d.getFullYear()}` });
-      d.setMonth(d.getMonth() - 1);
-    }
-    return out;
-  }, [today]);
-  const weekOpts = Array.from({ length: 12 }, (_, i) => {
-    const w = addDaysKey(mon0, -7 * i);
-    return { value: String(i), label: i === 0 ? `This week (from ${fmtS(w)})` : `Week of ${fmtS(w)}` };
-  });
-  const centerName = cs.length === 1 && centerFilter ? cs[0].name : "";
-  const note = `${P.label}${centerFilter ? (centerName ? ` · ${centerName}` : "") : ` · all ${plural(allCenters.length, "life center")}`}. Scheduled meetings are counted from each center’s meeting days up to yesterday. Changes compare with the ${L} days before.`;
-
+  const yearOpts = [
+    { value: "all", label: "All years" },
+    ...Array.from({ length: thisYear - firstYear + 1 }, (_, i) => String(thisYear - i)).map((y) => ({ value: y, label: y })),
+  ];
   const controls = (
     <>
       <SelectInput
-        aria-label="Period"
+        aria-label="Year"
         className="w-auto"
-        value={by}
-        onChange={(e) => setBy(e.target.value as By)}
-        options={[
-          { value: "year", label: `This year (${year})` },
-          { value: "month", label: "Month" },
-          { value: "week", label: "Week" },
-          { value: "range", label: "Specific dates" },
-        ]}
+        value={year}
+        onChange={(e) => {
+          setYear(e.target.value);
+          if (e.target.value === "all") {
+            setMonth("all");
+            setWeek("all");
+          }
+        }}
+        options={yearOpts}
       />
-      {by === "month" && <SelectInput aria-label="Month" className="w-auto" value={month} onChange={(e) => setMonth(e.target.value)} options={monthOpts} />}
-      {by === "week" && <SelectInput aria-label="Week" className="w-auto" value={week} onChange={(e) => setWeek(e.target.value)} options={weekOpts} />}
-      {by === "range" && (
-        <div className="flex flex-wrap items-center gap-2">
-          <TextInput type="date" aria-label="From" className="w-auto" max={today} value={from} onChange={(e) => setFrom(e.target.value)} />
-          <span className="text-sm text-[#6B7280]">to</span>
-          <TextInput type="date" aria-label="To" className="w-auto" max={today} value={to} onChange={(e) => setTo(e.target.value)} />
-        </div>
-      )}
+      <SelectInput
+        aria-label="Month"
+        className="w-auto"
+        value={month}
+        disabled={allYears}
+        onChange={(e) => {
+          setMonth(e.target.value);
+          if (e.target.value === "all") setWeek("all");
+        }}
+        options={[{ value: "all", label: "All months" }, ...MONF.map((m, i) => ({ value: String(i + 1), label: m }))]}
+      />
+      <SelectInput
+        aria-label="Week of the month"
+        className="w-auto"
+        value={week}
+        disabled={allYears}
+        onChange={(e) => setWeek(e.target.value)}
+        options={[{ value: "all", label: "All weeks" }, ...["1", "2", "3", "4", "5"].map((w) => ({ value: w, label: `Week ${w}` }))]}
+      />
       {!fixedCenterId && (
         <SelectInput
           aria-label="Life center"
@@ -412,232 +550,156 @@ export const LifeCenterAnalyticsView = ({ fixedCenterId, embedded }: { fixedCent
           options={[{ value: "", label: "All life centers" }, ...allCenters.map((c) => ({ value: String(c.id), label: c.name }))]}
         />
       )}
-      <UiButton onClick={exportCsv} disabled={!rows.length}>
+      <UiButton onClick={exportCsv} disabled={!cs.length}>
         Export CSV
       </UiButton>
     </>
   );
+
+  const note = `${periodLabel}${centerFilter ? (cs[0] ? ` · ${cs[0].name}` : "") : ` · ${plural(allCenters.length, "life center")}`}. Week 1 is days 1–7 of the month. Scheduled meetings are counted from each center’s meeting days up to yesterday.`;
 
   const body = (
     <>
       {embedded ? (
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex flex-col gap-1">
-            <h2 className="text-xl font-semibold leading-7 text-primary">Analytics</h2>
-            <p className="text-sm text-[#4B5563]">Souls won, how regularly the center meets, and who turns up.</p>
+            {eyebrow && <p className="text-xs font-semibold tracking-[0.04em] text-[#6B7280]">{eyebrow}</p>}
+            {eyebrow ? (
+              <h1 className="text-xl font-semibold leading-8 text-primary tablet:text-2xl">Analytics</h1>
+            ) : (
+              <h2 className="text-xl font-semibold leading-7 text-primary">Analytics</h2>
+            )}
+            <p className="text-sm text-[#4B5563]">Souls won, meetings and offering for this center.</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">{controls}</div>
         </div>
       ) : (
         <PageHeading
           title="Life center analytics"
-          subtitle="Souls won, how regularly each center meets, and who turns up."
+          subtitle="Track soul-winning across life centers, and how their meetings and offerings are going."
           actions={controls}
         />
       )}
       <p className="text-xs text-[#6B7280]">{note}</p>
 
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,180px),1fr))] gap-4">
-        {kpis.map((k) => (
-          <div key={k.l} className="flex min-w-0 flex-col gap-1 rounded-xl border border-lightGray bg-white px-5 py-4">
-            <p className="text-sm text-[#4B5563]">{k.l}</p>
-            <p className="break-words text-2xl font-semibold leading-8 text-primary">{loaded ? k.v : "—"}</p>
-            <p className="text-xs" style={{ color: k.c ?? "#6B7280" }}>
-              {loaded ? k.s : " "}
-            </p>
-          </div>
-        ))}
+      {/* ------------------------------ souls won ----------------------------- */}
+      <Section title="Souls won" sub="People won through life centers in the selected period." />
+      <Kpis items={soulKpis} loaded={loaded} />
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,380px),1fr))] items-start gap-4">
+        <Card title="Souls won over time" sub={allYears ? "By year" : month === "all" ? "By month" : week === "all" ? "By week of the month" : "By day"}>
+          <Legend items={[{ label: "Became members", className: "bg-[#9A5D1A]" }, { label: "Still to follow up", className: "bg-primary" }]} />
+          <Bars
+            loaded={loaded}
+            rows={soulTrend.map((t) => ({
+              key: t.b.key,
+              l: t.b.l,
+              label: String(t.n),
+              tip: `${t.b.l}: ${plural(t.n, "soul")} won, ${t.conv} now members`,
+              a: t.conv,
+              b: t.n - t.conv,
+              max: soulMax,
+              aClass: "bg-[#9A5D1A]",
+              bClass: "bg-primary",
+              stack: true,
+            }))}
+          />
+        </Card>
+        {!fixedCenterId ? (
+          <Card title="Top life centers" sub="By souls won, with who leads each one">
+            {activeCenters.length ? (
+              activeCenters.slice(0, 10).map((r) => (
+                <HBar
+                  key={r.c.id}
+                  label={r.c.name}
+                  value={r.count}
+                  width={`${(r.count / Math.max(1, activeCenters[0].count)) * 100}%`}
+                  sub={`${r.c.leader ?? "No leader yet"} · ${r.conv} now members`}
+                />
+              ))
+            ) : (
+              <p className="text-sm text-[#6B7280]">No souls won in this period.</p>
+            )}
+          </Card>
+        ) : (
+          <Card title="Who won them" sub="Souls won by each person in this period">
+            {(() => {
+              const by: Record<string, number> = {};
+              souls.forEach((s: Soul) => {
+                const k = s.won_by || "Unknown";
+                by[k] = (by[k] || 0) + 1;
+              });
+              const list = Object.entries(by).sort((a, b) => b[1] - a[1]);
+              const mx = Math.max(1, ...list.map((x) => x[1]));
+              return list.length ? (
+                list.slice(0, 8).map(([name, n]) => <HBar key={name} label={name} value={n} width={`${(n / mx) * 100}%`} sub={plural(n, "soul")} />)
+              ) : (
+                <p className="text-sm text-[#6B7280]">No souls won in this period.</p>
+              );
+            })()}
+          </Card>
+        )}
       </div>
-
-      {loaded && attention.length > 0 && (
-        <section className="overflow-hidden rounded-xl border border-[#FDE68A] bg-white">
-          <div className="flex flex-col gap-1 border-b border-[#FDE68A] bg-[#FFFBEB] px-5 py-4">
-            <h2 className="text-base font-semibold text-primary">Needs your attention</h2>
-            <p className="text-sm text-[#374151]">
-              {plural(attention.length, "life center")} need follow-up. Overdue is based on today; the rest on the selected period.
-            </p>
-          </div>
-          {attention.map((a) => (
-            <div key={a.r.c.id} className="flex flex-wrap items-center gap-3 border-b border-[#E5E7EB] px-5 py-4 last:border-b-0">
-              <Pill tone={a.tone} className="flex-shrink-0">
-                {a.pill}
+      <Card title="What stands out">
+        <div className="-mt-1 flex flex-col">
+          {insights.map((i) => (
+            <div key={i.p} className="flex gap-3 border-b border-[#E5E7EB] py-3 last:border-b-0">
+              <Pill tone={i.tone} className="flex-shrink-0 self-start">
+                {i.p}
               </Pill>
-              <div className="flex min-w-0 flex-[1_1_280px] flex-col gap-0.5">
-                <p className="text-sm font-semibold text-primary">{a.title}</p>
-                <p className="text-sm text-[#4B5563]">{a.text}</p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {manage && a.r.c.leader && (
-                  <UiButton size="sm" onClick={() => remind(a.r, a.reason)} disabled={reminded[a.r.c.id]}>
-                    {reminded[a.r.c.id] ? "Reminder sent" : `${a.verb} ${firstWord(a.r.c.leader)}`}
-                  </UiButton>
-                )}
-                {!fixedCenterId && (
-                  <UiButton size="sm" tone="primary" onClick={() => open(a.r.c.id)}>
-                    Open life center
-                  </UiButton>
-                )}
-              </div>
+              <p className="text-sm text-[#374151]">{i.s}</p>
             </div>
           ))}
-        </section>
-      )}
-
-      <section className="flex min-w-0 flex-col gap-4 rounded-xl border border-lightGray bg-white p-5 tablet:p-6">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h2 className="text-base font-semibold text-primary">{chartLabel[metric][0]}</h2>
-            <p className="text-sm text-[#4B5563]">{chartLabel[metric][1]}</p>
-          </div>
-          <PillTabs
-            size="sm"
-            ariaLabel="Chart metric"
-            value={metric}
-            onChange={setMetric}
-            tabs={[
-              { key: "meetings", label: "Meetings" },
-              { key: "attendance", label: "Attendance" },
-              { key: "souls", label: "Souls won" },
-              { key: "offering", label: "Offering" },
-            ]}
-          />
         </div>
-        {metric === "meetings" && (
-          <div className="flex flex-wrap gap-3 text-xs text-[#4B5563]">
-            <span className="inline-flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 rounded-sm bg-lightGray" />
-              Scheduled
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 rounded-sm bg-primary" />
-              Held
-            </span>
-          </div>
-        )}
-        <div className="overflow-x-auto">
-          <div className="flex flex-col gap-2" style={{ minWidth: Math.max(320, buckets.length * 48) }}>
-            <div className="flex h-[220px] items-end gap-2 border-b border-[#E5E7EB]">
-              {vals.map((o) => (
-                <div
-                  key={o.b.a}
-                  title={`${o.b.l}: ${o.x.held} of ${o.x.exp} meetings, ${n1(o.x.avg)} avg attendance, ${o.x.ss.length} souls won, ${moneyMix(o.x.ms)}`}
-                  className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1"
-                >
-                  <span className="whitespace-nowrap text-xs font-semibold text-primary">{loaded ? fmtV(o) : ""}</span>
-                  <div className="flex h-full w-full max-w-14 items-end" style={{ gap: metric === "meetings" ? 3 : 0 }}>
-                    {metric === "meetings" && (
-                      <div className="flex-1 rounded-t bg-lightGray" style={{ height: `${(o.e / mx) * 100}%` }} />
-                    )}
-                    <div className="flex-1 rounded-t bg-primary" style={{ height: `${(o.v / mx) * 100}%` }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              {vals.map((o) => (
-                <span key={o.b.a} className="min-w-0 flex-1 truncate text-center text-xs text-[#6B7280]">
-                  {o.b.l}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
+      </Card>
       {!fixedCenterId && (
         <section className="flex min-w-0 flex-col gap-3">
-          <div className="flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <h2 className="text-base font-semibold text-primary">How each life center is doing</h2>
-              <p className="text-sm text-[#4B5563]">Souls won and meetings in the selected period. Select a row to open the center.</p>
-            </div>
-            <label className="flex items-center gap-2 text-sm text-[#4B5563]">
-              <span className="whitespace-nowrap">Sort by</span>
-              <SelectInput
-                className="w-auto"
-                value={sort}
-                onChange={(e) => setSort(e.target.value as Sort)}
-                options={[
-                  { value: "souls", label: "Souls won" },
-                  { value: "rate", label: "Regularity" },
-                  { value: "avg", label: "Average attendance" },
-                  { value: "off", label: "Offering" },
-                  { value: "last", label: "Longest since last meeting" },
-                ]}
-              />
-            </label>
+          <div>
+            <h3 className="text-base font-semibold text-primary">Souls won by life center</h3>
+            <p className="text-sm text-[#4B5563]">Performance compares each center with the average of {n1(average)} souls.</p>
           </div>
-          {sorted.length ? (
+          {soulsByCenter.length ? (
             <>
               <div className="hidden md:block">
                 <GridTable
-                  rows={sorted}
+                  rows={soulsByCenter}
                   loading={!loaded}
                   getRowId={(r) => String(r.c.id)}
-                  onRowClick={(r) => open(r.c.id)}
-                  minWidth="1100px"
+                  onRowClick={(r) => navigate(lcDetailPath(r.c.id))}
+                  minWidth="760px"
                   columns={[
+                    { key: "name", header: "Life center", width: "minmax(200px,1.6fr)", render: (r) => <CellText strong main={r.c.name} sub={r.c.location} /> },
+                    { key: "leader", header: "Leader", width: "minmax(160px,1fr)", render: (r) => <CellText main={r.c.leader ?? "No leader yet"} /> },
+                    { key: "souls", header: "Souls won", width: "100px", render: (r) => <span className="font-semibold">{r.count}</span> },
+                    { key: "conv", header: "Became members", width: "130px", render: (r) => `${r.conv} (${pctN(r.conv, r.count)}%)` },
                     {
-                      key: "name",
-                      header: "Life center",
-                      width: "minmax(200px,1.6fr)",
-                      render: (r) => <CellText strong main={r.c.name} sub={`${r.c.leader ?? "No leader yet"} · ${r.c.days.join(", ") || "No days"}`} />,
-                    },
-                    { key: "souls", header: "Souls won", width: "90px", render: (r) => <span className="font-semibold">{r.a.ss.length}</span> },
-                    { key: "held", header: "Meetings held", width: "120px", render: (r) => `${r.a.held} of ${r.a.exp}` },
-                    {
-                      key: "reg",
-                      header: "Regularity",
-                      width: "150px",
+                      key: "perf",
+                      header: "Performance",
+                      width: "140px",
                       render: (r) => {
-                        const p = regPill(r.a);
+                        const p = performanceOf(r.count, average);
                         return <Pill tone={p.tone}>{p.label}</Pill>;
                       },
-                    },
-                    { key: "avg", header: "Avg attendance", width: "130px", render: (r) => <CellText main={n1(r.a.avg)} sub={`${pctN(r.a.memAtt, r.a.memSlots)}% of members`} /> },
-                    { key: "ft", header: "First-timers", width: "100px", render: (r) => r.a.ft },
-                    { key: "off", header: "Offering", width: "minmax(120px,1fr)", render: (r) => <CellText main={moneyMix(r.a.ms)} /> },
-                    {
-                      key: "last",
-                      header: "Last met",
-                      width: "120px",
-                      render: (r) => <span style={{ color: r.gap > OVERDUE_DAYS ? "#B91C1C" : undefined }}>{lastText(r)}</span>,
                     },
                   ]}
                 />
               </div>
               <div className="flex flex-col gap-3 md:hidden">
-                {sorted.map((r) => {
-                  const p = regPill(r.a);
+                {soulsByCenter.map((r) => {
+                  const p = performanceOf(r.count, average);
                   return (
                     <button
                       key={r.c.id}
                       type="button"
-                      onClick={() => open(r.c.id)}
-                      className="flex flex-col gap-3 rounded-xl border border-lightGray bg-white p-4 text-left text-sm text-primary"
+                      onClick={() => navigate(lcDetailPath(r.c.id))}
+                      className="flex items-start justify-between gap-3 rounded-xl border border-lightGray bg-white p-4 text-left text-sm text-primary"
                     >
-                      <div className="flex w-full items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="font-semibold">{r.c.name}</p>
-                          <p className="text-xs text-[#6B7280]">{r.c.leader ?? "No leader yet"}</p>
-                        </div>
-                        <Pill tone={p.tone}>{p.label}</Pill>
+                      <div className="min-w-0">
+                        <p className="font-semibold">{r.c.name}</p>
+                        <p className="text-xs text-[#6B7280]">
+                          {r.c.leader ?? "No leader yet"} · {plural(r.count, "soul")} · {r.conv} members
+                        </p>
                       </div>
-                      <div className="grid w-full grid-cols-3 gap-2">
-                        {[
-                          { v: String(r.a.ss.length), l: "Souls won" },
-                          { v: String(r.a.held), l: "Meetings held" },
-                          { v: n1(r.a.avg), l: "Avg attendance" },
-                        ].map((t) => (
-                          <div key={t.l}>
-                            <p className="font-semibold">{t.v}</p>
-                            <p className="text-xs text-[#6B7280]">{t.l}</p>
-                          </div>
-                        ))}
-                      </div>
-                      <p className="text-xs" style={{ color: r.gap > OVERDUE_DAYS ? "#B91C1C" : "#6B7280" }}>
-                        Last met {lastText(r)} · {moneyMix(r.a.ms)}
-                      </p>
+                      <Pill tone={p.tone}>{p.label}</Pill>
                     </button>
                   );
                 })}
@@ -651,25 +713,97 @@ export const LifeCenterAnalyticsView = ({ fixedCenterId, embedded }: { fixedCent
         </section>
       )}
 
+      {/* ------------------------------- meetings ----------------------------- */}
+      <Section title="Meetings and offering" sub="How regularly centers meet, who turns up, and the offering raised." />
+      <Kpis items={meetKpis} loaded={loaded} />
+
+      {loaded && attention.length > 0 && (
+        <section className="overflow-hidden rounded-xl border border-[#FDE68A] bg-white">
+          <div className="flex flex-col gap-1 border-b border-[#FDE68A] bg-[#FFFBEB] px-5 py-4">
+            <h3 className="text-base font-semibold text-primary">Needs your attention</h3>
+            <p className="text-sm text-[#374151]">
+              {plural(attention.length, "life center")} need follow-up. Overdue is based on today; irregular on the selected period.
+            </p>
+          </div>
+          {attention.map((a) => (
+            <div key={a.r.c.id} className="flex flex-wrap items-center gap-3 border-b border-[#E5E7EB] px-5 py-4 last:border-b-0">
+              <Pill tone={a.tone} className="flex-shrink-0">
+                {a.pill}
+              </Pill>
+              <div className="flex min-w-0 flex-[1_1_280px] flex-col gap-0.5">
+                <p className="text-sm font-semibold text-primary">{a.title}</p>
+                <p className="text-sm text-[#4B5563]">{a.text}</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {manage && a.r.c.leader && (
+                  <UiButton size="sm" onClick={() => remind(a.r.c, a.reason)} disabled={reminded[a.r.c.id]}>
+                    {reminded[a.r.c.id] ? "Reminder sent" : `Remind ${firstWord(a.r.c.leader)}`}
+                  </UiButton>
+                )}
+                {!fixedCenterId && (
+                  <UiButton size="sm" tone="primary" onClick={() => navigate(lcDetailPath(a.r.c.id))}>
+                    Open life center
+                  </UiButton>
+                )}
+              </div>
+            </div>
+          ))}
+        </section>
+      )}
+
+      <Card
+        title={chartText[metric][0]}
+        sub={chartText[metric][1]}
+        action={
+          <PillTabs
+            size="sm"
+            ariaLabel="Chart metric"
+            value={metric}
+            onChange={setMetric}
+            tabs={[
+              { key: "meetings", label: "Meetings" },
+              { key: "attendance", label: "Attendance" },
+              { key: "offering", label: "Offering" },
+            ]}
+          />
+        }
+      >
+        {metric === "meetings" && <Legend items={[{ label: "Scheduled", className: "bg-lightGray" }, { label: "Held", className: "bg-primary" }]} />}
+        {metric === "attendance" && <Legend items={[{ label: "First-timers", className: "bg-[#9A5D1A]" }, { label: "Attendees", className: "bg-primary" }]} />}
+        <Bars
+          loaded={loaded}
+          rows={meetTrend.map((t) => {
+            const tip = `${t.b.l}: ${t.x.held} of ${t.x.exp} meetings, ${t.x.people} people (${t.x.ft} first-timers), ${t.x.money}`;
+            if (metric === "meetings")
+              return { key: t.b.key, l: t.b.l, label: `${t.x.held}/${t.x.exp}`, tip, a: t.x.exp, b: t.x.held, max: meetMax, aClass: "bg-lightGray", bClass: "bg-primary" };
+            if (metric === "attendance")
+              return { key: t.b.key, l: t.b.l, label: String(t.x.people), tip, a: t.x.ft, b: t.x.attendees, max: meetMax, aClass: "bg-[#9A5D1A]", bClass: "bg-primary", stack: true };
+            return { key: t.b.key, l: t.b.l, label: t.x.ghs >= 1000 ? `${n1(t.x.ghs / 1000)}k` : n0(t.x.ghs), tip, b: t.x.ghs, max: meetMax, bClass: "bg-primary" };
+          })}
+        />
+      </Card>
+
       <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,320px),1fr))] items-start gap-4">
         {!fixedCenterId && (
-          <Card title="Top centers by souls won" sub="With who leads each one">
-            {top.length ? (
-              top.map((r) => (
+          <Card title="Offering by life center" sub="GHS raised at meetings in this period">
+            {offerTop.length ? (
+              offerTop.map((r) => (
                 <HBar
                   key={r.c.id}
                   label={r.c.name}
-                  value={r.a.ss.length}
-                  width={`${(r.a.ss.length / tMax) * 100}%`}
-                  sub={`${r.c.leader ?? "No leader yet"} · ${r.a.conv} now members`}
+                  value={`GHS ${n0(r.x.ghs)}`}
+                  width={`${(r.x.ghs / offerMax) * 100}%`}
+                  sub={`${plural(r.x.held, "meeting")} · GHS ${n0(r.x.ghsMeetings ? r.x.ghs / r.x.ghsMeetings : 0)} each${
+                    r.x.money.includes("+") ? ` · ${r.x.money}` : ""
+                  }`}
                 />
               ))
             ) : (
-              <p className="text-sm text-[#6B7280]">No souls won in this period.</p>
+              <p className="text-sm text-[#6B7280]">No offering recorded in this period.</p>
             )}
           </Card>
         )}
-        <Card title="Turnout by meeting day" sub={fixedCenterId ? "Average attendance on each meeting day" : "Average attendance on each day centers meet"}>
+        <Card title="Turnout by meeting day" sub="Average attendance on each day meetings happen">
           {dayList.length ? (
             dayList.map((x) => (
               <HBar
@@ -691,18 +825,117 @@ export const LifeCenterAnalyticsView = ({ fixedCenterId, embedded }: { fixedCent
             <p className="text-sm text-[#6B7280]">No meetings in this period.</p>
           )}
         </Card>
-        <section className="flex min-w-0 flex-col gap-1 rounded-xl border border-lightGray bg-white p-5 tablet:p-6">
-          <h3 className="text-base font-semibold text-primary">What stands out</h3>
-          {insights.map((i) => (
-            <div key={i.p} className="flex gap-3 border-b border-[#E5E7EB] py-3 last:border-b-0">
-              <Pill tone={i.tone} className="flex-shrink-0 self-start">
-                {i.p}
-              </Pill>
-              <p className="text-sm text-[#374151]">{i.s}</p>
-            </div>
-          ))}
-        </section>
       </div>
+
+      {!fixedCenterId && (
+        <section className="flex min-w-0 flex-col gap-3">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h3 className="text-base font-semibold text-primary">Meetings by life center</h3>
+              <p className="text-sm text-[#4B5563]">Select a row to open the center.</p>
+            </div>
+            <label className="flex items-center gap-2 text-sm text-[#4B5563]">
+              <span className="whitespace-nowrap">Sort by</span>
+              <SelectInput
+                className="w-auto"
+                value={sort}
+                onChange={(e) => setSort(e.target.value as Sort)}
+                options={[
+                  { value: "held", label: "Meetings held" },
+                  { value: "rate", label: "Regularity" },
+                  { value: "avg", label: "Average attendance" },
+                  { value: "off", label: "Offering" },
+                  { value: "last", label: "Longest since last meeting" },
+                ]}
+              />
+            </label>
+          </div>
+          {meetSorted.length ? (
+            <>
+              <div className="hidden md:block">
+                <GridTable
+                  rows={meetSorted}
+                  loading={!loaded}
+                  getRowId={(r) => String(r.c.id)}
+                  onRowClick={(r) => navigate(lcDetailPath(r.c.id))}
+                  minWidth="1080px"
+                  columns={[
+                    {
+                      key: "name",
+                      header: "Life center",
+                      width: "minmax(200px,1.6fr)",
+                      render: (r) => <CellText strong main={r.c.name} sub={`${r.c.leader ?? "No leader yet"} · ${r.c.days.join(", ") || "No days"}`} />,
+                    },
+                    { key: "held", header: "Meetings held", width: "120px", render: (r) => `${r.x.held} of ${r.x.exp}` },
+                    {
+                      key: "reg",
+                      header: "Regularity",
+                      width: "150px",
+                      render: (r) => {
+                        const p = regPill(r.x);
+                        return <Pill tone={p.tone}>{p.label}</Pill>;
+                      },
+                    },
+                    { key: "avg", header: "Avg attendance", width: "120px", render: (r) => <CellText main={n1(r.x.avg)} sub={`${r.x.people} in total`} /> },
+                    { key: "ft", header: "First-timers", width: "100px", render: (r) => r.x.ft },
+                    {
+                      key: "off",
+                      header: "Offering",
+                      width: "minmax(140px,1fr)",
+                      render: (r) => <CellText main={r.x.money} sub={r.x.ghsMeetings ? `GHS ${n0(r.x.ghs / r.x.ghsMeetings)} per meeting` : undefined} />,
+                    },
+                    {
+                      key: "last",
+                      header: "Last met",
+                      width: "120px",
+                      render: (r) => <span style={{ color: r.gap > OVERDUE_DAYS ? "#B91C1C" : undefined }}>{lastText(r)}</span>,
+                    },
+                  ]}
+                />
+              </div>
+              <div className="flex flex-col gap-3 md:hidden">
+                {meetSorted.map((r) => {
+                  const p = regPill(r.x);
+                  return (
+                    <button
+                      key={r.c.id}
+                      type="button"
+                      onClick={() => navigate(lcDetailPath(r.c.id))}
+                      className="flex flex-col gap-3 rounded-xl border border-lightGray bg-white p-4 text-left text-sm text-primary"
+                    >
+                      <div className="flex w-full items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="font-semibold">{r.c.name}</p>
+                          <p className="text-xs text-[#6B7280]">{r.c.leader ?? "No leader yet"}</p>
+                        </div>
+                        <Pill tone={p.tone}>{p.label}</Pill>
+                      </div>
+                      <div className="grid w-full grid-cols-3 gap-2">
+                        {[
+                          { v: `${r.x.held}/${r.x.exp}`, l: "Meetings" },
+                          { v: n1(r.x.avg), l: "Avg attendance" },
+                          { v: String(r.x.ft), l: "First-timers" },
+                        ].map((t) => (
+                          <div key={t.l}>
+                            <p className="font-semibold">{t.v}</p>
+                            <p className="text-xs text-[#6B7280]">{t.l}</p>
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-xs" style={{ color: r.gap > OVERDUE_DAYS ? "#B91C1C" : "#6B7280" }}>
+                        Last met {lastText(r)} · {r.x.money}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          ) : null}
+        </section>
+      )}
+      {byId.size === 0 && loaded && (
+        <p className="rounded-xl border border-dashed border-lightGray bg-white p-6 text-center text-sm text-[#4B5563]">No life centers yet.</p>
+      )}
     </>
   );
 
