@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 
 import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { InlineAlert, notify } from "@/components/feedback";
@@ -23,15 +23,20 @@ import { LogsSection } from "./sections/LogsSection";
 import { NotificationsSection } from "./sections/NotificationsSection";
 import { PositionsSection } from "./sections/PositionsSection";
 import { ReportsSection } from "./sections/ReportsSection";
+import { RequisitionSection } from "./sections/RequisitionSection";
 import { type AttendanceApply, useRulesDraft } from "./useRulesDraft";
 
 const GeneralConfiguration = () => {
-  const { canManage, canAdmin } = useAccessControl();
+  const { canView, canManage, canAdmin } = useAccessControl();
   const canEdit = canManage("Settings");
+  // Requisition timing is guarded by the Requisition module, not Settings.
+  const showRequisition = canView("Requisition");
+  const visible = (key: SectionKey) => key !== "requisition" || showRequisition;
+  const sectionKeys = SECTION_KEYS.filter(visible);
   const [params, setParams] = useSearchParams();
   const requested = params.get("section");
-  const section: SectionKey = isSectionKey(requested) ? requested : "branches";
-  const rules = useRulesDraft();
+  const section: SectionKey = isSectionKey(requested) && visible(requested) ? requested : "branches";
+  const rules = useRulesDraft({ withRequisition: showRequisition });
   const [askApply, setAskApply] = useState(false);
 
   const pick = (next: SectionKey) =>
@@ -62,6 +67,14 @@ const GeneralConfiguration = () => {
   };
 
   const onSave = () => {
+    if (rules.dirtyParts.includes("req") && rules.reqInvalid) {
+      notify.error({
+        title: "Check requisition timing",
+        message: "Lookback needs a whole number of days above zero, and reply time 1 to 30 days.",
+      });
+      pick("requisition");
+      return;
+    }
     if (rules.dirtyParts.includes("att")) {
       if (rules.attInvalid) {
         notify.error({ title: "Check attendance timing", message: "Each rule needs a whole number above zero." });
@@ -82,6 +95,8 @@ const GeneralConfiguration = () => {
         return <PositionsSection canEdit={canManage("Positions")} canDelete={canAdmin("Positions")} />;
       case "attendance":
         return <AttendanceSection rules={rules} canEdit={canEdit} />;
+      case "requisition":
+        return <RequisitionSection rules={rules} canEdit={canManage("Requisition")} />;
       case "eligibility":
         return <EligibilitySection rules={rules} canEdit={canEdit} />;
       case "reports":
@@ -119,7 +134,7 @@ const GeneralConfiguration = () => {
                 <p className="px-3 pb-1 pt-3 text-xs font-semibold uppercase tracking-[0.04em] text-[#6B7280]">
                   {group.heading}
                 </p>
-                {group.items.map((key) => {
+                {group.items.filter(visible).map((key) => {
                   const on = key === section;
                   return (
                     <button
@@ -141,13 +156,6 @@ const GeneralConfiguration = () => {
                 })}
               </div>
             ))}
-            <p className="mt-2 border-t border-[#E5E7EB] p-3 text-xs text-[#6B7280]">
-              Requisition timing now lives in{" "}
-              <Link to="/home/settings/approvals" className="text-primary underline">
-                Approvals
-              </Link>
-              .
-            </p>
           </nav>
 
           <label className="flex flex-col gap-1 text-sm font-medium text-primary min-[900px]:hidden">
@@ -157,7 +165,7 @@ const GeneralConfiguration = () => {
               onChange={(event) => pick(event.target.value as SectionKey)}
               className={cn(selectClass, "w-full font-normal")}
             >
-              {SECTION_KEYS.map((key) => (
+              {sectionKeys.map((key) => (
                 <option key={key} value={key}>
                   {SECTION_LABEL[key]}
                   {dirtySections.includes(key) ? " •" : ""}
@@ -170,7 +178,8 @@ const GeneralConfiguration = () => {
         </div>
       </div>
 
-      {canEdit && dirtyLabels.length > 0 && (
+      {/* Parts only become dirty where the person may edit them. */}
+      {dirtyLabels.length > 0 && (
         <UnsavedBar
           title={`Unsaved changes in ${dirtyLabels.join(", ")}`}
           saving={rules.saving}

@@ -9,6 +9,13 @@ import type {
 } from "@/utils/api/settings/systemNotificationInterfaces";
 
 import {
+  lookbackOk,
+  parseRequisition,
+  replyOk,
+  requisitionPayload,
+  type StoredWorkflow,
+} from "../approvals/approvalsModel";
+import {
   ATT_ROWS,
   attFromConfig,
   clonePart,
@@ -31,14 +38,16 @@ export interface AttendanceApply {
   applyFrom?: string;
 }
 
-const LOADING: Status = { att: "loading", elig: "loading", repExcl: "loading", logTo: "loading" };
+const LOADING: Status = { att: "loading", req: "loading", elig: "loading", repExcl: "loading", logTo: "loading" };
 
 /**
- * Attendance timing, eligibility rules, report exclusions and the failure
- * alert recipient share one page-level draft and one Save button. Each part
- * loads on its own so a slow or failing endpoint only affects its section.
+ * Attendance timing, requisition timing, eligibility rules, report exclusions
+ * and the failure alert recipient share one page-level draft and one Save
+ * button. Each part loads on its own so a slow or failing endpoint only
+ * affects its section. Requisition timing loads only for people who can view
+ * Requisition, so others don't get an access-denied toast.
  */
-export const useRulesDraft = () => {
+export const useRulesDraft = ({ withRequisition }: { withRequisition: boolean }) => {
   const [saved, setSaved] = useState<Saved>({});
   const [drafts, setDrafts] = useState<Saved>({});
   const [status, setStatus] = useState<Status>(LOADING);
@@ -47,6 +56,8 @@ export const useRulesDraft = () => {
   const [excludedUsers, setExcludedUsers] = useState<EventReportExcludedUser[]>([]);
   const [logsConfig, setLogsConfig] = useState<SystemNotificationSettingsConfig | null>(null);
   const [admins, setAdmins] = useState<SystemNotificationAdminCandidate[]>([]);
+  /** The whole stored requisition workflow; timing saves re-send the rest unchanged. */
+  const [reqStored, setReqStored] = useState<StoredWorkflow | null>(null);
   const alive = useRef(true);
 
   useEffect(() => {
@@ -68,6 +79,15 @@ export const useRulesDraft = () => {
         if (!alive.current) return;
         setAttConfig(response.data ?? null);
         setSaved((current) => ({ ...current, att: attFromConfig(response.data) }));
+      } else if (part === "req") {
+        const response = await api.fetch.fetchRequisitionApprovalConfig();
+        if (!alive.current) return;
+        const stored = parseRequisition(response.data);
+        setReqStored(stored);
+        setSaved((current) => ({
+          ...current,
+          req: { lookback: stored.draft.lookback, reply: stored.draft.reply },
+        }));
       } else if (part === "elig") {
         const response = await api.fetch.fetchRoleEligibilityConfig();
         if (!alive.current) return;
@@ -98,8 +118,10 @@ export const useRulesDraft = () => {
   }, []);
 
   useEffect(() => {
-    PART_ORDER.forEach((part) => void load(part));
-  }, [load]);
+    PART_ORDER.forEach((part) => {
+      if (part !== "req" || withRequisition) void load(part);
+    });
+  }, [load, withRequisition]);
 
   const value = useCallback(
     <P extends RulesPart>(part: P): RulesValues[P] | undefined =>
@@ -137,6 +159,13 @@ export const useRulesDraft = () => {
     return !!att && ATT_ROWS.some((row) => !/^\d+$/.test(att[row.key].value.trim()) || Number(att[row.key].value) <= 0);
   }, [drafts.att]);
 
+  const reqInvalid = useMemo(() => {
+    const req = drafts.req;
+    if (!req || !reqStored) return false;
+    const draft = { ...reqStored.draft, ...req };
+    return !lookbackOk(draft) || !replyOk(draft);
+  }, [drafts.req, reqStored]);
+
   /** Saves every dirty part. Resolves true when all of them saved. */
   const commit = useCallback(
     async (apply?: AttendanceApply) => {
@@ -156,6 +185,20 @@ export const useRulesDraft = () => {
             });
             if (response.data) setAttConfig(response.data);
             return { part, next: response.data ? attFromConfig(response.data) : att };
+          }
+          if (part === "req" && drafts.req) {
+            if (!reqStored?.exists) throw new Error("Requisition approvals aren't set up yet");
+            const draft = {
+              ...reqStored.draft,
+              lookback: String(Number(drafts.req.lookback)),
+              reply: String(Number(drafts.req.reply)),
+            };
+            const response = await api.post.upsertRequisitionApprovalConfig(
+              requisitionPayload(draft, reqStored.draft.active)
+            );
+            const stored = response.data ? parseRequisition(response.data) : { exists: true, draft };
+            setReqStored(stored);
+            return { part, next: { lookback: stored.draft.lookback, reply: stored.draft.reply } };
           }
           if (part === "elig" && drafts.elig) {
             const response = await api.post.upsertRoleEligibilityConfig(eligPayload(drafts.elig));
@@ -191,7 +234,7 @@ export const useRulesDraft = () => {
       setSaving(false);
       return done.length === parts.length;
     },
-    [dirtyParts, drafts]
+    [dirtyParts, drafts, reqStored]
   );
 
   return {
@@ -204,6 +247,8 @@ export const useRulesDraft = () => {
     saving,
     dirtyParts,
     attInvalid,
+    reqInvalid,
+    reqStored,
     attConfig,
     excludedUsers,
     logsConfig,

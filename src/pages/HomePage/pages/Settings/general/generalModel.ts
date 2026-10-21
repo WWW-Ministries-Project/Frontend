@@ -16,6 +16,7 @@ export type SectionKey =
   | "branches"
   | "positions"
   | "attendance"
+  | "requisition"
   | "eligibility"
   | "reports"
   | "notifications"
@@ -25,6 +26,7 @@ export const SECTION_LABEL: Record<SectionKey, string> = {
   branches: "Branches",
   positions: "Positions",
   attendance: "Attendance",
+  requisition: "Requisition",
   eligibility: "Eligibility rules",
   reports: "Reports",
   notifications: "Notifications",
@@ -33,7 +35,7 @@ export const SECTION_LABEL: Record<SectionKey, string> = {
 
 export const SECTION_GROUPS: { heading: string; items: SectionKey[] }[] = [
   { heading: "Organisation", items: ["branches", "positions"] },
-  { heading: "Ministry rules", items: ["attendance", "eligibility", "reports"] },
+  { heading: "Ministry rules", items: ["attendance", "requisition", "eligibility", "reports"] },
   { heading: "System", items: ["notifications", "logs"] },
 ];
 
@@ -47,16 +49,23 @@ export const isSectionKey = (value: string | null): value is SectionKey =>
 /* -------------------------------------------------------------------------- */
 
 /** The parts of the page that share one draft and one Save button. */
-export type RulesPart = "att" | "elig" | "repExcl" | "logTo";
+export type RulesPart = "att" | "req" | "elig" | "repExcl" | "logTo";
 
 export const PART_SECTION: Record<RulesPart, SectionKey> = {
   att: "attendance",
+  req: "requisition",
   elig: "eligibility",
   repExcl: "reports",
   logTo: "logs",
 };
 
-export const PART_ORDER: RulesPart[] = ["att", "elig", "repExcl", "logTo"];
+export const PART_ORDER: RulesPart[] = ["att", "req", "elig", "repExcl", "logTo"];
+
+/** Requisition approval timing, in whole days (kept as typed). */
+export interface ReqDraft {
+  lookback: string;
+  reply: string;
+}
 
 export type AttKey = "early" | "on_time" | "late";
 
@@ -81,6 +90,7 @@ export interface EligDraft {
 
 export interface RulesValues {
   att: AttDraft;
+  req: ReqDraft;
   elig: EligDraft;
   repExcl: number[];
   logTo: number | null;
@@ -167,6 +177,10 @@ export const normPart = <P extends RulesPart>(part: P, value: RulesValues[P]): s
       roles: ELIG_ROLES.map((role) => sorted(elig.roles[role.key])),
       positions: elig.positions.map((rule) => [rule.positionId, sorted(rule.programIds)]),
     });
+  }
+  if (part === "req") {
+    const req = value as ReqDraft;
+    return JSON.stringify([req.lookback.trim(), req.reply.trim()]);
   }
   if (part === "repExcl") return JSON.stringify(sorted(value as number[]));
   return String(value ?? "");
