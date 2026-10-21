@@ -211,12 +211,26 @@ export const similarFromRows = (row: Row, rows: Row[], lookbackDays: number, now
 };
 
 /** Turns the pre-approval endpoint into the same groups the list builds. */
-export const similarFromApi = (response?: RequisitionSimilarItemsResponse | null): SimilarGroup[] =>
+/**
+ * Turns the pre-approval endpoint into display groups. `currentId` is the
+ * requisition being reviewed: it must never count as its own match, and
+ * drafts aren't requests yet (older servers returned both).
+ */
+export const similarFromApi = (
+  response: RequisitionSimilarItemsResponse | null | undefined,
+  currentId: number
+): SimilarGroup[] =>
   (response?.matched_items ?? [])
-    .filter((group) => group.matches?.length)
+    .map((group) => ({
+      ...group,
+      matches: (group.matches ?? []).filter(
+        (match) => Number(match.requisition_id) !== currentId && match.status !== "Draft"
+      ),
+    }))
+    .filter((group) => group.matches.length)
     .map((group) => ({
       item: group.current_item_name,
-      matches: (group.matches ?? []).slice(0, 4).map((match) => ({
+      matches: group.matches.slice(0, 4).map((match) => ({
         gid: match.generated_id || `#${match.requisition_id}`,
         who: match.requester_name || "Unknown",
         date: fmtD(match.request_date),
@@ -226,9 +240,7 @@ export const similarFromApi = (response?: RequisitionSimilarItemsResponse | null
             ? "Approved"
             : match.status === "REJECTED"
               ? "Rejected"
-              : match.status === "Draft"
-                ? "Draft"
-                : "In approval",
+              : "In approval",
       })),
     }));
 
