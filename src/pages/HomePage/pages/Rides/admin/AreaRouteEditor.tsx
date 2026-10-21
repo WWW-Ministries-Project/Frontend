@@ -1,26 +1,11 @@
-import {
-  ArrowDownIcon,
-  ArrowUpIcon,
-  PlusIcon,
-  XMarkIcon,
-} from "@heroicons/react/24/outline";
-import { useMemo, useState } from "react";
 import type { AdminRidePickupPoint } from "@/utils/api/rides/interfaces";
-import { inputClass, outlineButtonClass } from "./AdminRideShared";
-import { RidePill } from "./RideStatusBadge";
-
-/** One stop being edited — minutes stay a string so the field can be cleared. */
-export interface RouteRow {
-  pickup_point_id: number;
-  minutes: string;
-}
-
-/** Whole minutes, 0 or more; null when the field isn't a valid value. */
-export const parseMinutes = (value: string): number | null => {
-  const trimmed = value.trim();
-  if (!/^\d{1,4}$/.test(trimmed)) return null;
-  return Number(trimmed);
-};
+import { type RouteRow, newRouteRow, parseMinutes } from "./areaRoute";
+import {
+  btnSecondary,
+  selectClass,
+  inputClass,
+} from "../components/rideClasses";
+import { cn } from "@/utils/cn";
 
 interface AreaRouteEditorProps {
   route: RouteRow[];
@@ -29,40 +14,23 @@ interface AreaRouteEditorProps {
   disabled?: boolean;
 }
 
-const iconButtonClass =
-  "inline-flex h-8 w-8 items-center justify-center rounded-lg border border-lightGray bg-white text-primary hover:bg-lightGray/40 disabled:cursor-not-allowed disabled:opacity-40";
+const iconButton =
+  "inline-flex h-9 w-9 flex-none items-center justify-center rounded-lg border border-lightGray bg-white text-primary hover:bg-lightGray/20 disabled:cursor-not-allowed disabled:opacity-40";
 
-/**
- * Ordered list of the landmarks drivers from an area usually pass, each with
- * typical minutes from setting off. Order is the position sent to the backend.
- */
+/** "Usual route": ordered landmarks with minutes from setting off. Order is
+ *  the position sent to the backend. */
 export const AreaRouteEditor = ({
   route,
   onChange,
   pickupPoints,
   disabled,
 }: AreaRouteEditorProps) => {
-  const [newPointId, setNewPointId] = useState("");
-  const [newMinutes, setNewMinutes] = useState("");
-
-  const pointsById = useMemo(
-    () => new Map(pickupPoints.map((point) => [point.id, point])),
-    [pickupPoints]
-  );
-  const available = pickupPoints.filter(
-    (point) =>
-      point.is_active &&
-      !route.some((stop) => stop.pickup_point_id === point.id)
-  );
-
-  const minutesValues = route.map((stop) => parseMinutes(stop.minutes));
-  const outOfOrder = minutesValues.some(
-    (value, index) =>
-      index > 0 &&
-      value !== null &&
-      minutesValues[index - 1] !== null &&
-      value < (minutesValues[index - 1] as number)
-  );
+  const update = (index: number, patch: Partial<RouteRow>) =>
+    onChange(
+      route.map((row, position) =>
+        position === index ? { ...row, ...patch } : row
+      )
+    );
 
   const move = (index: number, offset: -1 | 1) => {
     const target = index + offset;
@@ -72,178 +40,128 @@ export const AreaRouteEditor = ({
     onChange(next);
   };
 
-  const update = (index: number, minutes: string) =>
-    onChange(
-      route.map((stop, position) =>
-        position === index ? { ...stop, minutes } : stop
-      )
-    );
-
-  const remove = (index: number) =>
-    onChange(route.filter((_, position) => position !== index));
-
-  const newMinutesValue = parseMinutes(newMinutes);
-  const canAdd = Boolean(newPointId) && newMinutesValue !== null && !disabled;
-
-  const add = () => {
-    if (!canAdd) return;
+  const addStop = () => {
+    const lastMinutes = parseMinutes(route[route.length - 1]?.minutes ?? "") ?? 0;
     onChange([
       ...route,
-      { pickup_point_id: Number(newPointId), minutes: String(newMinutesValue) },
+      newRouteRow(String(lastMinutes + 5)),
     ]);
-    setNewPointId("");
-    setNewMinutes("");
   };
 
-  return (
-    <div className="flex flex-col gap-3">
-      {route.length === 0 ? (
-        <p className="rounded-lg border border-dashed border-lightGray px-4 py-3 text-sm text-primaryGray">
-          No suggested stops yet. Add the landmarks drivers from this area
-          usually pass, in the order they pass them.
-        </p>
-      ) : (
-        <ol className="flex flex-col gap-2">
-          {route.map((stop, index) => {
-            const point = pointsById.get(stop.pickup_point_id);
-            const name = point?.name ?? "Unknown pickup point";
-            const invalid = parseMinutes(stop.minutes) === null;
-            const minutesId = `route-stop-minutes-${stop.pickup_point_id}`;
-            return (
-              <li
-                key={stop.pickup_point_id}
-                className="flex flex-wrap items-center gap-3 rounded-xl border border-lightGray bg-white px-3 py-2"
-              >
-                <span
-                  className="flex h-7 w-7 flex-none items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary"
-                  aria-hidden="true"
-                >
-                  {index + 1}
-                </span>
-                <div className="min-w-[140px] flex-1">
-                  <p className="text-sm font-medium text-primary">{name}</p>
-                  <div className="flex flex-wrap items-center gap-2">
-                    {point?.area_label ? (
-                      <span className="text-xs text-primaryGray">
-                        {point.area_label}
-                      </span>
-                    ) : null}
-                    {point && !point.is_active ? (
-                      <RidePill tone="gray">Hidden from members</RidePill>
-                    ) : null}
-                  </div>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <label htmlFor={minutesId} className="sr-only">
-                    Minutes from setting off to {name}
-                  </label>
-                  <input
-                    id={minutesId}
-                    type="number"
-                    inputMode="numeric"
-                    min={0}
-                    step={1}
-                    value={stop.minutes}
-                    disabled={disabled}
-                    aria-invalid={invalid}
-                    onChange={(event) => update(index, event.target.value)}
-                    className={`${inputClass} w-20 ${invalid ? "border-error" : ""}`}
-                  />
-                  <span className="text-xs text-primaryGray">min</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    className={iconButtonClass}
-                    disabled={disabled || index === 0}
-                    onClick={() => move(index, -1)}
-                    aria-label={`Move ${name} up`}
-                  >
-                    <ArrowUpIcon className="h-4 w-4" />
-                  </button>
-                  <button
-                    type="button"
-                    className={iconButtonClass}
-                    disabled={disabled || index === route.length - 1}
-                    onClick={() => move(index, 1)}
-                    aria-label={`Move ${name} down`}
-                  >
-                    <ArrowDownIcon className="h-4 w-4" />
-                  </button>
-                  <button
-                    type="button"
-                    className={iconButtonClass}
-                    disabled={disabled}
-                    onClick={() => remove(index)}
-                    aria-label={`Remove ${name} from the route`}
-                  >
-                    <XMarkIcon className="h-4 w-4" />
-                  </button>
-                </div>
-              </li>
-            );
-          })}
-        </ol>
-      )}
+  const minutes = route.map((row) => parseMinutes(row.minutes));
+  const outOfOrder = minutes.some(
+    (value, index) =>
+      index > 0 &&
+      value !== null &&
+      minutes[index - 1] !== null &&
+      value < (minutes[index - 1] as number)
+  );
 
+  return (
+    <fieldset className="flex flex-col gap-2">
+      <legend className="mb-2 font-medium">Usual route</legend>
+      {route.map((row, index) => {
+        const selected = pickupPoints.find(
+          (point) => String(point.id) === row.pickup_point_id
+        );
+        // Hidden points stay listed only when they're already on the route.
+        const options = pickupPoints.filter(
+          (point) => point.is_active || String(point.id) === row.pickup_point_id
+        );
+        const label = selected?.name ?? `stop ${index + 1}`;
+        return (
+          <div
+            key={row.key}
+            className="flex flex-wrap items-center gap-2 rounded-lg border border-gray-200 p-2"
+          >
+            <span
+              aria-hidden="true"
+              className="flex h-6 w-6 flex-none items-center justify-center rounded-full bg-primary text-xs font-semibold text-white"
+            >
+              {index + 1}
+            </span>
+            <select
+              value={row.pickup_point_id}
+              disabled={disabled}
+              aria-label={`Landmark for stop ${index + 1}`}
+              onChange={(event) =>
+                update(index, { pickup_point_id: event.target.value })
+              }
+              className={cn(selectClass, "min-w-0 flex-[1_1_180px]")}
+            >
+              <option value="">Choose a landmark…</option>
+              {options.map((point) => (
+                <option key={point.id} value={point.id}>
+                  {point.name} · {point.area_label}
+                  {point.is_active ? "" : " (hidden)"}
+                </option>
+              ))}
+            </select>
+            <label className="flex items-center gap-1 text-xs text-primaryGray">
+              <input
+                type="number"
+                inputMode="numeric"
+                min={0}
+                step={1}
+                value={row.minutes}
+                disabled={disabled}
+                aria-label={`Minutes from setting off to ${label}`}
+                aria-invalid={parseMinutes(row.minutes) === null}
+                onChange={(event) => update(index, { minutes: event.target.value })}
+                className={cn(inputClass, "w-16 px-2")}
+              />
+              min
+            </label>
+            <button
+              type="button"
+              className={iconButton}
+              disabled={disabled || index === 0}
+              onClick={() => move(index, -1)}
+              aria-label={`Move ${label} up`}
+            >
+              ↑
+            </button>
+            <button
+              type="button"
+              className={iconButton}
+              disabled={disabled || index === route.length - 1}
+              onClick={() => move(index, 1)}
+              aria-label={`Move ${label} down`}
+            >
+              ↓
+            </button>
+            {route.length > 1 ? (
+              <button
+                type="button"
+                className={cn(
+                  iconButton,
+                  "border-red-200 text-red-700 hover:bg-red-50 dark:border-red-400/40 dark:text-red-300"
+                )}
+                disabled={disabled}
+                onClick={() =>
+                  onChange(route.filter((_, position) => position !== index))
+                }
+                aria-label={`Remove ${label}`}
+              >
+                ×
+              </button>
+            ) : null}
+          </div>
+        );
+      })}
       {outOfOrder ? (
-        <p className="text-xs text-amber-800 dark:text-amber-200">
-          Minutes usually increase along the route — check the order of the
-          stops.
+        <p className="text-xs text-amber-700 dark:text-amber-300">
+          Minutes usually go up along the route. Check the order of the stops.
         </p>
       ) : null}
-
-      <div className="flex flex-wrap items-end gap-2 rounded-xl bg-lightGray/30 p-3">
-        <label className="flex min-w-[180px] flex-1 flex-col gap-1 text-xs font-medium text-primaryGray">
-          Add a stop
-          <select
-            className={inputClass}
-            value={newPointId}
-            disabled={disabled || available.length === 0}
-            onChange={(event) => setNewPointId(event.target.value)}
-          >
-            <option value="">
-              {available.length
-                ? "Choose a pickup point"
-                : "Every active pickup point is on this route"}
-            </option>
-            {available.map((point) => (
-              <option key={point.id} value={point.id}>
-                {point.name} · {point.area_label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="flex w-32 flex-col gap-1 text-xs font-medium text-primaryGray">
-          Minutes from setting off
-          <input
-            type="number"
-            inputMode="numeric"
-            min={0}
-            step={1}
-            value={newMinutes}
-            disabled={disabled}
-            placeholder="e.g. 10"
-            onChange={(event) => setNewMinutes(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") {
-                event.preventDefault();
-                add();
-              }
-            }}
-            className={inputClass}
-          />
-        </label>
-        <button
-          type="button"
-          className={`${outlineButtonClass} h-10`}
-          disabled={!canAdd}
-          onClick={add}
-        >
-          <PlusIcon className="h-4 w-4" aria-hidden="true" />
-          Add stop
-        </button>
-      </div>
-    </div>
+      <button
+        type="button"
+        onClick={addStop}
+        disabled={disabled}
+        className={cn(btnSecondary, "self-start")}
+      >
+        + Add stop
+      </button>
+    </fieldset>
   );
 };

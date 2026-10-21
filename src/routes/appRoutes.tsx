@@ -127,6 +127,15 @@ import {
 import RequisitionsAnalytics from "@/pages/HomePage/pages/Requisitions/pages/RequisitionsAnalytics";
 import EventReportDetails from "@/pages/HomePage/pages/Reports/pages/EventReportDetails";
 import EventReports from "@/pages/HomePage/pages/Reports/pages/EventReports";
+import ExecutiveSummary from "@/pages/HomePage/pages/Reports/pages/ExecutiveSummary";
+import DepartmentReports from "@/pages/HomePage/pages/Reports/pages/DepartmentReports";
+import DepartmentReportDetail from "@/pages/HomePage/pages/Reports/pages/DepartmentReportDetail";
+import ReportsHome from "@/pages/HomePage/pages/Reports/pages/ReportsHome";
+import {
+  DEPARTMENT_REPORTS_ACCESS,
+  EXECUTIVE_SUMMARY_ACCESS,
+  REPORTS_MENU_ACCESS,
+} from "@/pages/HomePage/pages/Reports/utils/reportAccess";
 import CertificateVerificationPage from "@/pages/CertificateVerification/CertificateVerificationPage";
 import { Navigate } from "react-router-dom";
 import {
@@ -508,24 +517,42 @@ export const routes: AppRoute[] = [
         path: relativePath.home.reports.main,
         name: "Reports",
         isPrivate: true,
-        permissionNeeded: "view_events",
+        permissionNeeded: REPORTS_MENU_ACCESS,
         sideTab: true,
         children: [
           {
             path: "",
             name: "Reports Default",
-            element: (
-              <Navigate
-                to={`${relativePath.home.main}/${relativePath.home.reports.eventReports}`}
-                replace
-              />
-            ),
+            element: <ReportsHome />,
             isPrivate: true,
-            permissionNeeded: "view_events",
+            redirectOnly: true,
+          },
+          {
+            path: "executive-summary",
+            name: "Executive summary",
+            element: <ExecutiveSummary />,
+            isPrivate: true,
+            permissionNeeded: EXECUTIVE_SUMMARY_ACCESS,
+            sideTab: true,
+          },
+          {
+            path: "department",
+            name: "Department reports",
+            element: <DepartmentReports />,
+            isPrivate: true,
+            permissionNeeded: DEPARTMENT_REPORTS_ACCESS,
+            sideTab: true,
+          },
+          {
+            path: "department/:key",
+            name: "Department Report",
+            element: <DepartmentReportDetail />,
+            isPrivate: true,
+            permissionNeeded: DEPARTMENT_REPORTS_ACCESS,
           },
           {
             path: "event-reports",
-            name: "Event Reports",
+            name: "Event reports",
             element: <EventReports />,
             isPrivate: true,
             permissionNeeded: "view_events",

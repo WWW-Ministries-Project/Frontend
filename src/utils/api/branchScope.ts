@@ -28,6 +28,7 @@ const BRANCH_SCOPED_ENDPOINTS = [
   "event/create-event-type",
   "event/update-event-type",
   "event-reports/",
+  "department-reports/",
   "requisitions/",
   "program/program",
   "program/programs",

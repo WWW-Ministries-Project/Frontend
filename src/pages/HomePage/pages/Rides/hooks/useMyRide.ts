@@ -10,13 +10,18 @@ interface UseMyRideOptions {
   /** Poll while a request is pending on either side, so an accept/decline
    *  shows up without a push. */
   pollWhilePending?: boolean;
+  /** The event to ask about; without it the server picks the soonest event
+   *  the member rides to, else the soonest event. */
+  eventId?: number | null;
 }
 
-/** The member's ride this Sunday (`GET /rides/mine`). Refetches when the
- *  window regains focus. */
+/** The member's ride to one church event (`GET /rides/mine`). Refetches when
+ *  the window regains focus and when the realtime connector reports a ride
+ *  change (`app:rides-changed`). */
 export const useMyRide = ({
   enabled = true,
   pollWhilePending = false,
+  eventId = null,
 }: UseMyRideOptions = {}) => {
   const [myRide, setMyRide] = useState<MyRide | null>(null);
   const [loading, setLoading] = useState(enabled);
@@ -27,7 +32,7 @@ export const useMyRide = ({
     if (!enabled) return;
     const request = ++requestRef.current;
     try {
-      const response = await api.fetch.fetchMyRide();
+      const response = await api.fetch.fetchMyRide(eventId);
       if (request !== requestRef.current) return;
       setMyRide(response.data ?? null);
       setError(null);
@@ -37,7 +42,7 @@ export const useMyRide = ({
     } finally {
       if (request === requestRef.current) setLoading(false);
     }
-  }, [enabled]);
+  }, [enabled, eventId]);
 
   useEffect(() => {
     refresh();
@@ -51,10 +56,13 @@ export const useMyRide = ({
     const onFocus = () => {
       if (document.visibilityState === "visible") refresh();
     };
+    const onRidesChanged = () => refresh();
     window.addEventListener("focus", onFocus);
+    window.addEventListener("app:rides-changed", onRidesChanged);
     document.addEventListener("visibilitychange", onFocus);
     return () => {
       window.removeEventListener("focus", onFocus);
+      window.removeEventListener("app:rides-changed", onRidesChanged);
       document.removeEventListener("visibilitychange", onFocus);
     };
   }, [enabled, refresh]);

@@ -23,6 +23,16 @@ export type EventOnlineLink = {
   url: string;
 };
 
+export type EventReminderRow = {
+  id: number;
+  event_id: number;
+  remind_at: string;
+  offset_minutes: number;
+  method: string;
+  status: string;
+  created_at: string;
+};
+
 export type EventResponseType = {
   id: number;
   name: string;

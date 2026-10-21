@@ -682,3 +682,19 @@ input.input::placeholder {
 .multiselect-option input {
   margin-right: 10px;
 }
+
+/* Reports: while a report is in print mode, print only its sheet (no sidebar or header). */
+@media print {
+  body.report-printing * {
+    visibility: hidden;
+  }
+  body.report-printing [data-print-root],
+  body.report-printing [data-print-root] * {
+    visibility: visible;
+  }
+  body.report-printing [data-print-root] {
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+  }
+}

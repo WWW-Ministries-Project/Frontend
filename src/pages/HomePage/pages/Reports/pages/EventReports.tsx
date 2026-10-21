@@ -1,780 +1,391 @@
-import EmptyState from "@/components/EmptyState";
-import { Button } from "@/components";
-import { HeaderControls } from "@/components/HeaderControls";
-import { Modal } from "@/components/Modal";
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+import { notify } from "@/components/feedback";
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { useFetch } from "@/CustomHooks/useFetch";
-import { usePaginationQueryParams } from "@/CustomHooks/usePaginationQueryParams";
-import PageOutline from "@/pages/HomePage/Components/PageOutline";
-import GridComponent from "@/pages/HomePage/Components/reusable/GridComponent";
-import { PaginationComponent } from "@/pages/HomePage/Components/reusable/PaginationComponent";
-import { EventsCard } from "@/pages/HomePage/pages/EventsManagement/Components/EventsCard";
-import { EventsManagerHeader } from "@/pages/HomePage/pages/EventsManagement/Components/EventsManagerHeader";
-import { eventColumns } from "@/pages/HomePage/pages/EventsManagement/utils/eventHelpers";
-import { eventType } from "@/pages/HomePage/pages/EventsManagement/utils/eventInterfaces";
-import { showNotification } from "@/pages/HomePage/utils";
-import { api, relativePath } from "@/utils";
-import type { QueryType } from "@/utils/interfaces";
+import { api } from "@/utils";
+import type { ApiResponse } from "@/utils/interfaces";
 import type {
   EventReportEligibleEvent,
   EventReportOverviewItem,
 } from "@/utils/api/eventReports/interfaces";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { cn } from "@/utils/cn";
 
-type UnknownRecord = Record<string, unknown>;
-type MonthYearFilter = { month: number; year: number };
-type GroupMode = "date" | "type";
+import {
+  DialogShell,
+  PageEmpty,
+  PageHeading,
+  Pill,
+  PillTabs,
+  SearchInput,
+  SelectInput,
+  SkeletonGrid,
+  UiButton,
+} from "../components/reportsUi";
+import { useIsWide } from "../utils/reportUiHelpers";
+import { nf } from "../utils/reportFormat";
+import { EVENT_TYPE_COLOR, EVENT_TYPE_LABEL, eventStatusPill, eventTypeOf, fmtEventDate, fmtEventTime } from "../utils/eventReportFormat";
 
-type ReportOverviewCard = eventType & {
-  event_id: string;
-  event_date: string;
-  generated_at?: string;
+type Group = "date" | "type";
+type StatusFilter = "all" | "Pending approval" | "Returned" | "Approved";
+
+const reportRoute = (row: { event_id: string | number; event_date: string; event_name?: string }) => {
+  const params = new URLSearchParams({ eventDate: row.event_date.slice(0, 10) });
+  if (row.event_name) params.set("eventName", row.event_name);
+  return `/home/reports/event-reports/${row.event_id}?${params.toString()}`;
 };
 
-type EligibleEventOption = {
-  event_id: string;
-  event_name: string;
-  event_date: string;
-};
+const presentColor = (pct: number | null | undefined) =>
+  pct === null || pct === undefined ? "#4B5563" : pct >= 75 ? "#15803D" : pct >= 60 ? "#B45309" : "#B91C1C";
 
-const DEFAULT_EVENTS_PAGE_SIZE = 99;
-
-const toRecord = (value: unknown): UnknownRecord =>
-  value && typeof value === "object" && !Array.isArray(value)
-    ? (value as UnknownRecord)
-    : {};
-
-const toArray = (value: unknown): unknown[] => (Array.isArray(value) ? value : []);
-
-const toStringValue = (value: unknown): string => {
-  if (typeof value === "string") {
-    return value.trim();
-  }
-
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return String(value);
-  }
-
-  return "";
-};
-
-const firstNonEmptyString = (...values: unknown[]) => {
-  for (const value of values) {
-    const normalized = toStringValue(value);
-    if (normalized) return normalized;
-  }
-
-  return "";
-};
-
-const normalizeDateOnly = (value: unknown): string => {
-  const raw = toStringValue(value);
-  if (!raw) return "";
-
-  const prefixMatch = raw.match(/^(\d{4}-\d{2}-\d{2})/);
-  if (prefixMatch) {
-    return prefixMatch[1];
-  }
-
-  const parsed = new Date(raw);
-  if (Number.isNaN(parsed.getTime())) {
-    return "";
-  }
-
-  return parsed.toISOString().slice(0, 10);
-};
-
-const formatDateLabel = (value: unknown) => {
-  const normalizedDate = normalizeDateOnly(value);
-  if (!normalizedDate) return "Unknown Date";
-
-  return new Date(`${normalizedDate}T00:00:00`).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-};
-
-const isExplicitlyGenerated = (record: UnknownRecord) => {
-  const status = firstNonEmptyString(
-    record.report_status,
-    record.reportStatus,
-    record.status
-  ).toLowerCase();
-
-  if (status) {
-    return !["not_generated", "not generated"].includes(status);
-  }
-
-  const flags = [
-    record.is_generated,
-    record.isGenerated,
-    record.generated,
-    record.report_generated,
-    record.reportGenerated,
-  ];
-
-  for (const flag of flags) {
-    if (typeof flag === "boolean") return flag;
-    if (typeof flag === "number") return flag === 1;
-    if (typeof flag === "string") {
-      const normalizedFlag = flag.trim().toLowerCase();
-      if (["true", "1", "yes"].includes(normalizedFlag)) return true;
-      if (["false", "0", "no"].includes(normalizedFlag)) return false;
-    }
-  }
-
-  return true;
-};
-
-const normalizeOverviewItem = (
-  item: EventReportOverviewItem | unknown
-): ReportOverviewCard | null => {
-  const record = toRecord(item);
-  const eventId = firstNonEmptyString(
-    record.event_id,
-    record.eventId,
-    record.id
-  );
-  const eventDate = normalizeDateOnly(
-    firstNonEmptyString(record.event_date, record.eventDate, record.start_date)
-  );
-  const eventName = firstNonEmptyString(
-    record.event_name,
-    record.eventName,
-    record.name
-  );
-
-  if (!eventId || !eventDate || !eventName || !isExplicitlyGenerated(record)) {
-    return null;
-  }
-
-  return {
-    id: eventId,
-    event_id: eventId,
-    event_name: eventName,
-    name: eventName,
-    event_name_id: eventId,
-    start_date: firstNonEmptyString(record.start_date, eventDate) || eventDate,
-    end_date:
-      firstNonEmptyString(record.end_date, record.endDate, eventDate) || eventDate,
-    start_time: firstNonEmptyString(record.start_time, record.startTime),
-    end_time: firstNonEmptyString(record.end_time, record.endTime),
-    location: firstNonEmptyString(record.location, record.venue),
-    description: firstNonEmptyString(record.description, record.summary),
-    event_type: firstNonEmptyString(
-      record.event_type,
-      record.eventType,
-      "OTHER"
-    ) as ReportOverviewCard["event_type"],
-    poster: firstNonEmptyString(record.poster, record.image) || undefined,
-    event_date: eventDate,
-    generated_at: firstNonEmptyString(record.generated_at, record.generatedAt),
-  };
-};
-
-const normalizeEligibleEvent = (
-  item: EventReportEligibleEvent | unknown
-): EligibleEventOption | null => {
-  const record = toRecord(item);
-  const eventId = firstNonEmptyString(record.event_id, record.eventId, record.id);
-  const eventName = firstNonEmptyString(
-    record.event_name,
-    record.eventName,
-    record.name
-  );
-  const eventDate = normalizeDateOnly(
-    firstNonEmptyString(record.event_date, record.eventDate, record.start_date)
-  );
-
-  if (!eventId || !eventName || !eventDate) {
-    return null;
-  }
-
-  return {
-    event_id: eventId,
-    event_name: eventName,
-    event_date: eventDate,
-  };
-};
-
-const matchesMonthYear = (value: string, filter: MonthYearFilter) => {
-  if (!value) return false;
-
-  const parsed = new Date(`${value}T00:00:00`);
-  if (Number.isNaN(parsed.getTime())) {
-    return false;
-  }
-
-  return (
-    parsed.getMonth() + 1 === filter.month && parsed.getFullYear() === filter.year
-  );
-};
-
-const buildReportRoute = (event: ReportOverviewCard) => {
-  const params = new URLSearchParams();
-  params.set("eventDate", event.event_date);
-  params.set("eventName", event.event_name ?? "");
-
-  return `${relativePath.home.main}/${relativePath.home.reports.eventReports}/${event.event_id}?${params.toString()}`;
-};
+const NO_DATA = "no attendance data yet";
 
 const EventReports = () => {
   const navigate = useNavigate();
-  const { page, take, setPage } = usePaginationQueryParams(
-    DEFAULT_EVENTS_PAGE_SIZE
+  const wide = useIsWide();
+  const { canManage } = useAccessControl();
+  const canGenerate = canManage("Events");
+
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState<StatusFilter>("all");
+  const [group, setGroup] = useState<Group>("date");
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+
+  const query = useMemo(() => ({ date_scope: "all" }), []);
+  const { data, loading, error, refetch } = useFetch<ApiResponse<EventReportOverviewItem[]>>(
+    api.fetch.fetchEventReportsOverview,
+    query,
+    false,
+    { silent: true }
+  );
+  const all = useMemo(
+    () => (Array.isArray(data?.data) ? data!.data : []).filter((r) => r.report_status !== "not_generated"),
+    [data]
   );
 
-  const {
-    refetch: refetchOverview,
-    loading,
-    error,
-  } = useFetch(api.fetch.fetchEventReportsOverview, {}, true);
-  const {
-    refetch: refetchEligibleEvents,
-    data: eligibleEventsResponse,
-    loading: loadingEligibleEvents,
-    error: eligibleEventsError,
-  } = useFetch(api.fetch.fetchEligibleEventReports, {}, true);
-
-  const [reports, setReports] = useState<ReportOverviewCard[]>([]);
-  const [availableReports, setAvailableReports] = useState<ReportOverviewCard[]>([]);
-  const [totalReports, setTotalReports] = useState(0);
-  const [showSearch, setShowSearch] = useState(false);
-  const [showFilter, setShowFilter] = useState(false);
-  const [filterDate, setFilterDate] = useState<Date | null>(null);
-  const [filterEvents, setFilterEvents] = useState("");
-  const [selectedEventId, setSelectedEventId] = useState("");
-  const [groupMode, setGroupMode] = useState<GroupMode>("date");
-  const [activeDateFilter, setActiveDateFilter] = useState<MonthYearFilter | null>(
-    null
-  );
-  const [openAccordions, setOpenAccordions] = useState<Record<string, boolean>>(
-    {}
-  );
-  const [showGenerateModal, setShowGenerateModal] = useState(false);
-  const [selectedEligibleKey, setSelectedEligibleKey] = useState("");
-  const [generateInfoMessage, setGenerateInfoMessage] = useState("");
-  const [generateErrorMessage, setGenerateErrorMessage] = useState("");
-  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
-
-  const fetchOverviewPage = useCallback(
-    async (
-      pageNumber: number,
-      pageSize: number,
-      monthYearFilter: MonthYearFilter | null,
-      eventId: string
-    ) => {
-      const query: QueryType = {
-        page: pageNumber,
-        page_size: pageSize,
-        take: pageSize,
-        date_scope: monthYearFilter ? "month" : "all",
-      };
-
-      if (monthYearFilter) {
-        query.month = monthYearFilter.month;
-        query.year = monthYearFilter.year;
-      }
-
-      if (eventId) {
-        query.event_id = eventId;
-      }
-
-      const response = await refetchOverview(query);
-      const rawItems = toArray(response?.data);
-      const normalized = rawItems
-        .map((item) => normalizeOverviewItem(item))
-        .filter((item): item is ReportOverviewCard => Boolean(item))
-        .filter((item) => !monthYearFilter || matchesMonthYear(item.event_date, monthYearFilter))
-        .filter((item) => !eventId || item.event_id === eventId);
-
-      setReports(normalized);
-      setTotalReports(response?.meta?.total ?? normalized.length);
-    },
-    [refetchOverview]
-  );
-
-  useEffect(() => {
-    void fetchOverviewPage(page, take, activeDateFilter, selectedEventId);
-  }, [activeDateFilter, fetchOverviewPage, page, selectedEventId, take]);
-
-  useEffect(() => {
-    let isActive = true;
-
-    const loadAvailableReports = async () => {
-      try {
-        const response = await api.fetch.fetchEventReportsOverview({
-          page: 1,
-          page_size: 500,
-          take: 500,
-          date_scope: activeDateFilter ? "month" : "all",
-          ...(activeDateFilter
-            ? {
-                month: activeDateFilter.month,
-                year: activeDateFilter.year,
-              }
-            : {}),
-        });
-        const normalized = toArray(response?.data)
-          .map((item) => normalizeOverviewItem(item))
-          .filter((item): item is ReportOverviewCard => Boolean(item))
-          .filter(
-            (item) =>
-              !activeDateFilter || matchesMonthYear(item.event_date, activeDateFilter)
-          );
-
-        if (isActive) {
-          setAvailableReports(normalized);
-        }
-      } catch {
-        if (isActive) {
-          setAvailableReports([]);
-        }
-      }
-    };
-
-    void loadAvailableReports();
-
-    return () => {
-      isActive = false;
-    };
-  }, [activeDateFilter]);
-
-  const eligibleEvents = useMemo(
-    () =>
-      toArray(eligibleEventsResponse?.data)
-        .map((item) => normalizeEligibleEvent(item))
-        .filter((item): item is EligibleEventOption => Boolean(item))
-        .sort((left, right) => {
-          if (left.event_date !== right.event_date) {
-            return right.event_date.localeCompare(left.event_date);
-          }
-
-          return left.event_name.localeCompare(right.event_name);
-        }),
-    [eligibleEventsResponse?.data]
-  );
-
-  const selectedEligibleEvent = useMemo(
-    () =>
-      eligibleEvents.find(
-        (item) => `${item.event_id}::${item.event_date}` === selectedEligibleKey
-      ) || null,
-    [eligibleEvents, selectedEligibleKey]
-  );
-
-  const handleFilter = useCallback(
-    (value: { year: number; month: number; date: Date }) => {
-      setFilterDate(value.date);
-      setSelectedEventId("");
-      setActiveDateFilter({ month: value.month, year: value.year });
-      setPage(1);
-    },
-    [setPage]
-  );
-
-  const handleEventFilterChange = useCallback(
-    (value: string) => {
-      setSelectedEventId(value);
-      setPage(1);
-    },
-    [setPage]
-  );
-
-  const handleResetFilters = useCallback(() => {
-    setFilterEvents("");
-    setFilterDate(null);
-    setSelectedEventId("");
-    setGroupMode("date");
-    setOpenAccordions({});
-    setActiveDateFilter(null);
-    setPage(1);
-  }, [setPage]);
-
-  const filteredEvents = useMemo(() => {
-    const query = filterEvents.trim().toLowerCase();
-
-    return reports
-      .filter((event) => !selectedEventId || event.event_id === selectedEventId)
-      .filter((event) => {
-        if (!query) return true;
-
-        return [
-          event.event_name,
-          event.event_type,
-          event.location,
-          event.event_date,
-        ].some((value) => String(value ?? "").toLowerCase().includes(query));
+  const rows = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return all
+      .filter((r) => status === "all" || (r.status_label || "Pending approval") === status)
+      .filter((r) => {
+        if (!q) return true;
+        const type = EVENT_TYPE_LABEL[eventTypeOf(r.event_type)];
+        return [r.event_name, type, r.location, fmtEventDate(r.event_date)].join(" ").toLowerCase().includes(q);
       })
-      .sort((left, right) => {
-        if (left.event_date !== right.event_date) {
-          return left.event_date.localeCompare(right.event_date);
-        }
+      .sort((a, b) => String(b.event_date).localeCompare(String(a.event_date)));
+  }, [all, search, status]);
 
-        return (left.event_name ?? "").localeCompare(right.event_name ?? "");
-      });
-  }, [filterEvents, reports, selectedEventId]);
-
-  const groupedEvents = useMemo(() => {
-    const groups = new Map<string, ReportOverviewCard[]>();
-
-    filteredEvents.forEach((event) => {
-      const key =
-        groupMode === "date"
-          ? new Date(`${event.event_date}T00:00:00`).toLocaleString("default", {
-              month: "long",
-              year: "numeric",
-            })
-          : event.event_type || "Other";
-
-      if (!groups.has(key)) {
-        groups.set(key, []);
-      }
-
-      groups.get(key)?.push(event);
+  const groups = useMemo(() => {
+    const out: { label: string; rows: EventReportOverviewItem[] }[] = [];
+    rows.forEach((r) => {
+      const label =
+        group === "date"
+          ? new Date(`${r.event_date.slice(0, 10)}T00:00:00`).toLocaleString("en-GB", { month: "long", year: "numeric" })
+          : EVENT_TYPE_LABEL[eventTypeOf(r.event_type)];
+      let g = out.find((x) => x.label === label);
+      if (!g) out.push((g = { label, rows: [] }));
+      g.rows.push(r);
     });
+    return out;
+  }, [rows, group]);
 
-    const entries = Array.from(groups.entries());
-    if (groupMode === "type") {
-      return entries.sort(([left], [right]) => left.localeCompare(right));
-    }
-
-    return entries;
-  }, [filteredEvents, groupMode]);
-
-  useEffect(() => {
-    if (!groupedEvents.length) return;
-
-    setOpenAccordions((current) => {
-      if (Object.keys(current).length > 0) {
-        return current;
-      }
-
-      return { [groupedEvents[0][0]]: true };
-    });
-  }, [groupedEvents]);
-
-  const eventOptions = useMemo(() => {
-    return [...availableReports]
-      .sort((left, right) => {
-        if (left.event_date !== right.event_date) {
-          return left.event_date.localeCompare(right.event_date);
-        }
-
-        return (left.event_name ?? "").localeCompare(right.event_name ?? "");
-      })
-      .map((event) => ({
-        value: event.event_id,
-        label: `${event.event_name || "Event"} (${formatDateLabel(event.event_date)})`,
-      }));
-  }, [availableReports]);
-
-  const handleOpenEventReport = useCallback(
-    (event: ReportOverviewCard) => {
-      navigate(buildReportRoute(event));
-    },
-    [navigate]
+  /* ------------------------------ generate flow ----------------------------- */
+  const [genOpen, setGenOpen] = useState(false);
+  const [pick, setPick] = useState("");
+  const [genMsg, setGenMsg] = useState<{ tone: "info" | "danger"; text: string } | null>(null);
+  const [generating, setGenerating] = useState(false);
+  const eligible = useFetch<ApiResponse<EventReportEligibleEvent[]>>(api.fetch.fetchEligibleEventReports, {}, true, { silent: true });
+  const eligibleRows = useMemo(
+    () =>
+      (Array.isArray(eligible.data?.data) ? eligible.data!.data : [])
+        .slice()
+        .sort((a, b) => String(b.event_date).localeCompare(String(a.event_date)) || a.event_name.localeCompare(b.event_name)),
+    [eligible.data]
   );
 
-  const handleOpenGenerateModal = useCallback(() => {
-    setShowGenerateModal(true);
-    setSelectedEligibleKey("");
-    setGenerateInfoMessage("");
-    setGenerateErrorMessage("");
-    void refetchEligibleEvents();
-  }, [refetchEligibleEvents]);
+  const openGenerate = () => {
+    setGenOpen(true);
+    setPick("");
+    setGenMsg(null);
+    eligible.refetch();
+  };
 
-  const handleCloseGenerateModal = useCallback(() => {
-    setShowGenerateModal(false);
-    setSelectedEligibleKey("");
-    setGenerateInfoMessage("");
-    setGenerateErrorMessage("");
-  }, []);
-
-  const isMissingAttendanceDataMessage = (message: string) =>
-    typeof message === "string" &&
-    message.toLowerCase().includes("no attendance data yet");
-
-  const handleGenerateReport = useCallback(async () => {
-    if (!selectedEligibleEvent) {
-      setGenerateErrorMessage("Select an eligible event to continue.");
+  const generate = async () => {
+    const chosen = eligibleRows.find((e) => `${e.event_id}::${e.event_date}` === pick);
+    if (!chosen) {
+      setGenMsg({ tone: "danger", text: "Select an event to continue." });
       return;
     }
-
-    setGenerateErrorMessage("");
-    setGenerateInfoMessage("");
-    setIsGeneratingReport(true);
-
+    setGenerating(true);
+    setGenMsg(null);
     try {
-      const response = await api.post.generateEventReport({
-        event_id: selectedEligibleEvent.event_id,
-        event_date: selectedEligibleEvent.event_date,
-      });
-      const backendMessage =
-        response.message || response.data?.message || "";
-
-      if (isMissingAttendanceDataMessage(backendMessage)) {
-        setGenerateInfoMessage(backendMessage);
+      const res = await api.post.generateEventReport({ event_id: chosen.event_id, event_date: chosen.event_date.slice(0, 10) });
+      const message = String(res.message || res.data?.message || "");
+      if (message.toLowerCase().includes(NO_DATA)) {
+        setGenMsg({ tone: "info", text: message });
         return;
       }
-
-      showNotification("Event report generated successfully.", "success");
-      handleCloseGenerateModal();
-      navigate(
-        `${relativePath.home.main}/${relativePath.home.reports.eventReports}/${selectedEligibleEvent.event_id}?eventDate=${encodeURIComponent(selectedEligibleEvent.event_date)}&eventName=${encodeURIComponent(selectedEligibleEvent.event_name)}`
-      );
-    } catch (error: unknown) {
-      const backendMessage =
-        (error as any)?.response?.data?.message ||
-        (error as any)?.response?.data?.error ||
-        "";
-
-      if (isMissingAttendanceDataMessage(backendMessage)) {
-        setGenerateInfoMessage(backendMessage);
-        return;
-      }
-
-      setGenerateErrorMessage(
-        backendMessage ||
-          (error instanceof Error
-            ? error.message
-            : "Unable to generate the event report right now.")
+      notify.success({ title: "Report generated", message: `${chosen.event_name} is ready for review.` });
+      setGenOpen(false);
+      navigate(reportRoute({ ...chosen, event_date: chosen.event_date.slice(0, 10) }));
+    } catch (err) {
+      const e = err as { message?: string; response?: { data?: { message?: string; error?: string } } };
+      const message = e?.response?.data?.message || e?.response?.data?.error || e?.message || "";
+      setGenMsg(
+        message.toLowerCase().includes(NO_DATA)
+          ? {
+              tone: "info",
+              text: `No attendance data yet for ${chosen.event_name}. Ask the departments to submit clock-ins or record a headcount first.`,
+            }
+          : { tone: "danger", text: message ? `Couldn't generate the report. ${message}` : "Couldn't generate the report. Try again." }
       );
     } finally {
-      setIsGeneratingReport(false);
+      setGenerating(false);
     }
-  }, [handleCloseGenerateModal, navigate, selectedEligibleEvent]);
+  };
 
-  const crumbs = [
-    { label: "Home", link: relativePath.home.main },
-    {
-      label: "Reports",
-      link: `${relativePath.home.main}/${relativePath.home.reports.eventReports}`,
-    },
-    { label: "Event Reports", link: "" },
-  ];
+  const isOpen = (label: string, index: number) => (openGroups[label] === undefined ? index === 0 : openGroups[label]);
+  const grid = "minmax(240px,1.8fr) 140px 130px 110px 150px 150px 24px";
 
   return (
-    <PageOutline crumbs={crumbs}>
-      <HeaderControls
-        title={`Event Reports (${totalReports || filteredEvents.length})`}
-        subtitle="Review generated reports and open the event detail breakdown."
-        hasSearch
-        hasFilter
-        showSearch={showSearch}
-        setShowSearch={setShowSearch}
-        showFilter={showFilter}
-        setShowFilter={setShowFilter}
-        customIcon={
-          <Button value="Generate Report" onClick={handleOpenGenerateModal} />
+    <section className="flex flex-col gap-6 p-4 sm:p-6">
+      <PageHeading
+        title={`Event reports${data ? ` (${all.length})` : ""}`}
+        subtitle="One report per service or event, built from clock-ins and headcounts."
+        actions={
+          canGenerate ? (
+            <UiButton tone="primary" onClick={openGenerate}>
+              Generate report
+            </UiButton>
+          ) : undefined
         }
       />
 
-      <div className="mb-4 flex items-center gap-2">
-        <span className="text-sm text-gray-600">Group by:</span>
-        <button
-          type="button"
-          onClick={() => setGroupMode("date")}
-          className={`rounded px-3 py-1 text-sm ${
-            groupMode === "date" ? "bg-primary text-white" : "bg-gray-100"
-          }`}
-        >
-          Event Date
-        </button>
-        <button
-          type="button"
-          onClick={() => setGroupMode("type")}
-          className={`rounded px-3 py-1 text-sm ${
-            groupMode === "type" ? "bg-primary text-white" : "bg-gray-100"
-          }`}
-        >
-          Event Type
-        </button>
-      </div>
-
-      <div className="flex gap-4 pb-4">
-        <EventsManagerHeader
-          onNavigate={() => {}}
-          onFilter={handleFilter}
-          onEventChange={handleEventFilterChange}
-          onSearch={setFilterEvents}
-          filterEvents={filterEvents}
-          viewfilter
-          filterDate={filterDate}
-          selectedEventId={selectedEventId}
-          eventOptions={eventOptions}
-          showSearch={showSearch}
-          showFilter={showFilter}
-          onResetFilters={handleResetFilters}
+      <div className="flex flex-wrap items-center gap-3">
+        <SearchInput
+          className="max-w-[420px]"
+          value={search}
+          onChange={setSearch}
+          placeholder="Search event, type or location"
+          ariaLabel="Search event reports"
         />
+        <SelectInput
+          aria-label="Status"
+          className="w-auto"
+          value={status}
+          onChange={(event) => setStatus(event.target.value as StatusFilter)}
+          options={[
+            { value: "all", label: "All statuses" },
+            { value: "Pending approval", label: "Pending approval" },
+            { value: "Returned", label: "Returned" },
+            { value: "Approved", label: "Approved" },
+          ]}
+        />
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-[#4B5563]">Group by</span>
+          <PillTabs
+            ariaLabel="Group by"
+            size="sm"
+            value={group}
+            onChange={setGroup}
+            tabs={[
+              { key: "date", label: "Date" },
+              { key: "type", label: "Type" },
+            ]}
+          />
+        </div>
       </div>
 
-      {loading && (
-        <p className="rounded-lg bg-lightGray/30 px-4 py-6 text-sm text-primaryGray">
-          Loading generated event reports...
-        </p>
-      )}
+      {loading && !data && <SkeletonGrid count={3} min={600} height={72} />}
 
-      {error && !loading && (
-        <p className="rounded-lg bg-red-50 px-4 py-6 text-sm text-red-700">
-          Failed to load event reports. Please refresh and try again.
-        </p>
-      )}
-
-      {!loading && !error && filteredEvents.length === 0 && (
-        <EmptyState
-          scope="page"
-          className="mx-auto w-[20rem]"
-          msg="No generated event reports found"
+      {error && !data && !loading && (
+        <PageEmpty
+          badge="COULDN'T LOAD"
+          title="Couldn't load event reports"
+          text="Check your connection and try again."
+          action={<UiButton onClick={() => refetch(query)}>Try again</UiButton>}
         />
       )}
 
-      {!loading && !error && filteredEvents.length > 0 && (
-        <div className="space-y-4">
-          {groupedEvents.map(([groupKey, groupedItems]) => {
-            const isOpen = openAccordions[groupKey] ?? false;
-
-            return (
-              <div key={groupKey} className="rounded-md border border-lightGray">
-                <button
-                  type="button"
-                  onClick={() =>
-                    setOpenAccordions((current) => ({
-                      ...current,
-                      [groupKey]: !current[groupKey],
-                    }))
-                  }
-                  className="flex w-full items-center justify-between bg-gray-50 px-4 py-3 font-medium"
-                >
-                  <span>
-                    {groupKey} ({groupedItems.length})
-                  </span>
-                  <span>{isOpen ? "−" : "+"}</span>
-                </button>
-
-                {isOpen && (
-                  <div className="p-4">
-                    <GridComponent
-                      columns={eventColumns}
-                      data={groupedItems}
-                      displayedCount={24}
-                      columnFilters={[]}
-                      setColumnFilters={() => {}}
-                      renderRow={(row) => (
-                        <EventsCard
-                          key={String(row.original.id)}
-                          event={row.original}
-                          onNavigate={() => {}}
-                          onDelete={() => {}}
-                          onShowOptions={() => {}}
-                          showOptions={false}
-                          readOnly
-                          onSelect={(event) =>
-                            handleOpenEventReport(
-                              event as unknown as ReportOverviewCard
-                            )
-                          }
-                        />
-                      )}
-                      filter={filterEvents}
-                      setFilter={setFilterEvents}
-                    />
+      {groups.map((g, index) => {
+        const open = isOpen(g.label, index);
+        return (
+          <div key={g.label} className="overflow-hidden rounded-xl border border-lightGray bg-white">
+            <button
+              type="button"
+              aria-expanded={open}
+              onClick={() => setOpenGroups((prev) => ({ ...prev, [g.label]: !open }))}
+              className="flex w-full items-center justify-between gap-3 bg-white px-4 py-4 text-sm text-primary hover:bg-lightGray/20 sm:px-6"
+            >
+              <span className="flex items-center gap-2">
+                <span className="text-base font-semibold">{g.label}</span>
+                <Pill tone="neutral" className="px-2 py-0">{g.rows.length}</Pill>
+              </span>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4B5563" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={cn("transition-transform", open && "rotate-180")}>
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </button>
+            {open &&
+              (wide ? (
+                <div className="overflow-x-auto border-t border-lightGray">
+                  <div className="min-w-[920px]">
+                    <div className="grid gap-3 bg-lightGray px-6 py-4 font-semibold" style={{ gridTemplateColumns: grid }}>
+                      <span>Event</span>
+                      <span>Date</span>
+                      <span>Time</span>
+                      <span className="text-right">Attendance</span>
+                      <span className="text-right">Workers present</span>
+                      <span>Status</span>
+                      <span />
+                    </div>
+                    {g.rows.map((r) => {
+                      const type = eventTypeOf(r.event_type);
+                      const pill = eventStatusPill(r.status_label);
+                      return (
+                        <div
+                          key={`${r.event_id}-${r.event_date}`}
+                          role="link"
+                          tabIndex={0}
+                          onClick={() => navigate(reportRoute(r))}
+                          onKeyDown={(event) => event.key === "Enter" && navigate(reportRoute(r))}
+                          className="grid min-h-16 cursor-pointer items-center gap-3 border-t border-lightGray bg-white px-6 py-3 hover:bg-lightGray/20"
+                          style={{ gridTemplateColumns: grid }}
+                        >
+                          <div className="flex min-w-0 items-center gap-2.5">
+                            <span title={EVENT_TYPE_LABEL[type]} className="h-2.5 w-2.5 flex-shrink-0 rounded-full" style={{ background: EVENT_TYPE_COLOR[type] }} />
+                            <div className="min-w-0">
+                              <p className="truncate font-semibold">{r.event_name}</p>
+                              <p className="truncate text-xs text-[#6B7280]">
+                                {EVENT_TYPE_LABEL[type]}
+                                {r.location ? ` · ${r.location}` : ""}
+                              </p>
+                            </div>
+                          </div>
+                          <span>{fmtEventDate(r.event_date)}</span>
+                          <span className="text-[#4B5563]">{fmtEventTime(r.start_time, r.end_time) || "—"}</span>
+                          <span className="text-right font-semibold">{r.total_attendance == null ? "—" : nf(r.total_attendance)}</span>
+                          <span className="text-right font-semibold" style={{ color: presentColor(r.workers_present_pct) }}>
+                            {r.workers_present_pct == null ? "—" : `${Math.round(r.workers_present_pct)}%`}
+                          </span>
+                          <span>
+                            <Pill tone={pill.tone}>{pill.label}</Pill>
+                          </span>
+                          <span aria-hidden="true" className="text-[#6B7280]">›</span>
+                        </div>
+                      );
+                    })}
                   </div>
+                </div>
+              ) : (
+                <div className="flex flex-col border-t border-lightGray">
+                  {g.rows.map((r) => {
+                    const pill = eventStatusPill(r.status_label);
+                    return (
+                      <button
+                        key={`${r.event_id}-${r.event_date}`}
+                        type="button"
+                        onClick={() => navigate(reportRoute(r))}
+                        className="flex flex-col gap-1.5 border-b border-[#E5E7EB] bg-white p-4 text-left text-sm text-primary last:border-b-0"
+                      >
+                        <div className="flex w-full items-start justify-between gap-2">
+                          <p className="font-semibold">{r.event_name}</p>
+                          <Pill tone={pill.tone} className="flex-shrink-0 px-2 py-0">{pill.label}</Pill>
+                        </div>
+                        <p className="text-[#4B5563]">
+                          {fmtEventDate(r.event_date)}
+                          {fmtEventTime(r.start_time, r.end_time) ? ` · ${fmtEventTime(r.start_time, r.end_time)}` : ""}
+                        </p>
+                        <p className="text-xs text-[#6B7280]">
+                          {r.total_attendance == null ? "—" : nf(r.total_attendance)} attended ·{" "}
+                          {r.workers_present_pct == null ? "—" : `${Math.round(r.workers_present_pct)}%`} workers present
+                        </p>
+                      </button>
+                    );
+                  })}
+                </div>
+              ))}
+          </div>
+        );
+      })}
+
+      {data && groups.length === 0 && (
+        <PageEmpty
+          badge="NO REPORTS FOUND"
+          title={all.length ? "No event reports match" : "No event reports yet"}
+          text={
+            all.length
+              ? "Clear the search or status filter, or generate a report for a recent event."
+              : "Generate a report once an event has finished and its attendance is recorded."
+          }
+          action={!all.length && canGenerate ? <UiButton tone="primary" onClick={openGenerate}>Generate report</UiButton> : undefined}
+        />
+      )}
+
+      <DialogShell
+        open={genOpen}
+        onClose={() => setGenOpen(false)}
+        wide
+        title="Generate event report"
+        subtitle="Only events that have finished and have no report yet are listed."
+        ctaLabel="Generate report"
+        ctaDisabled={!pick}
+        loading={generating}
+        onConfirm={generate}
+      >
+        <div role="radiogroup" aria-label="Event" className="flex max-h-[50vh] flex-col gap-2 overflow-y-auto">
+          {eligible.loading && <p className="text-[#6B7280]">Loading events…</p>}
+          {!eligible.loading && eligibleRows.length === 0 && (
+            <p className="rounded-lg border border-[#E5E7EB] bg-[#F8F9FC] px-4 py-3 text-[#4B5563]">
+              Every finished event already has a report, or none has attendance recorded yet.
+            </p>
+          )}
+          {eligibleRows.map((e) => {
+            const value = `${e.event_id}::${e.event_date}`;
+            const on = pick === value;
+            const type = eventTypeOf(e.event_type);
+            return (
+              <button
+                key={value}
+                type="button"
+                role="radio"
+                aria-checked={on}
+                onClick={() => {
+                  setPick(value);
+                  setGenMsg(null);
+                }}
+                className={cn(
+                  "flex items-center gap-3 rounded-lg border px-4 py-3 text-left text-sm text-primary",
+                  on ? "border-primary bg-[#F8F9FC]" : "border-lightGray bg-white"
                 )}
-              </div>
+              >
+                <span className="flex h-[18px] w-[18px] flex-shrink-0 items-center justify-center rounded-full border-2 border-primary">
+                  <span className={cn("h-2 w-2 rounded-full", on ? "bg-primary" : "bg-transparent")} />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block font-semibold">{e.event_name}</span>
+                  <span className="block text-xs text-[#6B7280]">
+                    {fmtEventDate(e.event_date)}
+                    {e.event_type ? ` · ${EVENT_TYPE_LABEL[type]}` : ""}
+                  </span>
+                </span>
+              </button>
             );
           })}
         </div>
-      )}
-
-      {totalReports > take && (
-        <PaginationComponent
-          total={totalReports}
-          take={take}
-          onPageChange={(newPage) => setPage(newPage)}
-        />
-      )}
-
-      <Modal
-        open={showGenerateModal}
-        onClose={handleCloseGenerateModal}
-        persist={false}
-        className="max-w-xl"
-      >
-        <div className="space-y-5 p-6">
-          <div className="space-y-1">
-            <h2 className="text-xl font-semibold text-primary">Generate Report</h2>
-            <p className="text-sm text-primaryGray">
-              Only eligible events can be used to generate a report.
-            </p>
-          </div>
-
-          {loadingEligibleEvents && (
-            <p className="rounded-lg bg-lightGray/30 px-4 py-5 text-sm text-primaryGray">
-              Loading eligible events...
-            </p>
-          )}
-
-          {!loadingEligibleEvents && eligibleEventsError && (
-            <p className="rounded-lg bg-red-50 px-4 py-5 text-sm text-red-700">
-              Failed to load eligible events. Please try again.
-            </p>
-          )}
-
-          {!loadingEligibleEvents && !eligibleEventsError && eligibleEvents.length === 0 && (
-            <p className="rounded-lg border border-dashed border-lightGray px-4 py-5 text-sm text-primaryGray">
-              No eligible events are available for report generation.
-            </p>
-          )}
-
-          {!loadingEligibleEvents && !eligibleEventsError && eligibleEvents.length > 0 && (
-            <label className="block space-y-2 text-sm">
-              <span className="block text-xs font-medium text-primaryGray">
-                Eligible event
-              </span>
-              <select
-                className="h-11 w-full rounded-lg border border-lightGray px-3"
-                value={selectedEligibleKey}
-                onChange={(event) => setSelectedEligibleKey(event.target.value)}
-              >
-                <option value="">Select an event</option>
-                {eligibleEvents.map((event) => (
-                  <option
-                    key={`${event.event_id}-${event.event_date}`}
-                    value={`${event.event_id}::${event.event_date}`}
-                  >
-                    {event.event_name} - {formatDateLabel(event.event_date)}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
-
-          {generateInfoMessage && (
-            <p className="rounded-lg bg-[#FFF7E6] px-4 py-3 text-sm text-[#996A13]">
-              {generateInfoMessage}
-            </p>
-          )}
-
-          {generateErrorMessage && (
-            <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">
-              {generateErrorMessage}
-            </p>
-          )}
-
-          <div className="flex flex-wrap justify-end gap-3">
-            <Button value="Cancel" variant="ghost" onClick={handleCloseGenerateModal} />
-            <Button
-              value="Generate Report"
-              onClick={handleGenerateReport}
-              disabled={!selectedEligibleEvent || loadingEligibleEvents}
-              loading={isGeneratingReport}
-            />
-          </div>
-        </div>
-      </Modal>
-    </PageOutline>
+        {genMsg && (
+          <p
+            role="status"
+            className={cn(
+              "rounded-lg border px-4 py-3",
+              genMsg.tone === "info" ? "border-[#BFDBFE] bg-[#EFF6FF] text-[#1D4ED8]" : "border-[#FECACA] bg-[#FEF2F2] text-[#B91C1C]"
+            )}
+          >
+            {genMsg.text}
+          </p>
+        )}
+      </DialogShell>
+    </section>
   );
 };
 
