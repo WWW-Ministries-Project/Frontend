@@ -319,7 +319,7 @@ const GivingOptions = () => {
                 onChange={(e) => setDraft({ ...draft, description: e.target.value })}
               />
             </Field>
-            {!draft.id && allBranches && (
+            {!draft.id && (
               <FullRow>
                 <BranchSelectField
                   value={branchId}

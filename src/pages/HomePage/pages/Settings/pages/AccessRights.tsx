@@ -232,11 +232,12 @@ export function AccessRights() {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="space-y-1">
               <h3 className="text-lg font-semibold text-primary">
-                Create and manage access levels
+                Access rights
               </h3>
               <p className="text-sm text-primaryGray">
-                Design roles, update permissions, and retire old access levels
-                from one screen.
+                A role decides which modules someone can see and change. Roles
+                are given per branch, so a person can be an admin in one branch
+                and read-only in another.
               </p>
             </div>
 

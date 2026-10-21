@@ -14,7 +14,6 @@ import {
   TextInput,
 } from "@/pages/HomePage/pages/MembershipManagement/components/membershipUi";
 import { formatDate } from "@/pages/HomePage/pages/MembershipManagement/components/membershipUiUtils";
-import { ALL_BRANCHES, useBranchStore } from "@/store/useBranchStore";
 import { api } from "@/utils/api/apiCalls";
 import type { VisitorType } from "@/utils/api/visitors/interfaces";
 import {
@@ -188,8 +187,9 @@ export const VisitorFormDialog = ({
   onSaved: (created: boolean) => void;
 }) => {
   const editing = Boolean(visitor);
-  const { activeBranchId } = useBranchStore();
-  const needsBranch = !editing && activeBranchId === ALL_BRANCHES;
+  // New visitors get a branch: a choice in "all my branches", otherwise the
+  // fixed branch (shown read-only with the reason).
+  const needsBranch = !editing;
   const form = useForm(open, () => visitorInitial(visitor));
   const { values, errors, set } = form;
   const clergy = values.isClergy === "yes";

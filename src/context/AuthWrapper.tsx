@@ -1,3 +1,4 @@
+import { useBranchAccessSync } from "@/CustomHooks/useBranchAccessSync";
 import { useUserStore } from "@/store/userStore";
 import {
   AUTH_LOGOUT_BROADCAST_KEY,
@@ -46,6 +47,7 @@ export const AuthWrapper = ({ children }: { children: React.ReactNode }) => {
   }));
 
   const setUser = useUserStore((state) => state.setUser);
+  useBranchAccessSync();
 
   const login = useCallback((data: userType | userTypeWithToken) => {
     resetProtectedAppState();

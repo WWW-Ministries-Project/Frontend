@@ -296,7 +296,6 @@ const VisitorFormComponent = ({
   minimalValidation = false,
 }: IProps) => {
   const { membersOptions } = useStore();
-  const { activeBranchId } = useBranchStore();
   const responsibleMemberOptions = React.useMemo(
     () =>
       membersOptions.map((member) => ({
@@ -333,7 +332,7 @@ const VisitorFormComponent = ({
             )}
             <div className="flex-1 overflow-y-auto px-6 py-4">
               <FormLayout>
-                {activeBranchId === ALL_BRANCHES && (
+                {(
                   <BranchSelectField
                     value={values.branch_id}
                     onChange={(v) => setFieldValue("branch_id", v)}

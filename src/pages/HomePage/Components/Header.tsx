@@ -7,7 +7,7 @@ import { ThemeModeSelector } from "@/components/ThemeModeSelector";
 import { CartIcon } from "../pages/MarketPlace/components/cart/CartIcon";
 import { HeaderNotificationMenu } from "@/features/notifications/HeaderNotificationMenu";
 import { useAccessControl } from "@/CustomHooks/useAccessControl";
-import { ALL_BRANCHES, useBranchStore } from "@/store/useBranchStore";
+import { BranchSwitcher } from "./BranchSwitcher";
 
 import { useAuth } from "../../../context/AuthWrapper";
 import { decodeToken } from "../../../utils/helperFunctions";
@@ -95,9 +95,6 @@ export const Header = ({ handleShowNav }: IProps) => {
   const location = useLocation();
   const { logout } = useAuth();
   const { canView } = useAccessControl();
-  const branches = useBranchStore((state) => state.branches);
-  const activeBranchId = useBranchStore((state) => state.activeBranchId);
-  const setActiveBranchId = useBranchStore((state) => state.setActiveBranchId);
 
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [isMobileSchoolOpen, setIsMobileSchoolOpen] = useState(false);
@@ -529,33 +526,7 @@ export const Header = ({ handleShowNav }: IProps) => {
 
         {/* Right */}
         <div ref={profileRef} className="flex items-center gap-3 relative">
-          {!isMemberRoute && branches.length > 1 && (
-            <label className="hidden items-center gap-2 text-xs font-semibold text-primaryGray md:flex">
-              <span className="sr-only">Branch</span>
-              <select
-                className="max-w-[12rem] rounded-md border border-lightGray bg-white px-3 py-2 text-sm font-semibold text-primary outline-none focus:border-primary"
-                value={
-                  activeBranchId === ALL_BRANCHES
-                    ? ALL_BRANCHES
-                    : String(activeBranchId)
-                }
-                onChange={(event) => {
-                  const value = event.target.value;
-                  setActiveBranchId(
-                    value === ALL_BRANCHES ? ALL_BRANCHES : Number(value)
-                  );
-                }}
-                aria-label="Filter by branch"
-              >
-                <option value={ALL_BRANCHES}>All branches</option>
-                {branches.map((branch) => (
-                  <option key={branch.id} value={branch.id}>
-                    {branch.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
+          {!isMemberRoute && <BranchSwitcher />}
           {isMemberRoute && <CartIcon />}
           <HeaderNotificationMenu isMemberRoute={isMemberRoute} />
 

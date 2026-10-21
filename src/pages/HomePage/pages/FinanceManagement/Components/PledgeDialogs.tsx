@@ -173,7 +173,7 @@ export const PledgeFormDialog = ({
         <Field label="Target (GHS, optional)">
           <TextInput type="number" min={0} inputMode="decimal" value={target} onChange={(e) => setTarget(e.target.value)} />
         </Field>
-        {!editing && allBranches && (
+        {!editing && (
           <BranchSelectField
             value={branchId}
             onChange={setBranchId}
