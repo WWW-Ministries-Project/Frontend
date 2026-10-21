@@ -10,6 +10,25 @@ export interface AssignableUser {
   access_level: { id: number; name: string } | null;
   /** The user's role in each branch. */
   branch_access?: BranchAccessGrant[];
+  is_active?: boolean;
+  home_branch_id?: number | null;
+  home_branch_name?: string | null;
+  /** Last sign-in or app open; null when they never signed in. */
+  last_active_at?: string | null;
+}
+
+export interface GiveAccessPayload {
+  user_id: number;
+  branch_id: number;
+  access_level_id: number;
+  /** Email them a link to set their password. Defaults to true. */
+  send_invite?: boolean;
+}
+
+export interface GiveAccessResult {
+  user_id: number;
+  invited: boolean;
+  branch_access: BranchAccessGrant[];
 }
 
 export interface UserBranchAccess {

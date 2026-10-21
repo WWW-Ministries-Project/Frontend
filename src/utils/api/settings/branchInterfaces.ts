@@ -10,6 +10,8 @@ export interface Branch {
     member_id?: string | null;
   } | null;
   is_default?: boolean;
+  /** People whose home branch this is (list-branches only). */
+  member_count?: number;
   created_at?: string;
   updated_at?: string;
 }

@@ -87,6 +87,8 @@ export interface AccessRight {
   /** Who holds this role, per branch (limited to the viewer's branches). */
   grants?: AccessLevelGrant[];
   exclusion_users?: Record<string, AccessLevelExclusionUser[]>;
+  created_at?: string | null;
+  updated_at?: string | null;
 }
 export interface AccessRightOption {
   id: number;
