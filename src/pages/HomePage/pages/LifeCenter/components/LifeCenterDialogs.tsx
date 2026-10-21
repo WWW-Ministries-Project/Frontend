@@ -21,7 +21,6 @@ import {
   DAYS,
   DEFAULT_COUNTRY_CODE,
   Day,
-  LOCKED_ROLES,
   addDaysKey,
   dayKey,
   dayNames,
@@ -29,6 +28,9 @@ import {
   errorText,
   fmtD,
   fmtS,
+  isLeaderRole,
+  isLockedRole,
+  isMemberRole,
   joinAnd,
   plural,
   toDays,
@@ -36,8 +38,6 @@ import {
   useWriteBranchId,
 } from "../utils/lcModel";
 
-const isLeaderRole = (name?: string | null) => (name ?? "").trim().toLowerCase() === "leader";
-const isLocked = (name: string) => LOCKED_ROLES.includes(name.trim().toLowerCase());
 const soulName = (s: Pick<LifeCenterSoul, "first_name" | "last_name">) => `${s.first_name} ${s.last_name}`.trim();
 
 /* -------------------------------------------------------------------------- */
@@ -101,7 +101,7 @@ export const LifeCenterFormDialog = ({
   const leaderOptions = existing
     ? existing.members.map((m) => ({
         value: String(m.userId),
-        label: m.name + (isLeaderRole(m.role.name) || m.role.name.toLowerCase() === "member" ? "" : ` · ${m.role.name}`),
+        label: m.name + (isLeaderRole(m.role.name) || isMemberRole(m.role.name) ? "" : ` · ${m.role.name}`),
       }))
     : membersOptions;
 
@@ -735,7 +735,7 @@ export const MemberDialog = ({
 }) => {
   const membersOptions = useStore((state) => state.membersOptions);
   const branchId = useWriteBranchId();
-  const memberRole = roles.find((r) => r.name.trim().toLowerCase() === "member");
+  const memberRole = roles.find((r) => isMemberRole(r.name));
   const [userId, setUserId] = useState("");
   const [roleId, setRoleId] = useState("");
   const [tried, setTried] = useState(false);
@@ -887,7 +887,7 @@ export const RolesDialog = ({
                 {plural(role.member_count ?? 0, "person", "people")} across all centers
               </p>
             </div>
-            {isLocked(role.name) ? (
+            {isLockedRole(role.name) ? (
               <span className="text-xs text-[#6B7280]">Built in</span>
             ) : (
               <UiButton tone="danger" size="sm" onClick={() => remove(role)}>
