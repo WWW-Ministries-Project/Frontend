@@ -1,3 +1,7 @@
+import type {
+  DeptReportCommentaryPayload,
+  DeptReportDetail,
+} from "./reports/interfaces";
 import { AccessRight } from "@/pages/HomePage/pages/Settings/utils/settingsInterfaces";
 import { ApiResponse, QueryType } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
@@ -124,6 +128,16 @@ export class ApiUpdateCalls {
       patchExecutor: patchData,
     });
   }
+
+  // Department report commentary (head of department)
+  saveDepartmentReportCommentary = (
+    payload: DeptReportCommentaryPayload
+  ): Promise<ApiResponse<DeptReportDetail>> => {
+    return this.apiExecution.updateData(
+      "department-reports/commentary",
+      payload as unknown as Record<string, unknown>
+    );
+  };
 
   // Update Event
   updateEvent = (

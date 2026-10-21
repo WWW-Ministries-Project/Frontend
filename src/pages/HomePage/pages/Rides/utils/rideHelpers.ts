@@ -4,6 +4,7 @@ import { decodeToken } from "@/utils/helperFunctions";
 import type {
   MyRide,
   RideCatalog,
+  RideEvent,
   RidePickupPoint,
   RidePoint,
 } from "@/utils/api/rides/interfaces";
@@ -21,6 +22,221 @@ export const clockLabel = (clock: string | null | undefined): string => {
 export const plural = (count: number, word: string, many = `${word}s`) =>
   `${count} ${count === 1 ? word : many}`;
 
+/** "07:00" + 14 -> "07:14". Anything that isn't a 24h clock is returned as-is. */
+export const addMinutes = (clock: string, minutes: number): string => {
+  const match = /^(\d{1,2}):(\d{2})$/.exec(String(clock ?? "").trim());
+  if (!match) return clock;
+  const total = Number(match[1]) * 60 + Number(match[2]) + minutes;
+  const wrapped = ((total % 1440) + 1440) % 1440;
+  return `${String(Math.floor(wrapped / 60)).padStart(2, "0")}:${String(wrapped % 60).padStart(2, "0")}`;
+};
+
+/** "Kwame A." from a first name and initials ("KA"). */
+export const shortName = (firstName: string, initials?: string | null) => {
+  const last = String(initials ?? "").trim().slice(1, 2);
+  return last ? `${firstName} ${last.toUpperCase()}.` : firstName;
+};
+
+/** Initials for a full name: "Ama Serwaa" -> "AS". */
+export const initialsOf = (name: string | null | undefined) => {
+  const parts = String(name ?? "").trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return "?";
+  const first = parts[0][0] ?? "";
+  const last = parts.length > 1 ? parts[parts.length - 1][0] : "";
+  return `${first}${last}`.toUpperCase();
+};
+
+/* ------------------------------------------------------------------ */
+/* Church events                                                       */
+/* ------------------------------------------------------------------ */
+
+const WEEKDAYS = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+const MONTHS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
+/** "YYYY-MM-DD" for a local date. */
+export const isoDay = (date: Date) =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+
+/** A "YYYY-MM-DD" as a local date (`new Date("2026-10-11")` is UTC midnight). */
+const localDate = (iso: string) => {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+  return match
+    ? new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]))
+    : null;
+};
+
+type EventDay = Pick<RideEvent, "date" | "weekday">;
+
+/** "today", "tomorrow" or the weekday ("Wednesday"). */
+const eventDayWord = (event: EventDay | null | undefined): string => {
+  if (!event) return "";
+  const now = new Date();
+  const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  if (event.date === isoDay(now)) return "today";
+  if (event.date === isoDay(tomorrow)) return "tomorrow";
+  const date = localDate(event.date);
+  return event.weekday || (date ? WEEKDAYS[date.getDay()] : "");
+};
+
+/** "TODAY", "TOMORROW", else the weekday — "WEDNESDAY". */
+export const eventDayLabel = (event: EventDay | null | undefined) =>
+  (eventDayWord(event) || "upcoming").toUpperCase();
+
+/** "today", "tomorrow" or "on Wednesday". */
+export const eventDayPhrase = (event: EventDay | null | undefined) => {
+  const day = eventDayWord(event);
+  return !day
+    ? "on the day"
+    : day === "today" || day === "tomorrow"
+      ? day
+      : `on ${day}`;
+};
+
+/** "Sun 11 Oct". */
+export const eventDateLabel = (event: EventDay): string => {
+  const date = localDate(event.date);
+  if (!date) return event.weekday.slice(0, 3);
+  return `${(event.weekday || WEEKDAYS[date.getDay()]).slice(0, 3)} ${date.getDate()} ${MONTHS[date.getMonth()]}`;
+};
+
+/** "Sun 11 Oct · Sunday Service" — an event chip. */
+export const eventChipLabel = (event: RideEvent) =>
+  `${eventDateLabel(event)} · ${event.name}`;
+
+/** "Midweek Service · Wed 14 Oct · 6:30 PM" — one line naming the event. */
+export const eventLine = (event: RideEvent) =>
+  [
+    event.name,
+    eventDateLabel(event),
+    event.start_time ? clockLabel(event.start_time) : "",
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
+/** "Starts 9:00 AM" / the event's name, for the Church row of a route. */
+export const eventStartsLabel = (
+  event: RideEvent | null | undefined,
+  fallback: string
+) =>
+  event?.start_time
+    ? `${event.name} starts ${clockLabel(event.start_time)}`
+    : (event?.name ?? fallback);
+
+export const DEPART_STEP_MINUTES = 5;
+
+const clockMinutes = (clock: string | null | undefined): number | null => {
+  const match = /^(\d{1,2}):(\d{2})$/.exec(String(clock ?? "").trim());
+  if (!match) return null;
+  const minutes = Number(match[1]) * 60 + Number(match[2]);
+  return minutes < 24 * 60 ? minutes : null;
+};
+
+const minutesClock = (minutes: number) =>
+  `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
+
+/** Earliest departure on the event's day: any time, except times already
+ *  past when the event is today. Mirrors the server's check. */
+const earliestDeparture = (event: RideEvent | null | undefined) => {
+  const now = new Date();
+  if (event?.date !== isoDay(now)) return 0;
+  const next =
+    Math.ceil((now.getHours() * 60 + now.getMinutes() + 1) / DEPART_STEP_MINUTES) *
+    DEPART_STEP_MINUTES;
+  return Math.min(next, 23 * 60 + 55);
+};
+
+/** Why a departure time can't be used for the event, or null when it can. */
+export const departTimeProblem = (
+  time: string,
+  event: RideEvent | null | undefined
+): string | null => {
+  const minutes = clockMinutes(time);
+  if (minutes === null) return "Choose a departure time.";
+  if (minutes < earliestDeparture(event)) {
+    return "That time has already passed. Choose a later departure.";
+  }
+  return null;
+};
+
+/** A starting departure: the member's usual one if it still fits, else a
+ *  middle suggestion, else 45 minutes before the event starts. */
+export const defaultDepartTime = (
+  catalog: RideCatalog,
+  preferred?: string | null
+): string => {
+  const event = catalog.event ?? null;
+  if (preferred && !departTimeProblem(preferred, event)) return preferred;
+  const suggested = catalog.depart_times.filter(
+    (time) => !departTimeProblem(time, event)
+  );
+  if (suggested.length) return suggested[Math.min(1, suggested.length - 1)];
+  const start = clockMinutes(event?.start_time);
+  const target = start === null ? 7 * 60 + 15 : start - 45;
+  return minutesClock(
+    Math.min(23 * 60 + 55, Math.max(earliestDeparture(event), target))
+  );
+};
+
+/** The event a My ride answer is about. */
+export const rideEventOf = (myRide: MyRide | null | undefined) =>
+  myRide?.event ??
+  myRide?.offer?.event ??
+  myRide?.request?.ride.event ??
+  null;
+
+/** The member already drives, or holds or waits on a seat, for this
+ *  event — each member can drive or ride once per event. */
+export const isBusyForEvent = (myRide: MyRide | null | undefined) => {
+  if (myRide?.role === "driver") return Boolean(myRide.offer);
+  const request = myRide?.role === "passenger" ? myRide.request : null;
+  return Boolean(
+    request &&
+      !request.cancelled_by_driver &&
+      (request.status === "PENDING" || request.status === "ACCEPTED")
+  );
+};
+
+/** Download rows as a CSV file. */
+export const downloadCsv = (
+  filename: string,
+  rows: Array<Array<string | number | null | undefined>>
+) => {
+  const csv = rows
+    .map((row) =>
+      row.map((cell) => `"${String(cell ?? "").replace(/"/g, '""')}"`).join(",")
+    )
+    .join("\n");
+  const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 0);
+};
+
 export const seatsLeftLabel = (count: number) => `${plural(count, "seat")} left`;
 
 /** "Sunday, 12 October" for a "YYYY-MM-DD" service date. */
@@ -33,56 +249,6 @@ export const serviceDateLabel = (serviceDate: string): string => {
     month: "long",
     timeZone: "UTC",
   });
-};
-
-/** "TODAY" on the Sunday itself, "THIS SUNDAY" before it. */
-export const serviceDayLabel = (serviceDate: string): string => {
-  const now = new Date();
-  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-  return serviceDate === today ? "TODAY" : "THIS SUNDAY";
-};
-
-export type RideTone = "gold" | "teal" | "coral";
-
-export interface RideSummary {
-  title: string;
-  subtitle: string;
-  status: { label: string; tone: RideTone };
-}
-
-/** What the dashboard card, the More menu and the hub say about the member's ride. */
-export const rideSummary = (
-  myRide: MyRide | null | undefined
-): RideSummary | null => {
-  if (myRide?.role === "passenger" && myRide.request) {
-    const request = myRide.request;
-    const status =
-      request.status === "ACCEPTED"
-        ? { label: "Confirmed", tone: "teal" as const }
-        : request.status === "DECLINED"
-          ? { label: "Declined", tone: "coral" as const }
-          : { label: "Pending", tone: "gold" as const };
-    return {
-      title: `Your ride with ${request.ride.driver.first_name}`,
-      subtitle:
-        request.status === "DECLINED"
-          ? "Request declined · find another ride"
-          : `Pickup ${request.pickup_point.name} · ${clockLabel(request.pickup_time)}`,
-      status,
-    };
-  }
-  if (myRide?.role === "driver" && myRide.offer) {
-    const offer = myRide.offer;
-    const waiting = offer.pending_requests.length;
-    return {
-      title: "You're driving Sunday",
-      subtitle: `${offer.area.name} → Church · ${clockLabel(offer.depart_time)} · ${seatsLeftLabel(offer.seats_left)}`,
-      status: waiting
-        ? { label: plural(waiting, "request"), tone: "gold" }
-        : { label: "Published", tone: "teal" },
-    };
-  }
-  return null;
 };
 
 const normalizeQuery = (query: string) => query.trim().toLowerCase();
@@ -127,31 +293,6 @@ export const orderedStops = (
       if (rb !== undefined) return 1;
       return (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0);
     });
-};
-
-/** Landmarks for the driver's pickup sheet: on-route suggestions, then the rest. */
-export const offerStopOptions = (
-  catalog: RideCatalog,
-  areaId: number | null,
-  query: string
-) => {
-  const route = routeOf(catalog, areaId);
-  const matches = catalog.pickup_points.filter((point) =>
-    pointMatches(point, query)
-  );
-  const searching = Boolean(normalizeQuery(query));
-  const suggested = searching
-    ? []
-    : matches
-        .filter((point) => route.has(point.id))
-        .sort((a, b) => route.get(a.id)! - route.get(b.id)!);
-  return {
-    suggested,
-    others: searching ? matches : matches.filter((point) => !route.has(point.id)),
-    onRoute: (id: number) => route.has(id),
-    matchCount: matches.length,
-    searching,
-  };
 };
 
 /** The first two landmarks on an area's route — a starting selection for a new offer. */
@@ -224,6 +365,14 @@ export const ridePaths = {
   offer: `${relativePath.member.rides}/${relativePath.member.rideOffer}`,
   find: `${relativePath.member.rides}/${relativePath.member.rideFind}`,
   mine: `${relativePath.member.rides}/${relativePath.member.myRide}`,
-  findAt: (pickupPointId: number) =>
-    `${relativePath.member.rides}/${relativePath.member.rideFind}?pickup_point_id=${pickupPointId}`,
+  findAt: (pickupPointId: number, eventId?: number | null) =>
+    `${relativePath.member.rides}/${relativePath.member.rideFind}?pickup_point_id=${pickupPointId}${eventId ? `&${EVENT_PARAM}=${eventId}` : ""}`,
 };
+
+/** `?event_id=` — the event the ride tabs are about (ride notifications
+ *  deep-link with it too). */
+export const EVENT_PARAM = "event_id";
+
+/** A ride path for one event. */
+export const withEvent = (path: string, eventId?: number | null) =>
+  eventId ? `${path}?${EVENT_PARAM}=${eventId}` : path;

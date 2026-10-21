@@ -48,6 +48,9 @@ export const relativePath = {
     },
     reports: {
       main: "reports",
+      executiveSummary: "reports/executive-summary",
+      departmentReports: "reports/department",
+      departmentReportDetails: "reports/department/:key",
       eventReports: "reports/event-reports",
       eventReportDetails: "reports/event-reports/:id",
     },

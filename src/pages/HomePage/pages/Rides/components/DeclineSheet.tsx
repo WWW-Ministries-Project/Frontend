@@ -1,9 +1,14 @@
 import { useEffect, useState } from "react";
 import type { DeclineRequestDto } from "@/utils/api/rides/interfaces";
-import { cn } from "@/utils/cn";
-import { ReasonRadio } from "./ReasonRadio";
-import { RideSheet } from "./RideSheet";
-import { textInput } from "./rideStyles";
+import { RideSheet, SheetActions, SheetError } from "./RideSheet";
+import {
+  ChoiceChip,
+} from "./rideUi";
+import {
+  textareaClass,
+} from "./rideClasses";
+
+const MESSAGE_MAX = 200;
 
 interface DeclineSheetProps {
   /** The passenger being declined; null closes the sheet. */
@@ -14,7 +19,7 @@ interface DeclineSheetProps {
   onDecline: (payload: DeclineRequestDto) => void;
 }
 
-/** "Decline {first}'s request" — a preset reason and/or a short note. */
+/** "Decline {first}?" — a preset reason and/or a short message. */
 export const DeclineSheet = ({
   firstName,
   reasons,
@@ -25,59 +30,78 @@ export const DeclineSheet = ({
   const open = firstName !== null;
   const [reason, setReason] = useState<string | null>(null);
   const [message, setMessage] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
       setReason(null);
       setMessage("");
+      setError(null);
     }
   }, [open]);
 
-  const ready = Boolean(reason || message.trim());
+  const submit = () => {
+    const trimmed = message.trim();
+    // The backend needs one of the two, so the passenger learns why.
+    if (!reason && !trimmed) {
+      setError("Choose a reason or add a message.");
+      return;
+    }
+    onDecline({ reason: reason ?? undefined, message: trimmed || undefined });
+  };
 
   return (
     <RideSheet
       open={open}
       onClose={onClose}
-      title={`Decline ${firstName ?? ""}'s request`}
-      subtitle={`${firstName ?? ""} will see your reason, so they can find another ride.`}
+      locked={submitting}
+      title={`Decline ${firstName ?? ""}?`}
+      subtitle="They’ll be told so they can find another ride."
+      onSubmit={submit}
       footer={
-        <button
-          type="button"
-          disabled={!ready || submitting}
-          onClick={() =>
-            onDecline({
-              reason: reason ?? undefined,
-              message: message.trim() || undefined,
-            })
-          }
-          className={cn(
-            "inline-flex min-h-[52px] w-full items-center justify-center rounded-2xl border border-rose-200 bg-rose-50 px-5 text-base font-bold text-rose-700 transition-colors hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-45",
-            "dark:border-rose-400/35 dark:bg-rose-400/15 dark:text-rose-300 dark:hover:bg-rose-400/25"
-          )}
-        >
-          {submitting ? "Declining…" : "Decline request"}
-        </button>
+        <SheetActions
+          onCancel={onClose}
+          submitLabel="Decline request"
+          submittingLabel="Declining…"
+          submitting={submitting}
+          danger
+        />
       }
     >
-      <div className="flex flex-col gap-4">
-        <ReasonRadio
-          label="Reason"
-          reasons={reasons}
-          value={reason}
-          allowClear
-          onChange={setReason}
-        />
+      <div role="radiogroup" aria-label="Reason" className="flex flex-col gap-2">
+        <p className="font-medium">Reason</p>
+        <div className="flex flex-wrap gap-2">
+          {reasons.map((item) => (
+            <ChoiceChip
+              key={item}
+              on={item === reason}
+              onClick={() => {
+                setReason(item === reason ? null : item);
+                setError(null);
+              }}
+            >
+              {item}
+            </ChoiceChip>
+          ))}
+        </div>
+      </div>
+      <label className="flex flex-col gap-1 font-medium">
+        <span>
+          Message <span className="font-normal text-mainGray">(optional)</span>
+        </span>
         <textarea
           value={message}
-          onChange={(event) => setMessage(event.target.value)}
-          placeholder="Add a message (optional)"
-          aria-label="Add a message (optional)"
-          rows={2}
-          maxLength={500}
-          className={cn(textInput, "resize-none")}
+          rows={3}
+          maxLength={MESSAGE_MAX}
+          onChange={(event) => {
+            setMessage(event.target.value);
+            setError(null);
+          }}
+          placeholder="e.g. Sorry, I’m picking up family this week."
+          className={textareaClass}
         />
-      </div>
+      </label>
+      <SheetError message={error} />
     </RideSheet>
   );
 };

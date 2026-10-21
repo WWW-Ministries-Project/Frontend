@@ -38,6 +38,7 @@ type CrossTabMessageType =
   | "cleared"
   | "deleted"
   | "session_changed"
+  | "rides_changed"
   | "snapshot";
 
 type CrossTabMessage = {
@@ -46,6 +47,10 @@ type CrossTabMessage = {
   timestamp: number;
   payload?: unknown;
 };
+
+/** Tells open Ride to church pages (`app:rides-changed`) to refetch. */
+const dispatchRidesChanged = (payload: unknown) =>
+  window.dispatchEvent(new CustomEvent("app:rides-changed", { detail: payload }));
 
 type NotificationSnapshot = {
   timestamp: number;
@@ -106,6 +111,7 @@ const parseCrossTabMessage = (value: unknown): CrossTabMessage | null => {
     type !== "cleared" &&
     type !== "deleted" &&
     type !== "session_changed" &&
+    type !== "rides_changed" &&
     type !== "snapshot"
   ) {
     return null;
@@ -478,6 +484,11 @@ export const NotificationRealtimeConnector = () => {
           handleSessionChanged();
           publishCrossTab("session_changed");
           return;
+        case "rides.changed":
+          // A ride this member is on changed; open ride pages refetch.
+          dispatchRidesChanged(body);
+          publishCrossTab("rides_changed", body);
+          return;
         case "session.revoked":
           // Logout clears the session in every tab; nothing to relay.
           handleSessionRevoked();
@@ -680,6 +691,11 @@ export const NotificationRealtimeConnector = () => {
 
       if (message.type === "session_changed") {
         handleSessionChanged();
+        return;
+      }
+
+      if (message.type === "rides_changed") {
+        dispatchRidesChanged(message.payload);
         return;
       }
 

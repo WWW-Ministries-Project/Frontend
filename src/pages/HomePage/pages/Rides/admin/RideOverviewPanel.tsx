@@ -1,38 +1,49 @@
-import {
-  ChevronDownIcon,
-  ChevronUpIcon,
-  MagnifyingGlassIcon,
-} from "@heroicons/react/24/outline";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import EmptyState from "@/components/EmptyState";
-import { Skeleton } from "@/components/Skeleton";
-import { api } from "@/utils/api/apiCalls";
-import { cn } from "@/utils/cn";
+import { useMemo, useState } from "react";
 import type {
   AdminRideOffer,
   AdminRideOverview,
-  AdminRideRequest,
+  RideEvent,
   RideRequestStatus,
 } from "@/utils/api/rides/interfaces";
-import { clockLabel, plural, serviceDateLabel } from "../utils/rideHelpers";
+import { cn } from "@/utils/cn";
 import {
-  PanelError,
-  PhoneLink,
-  dangerButtonClass,
-  formatWhen,
-  inputClass,
-} from "./AdminRideShared";
+  Avatar,
+  LoadError,
+  Pill,
+  type PillTone,
+  RideSkeleton,
+  SearchField,
+  SeatBar,
+  Segmented,
+} from "../components/rideUi";
+import {
+  btnDangerGhost,
+  listCard,
+} from "../components/rideClasses";
+import { clockLabel, initialsOf, plural } from "../utils/rideHelpers";
+import { PhoneLink } from "./AdminRideShared";
+import { formatWhen } from "./adminRideFormat";
 import { CancelRideModal } from "./AdminRideModals";
-import {
-  RideOfferStatusBadge,
-  RideRequestStatusBadge,
-} from "./RideStatusBadge";
 
-interface RideOverviewPanelProps {
-  /** Keeps the page's "Safety reports" tab badge in step. */
-  onOpenReports: (count: number) => void;
-  onShowReports: () => void;
-}
+type RideFilter = "all" | "pending" | "full" | "cancelled";
+
+const FILTERS: { value: RideFilter; label: string }[] = [
+  { value: "all", label: "All" },
+  { value: "pending", label: "Needs reply" },
+  { value: "full", label: "Full" },
+  { value: "cancelled", label: "Cancelled" },
+];
+
+const REQUEST_PILL: Record<
+  RideRequestStatus,
+  { label: string; tone: PillTone }
+> = {
+  PENDING: { label: "Pending", tone: "warning" },
+  ACCEPTED: { label: "Accepted", tone: "success" },
+  DECLINED: { label: "Declined", tone: "danger" },
+  WITHDRAWN: { label: "Withdrawn", tone: "neutral" },
+  CANCELLED: { label: "Cancelled", tone: "neutral" },
+};
 
 const REQUEST_ORDER: Record<RideRequestStatus, number> = {
   ACCEPTED: 0,
@@ -45,13 +56,15 @@ const REQUEST_ORDER: Record<RideRequestStatus, number> = {
 const normalize = (value: string | null | undefined) =>
   String(value ?? "").toLowerCase();
 
-/** Does this ride involve the search term — driver, passenger, area or landmark? */
+/** Does this ride involve the search term — driver, passenger, phone, area
+ *  or landmark? */
 const rideMatches = (offer: AdminRideOffer, query: string) => {
   if (!query) return true;
-  const haystack = [
+  return [
     offer.driver.name,
     offer.driver.phone,
     offer.area.name,
+    offer.event?.name,
     offer.car_details,
     ...offer.stops.map((stop) => stop.name),
     ...offer.requests.flatMap((request) => [
@@ -59,58 +72,55 @@ const rideMatches = (offer: AdminRideOffer, query: string) => {
       request.passenger.phone,
       request.pickup_point.name,
     ]),
-  ];
-  return haystack.some((value) => normalize(value).includes(query));
+  ].some((value) => normalize(value).includes(query));
 };
 
-/** Search hit inside the requests table, so that ride opens automatically. */
-const requestsMatch = (offer: AdminRideOffer, query: string) =>
-  Boolean(query) &&
-  offer.requests.some(
-    (request) =>
-      normalize(request.passenger.name).includes(query) ||
-      normalize(request.passenger.phone).includes(query) ||
-      normalize(request.pickup_point.name).includes(query)
-  );
+const hasPending = (offer: AdminRideOffer) =>
+  offer.requests.some((request) => request.status === "PENDING");
+
+const filterMatches = (offer: AdminRideOffer, filter: RideFilter) => {
+  const active = offer.status === "ACTIVE";
+  if (filter === "pending") return active && hasPending(offer);
+  if (filter === "full") return active && offer.seats_left < 1;
+  if (filter === "cancelled") return !active;
+  return true;
+};
+
+const offerPill = (offer: AdminRideOffer): { label: string; tone: PillTone } => {
+  if (offer.status === "CANCELLED") return { label: "Cancelled", tone: "neutral" };
+  if (offer.seats_left < 1) return { label: "Full", tone: "info" };
+  if (hasPending(offer)) return { label: "Needs reply", tone: "warning" };
+  return { label: "Active", tone: "success" };
+};
 
 interface StatTileProps {
   label: string;
-  value: number;
-  secondary?: string;
-  highlight?: boolean;
+  value: string;
+  sub: string;
+  hot?: boolean;
   onClick?: () => void;
 }
 
-const StatTile = ({
-  label,
-  value,
-  secondary,
-  highlight,
-  onClick,
-}: StatTileProps) => {
+const StatTile = ({ label, value, sub, hot, onClick }: StatTileProps) => {
   const body = (
     <>
-      <span className="text-xs font-medium uppercase tracking-wide text-primaryGray">
-        {label}
-      </span>
+      <span className="text-sm text-primaryGray">{label}</span>
       <span
         className={cn(
-          "text-2xl font-semibold tabular-nums",
-          highlight ? "text-amber-700 dark:text-amber-200" : "text-primary"
+          "text-2xl font-semibold leading-8 tabular-nums",
+          hot ? "text-amber-700 dark:text-amber-300" : "text-primary"
         )}
       >
         {value}
       </span>
-      {secondary ? (
-        <span className="text-xs text-primaryGray">{secondary}</span>
-      ) : null}
+      <span className="text-xs text-mainGray">{sub}</span>
     </>
   );
   const className = cn(
-    "flex min-h-[104px] flex-col gap-1 rounded-2xl border bg-white p-4 text-left shadow-sm",
-    highlight
-      ? "border-amber-200 dark:border-amber-400/40"
-      : "border-lightGray"
+    "flex flex-col gap-1 rounded-xl border p-4 text-left",
+    hot
+      ? "border-amber-200 bg-amber-50 dark:border-amber-400/30 dark:bg-amber-400/10"
+      : "border-lightGray bg-white"
   );
   return onClick ? (
     <button
@@ -118,7 +128,7 @@ const StatTile = ({
       onClick={onClick}
       className={cn(
         className,
-        "transition hover:border-primary/40 hover:shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+        "transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/10"
       )}
     >
       {body}
@@ -128,476 +138,350 @@ const StatTile = ({
   );
 };
 
-const RequestsTable = ({ requests }: { requests: AdminRideRequest[] }) => (
-  <div className="overflow-x-auto rounded-xl border border-lightGray">
-    <table className="w-full min-w-[720px] text-left text-sm">
-      <thead>
-        <tr className="bg-lightGray/50 text-xs uppercase tracking-wide text-primary">
-          <th scope="col" className="px-4 py-2.5 font-semibold">
-            Passenger
-          </th>
-          <th scope="col" className="px-4 py-2.5 font-semibold">
-            Phone
-          </th>
-          <th scope="col" className="px-4 py-2.5 font-semibold">
-            Pickup point
-          </th>
-          <th scope="col" className="px-4 py-2.5 font-semibold">
-            Pickup
-          </th>
-          <th scope="col" className="px-4 py-2.5 font-semibold">
-            Requested
-          </th>
-          <th scope="col" className="px-4 py-2.5 font-semibold">
-            Status
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        {requests.map((request) => (
-          <tr
-            key={request.id}
-            className="border-t border-lightGray align-top text-primary"
-          >
-            <td className="px-4 py-3 font-medium">{request.passenger.name}</td>
-            <td className="px-4 py-3">
-              <PhoneLink phone={request.passenger.phone} />
-            </td>
-            <td className="px-4 py-3">
-              <span className="block">{request.pickup_point.name}</span>
-              <span className="text-xs text-primaryGray">
-                {request.pickup_point.area_label}
-              </span>
-            </td>
-            <td className="whitespace-nowrap px-4 py-3">
-              {clockLabel(request.pickup_time)}
-            </td>
-            <td className="whitespace-nowrap px-4 py-3 text-primaryGray">
-              {formatWhen(request.requested_at)}
-            </td>
-            <td className="px-4 py-3">
-              <RideRequestStatusBadge status={request.status} />
-              {request.status === "DECLINED" &&
-              (request.decline_reason || request.decline_message) ? (
-                <div className="mt-1 max-w-[220px] text-xs text-primaryGray">
-                  {request.decline_reason ? (
-                    <span className="block">{request.decline_reason}</span>
-                  ) : null}
-                  {request.decline_message ? (
-                    <span className="block italic">
-                      “{request.decline_message}”
-                    </span>
-                  ) : null}
-                </div>
-              ) : null}
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-);
-
-interface RideCardProps {
+const RideCard = ({
+  offer,
+  onCancel,
+}: {
   offer: AdminRideOffer;
-  expanded: boolean;
-  onToggle: () => void;
   onCancel: () => void;
-}
-
-const RideCard = ({ offer, expanded, onToggle, onCancel }: RideCardProps) => {
-  const filled = Math.max(0, offer.seats_total - offer.seats_left);
-  const pending = offer.requests.filter(
-    (request) => request.status === "PENDING"
-  ).length;
+}) => {
+  const cancelled = offer.status === "CANCELLED";
+  const taken = Math.max(0, offer.seats_total - offer.seats_left);
+  const pill = offerPill(offer);
   const requests = [...offer.requests].sort(
     (a, b) => (REQUEST_ORDER[a.status] ?? 9) - (REQUEST_ORDER[b.status] ?? 9)
   );
-  const cancelled = offer.status === "CANCELLED";
-  const requestsId = `ride-${offer.id}-requests`;
 
   return (
     <li
-      className={cn(
-        "flex flex-col gap-4 rounded-2xl border border-lightGray bg-white p-5 shadow-sm",
-        cancelled && "opacity-80"
-      )}
+      className={cn(listCard, "flex min-w-0 flex-col gap-3 p-4 tablet:p-5", cancelled && "opacity-70")}
     >
-      <div className="flex flex-wrap items-start gap-3">
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-base font-semibold text-primary">
-              {offer.driver.name}
-            </h3>
-            <RideOfferStatusBadge status={offer.status} />
-          </div>
-          <PhoneLink phone={offer.driver.phone} className="mt-0.5" />
+      <div className="flex items-center gap-3">
+        <Avatar initials={initialsOf(offer.driver.name)} />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <span className="truncate text-base font-semibold text-primary">
+            {offer.driver.name}
+          </span>
+          <PhoneLink phone={offer.driver.phone} />
         </div>
-        {!cancelled ? (
-          <button
-            type="button"
-            className={dangerButtonClass}
-            onClick={onCancel}
-          >
-            Cancel ride
-          </button>
-        ) : null}
+        <Pill tone={pill.tone}>{pill.label}</Pill>
       </div>
 
-      <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm sm:grid-cols-4">
-        <div>
-          <dt className="text-xs text-primaryGray">From</dt>
-          <dd className="font-medium text-primary">{offer.area.name}</dd>
-        </div>
-        <div>
-          <dt className="text-xs text-primaryGray">Sets off</dt>
-          <dd className="font-medium text-primary">
-            {clockLabel(offer.depart_time)}
-          </dd>
-        </div>
-        <div>
-          <dt className="text-xs text-primaryGray">Seats filled</dt>
-          <dd className="font-medium tabular-nums text-primary">
-            {filled}/{offer.seats_total}
-          </dd>
-        </div>
-        <div>
-          <dt className="text-xs text-primaryGray">Car</dt>
-          <dd className="text-primary">
-            {offer.car_details || (
-              <span className="text-primaryGray">Not given</span>
-            )}
-          </dd>
-        </div>
-      </dl>
-
-      <div>
-        <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-primaryGray">
-          Route
-        </p>
-        {offer.stops.length ? (
-          <ol className="flex flex-wrap items-center gap-2 text-sm">
-            {offer.stops.map((stop) => (
-              <li
-                key={stop.id}
-                className="flex items-center gap-2 rounded-lg bg-lightGray/30 px-2.5 py-1"
-              >
-                <span className="tabular-nums text-xs font-semibold text-primaryGray">
-                  {clockLabel(stop.pickup_time)}
-                </span>
-                <span className="text-primary">{stop.name}</span>
-              </li>
-            ))}
-            <li className="flex items-center rounded-lg bg-primary/10 px-2.5 py-1 font-medium text-primary">
-              Church
-            </li>
-          </ol>
-        ) : (
-          <p className="text-sm text-primaryGray">No pickup points listed.</p>
-        )}
-      </div>
-
-      <p className="text-xs text-primaryGray">
-        Published {formatWhen(offer.created_at)}
-        {cancelled && offer.cancelled_at
-          ? ` · Cancelled ${formatWhen(offer.cancelled_at)}`
-          : ""}
+      <p className="text-sm text-primaryGray">
+        {offer.area.name} → Church · leaves {clockLabel(offer.depart_time)}
+        {offer.car_details ? ` · ${offer.car_details}` : ""}
       </p>
 
-      <div className="border-t border-lightGray pt-3">
-        {requests.length ? (
-          <>
-            <button
-              type="button"
-              onClick={onToggle}
-              aria-expanded={expanded}
-              aria-controls={requestsId}
-              className="flex w-full items-center justify-between gap-3 rounded-lg px-1 py-1 text-left text-sm font-medium text-primary hover:bg-lightGray/30"
+      <SeatBar
+        taken={taken}
+        total={offer.seats_total}
+        label={`${taken} of ${offer.seats_total} seats filled`}
+      />
+
+      {offer.stops.length ? (
+        <ul className="flex flex-wrap gap-2" aria-label="Pickup points">
+          {offer.stops.map((stop) => (
+            <li
+              key={stop.id}
+              className="rounded-full border border-gray-200 bg-inputBackground px-2.5 py-0.5 text-xs text-gray-700"
             >
-              <span>
-                {plural(requests.length, "seat request")}
-                {pending ? (
-                  <span className="ml-2 font-normal text-amber-800 dark:text-amber-200">
-                    · {pending} pending
+              <strong className="font-semibold">{clockLabel(stop.pickup_time)}</strong>{" "}
+              · {stop.name}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+
+      {requests.length ? (
+        <ul className="overflow-hidden rounded-lg border border-gray-200">
+          {requests.map((request) => {
+            const status = REQUEST_PILL[request.status] ?? {
+              label: request.status,
+              tone: "neutral" as const,
+            };
+            const note = [
+              request.decline_reason ? `Reason: ${request.decline_reason}` : null,
+              request.decline_message ? `“${request.decline_message}”` : null,
+            ]
+              .filter(Boolean)
+              .join(" · ");
+            return (
+              <li
+                key={request.id}
+                className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-gray-200 px-3 py-2 last:border-b-0"
+              >
+                <div className="flex min-w-0 flex-[1_1_160px] flex-col">
+                  <span className="text-sm font-medium text-primary">
+                    {request.passenger.name}{" "}
+                    {request.passenger.phone ? (
+                      <span className="font-normal text-mainGray">
+                        · <PhoneLink phone={request.passenger.phone} className="text-mainGray" />
+                      </span>
+                    ) : null}
                   </span>
-                ) : null}
-              </span>
-              {expanded ? (
-                <ChevronUpIcon className="h-4 w-4" aria-hidden="true" />
-              ) : (
-                <ChevronDownIcon className="h-4 w-4" aria-hidden="true" />
-              )}
-            </button>
-            {expanded ? (
-              <div id={requestsId} className="mt-3">
-                <RequestsTable requests={requests} />
-              </div>
-            ) : null}
-          </>
-        ) : (
-          <p className="px-1 text-sm text-primaryGray">No seat requests yet.</p>
-        )}
-      </div>
+                  <span className="text-xs text-mainGray">
+                    {request.pickup_point.name} · {clockLabel(request.pickup_time)}
+                    {request.requested_at
+                      ? ` · asked ${formatWhen(request.requested_at)}`
+                      : ""}
+                  </span>
+                  {note ? <span className="text-xs text-mainGray">{note}</span> : null}
+                </div>
+                <Pill tone={status.tone}>{status.label}</Pill>
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <p className="text-xs text-mainGray">No one has asked to join yet.</p>
+      )}
+
+      {cancelled && offer.cancelled_at ? (
+        <p className="text-xs text-mainGray">
+          Cancelled {formatWhen(offer.cancelled_at)}
+        </p>
+      ) : null}
+
+      {!cancelled ? (
+        <div className="flex justify-end border-t border-gray-200 pt-3">
+          <button type="button" onClick={onCancel} className={btnDangerGhost}>
+            Cancel ride
+          </button>
+        </div>
+      ) : null}
     </li>
   );
 };
 
-/** Every ride for one Sunday, with everyone on it — the church office's view. */
+/** Offers grouped by church event, earliest start first.
+ *  Offers without an event (older data) form their own group. */
+const groupByEvent = (offers: AdminRideOffer[]) => {
+  const groups = new Map<
+    string,
+    { key: string; event: RideEvent | null; offers: AdminRideOffer[] }
+  >();
+  offers.forEach((offer) => {
+    const key = offer.event ? String(offer.event.id) : "none";
+    const group = groups.get(key) ?? {
+      key,
+      event: offer.event ?? null,
+      offers: [],
+    };
+    group.offers.push(offer);
+    groups.set(key, group);
+  });
+  return [...groups.values()].sort((a, b) =>
+    (a.event?.start_time ?? "99:99").localeCompare(b.event?.start_time ?? "99:99")
+  );
+};
+
+/** The overview's stats for a subset of offers — same rules as the backend. */
+const statsFor = (offers: AdminRideOffer[]) => {
+  const active = offers.filter((offer) => offer.status === "ACTIVE");
+  const requests = active.flatMap((offer) => offer.requests);
+  return {
+    rides: active.length,
+    cancelled_rides: offers.length - active.length,
+    seats_offered: active.reduce((sum, offer) => sum + offer.seats_total, 0),
+    seats_filled: requests.filter((request) => request.status === "ACCEPTED").length,
+    pending_requests: requests.filter((request) => request.status === "PENDING").length,
+    declined_requests: requests.filter((request) => request.status === "DECLINED").length,
+  };
+};
+
+const eventHeading = (event: RideEvent | null) =>
+  event
+    ? [event.name, event.start_time ? `starts ${clockLabel(event.start_time)}` : null]
+        .filter(Boolean)
+        .join(" · ")
+    : "No event recorded";
+
+interface RideOverviewPanelProps {
+  overview: AdminRideOverview | null;
+  loading: boolean;
+  failed: boolean;
+  onRetry: () => void;
+  onShowReports: () => void;
+}
+
+/** Every ride for one date, grouped by church event, with everyone on it —
+ *  the church office's view. */
 export const RideOverviewPanel = ({
-  onOpenReports,
+  overview,
+  loading,
+  failed,
+  onRetry,
   onShowReports,
 }: RideOverviewPanelProps) => {
-  const [serviceDate, setServiceDate] = useState("");
-  const [overview, setOverview] = useState<AdminRideOverview | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [failed, setFailed] = useState(false);
+  const [filter, setFilter] = useState<RideFilter>("all");
+  const [eventFilter, setEventFilter] = useState("all");
   const [search, setSearch] = useState("");
-  const [expanded, setExpanded] = useState<Set<number>>(() => new Set());
-  const [cancelTarget, setCancelTarget] = useState<AdminRideOffer | null>(
-    null
-  );
-  const requestRef = useRef(0);
-
-  const load = useCallback(async () => {
-    const requestId = ++requestRef.current;
-    setLoading(true);
-    setFailed(false);
-    try {
-      const response = await api.fetch.fetchRideAdminOverview(
-        serviceDate ? { service_date: serviceDate } : undefined
-      );
-      if (requestId !== requestRef.current) return;
-      setOverview(response.data ?? null);
-    } catch {
-      if (requestId === requestRef.current) setFailed(true);
-    } finally {
-      if (requestId === requestRef.current) setLoading(false);
-    }
-  }, [serviceDate]);
-
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  const openReports = overview?.stats.open_reports;
-  useEffect(() => {
-    if (typeof openReports === "number") onOpenReports(openReports);
-  }, [openReports, onOpenReports]);
+  const [cancelTarget, setCancelTarget] = useState<AdminRideOffer | null>(null);
 
   const query = search.trim().toLowerCase();
   const offers = useMemo(() => overview?.offers ?? [], [overview]);
-  const visible = useMemo(
-    () => offers.filter((offer) => rideMatches(offer, query)),
-    [offers, query]
+  const groups = useMemo(() => groupByEvent(offers), [offers]);
+  const activeEvent = groups.some((group) => group.key === eventFilter)
+    ? eventFilter
+    : "all";
+  const eventOffers = useMemo(
+    () =>
+      activeEvent === "all"
+        ? offers
+        : offers.filter(
+            (offer) => (offer.event ? String(offer.event.id) : "none") === activeEvent
+          ),
+    [offers, activeEvent]
+  );
+  const visibleGroups = useMemo(
+    () =>
+      groupByEvent(
+        eventOffers.filter(
+          (offer) => filterMatches(offer, filter) && rideMatches(offer, query)
+        )
+      ),
+    [eventOffers, filter, query]
   );
 
-  // A search that hits a passenger or pickup point opens that ride's
-  // requests; the admin can still collapse it again.
-  useEffect(() => {
-    if (!query) return;
-    const hits = offers.filter((offer) => requestsMatch(offer, query));
-    if (!hits.length) return;
-    setExpanded((current) => {
-      const next = new Set(current);
-      hits.forEach((offer) => next.add(offer.id));
-      return next;
-    });
-  }, [offers, query]);
-
-  const toggle = (id: number) =>
-    setExpanded((current) => {
-      const next = new Set(current);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-
-  const allExpanded =
-    visible.length > 0 &&
-    visible.every(
-      (offer) => !offer.requests.length || expanded.has(offer.id)
+  if (!overview) {
+    return failed ? (
+      <LoadError message="Couldn't load rides for this date." onRetry={onRetry} />
+    ) : (
+      <div className="flex flex-col gap-4">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,200px),1fr))] gap-4">
+          {Array.from({ length: 4 }, (_, index) => (
+            <div key={index} className="h-[104px] animate-pulse rounded-xl bg-lightGray/30" />
+          ))}
+        </div>
+        <RideSkeleton rows={2} className="h-56" />
+      </div>
     );
+  }
 
-  const dates = overview?.service_dates?.length
-    ? overview.service_dates
-    : overview
-      ? [overview.service_date]
-      : [];
-  const selectedDate = serviceDate || overview?.service_date || "";
-  const stats = overview?.stats;
-  const isCurrent =
-    Boolean(overview) && overview?.service_date === overview?.current_service_date;
+  const stats = statsFor(eventOffers);
+  const openReports = overview.stats.open_reports;
+  const isPast = overview.service_date < overview.current_service_date;
+  const percent = stats.seats_offered
+    ? `${Math.round((stats.seats_filled / stats.seats_offered) * 100)}% of seats offered`
+    : "No seats offered";
+  const showHeadings = groups.length > 1 || visibleGroups.some((group) => group.event);
 
   return (
-    <section className="flex flex-col gap-5">
-      <div className="flex flex-wrap items-end gap-3">
-        <label className="flex min-w-[220px] flex-col gap-1 text-xs font-medium text-primaryGray">
-          Service date
-          <select
-            className={inputClass}
-            value={selectedDate}
-            disabled={!overview}
-            onChange={(event) => {
-              setServiceDate(event.target.value);
-              setExpanded(new Set());
-            }}
-          >
-            {dates.map((date) => (
-              <option key={date} value={date}>
-                {serviceDateLabel(date)}
-                {date === overview?.current_service_date ? " · This Sunday" : ""}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="flex min-w-[220px] flex-1 flex-col gap-1 text-xs font-medium text-primaryGray">
-          Search
-          <span className="relative">
-            <MagnifyingGlassIcon
-              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primaryGray"
-              aria-hidden="true"
-            />
-            <input
-              type="search"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Driver, passenger, area or pickup point"
-              className={cn(inputClass, "pl-9")}
-            />
-          </span>
-        </label>
+    <div
+      className={cn(
+        "flex flex-col gap-4 transition-opacity",
+        loading && "pointer-events-none opacity-60"
+      )}
+      aria-busy={loading}
+    >
+      {failed ? (
+        <LoadError
+          message="Couldn't refresh this date. Showing the last loaded rides."
+          onRetry={onRetry}
+        />
+      ) : null}
+
+      {groups.length > 1 ? (
+        <Segmented
+          label="Church event"
+          value={activeEvent}
+          onChange={setEventFilter}
+          options={[
+            { value: "all", label: `All events (${groups.length})` },
+            ...groups.map((group) => ({
+              value: group.key,
+              label: group.event
+                ? `${group.event.name}${group.event.start_time ? ` · ${clockLabel(group.event.start_time)}` : ""}`
+                : "No event",
+            })),
+          ]}
+        />
+      ) : null}
+
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,200px),1fr))] gap-4">
+        <StatTile
+          label="Rides"
+          value={String(stats.rides)}
+          sub={
+            stats.cancelled_rides
+              ? `${stats.cancelled_rides} cancelled`
+              : "None cancelled"
+          }
+        />
+        <StatTile
+          label="Seats filled"
+          value={`${stats.seats_filled} / ${stats.seats_offered}`}
+          sub={percent}
+        />
+        <StatTile
+          label="Waiting for a reply"
+          value={String(stats.pending_requests)}
+          sub={`${plural(stats.pending_requests, "request")} pending${
+            stats.declined_requests ? ` · ${stats.declined_requests} declined` : ""
+          }`}
+          hot={stats.pending_requests > 0}
+          onClick={() => setFilter("pending")}
+        />
+        <StatTile
+          label="Open reports"
+          value={String(openReports)}
+          sub={openReports ? "Needs the safety team" : "All clear"}
+          hot={openReports > 0}
+          onClick={onShowReports}
+        />
       </div>
 
-      {failed && !overview ? (
-        <PanelError
-          message="Failed to load Sunday rides. Please try again."
-          onRetry={load}
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+        <Segmented
+          label="Filter rides"
+          value={filter}
+          options={FILTERS}
+          onChange={setFilter}
+          className="flex-none"
         />
-      ) : !overview ? (
-        <div className="flex flex-col gap-4" aria-busy="true">
-          <span className="sr-only">Loading Sunday rides…</span>
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
-            {Array.from({ length: 5 }, (_, index) => (
-              <Skeleton key={index} className="h-[104px] rounded-2xl" />
-            ))}
-          </div>
-          <Skeleton className="h-56 w-full rounded-2xl" />
-          <Skeleton className="h-56 w-full rounded-2xl" />
-        </div>
-      ) : (
-        <div
-          className={cn(
-            "flex flex-col gap-5 transition-opacity",
-            loading && "pointer-events-none opacity-60"
-          )}
-          aria-busy={loading}
-        >
-          {failed ? (
-            <PanelError
-              message="Couldn't refresh this date. Showing the last loaded rides."
-              onRetry={load}
-            />
-          ) : null}
+        <SearchField
+          value={search}
+          onChange={setSearch}
+          placeholder="Driver, passenger, phone or place"
+          label="Search rides"
+          className="max-w-[340px] flex-[1_1_240px]"
+        />
+      </div>
 
-          {stats ? (
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
-              <StatTile
-                label="Rides"
-                value={stats.rides}
-                secondary={
-                  stats.cancelled_rides
-                    ? `${stats.cancelled_rides} cancelled`
-                    : isCurrent
-                      ? "This Sunday"
-                      : serviceDateLabel(overview.service_date)
-                }
-              />
-              <StatTile label="Seats offered" value={stats.seats_offered} />
-              <StatTile
-                label="Seats filled"
-                value={stats.seats_filled}
-                secondary={
-                  stats.seats_offered
-                    ? `${Math.round((stats.seats_filled / stats.seats_offered) * 100)}% of seats`
-                    : undefined
-                }
-              />
-              <StatTile
-                label="Pending requests"
-                value={stats.pending_requests}
-                secondary={
-                  stats.declined_requests
-                    ? `${stats.declined_requests} declined`
-                    : undefined
-                }
-              />
-              <StatTile
-                label="Open reports"
-                value={stats.open_reports}
-                highlight={stats.open_reports > 0}
-                secondary="View safety reports →"
-                onClick={onShowReports}
-              />
-            </div>
-          ) : null}
-
-          {offers.length === 0 ? (
-            <EmptyState
-              scope="section"
-              msg="No rides for this Sunday"
-              description={
-                isCurrent
-                  ? "When members offer seats to the service, their rides appear here."
-                  : "No rides were offered for this service date."
-              }
-            />
-          ) : (
-            <>
-              <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-primaryGray">
-                <span>
-                  {query
-                    ? `${visible.length} of ${plural(offers.length, "ride")} match`
-                    : plural(offers.length, "ride")}
+      {visibleGroups.length ? (
+        visibleGroups.map((group) => (
+          <section
+            key={group.key}
+            aria-label={eventHeading(group.event)}
+            className="flex flex-col gap-3"
+          >
+            {showHeadings ? (
+              <h2 className="text-base font-semibold text-primary">
+                {eventHeading(group.event)}
+                <span className="ml-2 text-sm font-normal text-mainGray">
+                  {plural(group.offers.length, "ride")}
                 </span>
-                {visible.some((offer) => offer.requests.length) ? (
-                  <button
-                    type="button"
-                    className="text-sm font-medium text-primary underline-offset-2 hover:underline"
-                    onClick={() =>
-                      setExpanded(
-                        allExpanded
-                          ? new Set()
-                          : new Set(visible.map((offer) => offer.id))
-                      )
-                    }
-                  >
-                    {allExpanded ? "Collapse all requests" : "Expand all requests"}
-                  </button>
-                ) : null}
-              </div>
-
-              {visible.length === 0 ? (
-                <EmptyState
-                  scope="section"
-                  msg="No matching rides"
-                  description="No driver, passenger, area or pickup point matches your search."
+              </h2>
+            ) : null}
+            <ul className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,440px),1fr))] gap-4">
+              {group.offers.map((offer) => (
+                <RideCard
+                  key={offer.id}
+                  offer={offer}
+                  onCancel={() => setCancelTarget(offer)}
                 />
-              ) : (
-                <ul className="grid grid-cols-1 gap-4 2xl:grid-cols-2">
-                  {visible.map((offer) => (
-                    <RideCard
-                      key={offer.id}
-                      offer={offer}
-                      expanded={expanded.has(offer.id)}
-                      onToggle={() => toggle(offer.id)}
-                      onCancel={() => setCancelTarget(offer)}
-                    />
-                  ))}
-                </ul>
-              )}
-            </>
-          )}
-        </div>
+              ))}
+            </ul>
+          </section>
+        ))
+      ) : (
+        <p className="py-8 text-center text-sm text-mainGray">
+          {eventOffers.length
+            ? "No rides match."
+            : isPast
+              ? "No rides were offered for this date."
+              : "No rides offered for this date yet. They appear here as members publish them."}
+        </p>
       )}
 
       {cancelTarget ? (
@@ -606,10 +490,10 @@ export const RideOverviewPanel = ({
           onClose={() => setCancelTarget(null)}
           onCancelled={() => {
             setCancelTarget(null);
-            load();
+            onRetry();
           }}
         />
       ) : null}
-    </section>
+    </div>
   );
 };

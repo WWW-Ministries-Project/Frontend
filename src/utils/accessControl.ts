@@ -40,6 +40,7 @@ export const CANONICAL_PERMISSION_DOMAINS = [
   "Sermons",
   "Promotions",
   "Messaging",
+  "Reports",
 ] as const;
 
 export type PermissionDomain = (typeof CANONICAL_PERMISSION_DOMAINS)[number];
@@ -62,6 +63,8 @@ type PermissionRequirementObject = {
 export type PermissionRequirement =
   | string
   | PermissionRequirementObject
+  /** Any one of these is enough. */
+  | (string | PermissionRequirementObject)[]
   | undefined
   | null;
 
@@ -107,6 +110,7 @@ const DOMAIN_ALIASES: Record<PermissionDomain, string[]> = {
   Sermons: ["Sermons", "Sermon"],
   Promotions: ["Promotions", "Promotion"],
   Messaging: ["Messaging"],
+  Reports: ["Reports", "Report"],
 };
 
 // Domains added after access levels were already saved fall back to a broader
@@ -124,6 +128,10 @@ const DOMAIN_FALLBACKS: Partial<Record<PermissionDomain, PermissionDomain[]>> = 
   // administers Community keeps managing mobile banners until Promotions is
   // set explicitly. Announcements stays as a secondary fallback.
   Promotions: ["Community", "Announcements"],
+  // Department reports and the executive summary shipped after access levels
+  // were saved, so Settings administrators keep access until Reports is set.
+  // Mirrors PERMISSION_KEY_ALIASES in the Backend's authorization.ts.
+  Reports: ["Settings", "Access_rights"],
 };
 
 /** Domains that are no longer offered in the access-level editor but may
@@ -314,6 +322,13 @@ export const ACCESS_LEVEL_DOMAINS: DomainMeta[] = [
     description: "Role templates and access-level configuration",
     group: "Administration",
     required: true,
+  },
+  {
+    key: "Reports",
+    label: "Reports",
+    description: "Executive summary and department report sign-off (admin approves and returns)",
+    group: "Administration",
+    required: false,
   },
   {
     key: "Settings",
@@ -671,6 +686,12 @@ export const hasRequiredAccess = (
 ): boolean => {
   if (!requirement) return true;
 
+  if (Array.isArray(requirement)) {
+    return requirement.some((item) =>
+      hasRequiredAccess(item, permissions, legacyPermissions)
+    );
+  }
+
   if (typeof requirement === "object") {
     return canAccess(permissions, requirement.domain, requirement.action);
   }
@@ -718,6 +739,12 @@ const toActionRequirement = (
   targetAction: "manage" | "admin"
 ): PermissionRequirement => {
   if (!requirement) return requirement;
+
+  if (Array.isArray(requirement)) {
+    return requirement.map(
+      (item) => toActionRequirement(item, targetAction) as string | PermissionRequirementObject
+    );
+  }
 
   if (typeof requirement === "object") {
     if (requirement.action === "admin") return requirement;

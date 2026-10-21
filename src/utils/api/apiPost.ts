@@ -1,3 +1,8 @@
+import type {
+  DeptReportDetail,
+  DeptReportSelector,
+  EventReportSignOffPayload,
+} from "./reports/interfaces";
 import type { RequisitionReminderResponse } from "./requisitions/interfaces";
 import type { ApiResponse, QueryType } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
@@ -128,6 +133,7 @@ import type {
 import {
   BiometricAttendanceImportPayload,
   BiometricAttendanceImportStartResponse,
+  EventReminderRow,
   EventType,
   PublicEventRegistrationPayload,
   ValidateEventMemberPayload,
@@ -313,6 +319,14 @@ export class ApiCreationCalls {
     return this.postToApi("event/create-event", payload);
   };
 
+  /** Replaces an occurrence's reminders. Needs at least one offset. */
+  saveEventReminders = (payload: {
+    event_id: number;
+    reminders: number[];
+  }): Promise<ApiResponse<EventReminderRow[]>> => {
+    return this.postToApi<EventReminderRow[]>("event/reminders", payload);
+  };
+
   createUniqueEvent = (payload: EventType): Promise<ApiResponse<EventType>> => {
     return this.postToApi<EventType>("event/create-event-type", payload);
   };
@@ -381,6 +395,58 @@ export class ApiCreationCalls {
     payload: EventReportApprovalConfigPayload
   ): Promise<ApiResponse<ApprovalConfig>> => {
     return this.postToApi("event-reports/upsert-approval-config", payload);
+  };
+
+  // Event report sign-off
+  approveEventReport = (payload: EventReportSignOffPayload): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("event-reports/approve", payload);
+  };
+
+  returnEventReport = (payload: EventReportSignOffPayload): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("event-reports/return", payload);
+  };
+
+  resubmitEventReport = (payload: EventReportSignOffPayload): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("event-reports/resubmit", payload);
+  };
+
+  commentOnEventReport = (payload: EventReportSignOffPayload): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("event-reports/comment", payload);
+  };
+
+  // Department reports
+  submitDepartmentReport = (payload: DeptReportSelector): Promise<ApiResponse<DeptReportDetail>> => {
+    return this.postToApi("department-reports/submit", payload);
+  };
+
+  approveDepartmentReport = (payload: DeptReportSelector): Promise<ApiResponse<DeptReportDetail>> => {
+    return this.postToApi("department-reports/approve", payload);
+  };
+
+  returnDepartmentReport = (
+    payload: DeptReportSelector & { note: string }
+  ): Promise<ApiResponse<DeptReportDetail>> => {
+    return this.postToApi("department-reports/return", payload);
+  };
+
+  commentOnDepartmentReport = (
+    payload: DeptReportSelector & { text: string }
+  ): Promise<ApiResponse<DeptReportDetail>> => {
+    return this.postToApi("department-reports/comment", payload);
+  };
+
+  remindDepartmentReport = (
+    payload: DeptReportSelector
+  ): Promise<ApiResponse<{ sent_to: number }>> => {
+    return this.postToApi("department-reports/remind", payload);
+  };
+
+  decideLeadershipRequest = (payload: {
+    request_id: number;
+    decision: "APPROVE" | "RESPOND";
+    response?: string;
+  }): Promise<ApiResponse<{ id: number; outcome: string; response: string | null }>> => {
+    return this.postToApi("department-reports/requests/decide", payload);
   };
 
   generateEventReport = (
@@ -1175,7 +1241,9 @@ export class ApiCreationCalls {
 
   setRideAlert = (
     payload: RideAlertDto
-  ): Promise<ApiResponse<{ pickup_point_id: number; alert_on: boolean }>> => {
+  ): Promise<
+    ApiResponse<{ pickup_point_id: number; event_id?: number; alert_on: boolean }>
+  > => {
     return this.postToApi("rides/alerts", payload);
   };
 

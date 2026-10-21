@@ -1,4 +1,9 @@
 import type {
+  DeptReportDetail,
+  DeptReportList,
+  ExecutiveSummary,
+} from "./reports/interfaces";
+import type {
   AssetHistoryResponse,
   AssetOverviewResponse,
   StockCheckListResponse,
@@ -55,6 +60,7 @@ import type {
 import {
   BiometricAttendanceImportJob,
   BiometricEventAttendanceListResponse,
+  EventReminderRow,
   EventResponseType,
   EventType,
 } from "./events/interfaces";
@@ -304,6 +310,13 @@ export class ApiCalls {
     return this.fetchFromApi("event/get-event", query);
   };
 
+  /** Reminder rows for one occurrence. Query: { event_id } */
+  fetchEventReminders = (
+    query?: QueryType
+  ): Promise<ApiResponse<EventReminderRow[]>> => {
+    return this.fetchFromApi("event/reminders", query);
+  };
+
   fetchPublicEventById = (
     query?: QueryType
   ): Promise<ApiResponse<EventResponseType>> => {
@@ -326,6 +339,19 @@ export class ApiCalls {
     query?: QueryType
   ): Promise<ApiResponse<EventReportDetail | null>> => {
     return this.fetchFromApi("event-reports/get-report", query);
+  };
+
+  // Department reports and executive summary
+  fetchDepartmentReports = (query?: QueryType): Promise<ApiResponse<DeptReportList>> => {
+    return this.fetchFromApi("department-reports/list", query);
+  };
+
+  fetchDepartmentReport = (query?: QueryType): Promise<ApiResponse<DeptReportDetail>> => {
+    return this.fetchFromApi("department-reports/report", query);
+  };
+
+  fetchExecutiveSummary = (query?: QueryType): Promise<ApiResponse<ExecutiveSummary>> => {
+    return this.fetchFromApi("department-reports/executive-summary", query);
   };
 
   // Position Management
@@ -1416,22 +1442,36 @@ export class ApiCalls {
   };
 
   // Ride to church (members)
-  fetchRideCatalog = (): Promise<ApiResponse<RideCatalog>> => {
-    return this.fetchFromApi("rides/catalog");
+  // `eventId` is optional throughout: without it the server picks the
+  // soonest upcoming event (for My ride, the soonest one the member rides to).
+  fetchRideCatalog = (
+    eventId?: number | null
+  ): Promise<ApiResponse<RideCatalog>> => {
+    return this.fetchFromApi(
+      "rides/catalog",
+      eventId ? { event_id: eventId } : undefined
+    );
   };
 
-  fetchMyRide = (): Promise<ApiResponse<MyRide>> => {
-    return this.fetchFromApi("rides/mine");
+  fetchMyRide = (eventId?: number | null): Promise<ApiResponse<MyRide>> => {
+    return this.fetchFromApi(
+      "rides/mine",
+      eventId ? { event_id: eventId } : undefined
+    );
   };
 
   searchRides = (
-    pickupPointId: number
+    pickupPointId: number,
+    eventId?: number | null
   ): Promise<ApiResponse<RideSearchResult>> => {
-    return this.fetchFromApi("rides/search", { pickup_point_id: pickupPointId });
+    return this.fetchFromApi("rides/search", {
+      pickup_point_id: pickupPointId,
+      ...(eventId ? { event_id: eventId } : {}),
+    });
   };
 
   // Ride to church (safety team / church office)
-  /** Query: service_date (YYYY-MM-DD, defaults to the Sunday being arranged). */
+  /** Query: service_date (YYYY-MM-DD, defaults to the day of the soonest ride event). */
   fetchRideAdminOverview = (
     query?: QueryType
   ): Promise<ApiResponse<AdminRideOverview>> => {
