@@ -64,6 +64,17 @@ export interface AccessLevelExclusionUser {
 }
 
 //access right
+/** One person holding a role in one branch. */
+export interface AccessLevelGrant {
+  user_id: number;
+  name: string;
+  email?: string | null;
+  is_active?: boolean;
+  photo?: string | null;
+  branch_id: number;
+  branch_name: string;
+}
+
 export interface AccessRight {
   id: number;
   name: string;
@@ -73,6 +84,8 @@ export interface AccessRight {
     Exclusions?: ExclusionsMap;
   };
   users_assigned?: AccessLevelAssignedUser[];
+  /** Who holds this role, per branch (limited to the viewer's branches). */
+  grants?: AccessLevelGrant[];
   exclusion_users?: Record<string, AccessLevelExclusionUser[]>;
 }
 export interface AccessRightOption {

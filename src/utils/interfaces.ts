@@ -44,6 +44,16 @@ export interface ApiCallOptions {
   patchExecutor?: PayloadExecutorType;
 }
 
+/** A user's role in one branch. Roles are global; grants are per branch. */
+export interface BranchAccessGrant {
+  branch_id: number;
+  branch_name: string;
+  access_level_id: number;
+  access_level_name: string;
+  /** Sent by `user/current-user`; absent in the JWT to keep the cookie small. */
+  permissions?: Record<string, unknown>;
+}
+
 export interface userType {
   id: string;
   member_id?: string;
@@ -63,6 +73,11 @@ export interface userType {
   instructor?: boolean;
   /** Set on guest (non-member) accounts; members-only features hide for them. */
   is_guest?: boolean | null;
+  /** The member's home branch. */
+  branch_id?: number | null;
+  branch_name?: string | null;
+  /** Admins only: the branches they can work in and their role in each. */
+  branch_access?: BranchAccessGrant[];
 }
 export interface userTypeWithToken
   extends Omit<userType, "permissions" | "access_permissions"> {

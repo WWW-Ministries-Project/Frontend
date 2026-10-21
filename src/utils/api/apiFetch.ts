@@ -6,7 +6,10 @@ import type {
 } from "./assets/interfaces";
 import { AccessRight } from "@/pages/HomePage/pages/Settings/utils/settingsInterfaces";
 import type { ApiResponse, QueryType } from "../interfaces";
-import type { AssignableUser } from "./settings/accessLevelAssignmentInterfaces";
+import type {
+  AssignableUser,
+  UserBranchAccess,
+} from "./settings/accessLevelAssignmentInterfaces";
 import { ApiExecution } from "./apiConstructor";
 import { downloadFile, fetchData } from "./apiFunctions";
 import type {
@@ -396,6 +399,12 @@ export class ApiCalls {
   };
   fetchAssignableUsers = (): Promise<ApiResponse<AssignableUser[]>> => {
     return this.fetchFromApi("access/assignable-users");
+  };
+  /** A user's role in each branch. */
+  fetchUserBranchAccess = (
+    query?: QueryType
+  ): Promise<ApiResponse<UserBranchAccess>> => {
+    return this.fetchFromApi("access/user-branch-access", query);
   };
 
   // Requisition Management

@@ -8,7 +8,8 @@ import {
   TextInput,
 } from "@/pages/HomePage/pages/MembershipManagement/components/membershipUi";
 import { showNotification } from "@/pages/HomePage/utils";
-import { ALL_BRANCHES, useBranchStore } from "@/store/useBranchStore";
+import { LockedBranchField } from "@/components/BranchSelectField";
+import { useBranchFieldState } from "@/CustomHooks/useBranchFieldState";
 import { useUserStore } from "@/store/userStore";
 import { api } from "@/utils";
 import type {
@@ -59,8 +60,8 @@ export const DepartmentFormDialog = ({
   const isEdit = Boolean(department);
   const membersOptions = useActiveMemberOptions(open);
   const userId = useUserStore((state) => state.id);
-  const { activeBranchId, branches } = useBranchStore();
-  const showBranch = activeBranchId === ALL_BRANCHES;
+  const { options: branches, lockedBranch, lockedReason } = useBranchFieldState();
+  const showBranch = !lockedBranch;
 
   const [form, setForm] = useState<FormState>(() => toFormState(department));
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
@@ -119,13 +120,11 @@ export const DepartmentFormDialog = ({
       return;
     }
 
-    const branchId: number | "" = showBranch
-      ? Number(form.branchId)
-      : department?.branch_id
-        ? department.branch_id
-        : typeof activeBranchId === "number"
-          ? activeBranchId
-          : "";
+    const branchId: number | "" = lockedBranch
+      ? lockedBranch.id
+      : form.branchId
+        ? Number(form.branchId)
+        : "";
 
     const payload: DepartmentMutationPayload = {
       name,
@@ -193,7 +192,13 @@ export const DepartmentFormDialog = ({
             placeholder="Describe the department’s purpose or responsibilities."
           />
         </Field>
-        {showBranch && (
+        {lockedBranch && lockedReason ? (
+          <LockedBranchField
+            id="department-branch"
+            branch={lockedBranch}
+            reason={lockedReason}
+          />
+        ) : (
           <Field label="Branch *" error={errors.branchId}>
             <SelectInput
               value={form.branchId}

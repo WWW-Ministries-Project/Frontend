@@ -5,11 +5,11 @@ import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
 import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
-import { SelectField } from "@/pages/HomePage/Components/reusable/SelectField";
 import { showLoader, showNotification } from "@/pages/HomePage/utils";
 import { api } from "@/utils/api/apiCalls";
 import { notify } from "@/components/feedback";
 import { XCircleIcon } from "@heroicons/react/24/outline";
+import { BranchAccessEditor } from "../Components/BranchAccessEditor";
 import { useEffect, useMemo, useState } from "react";
 
 /* Simple inline spinner */
@@ -30,7 +30,6 @@ export const ViewUser = ({ id, onClose }: IProps) => {
   const {
     data: responseData,
     loading: loadingUser,
-    refetch,
   } = useFetch(api.fetch.fetchAMember, { user_id: id! });
 
   const {
@@ -51,10 +50,6 @@ export const ViewUser = ({ id, onClose }: IProps) => {
     error: resetError,
   } = usePost(api.post.forgotPassword);
 
-  const {
-    updateData: updateAccess,
-    loading: accessLoading,
-  } = usePut(api.put.assignAccessRight);
 
   const user = useMemo(() => responseData?.data, [responseData]);
   const [isActive, setIsActive] = useState(!!user?.is_active);
@@ -95,10 +90,10 @@ export const ViewUser = ({ id, onClose }: IProps) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resetData, resetError]);
 
-  /* Roles options */
-  const rolesOptions = useMemo(
+  /* Roles, given per branch */
+  const roles = useMemo(
     () =>
-      allRoles?.data?.map((role) => ({ label: role.name, value: role.id })) ||
+      allRoles?.data?.map((role) => ({ id: Number(role.id), name: role.name })) ||
       [],
     [allRoles]
   );
@@ -115,15 +110,6 @@ export const ViewUser = ({ id, onClose }: IProps) => {
     }
   }, [activateLoading, activateData]);
 
-  /* Change access */
-  const changeAccess = (access_level_id: number | string) => {
-    updateAccess({ user_id: id!, access_level_id })
-      .then(() => {
-        refetch();
-        showNotification("Access level updated successfully", "success");
-      })
-      .catch(() => showNotification("Failed to update access level", "error"));
-  };
 
   /* Skeletons */
   const HeaderSkeleton = () => (
@@ -237,37 +223,22 @@ export const ViewUser = ({ id, onClose }: IProps) => {
                 label={isActive ? "Deactivate" : "Activate"}
                 isChecked={isActive}
                 onChange={toggleAccountStatus}
-                disabled={activateLoading || accessLoading}
+                disabled={activateLoading}
               />
             </div>
           </div>
         )}
 
-        {/* User access level */}
+        {/* Role per branch */}
         {loadingUser ? (
           <FieldSkeleton />
         ) : (
-          <div className="relative flex items-center justify-between border p-4 rounded-xl">
-            <div>
-              <p className="font-medium">Access level</p>
-              <p className="text-sm text-gray-700">
-                Select the access level this user should operate with
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              {(loadingRoles || accessLoading) && <Spinner className="text-primary" />}
-              <SelectField
-                placeholder={"Select Access Level"}
-                className="w-48 sm:w-64"
-                label={""}
-                disabled={loadingRoles || accessLoading}
-                options={rolesOptions}
-                onChange={(_, value) => changeAccess(value ?? "")}
-                id={"role"}
-                value={user?.access_level_id?.toString() || ""}
-              />
-            </div>
-          </div>
+          <BranchAccessEditor
+            userId={Number(id)}
+            userName={user?.name ?? "This user"}
+            roles={roles}
+            disabled={loadingRoles}
+          />
         )}
 
         {/* Password reset */}
@@ -293,7 +264,7 @@ export const ViewUser = ({ id, onClose }: IProps) => {
       </section>
 
       {/* Block interactions overlay when mutating (optional) */}
-      {(activateLoading || accessLoading) && (
+      {activateLoading && (
         <div className="absolute inset-0 bg-white/50 backdrop-blur-[1px] rounded-lg pointer-events-none flex items-center justify-center">
           <div className="flex items-center gap-3 text-primary">
             <Spinner />

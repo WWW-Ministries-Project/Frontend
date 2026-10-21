@@ -4,6 +4,8 @@ import {
   normalizePermissionPayload,
   PermissionMap,
 } from "@/utils/accessControl";
+import { useBranchStore } from "@/store/useBranchStore";
+import { resolveBranchPermissions } from "@/utils/branchAccess";
 import { userType } from "@/utils/interfaces";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
@@ -84,6 +86,10 @@ export const useUserStore = create<UserState & UserActions>()(
       department_positions: [],
       life_center_leader: false,
       instructor: false,
+      is_guest: null,
+      branch_id: null,
+      branch_name: null,
+      branch_access: [],
 
       setUser: ({
         id,
@@ -100,11 +106,24 @@ export const useUserStore = create<UserState & UserActions>()(
         department_positions,
         life_center_leader,
         instructor,
+        is_guest,
+        branch_id,
+        branch_name,
+        branch_access,
         permissions,
         access_permissions,
       }) => {
-        const legacyPermissionPayload = toLegacyPermissionMap(permissions);
+        // Roles are per branch: when the API sent each branch's permissions,
+        // the active branch's role decides what the UI offers.
+        const branchPermissions = resolveBranchPermissions(
+          branch_access,
+          useBranchStore.getState().activeBranchId
+        );
+        const legacyPermissionPayload = branchPermissions
+          ? {}
+          : toLegacyPermissionMap(permissions);
         const explicitPermissionPayload =
+          branchPermissions ??
           access_permissions ??
           (Array.isArray(permissions) ? undefined : permissions) ??
           {};
@@ -140,6 +159,10 @@ export const useUserStore = create<UserState & UserActions>()(
           department_positions,
           life_center_leader: Boolean(life_center_leader),
           instructor: Boolean(instructor),
+          is_guest: is_guest ?? null,
+          branch_id: branch_id ?? null,
+          branch_name: branch_name ?? null,
+          branch_access: Array.isArray(branch_access) ? branch_access : [],
           permissions: legacyPermissions ?? {},
           access_permissions: normalizedPermissionPayload,
         });
@@ -163,6 +186,10 @@ export const useUserStore = create<UserState & UserActions>()(
           department_positions: [],
           life_center_leader: false,
           instructor: false,
+          is_guest: null,
+          branch_id: null,
+          branch_name: null,
+          branch_access: [],
         }),
     }),
     {

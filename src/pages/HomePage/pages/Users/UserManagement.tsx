@@ -7,6 +7,12 @@ import EmptyState from "@/components/EmptyState";
 import { ProfilePicture } from "@/components/ProfilePicture";
 import { SearchBar } from "@/components/SearchBar";
 import { useFetch } from "@/CustomHooks/useFetch";
+import {
+  ALL_BRANCHES,
+  selectAccessibleBranches,
+  useBranchStore,
+} from "@/store/useBranchStore";
+import type { BranchAccessGrant } from "@/utils/interfaces";
 import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { useUserStore } from "@/store/userStore";
 import { MembersType, relativePath } from "@/utils";
@@ -64,6 +70,28 @@ export const UserManagement = () => {
   }, [appliedSearch, statusFilter, page, limit]);
 
   const { data: registeredMembers, refetch } = useFetch(api.fetch.fetchAllMembers, usersQuery);
+  // Each user's role per branch (needs Access rights manage; falls back to the
+  // single role column when unavailable).
+  const { canManage: canManageDomain } = useAccessControl();
+  const { data: assignableUsers } = useFetch(
+    api.fetch.fetchAssignableUsers,
+    undefined,
+    !canManageDomain("Access_rights"),
+    { silent: true }
+  );
+  const grantsByUser = useMemo(() => {
+    const map = new Map<number, BranchAccessGrant[]>();
+    (assignableUsers?.data || []).forEach((item) => {
+      map.set(Number(item.id), item.branch_access || []);
+    });
+    return map;
+  }, [assignableUsers]);
+  const branches = useBranchStore(selectAccessibleBranches);
+  const activeBranchId = useBranchStore((state) => state.activeBranchId);
+  const activeBranch =
+    activeBranchId === ALL_BRANCHES
+      ? null
+      : branches.find((branch) => branch.id === activeBranchId) ?? null;
 
   const { canManage } = useAccessControl();
   const canBulkManage = canManage("Members");
@@ -234,9 +262,36 @@ export const UserManagement = () => {
       accessorKey: "email",
     },
     {
-      header: "Role",
-      accessorKey: "access.name",
-      accessorFn: (row) => row.access?.name || "-",
+      header: activeBranch ? `Role in ${activeBranch.name}` : "Branch access",
+      id: "branch_access",
+      cell: ({ row }) => {
+        const grants = grantsByUser.get(Number(row.original.id));
+        if (!grants) return row.original.access?.name || "-";
+        const shown = activeBranch
+          ? grants.filter((grant) => grant.branch_id === activeBranch.id)
+          : grants;
+        if (shown.length === 0) {
+          return (
+            <span className="rounded-full border border-warning/40 bg-warning/10 px-2 py-0.5 text-xs font-medium text-warning">
+              No access
+            </span>
+          );
+        }
+        return (
+          <div className="flex flex-wrap gap-1">
+            {shown.map((grant) => (
+              <span
+                key={grant.branch_id}
+                className="rounded-md border border-borderGray bg-background px-2 py-0.5 text-xs font-medium text-primary"
+              >
+                {activeBranch
+                  ? grant.access_level_name
+                  : `${grant.branch_name.replace(/ Branch$/, "")} · ${grant.access_level_name}`}
+              </span>
+            ))}
+          </div>
+        );
+      },
     },
     {
       header: "Acount Status",
@@ -285,7 +340,11 @@ export const UserManagement = () => {
         setShowFilter={setShowFilter}
         screenWidth={window.innerWidth}
       />
-      {/* <PageHeader title={`Users(${users.length})`} /> */}
+      <p className="-mt-2 mb-3 text-sm text-primaryGray">
+        {activeBranch
+          ? `Everyone with access to ${activeBranch.name}. Change their role from their details.`
+          : "Everyone who can sign in to the admin app, across your branches."}
+      </p>
       {showSearch && (
         <SearchBar
           placeholder="Search for a user"

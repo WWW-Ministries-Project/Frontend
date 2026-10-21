@@ -4,6 +4,8 @@ import { ApiExecution } from "./apiConstructor";
 import type {
   BulkAssignAccessLevelPayload,
   BulkAssignAccessLevelResult,
+  SetUserBranchAccessPayload,
+  UserBranchAccess,
 } from "./settings/accessLevelAssignmentInterfaces";
 import type {
   CommunityPost,
@@ -236,6 +238,13 @@ export class ApiUpdateCalls {
       "access/assign_access_to_user",
       payload
     );
+  };
+
+  // Set (or with access_level_id null, remove) a user's role in one branch
+  setUserBranchAccess = (
+    payload: SetUserBranchAccessPayload
+  ): Promise<ApiResponse<UserBranchAccess>> => {
+    return this.apiExecution.updateData("access/user-branch-access", payload);
   };
 
   // Assign and/or unassign many users on one access level

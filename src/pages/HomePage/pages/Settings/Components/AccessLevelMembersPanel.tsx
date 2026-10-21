@@ -5,10 +5,16 @@ import {
   showConfirmDialog,
   showNotification,
 } from "@/pages/HomePage/utils";
+import {
+  ALL_BRANCHES,
+  selectAccessibleBranches,
+  useBranchStore,
+} from "@/store/useBranchStore";
+import { notify } from "@/components/feedback";
 import { api } from "@/utils/api/apiCalls";
 import type { AssignableUser } from "@/utils/api/settings/accessLevelAssignmentInterfaces";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { AccessLevelAssignedUser, AccessRight } from "../utils/settingsInterfaces";
+import { AccessLevelGrant, AccessRight } from "../utils/settingsInterfaces";
 
 interface AccessLevelMembersPanelProps {
   accessRight: AccessRight;
@@ -19,8 +25,8 @@ interface AccessLevelMembersPanelProps {
 const toErrorMessage = (error: unknown, fallback: string) =>
   error instanceof Error && error.message ? error.message : fallback;
 
-const getAssignedUserName = (user: AccessLevelAssignedUser): string =>
-  user.name || user.full_name || `User #${user.id}`;
+const getGrantUserName = (grant: AccessLevelGrant): string =>
+  grant.name || `User #${grant.user_id}`;
 
 const getInitials = (value: string): string =>
   value
@@ -55,9 +61,30 @@ export const AccessLevelMembersPanel = ({
   const [search, setSearch] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [saving, setSaving] = useState(false);
+  const branches = useBranchStore(selectAccessibleBranches);
+  const activeBranchId = useBranchStore((state) => state.activeBranchId);
+  const [branchId, setBranchId] = useState<string>(
+    activeBranchId === ALL_BRANCHES ? "" : String(activeBranchId)
+  );
+  const [branchError, setBranchError] = useState(false);
 
-  const assignedUsers = useMemo(
-    () => accessRight.users_assigned || [],
+  useEffect(() => {
+    setBranchId(activeBranchId === ALL_BRANCHES ? "" : String(activeBranchId));
+  }, [activeBranchId]);
+
+  const chosenBranch = branches.find((branch) => String(branch.id) === branchId) ?? null;
+
+  // One entry per person per branch: roles are given branch by branch.
+  const grants = useMemo<AccessLevelGrant[]>(
+    () =>
+      accessRight.grants ??
+      (accessRight.users_assigned || []).map((user) => ({
+        user_id: user.id,
+        name: user.name || user.full_name || "",
+        photo: user.user_info?.photo ?? null,
+        branch_id: 0,
+        branch_name: "",
+      })),
     [accessRight]
   );
 
@@ -88,20 +115,26 @@ export const AccessLevelMembersPanel = ({
     };
   }, [canManageAccessRights, reloadKey]);
 
-  // Anyone already on this level is listed above, so only offer the rest.
+  const roleInChosenBranch = useCallback(
+    (candidate: AssignableUser) =>
+      chosenBranch
+        ? candidate.branch_access?.find((grant) => grant.branch_id === chosenBranch.id) ?? null
+        : null,
+    [chosenBranch]
+  );
+
+  // Anyone who already has this role in the chosen branch is listed above.
   const availableCandidates = useMemo(() => {
-    const assignedIds = new Set(assignedUsers.map((user) => user.id));
     const term = search.trim().toLowerCase();
 
     return candidates.filter((candidate) => {
-      if (assignedIds.has(candidate.id)) return false;
-      if (candidate.access_level?.id === accessRight.id) return false;
+      if (roleInChosenBranch(candidate)?.access_level_id === accessRight.id) return false;
       if (!term) return true;
       return [candidate.name, candidate.email, candidate.member_id]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(term));
     });
-  }, [accessRight.id, assignedUsers, candidates, search]);
+  }, [accessRight.id, candidates, roleInChosenBranch, search]);
 
   const toggleSelected = (id: number) => {
     setSelectedIds((previous) => {
@@ -113,20 +146,30 @@ export const AccessLevelMembersPanel = ({
   };
 
   const submit = useCallback(
-    async (payload: { assign_user_ids?: number[]; unassign_user_ids?: number[] }) => {
+    async (
+      payload: { assign_user_ids?: number[]; unassign_user_ids?: number[] },
+      branch: { id: number; name: string },
+      removedName?: string
+    ) => {
       setSaving(true);
       try {
         await api.put.bulkAssignAccessLevel({
           access_level_id: accessRight.id,
+          branch_id: branch.id,
           ...payload,
         });
         const assignedCount = payload.assign_user_ids?.length || 0;
-        showNotification(
-          assignedCount > 0
-            ? `${assignedCount} member${assignedCount === 1 ? "" : "s"} assigned to ${accessRight.name}`
-            : `Member removed from ${accessRight.name}`,
-          "success"
-        );
+        if (assignedCount > 0) {
+          notify.success({
+            title: "People added",
+            message: `${assignedCount} ${assignedCount === 1 ? "person is" : "people are"} now ${accessRight.name} in ${branch.name}.`,
+          });
+        } else {
+          notify.success({
+            title: "Removed from role",
+            message: `${removedName ?? "They"} no longer ${removedName ? "has" : "have"} access to ${branch.name}.`,
+          });
+        }
         setSelectedIds(new Set());
         setReloadKey((key) => key + 1);
         onMembersUpdated();
@@ -144,39 +187,50 @@ export const AccessLevelMembersPanel = ({
 
   const handleAssign = () => {
     const ids = Array.from(selectedIds);
-    if (ids.length === 0) return;
+    if (!chosenBranch) {
+      setBranchError(true);
+      return;
+    }
+    if (ids.length === 0) {
+      notify.warning({ title: "Pick at least one person", message: "Tick the people to add." });
+      return;
+    }
+    const branch = { id: chosenBranch.id, name: chosenBranch.name };
 
     const movingCount = candidates.filter(
-      (candidate) => selectedIds.has(candidate.id) && candidate.access_level
+      (candidate) => selectedIds.has(candidate.id) && roleInChosenBranch(candidate)
     ).length;
 
     if (movingCount === 0) {
-      void submit({ assign_user_ids: ids });
+      void submit({ assign_user_ids: ids }, branch);
       return;
     }
 
     showConfirmDialog(
-      "Move members to this access level?",
-      () => void submit({ assign_user_ids: ids }),
+      `Change their role in ${branch.name}?`,
+      () => void submit({ assign_user_ids: ids }, branch),
       {
-        message: `${movingCount} of the selected member${
-          ids.length === 1 ? "" : "s"
-        } already ${
-          movingCount === 1 ? "has" : "have"
-        } an access level. Assigning ${accessRight.name} will replace it.`,
-        confirmLabel: "Assign",
+        message: `${movingCount} of them will move from their current role in ${branch.name}. Their access in other branches stays.`,
+        confirmLabel: "Change role",
       }
     );
   };
 
-  const handleUnassign = (user: AccessLevelAssignedUser) => {
+  const handleUnassign = (grant: AccessLevelGrant) => {
+    const name = getGrantUserName(grant);
+    if (!grant.branch_id) return;
     showConfirmDialog(
-      `Remove ${getAssignedUserName(user)} from ${accessRight.name}?`,
-      () => void submit({ unassign_user_ids: [user.id] }),
+      `Remove ${name} from ${accessRight.name} in ${grant.branch_name}?`,
+      () =>
+        void submit(
+          { unassign_user_ids: [grant.user_id] },
+          { id: grant.branch_id, name: grant.branch_name },
+          name
+        ),
       {
-        message:
-          "They will be left with no access level until one is assigned.",
+        message: `They lose access to ${grant.branch_name}. Their access in other branches stays.`,
         confirmLabel: "Remove",
+        tone: "danger",
       }
     );
   };
@@ -186,44 +240,45 @@ export const AccessLevelMembersPanel = ({
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <h4 className="text-lg font-semibold text-primary">
-            Assigned Members
+            People with this role
           </h4>
           <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-            {assignedUsers.length} members
+            {new Set(grants.map((grant) => grant.user_id)).size} people
           </span>
         </div>
 
-        {assignedUsers.length === 0 ? (
+        {grants.length === 0 ? (
           <EmptyState
             scope="section"
-            msg="No members assigned"
-            description="This access level has not been assigned to any users yet."
+            msg="No one has this role yet"
+            description="Add people and they get these permissions right away."
           />
         ) : (
           <div className="grid gap-3 md:grid-cols-2">
-            {assignedUsers.map((user) => {
-              const displayName = getAssignedUserName(user);
+            {grants.map((grant) => {
+              const displayName = getGrantUserName(grant);
 
               return (
                 <article
-                  key={user.id}
+                  key={`${grant.user_id}-${grant.branch_id}`}
                   className="flex items-center gap-3 rounded-xl border border-lightGray bg-white p-4 shadow-sm"
                 >
-                  <Avatar name={displayName} photo={user.user_info?.photo} />
+                  <Avatar name={displayName} photo={grant.photo} />
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-semibold text-primary">
                       {displayName}
                     </p>
-                    <p className="text-xs text-primaryGray">
-                      User ID: {user.id}
+                    <p className="truncate text-xs text-primaryGray">
+                      {[grant.email, grant.branch_name].filter(Boolean).join(" · ") ||
+                        `User ID: ${grant.user_id}`}
                     </p>
                   </div>
-                  {canManageAccessRights && (
+                  {canManageAccessRights && grant.branch_id > 0 && (
                     <Button
                       value="Remove"
                       variant="ghost"
                       disabled={saving}
-                      onClick={() => handleUnassign(user)}
+                      onClick={() => handleUnassign(grant)}
                       className="!min-h-8 !px-3 !py-1 text-xs text-error hover:bg-error/10"
                     />
                   )}
@@ -239,11 +294,11 @@ export const AccessLevelMembersPanel = ({
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h4 className="text-lg font-semibold text-primary">
-                Add Members
+                Add people
               </h4>
               <p className="text-sm text-primaryGray">
-                Only ministry workers can hold an access level. Members who
-                already have one will be moved to {accessRight.name}.
+                Each person has one role per branch. Adding someone here sets
+                their role in the branch you choose.
               </p>
             </div>
             <Button
@@ -257,6 +312,35 @@ export const AccessLevelMembersPanel = ({
               loading={saving}
               className="!min-h-9 !px-3 !py-1 text-xs"
             />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label htmlFor="assign-branch" className="text-sm font-medium text-primary">
+              In branch
+            </label>
+            <select
+              id="assign-branch"
+              value={branchId}
+              aria-invalid={branchError || undefined}
+              aria-describedby={branchError ? "assign-branch-error" : undefined}
+              onChange={(event) => {
+                setBranchId(event.target.value);
+                setBranchError(false);
+              }}
+              className="h-10 max-w-sm rounded-lg border border-lightGray bg-white px-3 text-sm text-primary focus:border-primary focus:outline-none"
+            >
+              <option value="">Choose a branch…</option>
+              {branches.map((branch) => (
+                <option key={branch.id} value={branch.id}>
+                  {branch.name}
+                </option>
+              ))}
+            </select>
+            {branchError && (
+              <p id="assign-branch-error" role="alert" className="text-xs text-error">
+                Choose the branch.
+              </p>
+            )}
           </div>
 
           <SearchBar
@@ -281,7 +365,7 @@ export const AccessLevelMembersPanel = ({
             <p className="rounded-lg border border-dashed border-lightGray bg-white p-4 text-sm text-primaryGray">
               {search.trim()
                 ? "No ministry workers match your search."
-                : "Every ministry worker is already on this access level."}
+                : "Everyone already has this role here."}
             </p>
           ) : (
             <ul className="max-h-80 divide-y divide-lightGray overflow-y-auto rounded-lg border border-lightGray bg-white">
@@ -309,15 +393,26 @@ export const AccessLevelMembersPanel = ({
                             .join(" • ") || `User ID: ${candidate.id}`}
                         </p>
                       </div>
-                      {candidate.access_level ? (
-                        <span className="shrink-0 rounded-full bg-warning/10 px-2.5 py-1 text-xs font-medium text-warning">
-                          Current: {candidate.access_level.name}
-                        </span>
-                      ) : (
-                        <span className="shrink-0 rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-primaryGray">
-                          No access level
-                        </span>
-                      )}
+                      {(() => {
+                        const grantsCount = candidate.branch_access?.length ?? 0;
+                        if (!chosenBranch) {
+                          return (
+                            <span className="shrink-0 rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-primaryGray">
+                              {grantsCount} branch{grantsCount === 1 ? "" : "es"}
+                            </span>
+                          );
+                        }
+                        const current = roleInChosenBranch(candidate);
+                        return current ? (
+                          <span className="shrink-0 rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-primaryGray">
+                            {current.access_level_name}
+                          </span>
+                        ) : (
+                          <span className="shrink-0 rounded-full bg-warning/10 px-2.5 py-1 text-xs font-medium text-warning">
+                            No access here
+                          </span>
+                        );
+                      })()}
                     </label>
                   </li>
                 );

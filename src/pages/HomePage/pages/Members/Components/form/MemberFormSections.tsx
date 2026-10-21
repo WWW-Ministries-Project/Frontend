@@ -1,10 +1,12 @@
 import { useFormikContext } from "formik";
+import { useEffect } from "react";
 
 import {
   Field,
   SelectInput,
 } from "@/pages/HomePage/pages/MembershipManagement/components/membershipUi";
-import { ALL_BRANCHES, useBranchStore } from "@/store/useBranchStore";
+import { LockedBranchField } from "@/components/BranchSelectField";
+import { useBranchFieldState } from "@/CustomHooks/useBranchFieldState";
 
 import type { IMembersForm } from "../MembersForm";
 import { DepartmentPositionSubForm } from "../DepartmentPosition";
@@ -161,10 +163,20 @@ export const ContactInfoSection = ({ disabled }: SectionProps) => (
 
 const BranchField = () => {
   const { values, setFieldValue } = useFormikContext<IMembersForm>();
-  const { activeBranchId, branches } = useBranchStore();
+  const { options, lockedBranch, lockedReason } = useBranchFieldState();
   const error = useFieldError("branch_id");
+  const lockedId = lockedBranch?.id;
 
-  if (activeBranchId !== ALL_BRANCHES) return null;
+  // A fixed branch is still submitted with the member.
+  useEffect(() => {
+    if (lockedId && values.branch_id !== lockedId) setFieldValue("branch_id", lockedId);
+  }, [lockedId, values.branch_id, setFieldValue]);
+
+  if (lockedBranch && lockedReason) {
+    return (
+      <LockedBranchField id="branch_id" branch={lockedBranch} reason={lockedReason} />
+    );
+  }
 
   return (
     <Field label="Branch *" error={error}>
@@ -179,7 +191,7 @@ const BranchField = () => {
         }
         options={[
           { value: "", label: "Select branch" },
-          ...branches.map((branch) => ({ value: String(branch.id), label: branch.name })),
+          ...options.map((branch) => ({ value: String(branch.id), label: branch.name })),
         ]}
       />
     </Field>
