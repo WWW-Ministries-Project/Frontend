@@ -90,7 +90,7 @@ export const RequisitionDrawer = ({
           const response = await api.fetch
             .fetchRequisitionPreApprovalSimilarItems({ requisition_id: id })
             .catch(() => null);
-          if (wanted.current === id) setSimilar(similarFromApi(response?.data));
+          if (wanted.current === id) setSimilar(similarFromApi(response?.data, id));
         } else {
           setSimilar([]);
         }
