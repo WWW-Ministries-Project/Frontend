@@ -41,6 +41,8 @@ import {
   fmtS,
   gapOf,
   initials,
+  isLeaderRole,
+  isMemberRole,
   joinAnd,
   lcDetailPath,
   n0,
@@ -61,8 +63,8 @@ const LifeCenterAnalyticsView = lazy(() =>
 type Tab = "overview" | "meetings" | "souls" | "members" | "analytics";
 
 const soulName = (s: Pick<LifeCenterSoul, "first_name" | "last_name">) => `${s.first_name} ${s.last_name}`.trim();
-const isLeader = (m: LifeCenterMemberType) => m.role.name.trim().toLowerCase() === "leader";
-const isPlainMember = (m: LifeCenterMemberType) => m.role.name.trim().toLowerCase() === "member";
+const isLeader = (m: LifeCenterMemberType) => isLeaderRole(m.role.name);
+const isPlainMember = (m: LifeCenterMemberType) => isMemberRole(m.role.name);
 const meetingDay = (g: MeetingType) => dayKey(g.day || g.date);
 /** Souls won who came, not counting first-timers. */
 const attendeesAt = (g: MeetingType) => g.attendees.filter((a) => !a.isFirstTimer).length;
@@ -551,7 +553,7 @@ export const LifeCenterDetailView = ({
   const changeRole = async (m: LifeCenterMemberType, roleId: string) => {
     const role = roles.find((r) => String(r.id) === roleId);
     if (!role) return;
-    const old = role.name.trim().toLowerCase() === "leader" ? members.find((x) => isLeader(x) && x.userId !== m.userId) : undefined;
+    const old = isLeaderRole(role.name) ? members.find((x) => isLeader(x) && x.userId !== m.userId) : undefined;
     try {
       await api.put.updateLifeCenterMember({ userId: m.userId, roleId, lifeCenterId: c.id }, { id: String(m.id) });
       notify.success({

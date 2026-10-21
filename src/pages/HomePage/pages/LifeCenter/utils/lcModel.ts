@@ -47,8 +47,26 @@ export const CURRENCIES = [
   { value: "USD", label: "US Dollar (USD)" },
   { value: "GBP", label: "British Pound (GBP)" },
 ];
-/** Roles that always exist and can't be deleted. */
-export const LOCKED_ROLES = ["leader", "member"];
+/**
+ * Built-in roles and the names they already go by in the data ("CENTER LEADER"
+ * predates the redesign and is the leader role). Matches the backend.
+ */
+const ROLE_ALIASES = {
+  leader: ["leader", "center leader", "life center leader", "lifecenter leader", "centre leader", "life centre leader"],
+  assistant: ["assistant leader", "assistant center leader", "assistant life center leader", "assistant centre leader"],
+  member: ["member", "center member", "life center member", "centre member"],
+} as const;
+export type RoleKind = keyof typeof ROLE_ALIASES;
+const normalizeRole = (name?: string | null) =>
+  String(name ?? "").toLowerCase().replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
+export const roleKind = (name?: string | null): RoleKind | null => {
+  const n = normalizeRole(name);
+  return (Object.keys(ROLE_ALIASES) as RoleKind[]).find((k) => (ROLE_ALIASES[k] as readonly string[]).includes(n)) ?? null;
+};
+export const isLeaderRole = (name?: string | null) => roleKind(name) === "leader";
+export const isMemberRole = (name?: string | null) => roleKind(name) === "member";
+/** Leader and Member always exist and can't be deleted. */
+export const isLockedRole = (name?: string | null) => isLeaderRole(name) || isMemberRole(name);
 export const DEFAULT_COUNTRY_CODE = "+233";
 
 /** Server day names ("Wednesday", "wed") → short keys, in week order. */
