@@ -5,7 +5,8 @@ import { ToggleSwitch } from "@/pages/HomePage/pages/ChurchCommunication/ui/comm
 import { PageHeading, Pill, UiButton } from "@/pages/HomePage/pages/MembershipManagement/components/membershipUi";
 import { plural, summarizeNames } from "@/pages/HomePage/pages/Settings/utils/settingsModel";
 import { cn } from "@/utils/cn";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
 import { reqNote, stepIsOpen, stepLabel, WF, WorkflowDraft, workflowErrors, WorkflowKey, WORKFLOW_KEYS } from "./approvalsModel";
 import { CardState, useApprovals } from "./useApprovals";
@@ -106,6 +107,27 @@ const ApprovalsPage = () => {
   const { cards, retry, save, personName, positionName } = approvals;
   const [editor, setEditor] = useState<Editor | null>(null);
   const [toggling, setToggling] = useState<WorkflowKey | null>(null);
+  const [params, setParams] = useSearchParams();
+
+  // `?edit=REQ` (e.g. from General configuration) opens that workflow's editor once it has loaded.
+  const editKey = params.get("edit");
+  useEffect(() => {
+    if (!editKey || !(WORKFLOW_KEYS as string[]).includes(editKey)) return;
+    const key = editKey as WorkflowKey;
+    const state = cards[key];
+    if (state.status === "loading") return;
+    if (state.status === "ready" && canManage(EDIT_DOMAIN[key])) {
+      setEditor({ key, draft: state.stored.draft, turnOn: !state.stored.exists });
+    }
+    setParams(
+      (current) => {
+        const copy = new URLSearchParams(current);
+        copy.delete("edit");
+        return copy;
+      },
+      { replace: true }
+    );
+  }, [editKey, cards, canManage, setParams]);
 
   const flowFor = (key: WorkflowKey, d: WorkflowDraft): FlowNode[] => {
     const nodes: FlowNode[] = [];
