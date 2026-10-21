@@ -7,9 +7,6 @@ import { ProfileDetails } from "@/pages/HomePage/pages/Members/pages/ProfileDeta
 import { MemberExclusionGuard } from "@/routes/MemberExclusionGuard";
 import ProgramDetails from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramDetails.js";
 import ProgramInformation from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramInformation.js";
-import { AccessRights } from "@/pages/HomePage/pages/Settings/pages/AccessRights";
-import { ManageAccess } from "@/pages/HomePage/pages/Settings/pages/ManageAccess.js";
-import { UserManagement } from "@/pages/HomePage/pages/Users/UserManagement";
 import { VisitorDetails } from "@/pages/HomePage/pages/VisitorManagement/pages/VisitorDetails";
 import VisitorAnalytics from "@/pages/HomePage/pages/VisitorManagement/pages/VisitorAnalytics";
 import { Guests } from "@/pages/HomePage/pages/VisitorManagement/pages/Guests";
@@ -23,8 +20,6 @@ import ErrorPage from "../pages/ErrorPage.jsx";
 import { HomePage } from "../pages/HomePage/HomePage";
 import { Members } from "../pages/HomePage/pages/Members/Members";
 import { ManageMember } from "../pages/HomePage/pages/Members/pages/ManageMember";
-import Settings from "../pages/HomePage/pages/Settings/Settings";
-import ApprovalSettings from "../pages/HomePage/pages/Settings/pages/ApprovalSettings";
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction";
 
 import { NoAccess } from "@/components/NoAccess";
@@ -134,6 +129,13 @@ import EventReportDetails from "@/pages/HomePage/pages/Reports/pages/EventReport
 import EventReports from "@/pages/HomePage/pages/Reports/pages/EventReports";
 import CertificateVerificationPage from "@/pages/CertificateVerification/CertificateVerificationPage";
 import { Navigate } from "react-router-dom";
+import {
+  AccessRightsList,
+  ApprovalsPage,
+  GeneralConfiguration,
+  RoleDetail,
+  UsersPage,
+} from "@/pages/HomePage/pages/Settings/lazyPages";
 import {
   AssetAnalytics,
   AssetCountPage,
@@ -1243,15 +1245,15 @@ export const routes: AppRoute[] = [
             path: "",
             alias: "departments",
             name: "General configuration",
-            element: <Settings />,
+            element: <Suspense fallback={null}><GeneralConfiguration /></Suspense>,
             isPrivate: true,
-            permissionNeeded: "view_departments",
+            permissionNeeded: "view_settings",
             sideTab: true,
           },
           {
             path: "access-rights",
             name: "Access Rights",
-            element: <AccessRights />,
+            element: <Suspense fallback={null}><AccessRightsList /></Suspense>,
             isPrivate: true,
             permissionNeeded: "view_access_rights",
             sideTab: true,
@@ -1259,25 +1261,39 @@ export const routes: AppRoute[] = [
           {
             path: "access-rights/manage-access",
             name: "Manage Access",
-            element: <ManageAccess />,
+            element: <Navigate to="/home/settings/access-rights" replace />,
             isPrivate: true,
-            permissionNeeded: "manage_access_rights",
+            permissionNeeded: "view_access_rights",
+          },
+          {
+            path: "access-rights/:roleId",
+            name: "Role",
+            element: <Suspense fallback={null}><RoleDetail /></Suspense>,
+            isPrivate: true,
+            permissionNeeded: "view_access_rights",
           },
           {
             path: "users",
             name: "Users",
-            element: <UserManagement />,
+            element: <Suspense fallback={null}><UsersPage /></Suspense>,
             isPrivate: true,
             permissionNeeded: "manage_users",
             sideTab: true,
           },
           {
+            path: "approvals",
+            name: "Approvals",
+            element: <Suspense fallback={null}><ApprovalsPage /></Suspense>,
+            isPrivate: true,
+            permissionNeeded: "view_settings",
+            sideTab: true,
+          },
+          {
             path: "approval",
             name: "Approval",
-            element: <ApprovalSettings />,
+            element: <Navigate to="/home/settings/approvals" replace />,
             isPrivate: true,
-            permissionNeeded: "manage_requisition",
-            sideTab: true,
+            permissionNeeded: "view_settings",
           },
         ],
       },

@@ -206,6 +206,11 @@ export class ApiUpdateCalls {
     );
   };
 
+  /** New sign-ups and records without a branch land in the default one. */
+  setDefaultBranch = (payload: { id: number }): Promise<ApiResponse<Branch>> => {
+    return this.apiExecution.updateData("branch/set-default-branch", payload);
+  };
+
   updateBranch = (
     payload: BranchPayload,
     query?: QueryType

@@ -101,6 +101,10 @@ import type {
 } from "./departmentJoinRequests/interfaces";
 import type { Branch, BranchPayload } from "./settings/branchInterfaces";
 import type {
+  GiveAccessPayload,
+  GiveAccessResult,
+} from "./settings/accessLevelAssignmentInterfaces";
+import type {
   AttendanceTimingSettingsConfig,
   AttendanceTimingSettingsPayload,
 } from "./settings/attendanceTimingInterfaces";
@@ -574,6 +578,20 @@ export class ApiCreationCalls {
     payload: Record<string, unknown>
   ): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("program/unenroll", payload);
+  };
+
+  /** Let a member sign in to the admin app with a role in one branch. */
+  giveAccess = (
+    payload: GiveAccessPayload
+  ): Promise<ApiResponse<GiveAccessResult>> => {
+    return this.postToApi("user/give-access", payload);
+  };
+
+  /** Admin: email someone a link to set a new password. */
+  sendResetLink = (payload: {
+    user_id: number;
+  }): Promise<ApiResponse<{ user_id: number; email: string; expires_in: string }>> => {
+    return this.postToApi("user/send-reset-link", payload);
   };
 
   forgotPassword = <T>(payload: unknown): Promise<ApiResponse<T>> => {

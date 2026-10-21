@@ -397,8 +397,11 @@ export class ApiCalls {
   fetchAnAccess = (query?: QueryType): Promise<ApiResponse<AccessRight>> => {
     return this.fetchFromApi("access/get-access-level", query);
   };
-  fetchAssignableUsers = (): Promise<ApiResponse<AssignableUser[]>> => {
-    return this.fetchFromApi("access/assignable-users");
+  /** Admin accounts with their branch roles. `include_inactive: "true"` adds deactivated ones. */
+  fetchAssignableUsers = (
+    query?: QueryType
+  ): Promise<ApiResponse<AssignableUser[]>> => {
+    return this.fetchFromApi("access/assignable-users", query);
   };
   /** A user's role in each branch. */
   fetchUserBranchAccess = (
