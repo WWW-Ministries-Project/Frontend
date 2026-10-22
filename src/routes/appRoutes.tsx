@@ -1,5 +1,5 @@
 import CreateEvent from "@/pages/HomePage/pages/EventsManagement/pages/CreateEvent";
-import EventRegister from "@/pages/HomePage/pages/EventsManagement/pages/EventRegister.jsx";
+import EventRegister from "@/pages/HomePage/pages/EventsManagement/pages/EventRegister";
 import EventsManagement from "@/pages/HomePage/pages/EventsManagement/EventsManagement";
 import ViewEvent from "@/pages/HomePage/pages/EventsManagement/pages/ViewEvents.jsx";
 import { MemberInformation } from "@/pages/HomePage/pages/Members/pages/MemberInformation";
@@ -1366,12 +1366,6 @@ export const routes: AppRoute[] = [
         isPrivate: false,
       },
       {
-        path: "events/register-event",
-        element: <EventRegister />,
-        name: "Event Registration",
-        isPrivate: false,
-      },
-      {
         path: "products",
         name: "products",
         element: (
@@ -1447,6 +1441,14 @@ export const routes: AppRoute[] = [
   {
     path: "events/register-event",
     name: "Event Register",
+    element: <EventRegister />,
+    isPrivate: false,
+  },
+  {
+    // Public links from the backend point here. The page draws its own
+    // header and footer, so it sits outside the /out LandingPage layout.
+    path: "/out/events/register-event",
+    name: "Event Registration",
     element: <EventRegister />,
     isPrivate: false,
   },
