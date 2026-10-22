@@ -36,6 +36,8 @@ export type EventReminderRow = {
 export type EventResponseType = {
   id: number;
   name: string;
+  /** Same value as `name`; the public endpoint returns both. */
+  event_name?: string | null;
   start_date: string;
   end_date: string;
   recurrence_end_date?: string | null;
