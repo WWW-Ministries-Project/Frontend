@@ -439,7 +439,6 @@ const EventRegister = () => {
     <footer className="border-t border-lightGray bg-white">
       <div className="mx-auto flex max-w-6xl flex-wrap justify-between gap-x-4 gap-y-2 px-4 py-4 text-xs text-gray-500 tablet:px-6">
         <span>© {new Date().getFullYear()} Worldwide Word Ministries</span>
-        <span>Spintex Road, Accra</span>
       </div>
     </footer>
   );
