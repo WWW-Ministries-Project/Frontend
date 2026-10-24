@@ -195,7 +195,7 @@ const RequisitionsAnalytics = () => {
             {by === "range" && (
               <div className="flex flex-wrap items-center gap-2">
                 <TextInput type="date" aria-label="From" value={from} onChange={(e) => setFrom(e.target.value)} className="w-auto" />
-                <span className="text-sm text-[#6B7280]">to</span>
+                <span className="text-sm text-gray-500">to</span>
                 <TextInput type="date" aria-label="To" value={to} onChange={(e) => setTo(e.target.value)} className="w-auto" />
               </div>
             )}
@@ -217,12 +217,12 @@ const RequisitionsAnalytics = () => {
       />
 
       {denied ? (
-        <p className="rounded-xl border border-dashed border-lightGray bg-white p-6 text-center text-sm text-[#4B5563]">
+        <p className="rounded-xl border border-dashed border-lightGray bg-white p-6 text-center text-sm text-gray-600">
           Analytics are for requisition managers and approvers. Ask an admin for access if you need them.
         </p>
       ) : (
         <>
-          <p className="text-xs text-[#6B7280]">
+          <p className="text-xs text-gray-500">
             Counted by the date each requisition was submitted. Waiting times include requisitions still in approval.
             {a && !a.viewer.is_manager ? " You see the requisitions that pass through your steps." : ""}
           </p>
@@ -245,9 +245,9 @@ const RequisitionsAnalytics = () => {
               },
             ].map((k) => (
               <div key={k.l} className="flex flex-col gap-1 rounded-xl border border-lightGray bg-white px-5 py-4">
-                <p className="text-sm text-[#4B5563]">{k.l}</p>
+                <p className="text-sm text-gray-600">{k.l}</p>
                 <p className="text-2xl font-semibold leading-8 text-primary">{k.v}</p>
-                <p className={cn("text-xs", k.warn ? "text-[#B45309]" : "text-[#6B7280]")}>{k.s}</p>
+                <p className={cn("text-xs", k.warn ? "text-amber-700" : "text-gray-500")}>{k.s}</p>
               </div>
             ))}
           </div>
@@ -259,14 +259,14 @@ const RequisitionsAnalytics = () => {
               helper={`By ${a?.period.bucket ?? "month"} submitted. Values in ${cur}.`}
               action={
                 <div className="flex flex-wrap gap-3">
-                  <LegendDot color="#D8DAE5" label="Requested" />
-                  <LegendDot color="#080D2D" label="Approved" />
+                  <LegendDot color="rgb(var(--color-lightGray))" label="Requested" />
+                  <LegendDot color="rgb(var(--color-primary))" label="Approved" />
                 </div>
               }
             >
               <div className="overflow-x-auto">
                 <div className="flex min-w-[480px] flex-col gap-2">
-                  <div className="flex h-[200px] items-end gap-2 border-b border-[#E5E7EB]">
+                  <div className="flex h-[200px] items-end gap-2 border-b border-gray-200">
                     {(a?.buckets ?? []).map((b) => (
                       <div
                         key={b.start}
@@ -285,7 +285,7 @@ const RequisitionsAnalytics = () => {
                   </div>
                   <div className="flex gap-2">
                     {(a?.buckets ?? []).map((b) => (
-                      <span key={b.start} className="min-w-0 flex-1 truncate text-center text-xs text-[#6B7280]">
+                      <span key={b.start} className="min-w-0 flex-1 truncate text-center text-xs text-gray-500">
                         {b.label}
                       </span>
                     ))}
@@ -303,24 +303,24 @@ const RequisitionsAnalytics = () => {
                     percent={((s.median_days ?? 0) / maxStep) * 100}
                     tone={s === worstStep && s.median_days ? "warning" : "primary"}
                   />
-                  <span className={cn("text-xs", s.total && s.over_count / s.total > 0.25 ? "text-[#B45309]" : "text-[#6B7280]")}>
+                  <span className={cn("text-xs", s.total && s.over_count / s.total > 0.25 ? "text-amber-700" : "text-gray-500")}>
                     {pct(s.over_count, s.total)} waited over {reply} days · {s.waiting_now} waiting now
                   </span>
                 </div>
               ))}
-              {a && !a.steps.length && <p className="text-sm text-[#6B7280]">No approval steps in this period.</p>}
+              {a && !a.steps.length && <p className="text-sm text-gray-500">No approval steps in this period.</p>}
             </Panel>
 
             <Panel title="Approved value by department" helper="With how many were submitted and rejected">
               {(a?.departments ?? []).map((d) => (
                 <div key={d.department_id} className="flex flex-col gap-1">
                   <Meter label={d.name} value={moneyS(d.approved_value, cur)} percent={(d.approved_value / maxDept) * 100} />
-                  <span className="text-xs text-[#6B7280]">
+                  <span className="text-xs text-gray-500">
                     {d.submitted} submitted · {d.rejected} rejected
                   </span>
                 </div>
               ))}
-              {a && !a.departments.length && <p className="text-sm text-[#6B7280]">Nothing submitted in this period.</p>}
+              {a && !a.departments.length && <p className="text-sm text-gray-500">Nothing submitted in this period.</p>}
             </Panel>
 
             <Panel
@@ -345,13 +345,13 @@ const RequisitionsAnalytics = () => {
                       <div
                         key={p.user_id}
                         className={cn(
-                          "grid min-h-14 grid-cols-[minmax(200px,1.6fr)_repeat(5,minmax(90px,0.8fr))] items-center gap-3 border-b border-[#E5E7EB] px-4 py-2 last:border-b-0",
-                          p.user_id === me ? "bg-[#F8F9FC]" : "bg-white"
+                          "grid min-h-14 grid-cols-[minmax(200px,1.6fr)_repeat(5,minmax(90px,0.8fr))] items-center gap-3 border-b border-gray-200 px-4 py-2 last:border-b-0",
+                          p.user_id === me ? "bg-inputBackground" : "bg-white"
                         )}
                       >
                         <div>
                           <p className="font-semibold">{p.name}</p>
-                          <p className="text-xs text-[#6B7280]">{p.role}</p>
+                          <p className="text-xs text-gray-500">{p.role}</p>
                         </div>
                         <span>{p.decided}</span>
                         <span>{pct(p.approved, p.decided)}</span>
@@ -363,13 +363,13 @@ const RequisitionsAnalytics = () => {
                             <Pill>—</Pill>
                           )}
                         </span>
-                        <span className={cn(late && "font-semibold text-[#B91C1C]")}>
+                        <span className={cn(late && "font-semibold text-red-700")}>
                           {p.waiting_now ? `${p.waiting_now}${late ? ` · oldest ${days1(p.oldest_waiting_days)}` : ""}` : "0"}
                         </span>
                       </div>
                     );
                   })}
-                  {a && !a.approvers.length && <p className="px-4 py-4 text-sm text-[#6B7280]">No decisions in this period.</p>}
+                  {a && !a.approvers.length && <p className="px-4 py-4 text-sm text-gray-500">No decisions in this period.</p>}
                 </div>
               </div>
             </Panel>
@@ -377,10 +377,10 @@ const RequisitionsAnalytics = () => {
             <Panel title="Most requested items" helper="Items asked for by several departments may be cheaper bought once">
               <div className="flex flex-col">
                 {(a?.top_items ?? []).map((item) => (
-                  <div key={item.name} className="flex items-center gap-3 border-b border-[#E5E7EB] py-3 last:border-b-0">
+                  <div key={item.name} className="flex items-center gap-3 border-b border-gray-200 py-3 last:border-b-0">
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-semibold text-primary">{item.name}</p>
-                      <p className="text-xs text-[#6B7280]">
+                      <p className="text-xs text-gray-500">
                         Qty {item.quantity.toLocaleString("en-US")} · {moneyS(item.value, cur)}
                       </p>
                     </div>
@@ -388,20 +388,20 @@ const RequisitionsAnalytics = () => {
                     <span className="whitespace-nowrap text-sm font-semibold text-primary">{item.times}×</span>
                   </div>
                 ))}
-                {a && !a.top_items.length && <p className="text-sm text-[#6B7280]">No items in this period.</p>}
+                {a && !a.top_items.length && <p className="text-sm text-gray-500">No items in this period.</p>}
               </div>
             </Panel>
 
             <Panel title="What stands out">
               <div className="flex flex-col">
                 {insights.map((insight) => (
-                  <div key={insight.title} className="flex gap-3 border-b border-[#E5E7EB] py-3 last:border-b-0">
+                  <div key={insight.title} className="flex gap-3 border-b border-gray-200 py-3 last:border-b-0">
                     <span className="flex-shrink-0 self-start">
                       <Pill tone={insight.tone}>{insight.tag}</Pill>
                     </span>
                     <div>
                       <p className="text-sm font-semibold text-primary">{insight.title}</p>
-                      <p className="text-sm text-[#4B5563]">{insight.text}</p>
+                      <p className="text-sm text-gray-600">{insight.text}</p>
                     </div>
                   </div>
                 ))}

@@ -216,7 +216,7 @@ const MembersFormComponent = ({ isEditMode, submitting = false, disabled = false
     <div ref={topRef} className="flex scroll-mt-6 flex-col gap-6">
       <MemberFormStepper steps={steps} current={step.key} onSelect={handleStepSelect} />
 
-      <section className="flex flex-col gap-6 rounded-xl border border-[#D8DAE5] bg-white p-4 sm:p-6">
+      <section className="flex flex-col gap-6 rounded-xl border border-lightGray bg-white p-4 sm:p-6">
         <FormErrorSummary errors={stepErrors} focusKey={failedAttempts} />
         {step.key === "basic" && <BasicInfoSection disabled={disabled} />}
         {step.key === "contact" && <ContactInfoSection disabled={disabled} />}
@@ -224,7 +224,7 @@ const MembersFormComponent = ({ isEditMode, submitting = false, disabled = false
         {step.key === "work" && <WorkInfoSection disabled={disabled} />}
         {step.key === "family" && <FamilyMembersEditor disabled={disabled} />}
 
-        <div className="flex flex-wrap justify-between gap-2 border-t border-[#E5E7EB] pt-4">
+        <div className="flex flex-wrap justify-between gap-2 border-t border-gray-200 pt-4">
           <UiButton
             onClick={() => goTo(steps[currentIndex - 1].key)}
             disabled={currentIndex === 0 || busy}

@@ -44,10 +44,10 @@ export const WEEKDAYS = [
 export type EventTypeKey = "SERVICE" | "PROGRAM" | "ACTIVITY" | "OTHER";
 
 export const EVENT_TYPES: { key: EventTypeKey; label: string; color: string }[] = [
-  { key: "SERVICE", label: "Service", color: "#080D2D" },
-  { key: "PROGRAM", label: "Program", color: "#1D4ED8" },
-  { key: "ACTIVITY", label: "Activity", color: "#15803D" },
-  { key: "OTHER", label: "Other", color: "#B45309" },
+  { key: "SERVICE", label: "Service", color: "rgb(var(--color-primary))" },
+  { key: "PROGRAM", label: "Program", color: "rgb(var(--color-blue-700))" },
+  { key: "ACTIVITY", label: "Activity", color: "rgb(var(--color-green-700))" },
+  { key: "OTHER", label: "Other", color: "rgb(var(--color-amber-700))" },
 ];
 
 export const normalizeType = (value: unknown): EventTypeKey => {
@@ -59,7 +59,7 @@ export const typeLabel = (value: unknown) =>
   EVENT_TYPES.find((type) => type.key === normalizeType(value))?.label ?? "Other";
 
 export const typeColor = (value: unknown) =>
-  EVENT_TYPES.find((type) => type.key === normalizeType(value))?.color ?? "#B45309";
+  EVENT_TYPES.find((type) => type.key === normalizeType(value))?.color ?? "rgb(var(--color-amber-700))";
 
 export type TypeFilter = "all" | EventTypeKey;
 

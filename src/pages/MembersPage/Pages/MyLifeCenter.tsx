@@ -27,9 +27,9 @@ const MyLifeCenter = () => {
       ) : (
         <div className="px-4 py-6 tablet:px-6">
           {loading || !data ? (
-            <div className="h-40 animate-pulse rounded-xl bg-[#F3F4F6]" />
+            <div className="h-40 animate-pulse rounded-xl bg-gray-100" />
           ) : (
-            <p className="rounded-xl border border-dashed border-lightGray bg-white p-6 text-center text-sm text-[#4B5563]">
+            <p className="rounded-xl border border-dashed border-lightGray bg-white p-6 text-center text-sm text-gray-600">
               You’re not part of a life center yet. Ask your pastor which one meets near you.
             </p>
           )}

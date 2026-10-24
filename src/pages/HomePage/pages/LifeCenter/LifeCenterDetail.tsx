@@ -75,7 +75,7 @@ const Panel = ({ title, sub, action, children }: { title: string; sub?: string; 
     <div className="flex flex-wrap items-start justify-between gap-2">
       <div>
         <h2 className="text-base font-semibold text-primary">{title}</h2>
-        {sub && <p className="text-sm text-[#4B5563]">{sub}</p>}
+        {sub && <p className="text-sm text-gray-600">{sub}</p>}
       </div>
       {action}
     </div>
@@ -89,14 +89,14 @@ const TabHeading = ({ title, sub, actions }: Head) => (
   <div className="flex flex-wrap items-center justify-between gap-4">
     <div className="flex flex-col gap-1">
       <h2 className="text-xl font-semibold leading-7 text-primary">{title}</h2>
-      <p className="text-sm text-[#4B5563]">{sub}</p>
+      <p className="text-sm text-gray-600">{sub}</p>
     </div>
     {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
   </div>
 );
 
 const Dashed = ({ children }: { children: ReactNode }) => (
-  <p className="rounded-xl border border-dashed border-lightGray p-6 text-center text-sm text-[#4B5563]">{children}</p>
+  <p className="rounded-xl border border-dashed border-lightGray p-6 text-center text-sm text-gray-600">{children}</p>
 );
 
 /**
@@ -173,7 +173,7 @@ export const LifeCenterDetailView = ({
           {detailFetch.error ? (
             <Dashed>We couldn’t load this life center. Check your connection and try again.</Dashed>
           ) : (
-            <div className="h-40 animate-pulse rounded-xl bg-[#F3F4F6]" />
+            <div className="h-40 animate-pulse rounded-xl bg-gray-100" />
           )}
         </div>
       </div>
@@ -218,12 +218,12 @@ export const LifeCenterDetailView = ({
   const overview = (
     <>
       {gap > OVERDUE_DAYS && (
-        <div role="status" className="flex flex-wrap items-center gap-3 rounded-lg border border-[#FECACA] bg-[#FEF2F2] p-4">
+        <div role="status" className="flex flex-wrap items-center gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
           <div className="flex flex-[1_1_280px] flex-col gap-0.5">
-            <p className="text-sm font-semibold text-[#B91C1C]">
+            <p className="text-sm font-semibold text-red-700">
               {last ? `No meeting recorded in ${gap} days` : "No meetings recorded yet"}
             </p>
-            <p className="text-sm text-[#374151]">
+            <p className="text-sm text-gray-700">
               {last ? `Last meeting was ${fmtD(last)}. ` : ""}
               {days.length ? `It usually meets on ${joinAnd(dayNames(days))}. ` : ""}
               Record it if it held, or check in with {leader ?? "the leader"}.
@@ -244,9 +244,9 @@ export const LifeCenterDetailView = ({
           },
         ].map((k) => (
           <div key={k.l} className="flex flex-col gap-1 rounded-xl border border-lightGray bg-white px-5 py-4">
-            <p className="text-sm text-[#4B5563]">{k.l}</p>
+            <p className="text-sm text-gray-600">{k.l}</p>
             <p className="text-2xl font-semibold leading-8 text-primary">{k.v}</p>
-            <p className="text-xs" style={{ color: k.c ?? "#6B7280" }}>
+            <p className="text-xs" style={{ color: k.c ?? "rgb(var(--color-gray-500))" }}>
               {k.s}
             </p>
           </div>
@@ -257,13 +257,13 @@ export const LifeCenterDetailView = ({
           title={l8.length ? `Last ${plural(l8.length, "meeting")}` : "Meetings"}
           sub="Who came each time"
           action={
-            <div className="flex flex-wrap gap-3 text-xs text-[#4B5563]">
+            <div className="flex flex-wrap gap-3 text-xs text-gray-600">
               <span className="inline-flex items-center gap-1.5">
                 <span className="h-2.5 w-2.5 rounded-sm bg-primary" />
                 Attendees
               </span>
               <span className="inline-flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 rounded-sm bg-[#9A5D1A]" />
+                <span className="h-2.5 w-2.5 rounded-sm bg-secondary" />
                 First-timers
               </span>
             </div>
@@ -271,7 +271,7 @@ export const LifeCenterDetailView = ({
         >
           {l8.length ? (
             <>
-              <div className="flex h-40 items-end gap-2 border-b border-[#E5E7EB]">
+              <div className="flex h-40 items-end gap-2 border-b border-gray-200">
                 {[...l8].reverse().map((g) => (
                   <button
                     key={g.id}
@@ -283,7 +283,7 @@ export const LifeCenterDetailView = ({
                   >
                     <span className="text-xs font-semibold">{total(g)}</span>
                     <span
-                      className="w-full max-w-10 rounded-t bg-[#9A5D1A]"
+                      className="w-full max-w-10 rounded-t bg-secondary"
                       style={{ height: `${(firstTimersAt(g) / max) * 100}%` }}
                     />
                     <span
@@ -295,14 +295,14 @@ export const LifeCenterDetailView = ({
               </div>
               <div className="flex gap-2">
                 {[...l8].reverse().map((g) => (
-                  <span key={g.id} className="min-w-0 flex-1 truncate text-center text-xs text-[#6B7280]">
+                  <span key={g.id} className="min-w-0 flex-1 truncate text-center text-xs text-gray-500">
                     {fmtS(meetingDay(g))}
                   </span>
                 ))}
               </div>
             </>
           ) : (
-            <p className="text-sm text-[#6B7280]">No meetings recorded yet.</p>
+            <p className="text-sm text-gray-500">No meetings recorded yet.</p>
           )}
         </Panel>
         <Panel
@@ -317,13 +317,13 @@ export const LifeCenterDetailView = ({
           {souls.length ? (
             <div className="-mt-2 flex flex-col">
               {souls.slice(0, 5).map((s) => (
-                <div key={s.id} className="flex items-center gap-3 border-b border-[#E5E7EB] py-3 last:border-b-0">
-                  <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-[#F3F4F6] text-xs font-semibold text-primary">
+                <div key={s.id} className="flex items-center gap-3 border-b border-gray-200 py-3 last:border-b-0">
+                  <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-semibold text-primary">
                     {initials(soulName(s))}
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-primary">{soulName(s)}</p>
-                    <p className="truncate text-xs text-[#6B7280]">
+                    <p className="truncate text-xs text-gray-500">
                       {fmtL(dayKey(s.date_won))} · won by {s.wonByName || "—"}
                     </p>
                   </div>
@@ -332,7 +332,7 @@ export const LifeCenterDetailView = ({
               ))}
             </div>
           ) : (
-            <p className="text-sm text-[#6B7280]">No souls won recorded yet.</p>
+            <p className="text-sm text-gray-500">No souls won recorded yet.</p>
           )}
         </Panel>
       </div>
@@ -422,10 +422,10 @@ export const LifeCenterDetailView = ({
                     {g.currency} {n0(Number(g.offeringAmount) || 0)}
                   </span>
                 </div>
-                <p className="text-[#4B5563]">
+                <p className="text-gray-600">
                   {plural(attendeesAt(g), "attendee")} · {plural(firstTimersAt(g), "first-timer")}
                 </p>
-                {g.created_by?.name && <p className="text-xs text-[#6B7280]">Recorded by {g.created_by.name}</p>}
+                {g.created_by?.name && <p className="text-xs text-gray-500">Recorded by {g.created_by.name}</p>}
               </button>
             ))}
           </div>
@@ -528,13 +528,13 @@ export const LifeCenterDetailView = ({
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="font-semibold text-primary">{soulName(s)}</p>
-                    <p className="text-xs text-[#6B7280]">
+                    <p className="text-xs text-gray-500">
                       {fmtL(dayKey(s.date_won))} · won by {s.wonByName || "—"}
                     </p>
                   </div>
                   {soulPill(s)}
                 </div>
-                <p className="text-[#4B5563]">
+                <p className="text-gray-600">
                   {s.contact_number || "—"} · {s.city || "—"}
                 </p>
                 {!s.isMember && canConvert && <UiButton onClick={() => convert(s)}>Mark as member</UiButton>}
@@ -628,7 +628,7 @@ export const LifeCenterDetailView = ({
                   width: "minmax(200px,1.6fr)",
                   render: (m) => (
                     <div className="flex min-w-0 items-center gap-3">
-                      <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-[#F3F4F6] text-xs font-semibold">
+                      <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-semibold">
                         {initials(m.name)}
                       </span>
                       <p className="truncate font-semibold">{m.name}</p>
@@ -644,12 +644,12 @@ export const LifeCenterDetailView = ({
             {members.map((m) => (
               <div key={m.userId} className="flex flex-col gap-3 rounded-xl border border-lightGray bg-white p-4">
                 <div className="flex items-center gap-3">
-                  <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-[#F3F4F6] text-xs font-semibold text-primary">
+                  <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-semibold text-primary">
                     {initials(m.name)}
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-primary">{m.name}</p>
-                    <p className="text-xs text-[#6B7280]">
+                    <p className="text-xs text-gray-500">
                       {m.phone || "—"}
                     </p>
                   </div>
@@ -679,7 +679,7 @@ export const LifeCenterDetailView = ({
         {tab === "souls" && soulsTab}
         {tab === "members" && membersTab}
         {tab === "analytics" && (
-          <Suspense fallback={<div className="h-40 animate-pulse rounded-xl bg-[#F3F4F6]" />}>
+          <Suspense fallback={<div className="h-40 animate-pulse rounded-xl bg-gray-100" />}>
             <LifeCenterAnalyticsView
               fixedCenterId={c.id}
               embedded
@@ -717,9 +717,9 @@ export const LifeCenterDetailView = ({
           <>
             <div className="flex flex-wrap items-end justify-between gap-4 px-4 pt-4 tablet:px-6 tablet:pt-6">
               <div className="flex min-w-0 flex-[1_1_320px] flex-col gap-1">
-                <p className="text-xs font-semibold tracking-[0.04em] text-[#6B7280]">MY LIFE CENTER · {c.name.toUpperCase()}</p>
+                <p className="text-xs font-semibold tracking-[0.04em] text-gray-500">MY LIFE CENTER · {c.name.toUpperCase()}</p>
                 <h1 className="text-xl font-semibold leading-8 text-primary tablet:text-2xl">{head?.title}</h1>
-                {head?.sub && <p className="text-base text-[#4B5563]">{head.sub}</p>}
+                {head?.sub && <p className="text-base text-gray-600">{head.sub}</p>}
               </div>
               {head?.actions && <div className="flex flex-wrap gap-2">{head.actions}</div>}
             </div>

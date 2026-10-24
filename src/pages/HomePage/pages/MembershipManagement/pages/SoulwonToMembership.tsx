@@ -114,7 +114,7 @@ export const SoulwonToMembership = () => {
       onQueryChange={setQuery}
     >
       {soulsError ? (
-        <div className="rounded-lg border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 text-sm text-[#B91C1C]">
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           Unable to load soul-winning records right now.
         </div>
       ) : null}

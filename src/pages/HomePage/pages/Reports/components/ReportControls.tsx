@@ -11,7 +11,7 @@ import type { CompareMode } from "../utils/reportTypes";
 import { PillTabs } from "./reportsUi";
 
 const selectClass =
-  "h-10 w-full rounded-lg border border-[rgba(107,114,128,0.35)] bg-white px-3 text-sm text-primary outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(8,13,45,0.08)]";
+  "h-10 w-full rounded-lg border border-gray-500/35 bg-white px-3 text-sm text-primary outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgb(var(--color-shadow)_/_0.08)]";
 
 /** Branch picker bound to the app-wide branch selection. */
 export const BranchSelect = ({
@@ -81,7 +81,7 @@ export const ReportControls = ({
   const isCustom = periodType === "CUSTOM";
   const [customFrom, customTo] = (periodKey || period?.key || "").split("_");
   return (
-    <div className="flex flex-wrap items-end gap-x-4 gap-y-3 rounded-2xl border border-lightGray bg-[#FAFBFC] p-4 print:hidden">
+    <div className="flex flex-wrap items-end gap-x-4 gap-y-3 rounded-2xl border border-lightGray bg-inputBackground p-4 print:hidden">
       <div className="flex min-w-0 max-w-full flex-col gap-1">
         <span className="text-sm text-primary">Period type</span>
         <div className="max-w-full overflow-x-auto">

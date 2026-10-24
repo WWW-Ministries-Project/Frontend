@@ -74,7 +74,7 @@ export const ApplyAttendanceDialog = ({
               )}
             >
               <span className="text-sm font-semibold">{option.label}</span>
-              <span className="text-xs text-[#4B5563]">{option.description}</span>
+              <span className="text-xs text-gray-600">{option.description}</span>
             </button>
           );
         })}

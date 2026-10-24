@@ -295,7 +295,7 @@ export function VisitorManagement() {
         {!loaded ? (
           <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,320px),1fr))] gap-4">
             {Array.from({ length: 6 }).map((_, index) => (
-              <div key={index} className="h-[280px] animate-pulse rounded-2xl bg-[#F3F4F6]" />
+              <div key={index} className="h-[280px] animate-pulse rounded-2xl bg-gray-100" />
             ))}
           </div>
         ) : list.length === 0 ? (
@@ -320,7 +320,7 @@ export function VisitorManagement() {
           )
         ) : (
           <>
-            <p className="text-sm text-[#4B5563]">
+            <p className="text-sm text-gray-600">
               {list.length} {list.length === 1 ? "visitor matches" : "visitors match"} the
               current view.
             </p>
@@ -332,7 +332,7 @@ export function VisitorManagement() {
                     type="button"
                     aria-expanded={open}
                     onClick={() => setOpenGroups((prev) => ({ ...prev, [section.key]: !open }))}
-                    className="flex w-full items-center justify-between gap-3 rounded-lg border border-lightGray bg-[#F8F9FC] px-4 py-3 text-left text-base font-semibold text-primary transition-colors hover:bg-lightGray/30"
+                    className="flex w-full items-center justify-between gap-3 rounded-lg border border-lightGray bg-inputBackground px-4 py-3 text-left text-base font-semibold text-primary transition-colors hover:bg-lightGray/30"
                   >
                     <span>
                       {section.label} ({section.items.length})

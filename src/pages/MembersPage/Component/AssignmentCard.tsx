@@ -15,7 +15,7 @@ const AssignmentCard = ({ name, dueDate, submittedDate, status }: AssignmentCard
       <div className="flex items-start justify-between">
         <h4 className="text-sm font-medium text-primary">{name}</h4>
         {status === "submitted" && (
-          <span className="rounded-full bg-success/10 px-2.5 py-0.5 text-xs font-medium text-success dark:bg-green-900/30 dark:text-green-300">
+          <span className="rounded-full bg-success/10 px-2.5 py-0.5 text-xs font-medium text-success">
             submitted
           </span>
         )}

@@ -332,7 +332,7 @@ export const DepartmentDetails = () => {
               <button
                 type="button"
                 onClick={() => setAddOpen(true)}
-                className="min-h-10 rounded-lg bg-white px-5 py-2 text-sm font-medium text-primary transition-colors hover:bg-[#F3F4F6]"
+                className="min-h-10 rounded-lg bg-white px-5 py-2 text-sm font-medium text-primary transition-colors hover:bg-gray-100"
               >
                 Add member
               </button>
@@ -344,7 +344,7 @@ export const DepartmentDetails = () => {
 
       <div className="flex flex-1 flex-col gap-4 bg-white px-[var(--app-page-padding-inline)] py-6">
         {pageError && tab === "members" && (
-          <p role="alert" className="text-sm text-[#B91C1C]">
+          <p role="alert" className="text-sm text-red-700">
             {apiErrorMessage(pageError, "Unable to load department members.")}
           </p>
         )}

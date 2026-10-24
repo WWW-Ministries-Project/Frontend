@@ -153,7 +153,7 @@ export const ToggleChip = ({
     className={cn(
       "border text-sm transition-colors",
       shape === "pill" ? "min-h-9 rounded-full px-3 py-1" : "min-h-10 min-w-12 rounded-lg px-2 py-1 font-medium",
-      on ? "border-primary bg-primary text-white" : "border-lightGray bg-white text-primary hover:bg-[#F3F4F6]"
+      on ? "border-primary bg-primary text-white" : "border-lightGray bg-white text-primary hover:bg-gray-100"
     )}
   >
     {children}
@@ -175,7 +175,7 @@ export const FormSection = ({
     <div className="flex items-center justify-between gap-3">
       <div className="flex min-w-0 flex-col">
         <h3 className="text-base font-semibold text-primary">{title}</h3>
-        {hint && <span className="text-xs text-[#6B7280]">{hint}</span>}
+        {hint && <span className="text-xs text-gray-500">{hint}</span>}
       </div>
       {aside}
     </div>
@@ -184,12 +184,12 @@ export const FormSection = ({
 );
 
 export const MutedPanel = ({ children, className }: { children: ReactNode; className?: string }) => (
-  <div className={cn("flex flex-col gap-3 rounded-xl bg-[#F8F9FC] p-4", className)}>{children}</div>
+  <div className={cn("flex flex-col gap-3 rounded-xl bg-inputBackground p-4", className)}>{children}</div>
 );
 
 export const FieldError = ({ id, message }: { id?: string; message?: string }) =>
   message ? (
-    <span id={id} role="alert" className="text-xs text-[#B91C1C]">
+    <span id={id} role="alert" className="text-xs text-red-700">
       {message}
     </span>
   ) : null;
@@ -237,7 +237,7 @@ export const Drawer = ({
         }}
         className="fixed inset-y-0 right-0 z-[120] flex h-full w-full flex-col border-l border-lightGray bg-white focus:outline-none"
       >
-        <div className="flex items-start gap-3 border-b border-[#E5E7EB] px-4 py-5 tablet:px-6">
+        <div className="flex items-start gap-3 border-b border-gray-200 px-4 py-5 tablet:px-6">
           <div className="flex min-w-0 flex-1 flex-col gap-1">
             {header ?? (
               <Dialog.Title className="text-xl font-semibold leading-7 text-primary">{title}</Dialog.Title>
@@ -250,7 +250,7 @@ export const Drawer = ({
             onClick={onClose}
             disabled={busy}
             aria-label="Close"
-            className="h-9 w-9 flex-shrink-0 rounded-lg text-xl text-[#6B7280] hover:bg-[#F3F4F6]"
+            className="h-9 w-9 flex-shrink-0 rounded-lg text-xl text-gray-500 hover:bg-gray-100"
           >
             ×
           </button>
@@ -259,7 +259,7 @@ export const Drawer = ({
           <div className="flex flex-col gap-6">{children}</div>
         </div>
         {footer && (
-          <div className="flex flex-wrap justify-end gap-2 border-t border-[#E5E7EB] px-4 py-4 tablet:px-6">
+          <div className="flex flex-wrap justify-end gap-2 border-t border-gray-200 px-4 py-4 tablet:px-6">
             {footer}
           </div>
         )}

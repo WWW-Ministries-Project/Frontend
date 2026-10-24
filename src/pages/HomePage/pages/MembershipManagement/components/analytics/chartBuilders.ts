@@ -1,6 +1,6 @@
-export const BAR_PRIMARY = "#080D2D";
-export const BAR_SUCCESS = "#15803D";
-export const BAR_WARNING = "#B45309";
+export const BAR_PRIMARY = "rgb(var(--color-primary))";
+export const BAR_SUCCESS = "rgb(var(--color-green-700))";
+export const BAR_WARNING = "rgb(var(--color-amber-700))";
 
 export interface BarItem {
   label: string;

@@ -27,7 +27,7 @@ const AuthenticationForm = (props: IProps) => {
         aria-labelledby={headingId}
         aria-describedby={descriptionId}
       >
-        <div className="overflow-hidden rounded-2xl border border-lightGray bg-white shadow-[0_20px_45px_-30px_rgba(8,13,45,0.6)]">
+        <div className="overflow-hidden rounded-2xl border border-lightGray bg-white shadow-[0_20px_45px_-30px_rgb(var(--color-shadow)_/_0.6)]">
           <header className="border-b border-lightGray bg-primary px-6 py-5 text-white">
             <div className="mb-3 flex justify-center">
               <ChurchLogo />

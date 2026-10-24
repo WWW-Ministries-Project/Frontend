@@ -17,18 +17,18 @@ import {
 } from "../utils/assetModel";
 
 const TONE_TEXT: Record<string, string> = {
-  success: "#15803D",
-  warning: "#B45309",
-  danger: "#B91C1C",
-  info: "#1D4ED8",
-  neutral: "#374151",
+  success: "rgb(var(--color-green-700))",
+  warning: "rgb(var(--color-amber-700))",
+  danger: "rgb(var(--color-red-700))",
+  info: "rgb(var(--color-blue-700))",
+  neutral: "rgb(var(--color-gray-700))",
 };
 const ALERT_CLASS: Record<string, string> = {
-  success: "border-[#BBF7D0] bg-[#F0FDF4] text-[#15803D]",
-  warning: "border-[#FDE68A] bg-[#FFFBEB] text-[#B45309]",
-  danger: "border-[#FECACA] bg-[#FEF2F2] text-[#B91C1C]",
-  info: "border-[#BFDBFE] bg-[#EFF6FF] text-[#1D4ED8]",
-  neutral: "border-[#E5E7EB] bg-[#F3F4F6] text-[#374151]",
+  success: "border-green-200 bg-green-50 text-green-700",
+  warning: "border-amber-200 bg-amber-50 text-amber-700",
+  danger: "border-red-200 bg-red-50 text-red-700",
+  info: "border-blue-200 bg-blue-50 text-blue-700",
+  neutral: "border-gray-200 bg-gray-100 text-gray-700",
 };
 
 const alertOf = (a: AssetRow, today: string, staleDays: number): { text: string; tone: string } | null => {
@@ -132,8 +132,8 @@ export const AssetDrawer = ({
       {asset.photo ? (
         <img src={asset.photo} alt={asset.name} className="h-[180px] w-full rounded-xl border border-lightGray object-cover" />
       ) : (
-        <div className="flex h-[180px] flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-lightGray bg-[#F3F5FA] text-[#6B7280]">
-          <span className="text-2xl font-semibold text-[#4B5563]">{initials(asset.name)}</span>
+        <div className="flex h-[180px] flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-lightGray bg-background text-gray-500">
+          <span className="text-2xl font-semibold text-gray-600">{initials(asset.name)}</span>
           <span className="text-xs">No photo yet · add one when editing</span>
         </div>
       )}
@@ -145,23 +145,23 @@ export const AssetDrawer = ({
       <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,160px),1fr))] gap-4">
         {facts.map(([label, value]) => (
           <div key={label} className="flex flex-col gap-0.5">
-            <span className="text-xs text-[#6B7280]">{label}</span>
+            <span className="text-xs text-gray-500">{label}</span>
             <span className="text-sm font-medium text-primary">{value}</span>
           </div>
         ))}
       </div>
       <DrawerSection title="Description">
-        <p className="whitespace-pre-line text-sm text-[#374151]">{asset.description || "—"}</p>
+        <p className="whitespace-pre-line text-sm text-gray-700">{asset.description || "—"}</p>
       </DrawerSection>
       <DrawerSection title="History">
         {history === null ? (
           <div className="space-y-2">
             {[0, 1, 2].map((n) => (
-              <div key={n} className="h-8 animate-pulse rounded bg-[#F3F4F6]" />
+              <div key={n} className="h-8 animate-pulse rounded bg-gray-100" />
             ))}
           </div>
         ) : history.length === 0 ? (
-          <p className="text-sm text-[#6B7280]">No history recorded yet.</p>
+          <p className="text-sm text-gray-500">No history recorded yet.</p>
         ) : (
           <ol className="m-0 flex list-none flex-col p-0">
             {history
@@ -175,7 +175,7 @@ export const AssetDrawer = ({
                   />
                   <div>
                     <p className="text-sm text-primary">{entry.text}</p>
-                    <p className="text-xs text-[#6B7280]">{fmtD(entry.at)}</p>
+                    <p className="text-xs text-gray-500">{fmtD(entry.at)}</p>
                   </div>
                 </li>
               ))}

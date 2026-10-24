@@ -48,7 +48,7 @@ const BannerMenu = ({ items }: { items: ActionMenuItem[] }) => {
       {open && (
         <div
           role="menu"
-          className="absolute right-0 top-full z-50 mt-2 w-[220px] rounded-md border border-[#E5E7EB] bg-white py-1 shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-4px_rgba(0,0,0,0.1)]"
+          className="absolute right-0 top-full z-50 mt-2 w-[220px] rounded-md border border-gray-200 bg-white py-1 shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-4px_rgba(0,0,0,0.1)]"
         >
           {visible.map((item) => (
             <button
@@ -60,8 +60,8 @@ const BannerMenu = ({ items }: { items: ActionMenuItem[] }) => {
                 item.onClick();
               }}
               className={cn(
-                "block w-full px-4 py-3 text-left text-sm transition-colors hover:bg-[#F3F4F6]",
-                item.danger ? "text-[#B91C1C]" : "text-primary"
+                "block w-full px-4 py-3 text-left text-sm transition-colors hover:bg-gray-100",
+                item.danger ? "text-red-700" : "text-primary"
               )}
             >
               {item.label}
@@ -126,7 +126,7 @@ export const ProfileBanner = ({
 
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex min-w-0 flex-wrap items-center gap-4">
-            <div className="flex h-28 w-28 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[#E5E7EB] bg-[rgba(216,218,229,0.5)] text-2xl font-bold outline outline-1 outline-white">
+            <div className="flex h-28 w-28 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl border border-gray-200 bg-lightGray/50 text-2xl font-bold outline outline-1 outline-white">
               {showPhoto ? (
                 <img
                   src={photo ?? ""}
@@ -179,7 +179,7 @@ export const ProfileBanner = ({
                 <button
                   type="button"
                   onClick={onEdit}
-                  className="min-h-10 rounded-lg bg-white px-5 py-2 text-sm font-medium text-primary transition-colors hover:bg-[#F3F4F6]"
+                  className="min-h-10 rounded-lg bg-white px-5 py-2 text-sm font-medium text-primary transition-colors hover:bg-gray-100"
                 >
                   Edit profile
                 </button>

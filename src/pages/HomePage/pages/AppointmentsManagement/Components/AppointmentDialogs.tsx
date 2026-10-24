@@ -206,7 +206,7 @@ export const CancelDialog = ({
         { label: "Cancel appointment", onClick: send, tone: "danger" },
       ]}
     >
-      <ul className="flex list-disc flex-col gap-1 pl-5 text-sm text-[#4B5563]">
+      <ul className="flex list-disc flex-col gap-1 pl-5 text-sm text-gray-600">
         <li>{booking.requester} gets a push and SMS straight away.</li>
         <li>
           {fmtDL(booking.date)}, {t12(booking.start)} becomes free for others.
@@ -464,7 +464,7 @@ export const ScheduleDialog = ({
           return (
             <div
               key={d}
-              className={`flex flex-wrap items-start gap-x-3 gap-y-2 border-b border-[#E5E7EB] px-4 py-3 last:border-b-0 ${day.on ? "bg-white" : "bg-[#F9FAFB]"}`}
+              className={`flex flex-wrap items-start gap-x-3 gap-y-2 border-b border-gray-200 px-4 py-3 last:border-b-0 ${day.on ? "bg-white" : "bg-gray-50"}`}
             >
               <label className="flex min-h-10 flex-[0_0_120px] cursor-pointer items-center gap-2">
                 <input
@@ -490,7 +490,7 @@ export const ScheduleDialog = ({
                             options={TIMES}
                             className="flex-1 px-2"
                           />
-                          <span className="text-sm text-[#6B7280]">to</span>
+                          <span className="text-sm text-gray-500">to</span>
                           <SelectInput
                             aria-label={`${DOWF[d]} end`}
                             value={r.to}
@@ -499,14 +499,14 @@ export const ScheduleDialog = ({
                             className="flex-1 px-2"
                           />
                         </div>
-                        <span className={`min-w-[90px] text-xs ${bad ? "text-[#B91C1C]" : "text-[#6B7280]"}`}>
+                        <span className={`min-w-[90px] text-xs ${bad ? "text-red-700" : "text-gray-500"}`}>
                           {bad ? "End is before start" : plural(n, "session")}
                         </span>
                         {day.ranges.length > 1 && (
                           <button
                             type="button"
                             onClick={() => update(d, { ranges: day.ranges.filter((_, j) => j !== i) })}
-                            className="text-xs font-medium text-[#B91C1C]"
+                            className="text-xs font-medium text-red-700"
                           >
                             Remove
                           </button>
@@ -527,7 +527,7 @@ export const ScheduleDialog = ({
                   </button>
                 </div>
               ) : (
-                <span className="flex min-h-10 items-center text-sm text-[#6B7280]">Not available</span>
+                <span className="flex min-h-10 items-center text-sm text-gray-500">Not available</span>
               )}
             </div>
           );

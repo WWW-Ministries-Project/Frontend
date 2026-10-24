@@ -133,7 +133,7 @@ const ManageAvailability = () => {
               return (
                 <div key={c.day} className="flex min-w-0 flex-col items-center gap-1">
                   <div
-                    className="flex h-24 w-full flex-col justify-end overflow-hidden rounded-lg bg-[#F3F4F6]"
+                    className="flex h-24 w-full flex-col justify-end overflow-hidden rounded-lg bg-gray-100"
                     title={`${c.booked} booked, ${open} open`}
                   >
                     <div className="bg-primary/25" style={{ height: `${(open * 100) / peak}%` }} />
@@ -143,7 +143,7 @@ const ManageAvailability = () => {
                     {DOW[dayIndex(c.day)]} <span className="hidden sm:inline">{Number(c.day.slice(8))}</span>
                   </span>
                   <span
-                    className={`text-center text-xs ${!c.offered ? "text-[#B91C1C]" : open <= 1 ? "text-[#B45309]" : "text-[#6B7280]"}`}
+                    className={`text-center text-xs ${!c.offered ? "text-red-700" : open <= 1 ? "text-amber-700" : "text-gray-500"}`}
                   >
                     {c.offered ? `${open} open` : "No one"}
                   </span>
@@ -152,8 +152,8 @@ const ManageAvailability = () => {
             })}
           </div>
           <div className="flex flex-wrap gap-4">
-            <LegendDot color="#080D2D" label="Booked" />
-            <LegendDot color="rgba(8,13,45,0.25)" label="Still open" />
+            <LegendDot color="rgb(var(--color-primary))" label="Booked" />
+            <LegendDot color="rgb(var(--color-primary) / 0.25)" label="Still open" />
           </div>
         </Panel>
       )}
@@ -173,7 +173,7 @@ const ManageAvailability = () => {
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-base font-semibold text-primary">{person.name}</p>
-                  {person.role && <p className="truncate text-sm text-[#6B7280]">{person.role}</p>}
+                  {person.role && <p className="truncate text-sm text-gray-500">{person.role}</p>}
                 </div>
                 <Pill tone={status.tone}>{status.label}</Pill>
               </div>
@@ -184,7 +184,7 @@ const ManageAvailability = () => {
                   const windows = person.windows[d] ?? [];
                   return (
                     <div key={d} className="flex min-w-0 flex-col items-center gap-1">
-                      <span className="text-xs text-[#6B7280]">{DOW[d]}</span>
+                      <span className="text-xs text-gray-500">{DOW[d]}</span>
                       <div
                         title={
                           windows.length
@@ -192,7 +192,7 @@ const ManageAvailability = () => {
                             : "Not available"
                         }
                         className={`flex h-10 w-full items-center justify-center rounded-md border text-xs font-semibold ${
-                          windows.length ? "border-lightGray bg-primary/[0.06] text-primary" : "border-[#E5E7EB] bg-white text-[#9CA3AF]"
+                          windows.length ? "border-lightGray bg-primary/[0.06] text-primary" : "border-gray-200 bg-white text-gray-400"
                         }`}
                       >
                         {windows.length ? n : "–"}
@@ -202,7 +202,7 @@ const ManageAvailability = () => {
                 })}
               </div>
 
-              <div className="flex flex-col gap-1 text-sm text-[#4B5563]">
+              <div className="flex flex-col gap-1 text-sm text-gray-600">
                 {hourLines(person).map((line) => (
                   <p key={line}>{line}</p>
                 ))}
@@ -213,15 +213,15 @@ const ManageAvailability = () => {
               </div>
 
               <Meter
-                label={<span className="text-xs text-[#4B5563]">This week</span>}
+                label={<span className="text-xs text-gray-600">This week</span>}
                 value={<span className="text-xs">{offered ? `${booked} of ${offered} sessions booked` : "No sessions this week"}</span>}
                 percent={use}
                 tone={use >= 90 ? "danger" : use >= 70 ? "warning" : "primary"}
               />
 
               {person.timeOff.length > 0 && (
-                <div className="flex flex-col gap-1 rounded-lg bg-[#F8F9FC] p-3">
-                  <p className="text-xs font-semibold text-[#6B7280]">TIME OFF</p>
+                <div className="flex flex-col gap-1 rounded-lg bg-inputBackground p-3">
+                  <p className="text-xs font-semibold text-gray-500">TIME OFF</p>
                   {person.timeOff.map((off) => (
                     <div key={off.id} className="flex items-center gap-2 text-sm text-primary">
                       <span className="flex-1">
@@ -232,7 +232,7 @@ const ManageAvailability = () => {
                           type="button"
                           disabled={busy}
                           onClick={() => removeTimeOff(person, off.id)}
-                          className="min-h-8 rounded-lg px-2 text-xs font-medium text-[#B91C1C] hover:bg-[#FEF2F2] disabled:opacity-60"
+                          className="min-h-8 rounded-lg px-2 text-xs font-medium text-red-700 hover:bg-red-50 disabled:opacity-60"
                         >
                           Remove
                         </button>

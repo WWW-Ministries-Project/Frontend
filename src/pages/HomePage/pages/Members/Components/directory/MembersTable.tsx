@@ -54,12 +54,12 @@ export const MembersTable = ({
             member={member}
             className={cn(
               "h-10 w-10 flex-shrink-0 rounded-full border-2 text-sm",
-              member.is_active === false ? "border-[#B91C1C]" : "border-[#15803D]"
+              member.is_active === false ? "border-red-700" : "border-green-700"
             )}
           />
           <div className="min-w-0">
             <p className="truncate font-semibold">{member.name}</p>
-            <p className="text-xs text-[#6B7280]">{member.member_id || "—"}</p>
+            <p className="text-xs text-gray-500">{member.member_id || "—"}</p>
           </div>
         </div>
       ),

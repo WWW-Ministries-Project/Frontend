@@ -152,7 +152,7 @@ const FinanceConfiguration = () => {
           <span
             className={cn(
               "rounded-full px-2 text-xs font-semibold",
-              bad ? "bg-[#B91C1C] text-white" : tab === k ? "bg-primary text-white" : "bg-[#E5E7EB] text-[#374151]"
+              bad ? "bg-error text-white" : tab === k ? "bg-primary text-white" : "bg-gray-200 text-gray-700"
             )}
           >
             {bad ? "!" : d[k].length}
@@ -176,7 +176,7 @@ const FinanceConfiguration = () => {
           return (
             <div key={x.id ?? `new-${i}`} className="flex flex-col gap-1">
               <div className="flex items-center gap-2">
-                <span className="w-6 flex-shrink-0 text-right text-xs text-[#6B7280]">{i + 1}</span>
+                <span className="w-6 flex-shrink-0 text-right text-xs text-gray-500">{i + 1}</span>
                 <TextInput
                   value={x.name}
                   disabled={!canManage}
@@ -207,7 +207,7 @@ const FinanceConfiguration = () => {
                     type="button"
                     aria-label={`Remove ${x.name || `line ${i + 1}`}`}
                     onClick={() => setList(k, list.filter((_, j) => j !== i))}
-                    className="h-9 w-9 flex-shrink-0 rounded-lg border border-lightGray bg-white text-lg text-[#B91C1C] hover:bg-[#FEF2F2]"
+                    className="h-9 w-9 flex-shrink-0 rounded-lg border border-lightGray bg-white text-lg text-red-700 hover:bg-red-50"
                   >
                     ×
                   </button>
@@ -249,7 +249,7 @@ const FinanceConfiguration = () => {
         <section className="flex max-w-[760px] flex-col gap-4 rounded-xl border border-lightGray bg-white p-5 sm:p-6">
           <div className="flex flex-col gap-1">
             <h2 className="text-base font-semibold text-primary">{m.title}</h2>
-            <p className="text-sm text-[#4B5563]">{m.sub}</p>
+            <p className="text-sm text-gray-600">{m.sub}</p>
           </div>
 
           {!loaded ? (
@@ -258,7 +258,7 @@ const FinanceConfiguration = () => {
             ) : (
               <div className="flex flex-col gap-2">
                 {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="h-10 animate-pulse rounded-lg bg-[#F3F4F6]" />
+                  <div key={i} className="h-10 animate-pulse rounded-lg bg-gray-100" />
                 ))}
               </div>
             )
@@ -314,7 +314,7 @@ const FinanceConfiguration = () => {
           ) : (
             <>
               {tab === "tithe" && (
-                <div className="flex flex-wrap items-center gap-3 rounded-lg bg-[#F8F9FC] px-4 py-3">
+                <div className="flex flex-wrap items-center gap-3 rounded-lg bg-inputBackground px-4 py-3">
                   <label htmlFor="fn-rate" className="flex-[1_1_200px] text-sm font-medium">
                     Tithe taken from total receipts
                   </label>
@@ -339,8 +339,8 @@ const FinanceConfiguration = () => {
             </>
           )}
 
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-[#E5E7EB] pt-4">
-            <p className="flex-[1_1_220px] text-xs text-[#6B7280]">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-gray-200 pt-4">
+            <p className="flex-[1_1_220px] text-xs text-gray-500">
               Changes apply to new weekly records. Existing records keep the lines and percentages they were created with.
             </p>
             {canManage && dirty && (

@@ -167,7 +167,7 @@ const EventsAnalytics = () => {
       </div>
 
       {failed && (
-        <p role="alert" className="rounded-lg border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 text-sm text-[#B91C1C]">
+        <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           Couldn’t load events for this period. Refresh the page to try again.
         </p>
       )}
@@ -205,12 +205,12 @@ const EventsAnalytics = () => {
                       title={`Week of ${fmtShortDay(week.week)}: ${week.value.toLocaleString()}`}
                       className="flex h-full flex-[1_0_28px] flex-col items-center justify-end gap-1 tablet:flex-[1_0_40px]"
                     >
-                      <span className="text-xs text-[#4B5563]">{week.value.toLocaleString()}</span>
+                      <span className="text-xs text-gray-600">{week.value.toLocaleString()}</span>
                       <span
                         className="w-full max-w-10 rounded-t bg-primary"
                         style={{ height: `${Math.round((week.value / weekMax) * 140)}px` }}
                       />
-                      <span className="whitespace-nowrap text-xs text-[#6B7280]">
+                      <span className="whitespace-nowrap text-xs text-gray-500">
                         {date.getDate()} {MONTHS[date.getMonth()].slice(0, 3)}
                       </span>
                     </div>
@@ -219,23 +219,23 @@ const EventsAnalytics = () => {
               </div>
             </div>
           ) : (
-            <p className="text-sm text-[#6B7280]">No attendance recorded in this period.</p>
+            <p className="text-sm text-gray-500">No attendance recorded in this period.</p>
           )}
         </div>
 
         <div className="flex min-w-0 flex-col gap-3 rounded-xl border border-lightGray bg-white p-4">
           <h2 className="text-base font-semibold text-primary">Average attendance by event</h2>
-          {byEvent.length === 0 && <p className="text-sm text-[#6B7280]">No attendance recorded in this period.</p>}
+          {byEvent.length === 0 && <p className="text-sm text-gray-500">No attendance recorded in this period.</p>}
           {byEvent.map((row) => (
             <div key={row.name} className="flex flex-col gap-1">
               <div className="flex justify-between gap-2 text-sm">
                 <span className="min-w-0 truncate font-medium text-primary">{row.name}</span>
                 <span className="whitespace-nowrap">
                   <strong className="font-semibold text-primary">{row.avg.toLocaleString()}</strong>{" "}
-                  <span className="text-xs text-[#6B7280]">· {plural(row.values.length, "time")}</span>
+                  <span className="text-xs text-gray-500">· {plural(row.values.length, "time")}</span>
                 </span>
               </div>
-              <div className="h-2 overflow-hidden rounded-full bg-[#F3F4F6]">
+              <div className="h-2 overflow-hidden rounded-full bg-gray-100">
                 <div
                   className="h-full"
                   style={{ width: `${(row.avg / eventMax) * 100}%`, background: typeColor(row.type) }}
@@ -244,8 +244,8 @@ const EventsAnalytics = () => {
             </div>
           ))}
           {mix.length > 0 && (
-            <div className="flex flex-col gap-2 border-t border-[#E5E7EB] pt-3">
-              <span className="text-xs font-semibold uppercase text-[#6B7280]">Mix of events held</span>
+            <div className="flex flex-col gap-2 border-t border-gray-200 pt-3">
+              <span className="text-xs font-semibold uppercase text-gray-500">Mix of events held</span>
               <div className="flex h-3 overflow-hidden rounded-full">
                 {mix.map((item) => (
                   <span key={item.key} style={{ width: `${(item.count / held.length) * 100}%`, background: item.color }} />
@@ -253,7 +253,7 @@ const EventsAnalytics = () => {
               </div>
               <div className="flex flex-wrap gap-x-4 gap-y-2">
                 {mix.map((item) => (
-                  <span key={item.key} className="inline-flex items-center gap-1.5 text-xs text-[#374151]">
+                  <span key={item.key} className="inline-flex items-center gap-1.5 text-xs text-gray-700">
                     <Dot color={item.color} />
                     {item.label} · {item.count}
                   </span>
@@ -264,10 +264,10 @@ const EventsAnalytics = () => {
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-lg bg-white shadow-[0_8px_24px_rgba(8,13,45,0.08)]">
+      <div className="overflow-hidden rounded-lg bg-white shadow-[0_8px_24px_rgb(var(--color-shadow)_/_0.08)]">
         <div className="p-4">
           <h2 className="text-base font-semibold text-primary">Registration vs. attendance</h2>
-          <p className="text-sm text-[#4B5563]">For events that needed registration.</p>
+          <p className="text-sm text-gray-600">For events that needed registration.</p>
         </div>
         {regRows.length ? (
           <div className="overflow-x-auto">
@@ -287,7 +287,7 @@ const EventsAnalytics = () => {
                     className="grid min-h-14 grid-cols-[minmax(180px,2fr)_110px_110px_100px_100px] items-center border-b border-lightGray"
                   >
                     <span className="px-4 py-3 font-medium">{row.event.name}</span>
-                    <span className="px-4 py-3 text-[#4B5563]">{fmtShortDay(row.event.date)}</span>
+                    <span className="px-4 py-3 text-gray-600">{fmtShortDay(row.event.date)}</span>
                     <span className="px-4 py-3">
                       {row.event.registrations}
                       {row.event.capacity ? ` / ${row.event.capacity}` : ""}
@@ -302,7 +302,7 @@ const EventsAnalytics = () => {
             </div>
           </div>
         ) : (
-          <p className="px-4 pb-4 text-sm text-[#6B7280]">No registration events in this period.</p>
+          <p className="px-4 pb-4 text-sm text-gray-500">No registration events in this period.</p>
         )}
       </div>
     </PageOutline>

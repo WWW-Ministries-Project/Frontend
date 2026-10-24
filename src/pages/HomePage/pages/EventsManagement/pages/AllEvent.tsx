@@ -180,26 +180,26 @@ const AllEvent = () => {
           return (
             <div
               key={item.id}
-              className="flex flex-col gap-3 rounded-2xl border border-lightGray bg-white p-5 shadow-[0_8px_24px_rgba(8,13,45,0.08)]"
+              className="flex flex-col gap-3 rounded-2xl border border-lightGray bg-white p-5 shadow-[0_8px_24px_rgb(var(--color-shadow)_/_0.08)]"
             >
               <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-[#E5E7EB] bg-[#F3F4F6] px-2.5 py-0.5 text-xs font-semibold text-[#374151]">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-gray-100 px-2.5 py-0.5 text-xs font-semibold text-gray-700">
                   <Dot color={typeColor(item.event_type)} />
                   {typeLabel(item.event_type)}
                 </span>
-                <span className="text-xs text-[#6B7280]">{weekly ? "Weekly" : "Special"}</span>
+                <span className="text-xs text-gray-500">{weekly ? "Weekly" : "Special"}</span>
               </div>
               <h2 className="text-xl font-semibold leading-7 text-primary">{item.event_name}</h2>
-              <p className="flex-1 text-sm text-[#4B5563]">{item.event_description || "No description yet."}</p>
-              <div className="flex flex-col gap-0.5 rounded-lg bg-[#F8F9FC] p-3">
-                <span className="text-xs text-[#6B7280]">{scheduleText(item)}</span>
-                <span className={next ? "text-sm font-medium text-primary" : "text-sm font-medium text-[#B45309]"}>
+              <p className="flex-1 text-sm text-gray-600">{item.event_description || "No description yet."}</p>
+              <div className="flex flex-col gap-0.5 rounded-lg bg-inputBackground p-3">
+                <span className="text-xs text-gray-500">{scheduleText(item)}</span>
+                <span className={next ? "text-sm font-medium text-primary" : "text-sm font-medium text-amber-700"}>
                   {next
                     ? `Next: ${fmtShortDay(next.date)}${next.start ? `, ${clockLabel(next.start)}` : ""}`
                     : "Nothing scheduled"}
                 </span>
                 {upcoming.length > 0 && (
-                  <span className="text-xs text-[#6B7280]">{plural(upcoming.length, "upcoming date")}</span>
+                  <span className="text-xs text-gray-500">{plural(upcoming.length, "upcoming date")}</span>
                 )}
               </div>
               <div className="flex flex-wrap items-center gap-2">
@@ -234,7 +234,7 @@ const AllEvent = () => {
                     <UiButton
                       tone="ghost"
                       aria-label={`Delete ${item.event_name}`}
-                      className="ml-auto px-3 text-[#B91C1C] hover:bg-[#FEF2F2] hover:text-[#B91C1C]"
+                      className="ml-auto px-3 text-red-700 hover:bg-red-50 hover:text-red-700"
                       onClick={() => askDelete(item)}
                     >
                       Delete
@@ -247,7 +247,7 @@ const AllEvent = () => {
         })}
       </div>
       {cards.length === 0 && (
-        <p className="py-8 text-center text-sm text-[#6B7280]">
+        <p className="py-8 text-center text-sm text-gray-500">
           {catalogue.length ? "No events match." : "No events yet. Add the gatherings your church runs."}
         </p>
       )}

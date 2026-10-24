@@ -209,4 +209,4 @@ export const errorText = (error: unknown) => (error instanceof Error && error.me
 
 /** Native select/input look shared by the section forms. */
 export const selectClass =
-  "h-10 rounded-lg border border-[rgba(107,114,128,0.35)] bg-white px-3 text-sm text-primary outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(8,13,45,0.08)] disabled:cursor-not-allowed disabled:bg-[#F8F9FC] disabled:opacity-60";
+  "h-10 rounded-lg border border-gray-500/35 bg-white px-3 text-sm text-primary outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgb(var(--color-shadow)_/_0.08)] disabled:cursor-not-allowed disabled:bg-inputBackground disabled:opacity-60";

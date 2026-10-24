@@ -34,7 +34,7 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
   const renderIcon = (nav: NavItem) => {
     const iconClass = cn(
       "h-6 w-6",
-      nav.active ? "text-white" : nav.completed?"text-lime-700 dark:text-lime-400":"text-primary"
+      nav.active ? "text-white" : nav.completed?"text-lime-700":"text-primary"
     );
 
     if (nav.completed) {

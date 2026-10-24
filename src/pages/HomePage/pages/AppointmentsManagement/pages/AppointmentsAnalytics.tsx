@@ -33,11 +33,11 @@ const PERIODS: { value: Period; label: string }[] = [
 ];
 
 const CATEGORIES: { label: string; color: string; test: (b: ApptBooking) => boolean }[] = [
-  { label: "Completed", color: "#080D2D", test: (b) => b.status === "COMPLETED" },
-  { label: "Confirmed", color: "rgba(8,13,45,0.45)", test: (b) => b.status === "CONFIRMED" },
-  { label: "Awaiting", color: "#B45309", test: (b) => b.status === "PENDING" || b.status === "RESCHEDULED" },
-  { label: "No-show", color: "#B91C1C", test: (b) => b.status === "NO_SHOW" },
-  { label: "Declined or cancelled", color: "#D8DAE5", test: (b) => b.status === "DECLINED" || b.status === "CANCELLED" },
+  { label: "Completed", color: "rgb(var(--color-primary))", test: (b) => b.status === "COMPLETED" },
+  { label: "Confirmed", color: "rgb(var(--color-primary) / 0.45)", test: (b) => b.status === "CONFIRMED" },
+  { label: "Awaiting", color: "rgb(var(--color-amber-700))", test: (b) => b.status === "PENDING" || b.status === "RESCHEDULED" },
+  { label: "No-show", color: "rgb(var(--color-red-700))", test: (b) => b.status === "NO_SHOW" },
+  { label: "Declined or cancelled", color: "rgb(var(--color-lightGray))", test: (b) => b.status === "DECLINED" || b.status === "CANCELLED" },
 ];
 
 const BANDS: [number, number][] = [
@@ -217,7 +217,7 @@ const AppointmentsAnalytics = () => {
           </>
         }
       />
-      <p className="text-xs text-[#6B7280]">
+      <p className="text-xs text-gray-500">
         Appointments dated {fmtD(from)} {from.slice(0, 4)} to {fmtD(to)} {to.slice(0, 4)}. Reply time counts from the request to the
         first answer.
       </p>
@@ -232,7 +232,7 @@ const AppointmentsAnalytics = () => {
         <KpiCard
           label="Replied on time"
           value={s.replies.length ? `${s.onTime}%` : "—"}
-          sub={<span className={s.replies.length && s.onTime < 80 ? "text-[#B45309]" : "text-[#15803D]"}>Within {sla} h</span>}
+          sub={<span className={s.replies.length && s.onTime < 80 ? "text-amber-700" : "text-green-700"}>Within {sla} h</span>}
         />
         <KpiCard
           label="Accepted"
@@ -243,7 +243,7 @@ const AppointmentsAnalytics = () => {
           label="No-shows"
           value={s.held.length ? `${pc(s.noShows, s.held.length)}%` : "—"}
           sub={
-            <span className={s.held.length && s.noShows / s.held.length > 0.08 ? "text-[#B91C1C]" : ""}>
+            <span className={s.held.length && s.noShows / s.held.length > 0.08 ? "text-red-700" : ""}>
               {s.noShows} of {s.held.length} held
             </span>
           }
@@ -265,7 +265,7 @@ const AppointmentsAnalytics = () => {
         >
           <div className="overflow-x-auto">
             <div style={{ minWidth: Math.max(280, s.bars.length * 36) }}>
-              <div className="flex h-[200px] items-end gap-1.5 border-b border-[#E5E7EB]">
+              <div className="flex h-[200px] items-end gap-1.5 border-b border-gray-200">
                 {s.bars.map((bar) => (
                   <div key={bar.key} title={bar.tip} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1">
                     <span className="text-xs font-semibold text-primary">{bar.total || ""}</span>
@@ -282,7 +282,7 @@ const AppointmentsAnalytics = () => {
               </div>
               <div className="mt-1 flex gap-1.5">
                 {s.bars.map((bar) => (
-                  <span key={bar.key} className="min-w-0 flex-1 overflow-hidden whitespace-nowrap text-center text-xs text-[#6B7280]">
+                  <span key={bar.key} className="min-w-0 flex-1 overflow-hidden whitespace-nowrap text-center text-xs text-gray-500">
                     {bar.label}
                   </span>
                 ))}
@@ -311,11 +311,11 @@ const AppointmentsAnalytics = () => {
                 return (
                   <div
                     key={p.id}
-                    className="grid min-h-14 grid-cols-[minmax(180px,1.6fr)_repeat(5,minmax(90px,0.8fr))] items-center gap-3 border-b border-[#E5E7EB] px-4 py-2 text-sm text-primary last:border-b-0"
+                    className="grid min-h-14 grid-cols-[minmax(180px,1.6fr)_repeat(5,minmax(90px,0.8fr))] items-center gap-3 border-b border-gray-200 px-4 py-2 text-sm text-primary last:border-b-0"
                   >
                     <div className="min-w-0">
                       <p className="truncate font-semibold">{p.name}</p>
-                      {p.role && <p className="truncate text-xs text-[#6B7280]">{p.role}</p>}
+                      {p.role && <p className="truncate text-xs text-gray-500">{p.role}</p>}
                     </div>
                     <span>{p.n}</span>
                     <span>{p.replies ? dur(p.median) : "—"}</span>
@@ -323,11 +323,11 @@ const AppointmentsAnalytics = () => {
                       <Pill tone={pill.tone}>{pill.label}</Pill>
                     </span>
                     <span>{p.accepted === null ? "—" : `${p.accepted}%`}</span>
-                    <span className={p.noShowHigh ? "text-[#B91C1C]" : ""}>{p.noShow === null ? "—" : `${p.noShow}%`}</span>
+                    <span className={p.noShowHigh ? "text-red-700" : ""}>{p.noShow === null ? "—" : `${p.noShow}%`}</span>
                   </div>
                 );
               })}
-              {!s.people.length && <p className="px-4 py-6 text-sm text-[#6B7280]">Nobody has a schedule yet.</p>}
+              {!s.people.length && <p className="px-4 py-6 text-sm text-gray-500">Nobody has a schedule yet.</p>}
             </div>
           </div>
         </Panel>
@@ -336,7 +336,7 @@ const AppointmentsAnalytics = () => {
           {s.reasons.map(([label, n]) => (
             <Meter key={label} label={label} value={`${n} · ${pc(n, s.list.length)}%`} percent={(n * 100) / reasonMax} />
           ))}
-          {!s.reasons.length && <p className="text-sm text-[#6B7280]">No requests in this period.</p>}
+          {!s.reasons.length && <p className="text-sm text-gray-500">No requests in this period.</p>}
         </Panel>
 
         <Panel title="When people want to meet" helper="Requested start times. Darker means busier.">
@@ -344,12 +344,12 @@ const AppointmentsAnalytics = () => {
             <div className="grid min-w-[320px] grid-cols-[44px_repeat(7,minmax(32px,1fr))] gap-1">
               <span />
               {WEEK_ORDER.map((d) => (
-                <span key={d} className="text-center text-xs text-[#6B7280]">
+                <span key={d} className="text-center text-xs text-gray-500">
                   {DOW[d]}
                 </span>
               ))}
               {BANDS.map(([a, b], i) => [
-                <span key={`l${a}`} className="flex h-7 items-center text-xs text-[#6B7280]">
+                <span key={`l${a}`} className="flex h-7 items-center text-xs text-gray-500">
                   {a % 12 || 12}
                   {a < 12 ? "am" : "pm"}
                 </span>,
@@ -362,8 +362,8 @@ const AppointmentsAnalytics = () => {
                       title={`${DOW[d]} ${a}:00–${b}:00 · ${v} requests`}
                       className="flex h-7 items-center justify-center rounded text-xs"
                       style={{
-                        background: v ? `rgba(8,13,45,${(0.08 + k * 0.85).toFixed(2)})` : "#F3F4F6",
-                        color: k > 0.45 ? "#fff" : "#080D2D",
+                        background: v ? `rgb(var(--color-primary) / ${(0.08 + k * 0.85).toFixed(2)})` : "rgb(var(--color-gray-100))",
+                        color: k > 0.45 ? "#fff" : "rgb(var(--color-primary))",
                       }}
                     >
                       {v || ""}
@@ -385,23 +385,23 @@ const AppointmentsAnalytics = () => {
               tone={u.use >= 85 ? "danger" : u.use >= 65 ? "warning" : "primary"}
             />
           ))}
-          {!s.utilisation.length && <p className="text-sm text-[#6B7280]">Nobody has a schedule yet.</p>}
+          {!s.utilisation.length && <p className="text-sm text-gray-500">Nobody has a schedule yet.</p>}
         </Panel>
 
         <Panel title="What stands out">
           <div className="-mt-3 flex flex-col">
             {s.insights.map((item) => (
-              <div key={item.title} className="flex gap-3 border-b border-[#E5E7EB] py-3 last:border-b-0">
+              <div key={item.title} className="flex gap-3 border-b border-gray-200 py-3 last:border-b-0">
                 <span className="flex-shrink-0 self-start">
                   <Pill tone={item.pill.tone}>{item.pill.label}</Pill>
                 </span>
                 <div>
                   <p className="text-sm font-semibold text-primary">{item.title}</p>
-                  <p className="text-sm text-[#4B5563]">{item.text}</p>
+                  <p className="text-sm text-gray-600">{item.text}</p>
                 </div>
               </div>
             ))}
-            {!s.insights.length && <p className="pt-3 text-sm text-[#6B7280]">Nothing unusual in this period.</p>}
+            {!s.insights.length && <p className="pt-3 text-sm text-gray-500">Nothing unusual in this period.</p>}
           </div>
         </Panel>
       </div>

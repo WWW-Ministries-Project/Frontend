@@ -27,7 +27,7 @@ const Arrow = () => (
     height="16"
     viewBox="0 0 24 24"
     fill="none"
-    stroke="#6B7280"
+    stroke="rgb(var(--color-gray-500))"
     strokeWidth="2"
     className="flex-shrink-0 rotate-90 tablet:rotate-0"
   >
@@ -46,10 +46,10 @@ const Flow = ({ title, nodes }: { title: string; nodes: FlowNode[] }) => (
         <div
           className={cn(
             "flex min-w-0 flex-col gap-0.5 self-stretch rounded-lg border px-3 py-2",
-            node.bad ? "border-[#FECACA] bg-[#FEF2F2]" : "border-lightGray bg-[#F8F9FC]"
+            node.bad ? "border-red-200 bg-red-50" : "border-lightGray bg-inputBackground"
           )}
         >
-          <span className="text-xs text-[#6B7280]">{node.label}</span>
+          <span className="text-xs text-gray-500">{node.label}</span>
           <span className="text-sm font-medium text-primary">{node.value}</span>
         </div>
       </li>
@@ -58,7 +58,7 @@ const Flow = ({ title, nodes }: { title: string; nodes: FlowNode[] }) => (
 );
 
 const CardShell = ({ children }: { children: React.ReactNode }) => (
-  <div className="flex flex-col gap-4 rounded-xl border border-lightGray bg-white p-4 shadow-[0_8px_24px_rgba(8,13,45,0.08)] tablet:p-6">
+  <div className="flex flex-col gap-4 rounded-xl border border-lightGray bg-white p-4 shadow-[0_8px_24px_rgb(var(--color-shadow)_/_0.08)] tablet:p-6">
     {children}
   </div>
 );
@@ -69,7 +69,7 @@ const CardTitle = ({ wfKey, pill }: { wfKey: WorkflowKey; pill?: React.ReactNode
       <h2 className="text-xl font-semibold leading-7 text-primary">{WF[wfKey].title}</h2>
       {pill}
     </div>
-    <p className="text-sm text-[#4B5563]">{WF[wfKey].description}</p>
+    <p className="text-sm text-gray-600">{WF[wfKey].description}</p>
   </div>
 );
 
@@ -244,7 +244,7 @@ const ApprovalsPage = () => {
         </div>
         <Flow title={WF[key].title} nodes={flowFor(key, draft)} />
         {key === "REQ" && (
-          <p className="border-t border-[#E5E7EB] pt-3 text-xs text-[#4B5563]">{reqNote(draft)}</p>
+          <p className="border-t border-gray-200 pt-3 text-xs text-gray-600">{reqNote(draft)}</p>
         )}
       </CardShell>
     );

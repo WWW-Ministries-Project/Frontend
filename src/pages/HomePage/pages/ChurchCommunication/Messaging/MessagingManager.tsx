@@ -178,7 +178,7 @@ const MessagingManager = () => {
           value={o ? nf(o.failed) : "—"}
           sub={
             o ? (
-              <span className={o.failed ? "text-[#B45309]" : "text-[#15803D]"}>
+              <span className={o.failed ? "text-amber-700" : "text-green-700"}>
                 {o.failed ? "Mostly invalid numbers and bounced emails" : "None"}
               </span>
             ) : undefined
@@ -221,7 +221,7 @@ const MessagingManager = () => {
                   type="button"
                   aria-pressed={on}
                   onClick={() => setFilter(item.key)}
-                  className={`min-h-9 whitespace-nowrap rounded-full border px-3.5 py-1.5 text-sm font-medium ${on ? "border-primary bg-primary text-white" : "border-lightGray bg-white text-primary hover:bg-[#F8F9FC]"}`}
+                  className={`min-h-9 whitespace-nowrap rounded-full border px-3.5 py-1.5 text-sm font-medium ${on ? "border-primary bg-primary text-white" : "border-lightGray bg-white text-primary hover:bg-inputBackground"}`}
                 >
                   {item.label} · {facets[item.key] ?? (on ? total : 0)}
                 </button>
@@ -232,13 +232,13 @@ const MessagingManager = () => {
           {dispatches.loading && rows.length === 0 ? (
             <div className="flex flex-col gap-2">
               {Array.from({ length: 4 }).map((_, index) => (
-                <div key={index} className="h-16 animate-pulse rounded-lg bg-[#F3F4F6]" />
+                <div key={index} className="h-16 animate-pulse rounded-lg bg-gray-100" />
               ))}
             </div>
           ) : rows.length === 0 ? (
             <ListEmpty>{filter === "all" ? "No messages yet. Send the first one with New message." : "No messages in this view."}</ListEmpty>
           ) : wide ? (
-            <div className="overflow-x-auto rounded-lg border border-lightGray bg-white shadow-[0_8px_24px_rgba(8,13,45,0.08)]">
+            <div className="overflow-x-auto rounded-lg border border-lightGray bg-white shadow-[0_8px_24px_rgb(var(--color-shadow)_/_0.08)]">
               <div className="min-w-[920px]">
                 <div className="grid grid-cols-[minmax(240px,2.2fr)_minmax(140px,1fr)_minmax(150px,1fr)_minmax(120px,0.9fr)_minmax(150px,1fr)_minmax(130px,0.9fr)] gap-3 bg-lightGray px-6 py-4 text-sm font-semibold text-primary">
                   <span>Message</span>
@@ -265,12 +265,12 @@ const MessagingManager = () => {
                     >
                       <div className="min-w-0">
                         <p className="truncate font-semibold">{row.title}</p>
-                        <p className="truncate text-xs text-[#6B7280]">{row.body}</p>
+                        <p className="truncate text-xs text-gray-500">{row.body}</p>
                       </div>
-                      <p className="text-[#4B5563]">{row.audienceLabel ?? "—"}</p>
+                      <p className="text-gray-600">{row.audienceLabel ?? "—"}</p>
                       <div className="flex flex-wrap gap-1">
                         {channelList(row.channels).map((label) => (
-                          <span key={label} className="rounded-full bg-[#F3F4F6] px-2 text-xs text-[#374151]">
+                          <span key={label} className="rounded-full bg-gray-100 px-2 text-xs text-gray-700">
                             {label}
                           </span>
                         ))}
@@ -281,7 +281,7 @@ const MessagingManager = () => {
                       <DeliveryBar row={row} attempted={attempted} />
                       <div>
                         <p>{row.status === "SCHEDULED" ? formatDayTime(row.scheduledFor) : timeAgo(row.createdAt)}</p>
-                        <p className="text-xs text-[#6B7280]">{row.createdByName ?? ""}</p>
+                        <p className="text-xs text-gray-500">{row.createdByName ?? ""}</p>
                       </div>
                     </div>
                   );
@@ -305,7 +305,7 @@ const MessagingManager = () => {
                       <p className="flex-1 text-sm font-semibold">{row.title}</p>
                       <Pill tone={pill.tone}>{pill.label}</Pill>
                     </div>
-                    <p className="text-xs text-[#6B7280]">
+                    <p className="text-xs text-gray-500">
                       {[row.audienceLabel, channelList(row.channels).join(", "), row.status === "SCHEDULED" ? formatDayTime(row.scheduledFor) : timeAgo(row.createdAt)]
                         .filter(Boolean)
                         .join(" · ")}
@@ -399,9 +399,9 @@ const DeliveryBar = ({ row, attempted, inline }: { row: MessageDispatch; attempt
   const people = peopleOf(row);
   const label = totals ? `${nf(totals.sent)} of ${nf(attempted)}` : row.status === "SCHEDULED" ? "Not sent yet" : "—";
   const width = attempted && totals ? `${(totals.sent * 100) / attempted}%` : "0%";
-  const color = totals && totals.failed ? "bg-[#B45309]" : "bg-[#15803D]";
+  const color = totals && totals.failed ? "bg-warning" : "bg-success";
   const bar = (
-    <div className={`h-1.5 overflow-hidden rounded-full bg-[#E5E7EB] ${inline ? "flex-1" : ""}`}>
+    <div className={`h-1.5 overflow-hidden rounded-full bg-gray-200 ${inline ? "flex-1" : ""}`}>
       <div className={`h-full ${color}`} style={{ width }} />
     </div>
   );
@@ -417,7 +417,7 @@ const DeliveryBar = ({ row, attempted, inline }: { row: MessageDispatch; attempt
     <div className="flex flex-col gap-1">
       <span>{label}</span>
       {bar}
-      {people !== null && !totals && <span className="text-xs text-[#6B7280]">{plural(people, "person", "people")}</span>}
+      {people !== null && !totals && <span className="text-xs text-gray-500">{plural(people, "person", "people")}</span>}
     </div>
   );
 };
@@ -530,17 +530,17 @@ const DispatchDialog = ({
     >
       <div className="flex flex-wrap items-center gap-2 text-sm">
         <Pill tone={pill.tone}>{pill.label}</Pill>
-        <span className="text-[#4B5563]">
+        <span className="text-gray-600">
           {when}
           {dispatch.createdByName ? ` by ${dispatch.createdByName}` : ""}
         </span>
       </div>
       {dispatch.emailSubject && dispatch.channels.email && (
-        <p className="text-sm text-[#4B5563]">
+        <p className="text-sm text-gray-600">
           Email subject: <span className="font-semibold text-primary">{dispatch.emailSubject}</span>
         </p>
       )}
-      <p className="whitespace-pre-wrap rounded-lg border border-[#E5E7EB] bg-[#F8F9FC] px-4 py-3 text-sm text-primary">{dispatch.body}</p>
+      <p className="whitespace-pre-wrap rounded-lg border border-gray-200 bg-inputBackground px-4 py-3 text-sm text-primary">{dispatch.body}</p>
       {dispatch.counts && (
         <div className="overflow-x-auto rounded-lg border border-lightGray">
           <div className="min-w-[420px] text-sm text-primary">
@@ -555,14 +555,14 @@ const DispatchDialog = ({
               const counts = channelCounts(dispatch, channel.key);
               const all = Math.max(1, counts.sent + counts.failed + counts.skipped + (counts.pending ?? 0));
               return (
-                <div key={channel.key} className="grid grid-cols-[1.2fr_repeat(3,0.8fr)_1.4fr] items-center gap-3 border-b border-[#E5E7EB] px-4 py-3 last:border-b-0">
+                <div key={channel.key} className="grid grid-cols-[1.2fr_repeat(3,0.8fr)_1.4fr] items-center gap-3 border-b border-gray-200 px-4 py-3 last:border-b-0">
                   <span className="font-semibold">{channel.label}</span>
                   <span>{nf(counts.sent)}</span>
-                  <span className={counts.failed ? "text-[#B91C1C]" : "text-[#6B7280]"}>{nf(counts.failed)}</span>
-                  <span className="text-[#6B7280]">{nf(counts.skipped)}</span>
-                  <div className="flex h-2 overflow-hidden rounded-full bg-[#E5E7EB]">
-                    <div className="bg-[#15803D]" style={{ width: `${(counts.sent * 100) / all}%` }} />
-                    <div className="bg-[#B91C1C]" style={{ width: `${(counts.failed * 100) / all}%` }} />
+                  <span className={counts.failed ? "text-red-700" : "text-gray-500"}>{nf(counts.failed)}</span>
+                  <span className="text-gray-500">{nf(counts.skipped)}</span>
+                  <div className="flex h-2 overflow-hidden rounded-full bg-gray-200">
+                    <div className="bg-success" style={{ width: `${(counts.sent * 100) / all}%` }} />
+                    <div className="bg-error" style={{ width: `${(counts.failed * 100) / all}%` }} />
                   </div>
                 </div>
               );
@@ -574,14 +574,14 @@ const DispatchDialog = ({
         <div className="flex flex-col gap-1 text-sm">
           <p className="font-semibold text-primary">Why some failed</p>
           {reasons.map((reason) => (
-            <p key={reason} className="text-[#4B5563]">
+            <p key={reason} className="text-gray-600">
               · {reason}
             </p>
           ))}
-          <p className="text-[#4B5563]">· Skipped means the person has no phone, email or app for that channel.</p>
+          <p className="text-gray-600">· Skipped means the person has no phone, email or app for that channel.</p>
         </div>
       )}
-      {dispatch.error && <p className="text-sm text-[#B91C1C]">{dispatch.error}</p>}
+      {dispatch.error && <p className="text-sm text-red-700">{dispatch.error}</p>}
     </CommDialog>
   );
 };

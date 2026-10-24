@@ -373,7 +373,7 @@ export const StatusDialog = ({
               }
               hasError={tried && needNote && !note.trim()}
             />
-            <span className="text-xs text-[#6B7280]">Saved in the asset’s history.</span>
+            <span className="text-xs text-gray-500">Saved in the asset’s history.</span>
           </Field>
         </FullRow>
       </FieldGrid>
@@ -478,7 +478,7 @@ export const RepairDialog = ({
         { label: groups.length > 1 ? `Submit ${groups.length} requisitions` : "Submit requisition", onClick: submit, tone: "primary" },
       ]}
     >
-      <div className="rounded-lg bg-[#F8F9FC] px-4 py-3">
+      <div className="rounded-lg bg-inputBackground px-4 py-3">
         <Points
           points={[
             groups.length > 1
@@ -504,7 +504,7 @@ export const RepairDialog = ({
                 placeholder="0.00"
                 hasError={tried && !(Number(est[a.id]) > 0)}
               />
-              <span className="text-xs text-[#6B7280]">
+              <span className="text-xs text-gray-500">
                 {a.department?.name || "Store"} · {a.status_note || "No fault note"}
               </span>
             </Field>
@@ -521,7 +521,7 @@ export const RepairDialog = ({
         <FullRow>
           <Field label="Why it’s needed">
             <TextArea value={why} onChange={(e) => setWhy(e.target.value)} hasError={tried && !why.trim()} />
-            <span className="text-xs text-[#6B7280]">Pre-filled from the fault notes. Approvers read this first.</span>
+            <span className="text-xs text-gray-500">Pre-filled from the fault notes. Approvers read this first.</span>
           </Field>
         </FullRow>
         <FullRow>

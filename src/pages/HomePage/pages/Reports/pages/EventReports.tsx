@@ -37,7 +37,7 @@ const reportRoute = (row: { event_id: string | number; event_date: string; event
 };
 
 const presentColor = (pct: number | null | undefined) =>
-  pct === null || pct === undefined ? "#4B5563" : pct >= 75 ? "#15803D" : pct >= 60 ? "#B45309" : "#B91C1C";
+  pct === null || pct === undefined ? "rgb(var(--color-gray-600))" : pct >= 75 ? "rgb(var(--color-green-700))" : pct >= 60 ? "rgb(var(--color-amber-700))" : "rgb(var(--color-red-700))";
 
 const NO_DATA = "no attendance data yet";
 
@@ -183,7 +183,7 @@ const EventReports = () => {
           ]}
         />
         <div className="flex items-center gap-2">
-          <span className="text-sm text-[#4B5563]">Group by</span>
+          <span className="text-sm text-gray-600">Group by</span>
           <PillTabs
             ariaLabel="Group by"
             size="sm"
@@ -222,7 +222,7 @@ const EventReports = () => {
                 <span className="text-base font-semibold">{g.label}</span>
                 <Pill tone="neutral" className="px-2 py-0">{g.rows.length}</Pill>
               </span>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4B5563" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={cn("transition-transform", open && "rotate-180")}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgb(var(--color-gray-600))" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={cn("transition-transform", open && "rotate-180")}>
                 <path d="M6 9l6 6 6-6" />
               </svg>
             </button>
@@ -256,14 +256,14 @@ const EventReports = () => {
                             <span title={EVENT_TYPE_LABEL[type]} className="h-2.5 w-2.5 flex-shrink-0 rounded-full" style={{ background: EVENT_TYPE_COLOR[type] }} />
                             <div className="min-w-0">
                               <p className="truncate font-semibold">{r.event_name}</p>
-                              <p className="truncate text-xs text-[#6B7280]">
+                              <p className="truncate text-xs text-gray-500">
                                 {EVENT_TYPE_LABEL[type]}
                                 {r.location ? ` · ${r.location}` : ""}
                               </p>
                             </div>
                           </div>
                           <span>{fmtEventDate(r.event_date)}</span>
-                          <span className="text-[#4B5563]">{fmtEventTime(r.start_time, r.end_time) || "—"}</span>
+                          <span className="text-gray-600">{fmtEventTime(r.start_time, r.end_time) || "—"}</span>
                           <span className="text-right font-semibold">{r.total_attendance == null ? "—" : nf(r.total_attendance)}</span>
                           <span className="text-right font-semibold" style={{ color: presentColor(r.workers_present_pct) }}>
                             {r.workers_present_pct == null ? "—" : `${Math.round(r.workers_present_pct)}%`}
@@ -271,7 +271,7 @@ const EventReports = () => {
                           <span>
                             <Pill tone={pill.tone}>{pill.label}</Pill>
                           </span>
-                          <span aria-hidden="true" className="text-[#6B7280]">›</span>
+                          <span aria-hidden="true" className="text-gray-500">›</span>
                         </div>
                       );
                     })}
@@ -286,17 +286,17 @@ const EventReports = () => {
                         key={`${r.event_id}-${r.event_date}`}
                         type="button"
                         onClick={() => navigate(reportRoute(r))}
-                        className="flex flex-col gap-1.5 border-b border-[#E5E7EB] bg-white p-4 text-left text-sm text-primary last:border-b-0"
+                        className="flex flex-col gap-1.5 border-b border-gray-200 bg-white p-4 text-left text-sm text-primary last:border-b-0"
                       >
                         <div className="flex w-full items-start justify-between gap-2">
                           <p className="font-semibold">{r.event_name}</p>
                           <Pill tone={pill.tone} className="flex-shrink-0 px-2 py-0">{pill.label}</Pill>
                         </div>
-                        <p className="text-[#4B5563]">
+                        <p className="text-gray-600">
                           {fmtEventDate(r.event_date)}
                           {fmtEventTime(r.start_time, r.end_time) ? ` · ${fmtEventTime(r.start_time, r.end_time)}` : ""}
                         </p>
-                        <p className="text-xs text-[#6B7280]">
+                        <p className="text-xs text-gray-500">
                           {r.total_attendance == null ? "—" : nf(r.total_attendance)} attended ·{" "}
                           {r.workers_present_pct == null ? "—" : `${Math.round(r.workers_present_pct)}%`} workers present
                         </p>
@@ -334,9 +334,9 @@ const EventReports = () => {
         onConfirm={generate}
       >
         <div role="radiogroup" aria-label="Event" className="flex max-h-[50vh] flex-col gap-2 overflow-y-auto">
-          {eligible.loading && <p className="text-[#6B7280]">Loading events…</p>}
+          {eligible.loading && <p className="text-gray-500">Loading events…</p>}
           {!eligible.loading && eligibleRows.length === 0 && (
-            <p className="rounded-lg border border-[#E5E7EB] bg-[#F8F9FC] px-4 py-3 text-[#4B5563]">
+            <p className="rounded-lg border border-gray-200 bg-inputBackground px-4 py-3 text-gray-600">
               Every finished event already has a report, or none has attendance recorded yet.
             </p>
           )}
@@ -356,7 +356,7 @@ const EventReports = () => {
                 }}
                 className={cn(
                   "flex items-center gap-3 rounded-lg border px-4 py-3 text-left text-sm text-primary",
-                  on ? "border-primary bg-[#F8F9FC]" : "border-lightGray bg-white"
+                  on ? "border-primary bg-inputBackground" : "border-lightGray bg-white"
                 )}
               >
                 <span className="flex h-[18px] w-[18px] flex-shrink-0 items-center justify-center rounded-full border-2 border-primary">
@@ -364,7 +364,7 @@ const EventReports = () => {
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block font-semibold">{e.event_name}</span>
-                  <span className="block text-xs text-[#6B7280]">
+                  <span className="block text-xs text-gray-500">
                     {fmtEventDate(e.event_date)}
                     {e.event_type ? ` · ${EVENT_TYPE_LABEL[type]}` : ""}
                   </span>
@@ -378,7 +378,7 @@ const EventReports = () => {
             role="status"
             className={cn(
               "rounded-lg border px-4 py-3",
-              genMsg.tone === "info" ? "border-[#BFDBFE] bg-[#EFF6FF] text-[#1D4ED8]" : "border-[#FECACA] bg-[#FEF2F2] text-[#B91C1C]"
+              genMsg.tone === "info" ? "border-blue-200 bg-blue-50 text-blue-700" : "border-red-200 bg-red-50 text-red-700"
             )}
           >
             {genMsg.text}

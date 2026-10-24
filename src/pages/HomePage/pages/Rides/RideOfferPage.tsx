@@ -375,7 +375,7 @@ const RideOfferPage = () => {
           </label>
         </div>
         {attempted && timeProblem ? (
-          <p role="alert" className="text-sm text-red-700 dark:text-red-300">
+          <p role="alert" className="text-sm text-red-700">
             {timeProblem}
           </p>
         ) : null}
@@ -465,7 +465,7 @@ const RideOfferPage = () => {
           </div>
         </div>
         {missingStops ? (
-          <p role="alert" className="text-sm text-red-700 dark:text-red-300">
+          <p role="alert" className="text-sm text-red-700">
             Add at least one pickup point so riders can find your ride.
           </p>
         ) : null}

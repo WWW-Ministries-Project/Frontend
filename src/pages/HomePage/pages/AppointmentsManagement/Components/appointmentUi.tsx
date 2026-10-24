@@ -32,20 +32,20 @@ export const KpiButton = ({
     type="button"
     onClick={onClick}
     className={cn(
-      "flex flex-col gap-1 rounded-xl border bg-white px-5 py-4 text-left text-primary shadow-[0_1px_2px_rgba(0,0,0,0.05)] transition-shadow hover:shadow-[0_8px_24px_rgba(8,13,45,0.08)]",
-      alert ? "border-[#FECACA]" : "border-lightGray"
+      "flex flex-col gap-1 rounded-xl border bg-white px-5 py-4 text-left text-primary shadow-[0_1px_2px_rgba(0,0,0,0.05)] transition-shadow hover:shadow-[0_8px_24px_rgb(var(--color-shadow)_/_0.08)]",
+      alert ? "border-red-200" : "border-lightGray"
     )}
   >
-    <span className="text-sm text-[#4B5563]">{label}</span>
+    <span className="text-sm text-gray-600">{label}</span>
     <span className="text-2xl font-semibold leading-8">{value}</span>
     {sub && (
       <span
         className={cn(
           "text-xs",
-          subTone === "success" && "text-[#15803D]",
-          subTone === "warning" && "text-[#B45309]",
-          subTone === "danger" && "text-[#B91C1C]",
-          subTone === "muted" && "text-[#6B7280]"
+          subTone === "success" && "text-green-700",
+          subTone === "warning" && "text-amber-700",
+          subTone === "danger" && "text-red-700",
+          subTone === "muted" && "text-gray-500"
         )}
       >
         {sub}
@@ -72,7 +72,7 @@ export const Panel = ({
     <div className="flex flex-wrap items-start justify-between gap-3">
       <div className="flex min-w-0 flex-col gap-1">
         <h2 className="text-base font-semibold text-primary">{title}</h2>
-        {helper && <p className="text-sm text-[#4B5563]">{helper}</p>}
+        {helper && <p className="text-sm text-gray-600">{helper}</p>}
       </div>
       {action}
     </div>
@@ -97,11 +97,11 @@ export const Meter = ({
       <span className="min-w-0">{label}</span>
       <span className="flex-shrink-0 font-semibold">{value}</span>
     </div>
-    <div className="h-2 overflow-hidden rounded-full bg-[#E5E7EB]">
+    <div className="h-2 overflow-hidden rounded-full bg-gray-200">
       <div
         className={cn(
           "h-full",
-          tone === "danger" ? "bg-[#B91C1C]" : tone === "warning" ? "bg-[#B45309]" : "bg-primary"
+          tone === "danger" ? "bg-error" : tone === "warning" ? "bg-warning" : "bg-primary"
         )}
         style={{ width: `${Math.max(0, Math.min(100, percent))}%` }}
       />
@@ -111,7 +111,7 @@ export const Meter = ({
 
 /** Small coloured square + label for chart legends. */
 export const LegendDot = ({ color, label }: { color: string; label: string }) => (
-  <span className="inline-flex items-center gap-1.5 text-xs text-[#4B5563]">
+  <span className="inline-flex items-center gap-1.5 text-xs text-gray-600">
     <span className="h-2.5 w-2.5 rounded-sm" style={{ background: color }} />
     {label}
   </span>
@@ -145,7 +145,7 @@ export const SlotPicker = ({
             onClick={() => onChange(slot)}
             className={cn(
               "min-h-11 flex-[1_1_150px] rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors sm:flex-none",
-              on ? "border-primary bg-primary text-white" : "border-lightGray bg-white text-primary hover:bg-[#F8F9FC]"
+              on ? "border-primary bg-primary text-white" : "border-lightGray bg-white text-primary hover:bg-inputBackground"
             )}
           >
             {fmtD(slot.date)} · {t12(slot.start)}
@@ -153,10 +153,10 @@ export const SlotPicker = ({
         );
       })}
       {slots.length === 0 && (
-        <p className="text-sm text-[#6B7280]">No free sessions in the next three weeks. Try another person.</p>
+        <p className="text-sm text-gray-500">No free sessions in the next three weeks. Try another person.</p>
       )}
     </div>
-    {help && <span className="text-xs text-[#6B7280]">{help}</span>}
+    {help && <span className="text-xs text-gray-500">{help}</span>}
   </div>
 );
 
@@ -188,7 +188,7 @@ export const MemberPicker = ({
 
   if (value) {
     return (
-      <div className="flex min-h-10 items-center justify-between gap-2 rounded-lg border border-[rgba(107,114,128,0.35)] bg-[#F8F9FC] px-3">
+      <div className="flex min-h-10 items-center justify-between gap-2 rounded-lg border border-gray-500/35 bg-inputBackground px-3">
         <span className="truncate text-sm font-semibold text-primary">{value.name}</span>
         <button
           type="button"
@@ -196,7 +196,7 @@ export const MemberPicker = ({
             onChange(null);
             setQuery("");
           }}
-          className="text-sm font-medium text-[#4B5563] underline hover:text-primary"
+          className="text-sm font-medium text-gray-600 underline hover:text-primary"
         >
           Change
         </button>
@@ -218,14 +218,14 @@ export const MemberPicker = ({
         placeholder={placeholder}
         aria-label={placeholder}
         className={cn(
-          "h-10 w-full rounded-lg border bg-white px-3 text-sm text-primary outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(8,13,45,0.08)]",
-          hasError ? "border-[#B91C1C]" : "border-[rgba(107,114,128,0.35)]"
+          "h-10 w-full rounded-lg border bg-white px-3 text-sm text-primary outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgb(var(--color-shadow)_/_0.08)]",
+          hasError ? "border-red-700" : "border-gray-500/35"
         )}
       />
       {open && query.trim() && (
         <div
           role="listbox"
-          className="absolute left-0 right-0 top-full z-10 mt-1 max-h-64 overflow-y-auto rounded-md border border-[#E5E7EB] bg-white py-1 shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-4px_rgba(0,0,0,0.1)]"
+          className="absolute left-0 right-0 top-full z-10 mt-1 max-h-64 overflow-y-auto rounded-md border border-gray-200 bg-white py-1 shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-4px_rgba(0,0,0,0.1)]"
         >
           {matches.map((option) => (
             <button
@@ -238,12 +238,12 @@ export const MemberPicker = ({
                 onChange({ id: String(option.value), name: option.label });
                 setOpen(false);
               }}
-              className="block w-full px-4 py-3 text-left text-sm text-primary hover:bg-[#F3F4F6]"
+              className="block w-full px-4 py-3 text-left text-sm text-primary hover:bg-gray-100"
             >
               {option.label}
             </button>
           ))}
-          {matches.length === 0 && <p className="px-4 py-3 text-sm text-[#6B7280]">No members match.</p>}
+          {matches.length === 0 && <p className="px-4 py-3 text-sm text-gray-500">No members match.</p>}
         </div>
       )}
     </div>
@@ -282,7 +282,7 @@ export const SideDrawer = ({
     <Dialog.Portal>
       <Dialog.Overlay className="fixed inset-0 z-[120] bg-primary/45" />
       <Dialog.Content className="fixed inset-y-0 right-0 z-[120] flex h-full w-full flex-col border-l border-lightGray bg-white focus:outline-none sm:w-[min(520px,100%)]">
-        <div className="flex items-start gap-3 border-b border-[#E5E7EB] px-5 py-5 sm:px-6">
+        <div className="flex items-start gap-3 border-b border-gray-200 px-5 py-5 sm:px-6">
           <div className="flex min-w-0 flex-1 flex-col gap-2">
             {pill && (
               <span className="self-start">
@@ -290,7 +290,7 @@ export const SideDrawer = ({
               </span>
             )}
             <Dialog.Title className="text-xl font-semibold leading-7 text-primary">{title}</Dialog.Title>
-            <Dialog.Description className={cn("text-sm text-[#4B5563]", !subtitle && "sr-only")}>
+            <Dialog.Description className={cn("text-sm text-gray-600", !subtitle && "sr-only")}>
               {subtitle || title}
             </Dialog.Description>
           </div>
@@ -299,7 +299,7 @@ export const SideDrawer = ({
             onClick={onClose}
             disabled={busy}
             aria-label="Close"
-            className="h-9 w-9 flex-shrink-0 rounded-lg text-xl text-[#6B7280] hover:bg-[#F3F4F6]"
+            className="h-9 w-9 flex-shrink-0 rounded-lg text-xl text-gray-500 hover:bg-gray-100"
           >
             ×
           </button>
@@ -308,7 +308,7 @@ export const SideDrawer = ({
           <div className="flex flex-col gap-5">{children}</div>
         </div>
         {buttons.length > 0 && (
-          <div className="flex flex-wrap justify-end gap-2 border-t border-[#E5E7EB] px-5 py-4 sm:px-6">
+          <div className="flex flex-wrap justify-end gap-2 border-t border-gray-200 px-5 py-4 sm:px-6">
             {buttons.map((button) => (
               <UiButton
                 key={button.label}

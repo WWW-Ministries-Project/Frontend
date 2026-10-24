@@ -15,7 +15,7 @@ export const isHex = (v?: string) => /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v || "
 
 /** Light tint of a colour hex for placeholder tiles. */
 export const tintOf = (hex?: string) =>
-  isHex(hex) && hex!.length === 7 ? `${hex}1F` : "#F3F4F6";
+  isHex(hex) && hex!.length === 7 ? `${hex}1F` : "rgb(var(--color-gray-100))";
 
 /** Pull a readable message out of an API error. */
 export const errorMessage = (error: unknown, fallback: string) =>

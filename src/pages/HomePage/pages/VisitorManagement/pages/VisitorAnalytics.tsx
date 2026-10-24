@@ -196,24 +196,24 @@ export const VisitorAnalytics = () => {
         )}
 
         <div className="flex flex-col gap-1">
-          <h2 className="text-xl font-bold leading-7 text-[#1F2937]">Visitor overview</h2>
-          <p className="text-sm text-[#4B5563]">
+          <h2 className="text-xl font-bold leading-7 text-gray-800">Visitor overview</h2>
+          <p className="text-sm text-gray-600">
             New visitors, follow-up and conversion · {total}{" "}
             {total === 1 ? "visitor" : "visitors"} in this view
           </p>
-          <p className="text-xs text-[#6B7280]">{describeAnalyticsRange(filters.period, range)}</p>
+          <p className="text-xs text-gray-500">{describeAnalyticsRange(filters.period, range)}</p>
         </div>
 
         {error ? (
           <div
             role="alert"
-            className="rounded-lg border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 text-sm text-[#B91C1C]"
+            className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
           >
             Failed to load visitors. The figures below may be incomplete.
           </div>
         ) : null}
         {loading ? (
-          <p role="status" className="text-sm text-[#6B7280]">
+          <p role="status" className="text-sm text-gray-500">
             Loading visitor analytics…
           </p>
         ) : null}

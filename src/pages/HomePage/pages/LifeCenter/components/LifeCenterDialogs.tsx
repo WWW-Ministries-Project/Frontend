@@ -198,7 +198,7 @@ export const LifeCenterFormDialog = ({
                 className={cn(
                   "min-h-10 min-w-14 rounded-lg border px-3 py-2 text-sm font-medium transition-colors",
                   on ? "border-primary bg-primary text-white" : "bg-white text-primary hover:bg-primary/5",
-                  !on && (shown.days ? "border-[#B91C1C]" : "border-lightGray")
+                  !on && (shown.days ? "border-red-700" : "border-lightGray")
                 )}
               >
                 {d}
@@ -207,7 +207,7 @@ export const LifeCenterFormDialog = ({
           })}
         </div>
         {shown.days && (
-          <span role="alert" className="text-xs text-[#B91C1C]">
+          <span role="alert" className="text-xs text-red-700">
             {shown.days}
           </span>
         )}
@@ -236,13 +236,13 @@ const CheckTile = ({
   <label
     className={cn(
       "flex min-h-11 cursor-pointer items-center gap-3 rounded-lg border px-3 py-2",
-      on ? "border-primary bg-[#F8F9FC]" : "border-lightGray bg-white"
+      on ? "border-primary bg-inputBackground" : "border-lightGray bg-white"
     )}
   >
     <input type="checkbox" checked={on} onChange={onToggle} className="m-0 h-[18px] w-[18px] flex-shrink-0 accent-primary" />
     <span className="flex min-w-0 flex-col">
       <span className="truncate text-sm font-medium text-primary">{name}</span>
-      <span className="truncate text-xs text-[#6B7280]">{sub}</span>
+      <span className="truncate text-xs text-gray-500">{sub}</span>
     </span>
   </label>
 );
@@ -445,7 +445,7 @@ export const MeetingDialog = ({
       {!detail ? (
         <div className="space-y-2" aria-busy="true">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-10 animate-pulse rounded-lg bg-[#F3F4F6]" />
+            <div key={i} className="h-10 animate-pulse rounded-lg bg-gray-100" />
           ))}
         </div>
       ) : (
@@ -477,7 +477,7 @@ export const MeetingDialog = ({
             <div className="flex flex-wrap items-end justify-between gap-2">
               <div>
                 <h3 className="text-base font-semibold text-primary">Attendees</h3>
-                <p className="text-sm text-[#4B5563]">
+                <p className="text-sm text-gray-600">
                   Souls won who came · {att.length} of {attendeeList.length} ticked
                 </p>
               </div>
@@ -506,10 +506,10 @@ export const MeetingDialog = ({
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-[#6B7280]">No souls won recorded for this center yet. Add first-timers below.</p>
+              <p className="text-sm text-gray-500">No souls won recorded for this center yet. Add first-timers below.</p>
             )}
             {shown.att && (
-              <span role="alert" className="text-xs text-[#B91C1C]">
+              <span role="alert" className="text-xs text-red-700">
                 {shown.att}
               </span>
             )}
@@ -518,7 +518,7 @@ export const MeetingDialog = ({
           <section className="flex flex-col gap-3">
             <div>
               <h3 className="text-base font-semibold text-primary">First-timers</h3>
-              <p className="text-sm text-[#4B5563]">
+              <p className="text-sm text-gray-600">
                 Souls won attending for the first time, or someone new. New people are saved to Souls won.
               </p>
             </div>
@@ -538,7 +538,7 @@ export const MeetingDialog = ({
             {news.map((n, i) => {
               const set = (patch: Partial<NewPerson>) => setNews(news.map((x, j) => (j === i ? { ...x, ...patch } : x)));
               return (
-                <div key={i} className="flex flex-wrap gap-2 rounded-lg border border-lightGray bg-[#F8F9FC] p-3">
+                <div key={i} className="flex flex-wrap gap-2 rounded-lg border border-lightGray bg-inputBackground p-3">
                   <TextInput
                     className="min-w-0 flex-[1_1_140px]"
                     placeholder="First name"
@@ -565,7 +565,7 @@ export const MeetingDialog = ({
                     type="button"
                     aria-label="Remove first-timer"
                     onClick={() => setNews(news.filter((_, j) => j !== i))}
-                    className="h-10 w-10 rounded-lg border border-lightGray bg-white text-lg text-[#6B7280] hover:bg-[#F3F4F6]"
+                    className="h-10 w-10 rounded-lg border border-lightGray bg-white text-lg text-gray-500 hover:bg-gray-100"
                   >
                     ×
                   </button>
@@ -573,7 +573,7 @@ export const MeetingDialog = ({
               );
             })}
             {shown.news && (
-              <span role="alert" className="text-xs text-[#B91C1C]">
+              <span role="alert" className="text-xs text-red-700">
                 {shown.news}
               </span>
             )}
@@ -880,15 +880,15 @@ export const RolesDialog = ({
     >
       <div className="flex flex-col">
         {roles.map((role) => (
-          <div key={role.id} className="flex items-center gap-3 border-b border-[#E5E7EB] py-3">
+          <div key={role.id} className="flex items-center gap-3 border-b border-gray-200 py-3">
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium text-primary">{role.name}</p>
-              <p className="text-xs text-[#6B7280]">
+              <p className="text-xs text-gray-500">
                 {plural(role.member_count ?? 0, "person", "people")} across all centers
               </p>
             </div>
             {isLockedRole(role.name) ? (
-              <span className="text-xs text-[#6B7280]">Built in</span>
+              <span className="text-xs text-gray-500">Built in</span>
             ) : (
               <UiButton tone="danger" size="sm" onClick={() => remove(role)}>
                 Delete
@@ -911,7 +911,7 @@ export const RolesDialog = ({
           </UiButton>
         </div>
         {error && (
-          <span role="alert" className="pt-1 text-xs text-[#B91C1C]">
+          <span role="alert" className="pt-1 text-xs text-red-700">
             {error}
           </span>
         )}

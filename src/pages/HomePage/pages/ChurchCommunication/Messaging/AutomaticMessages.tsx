@@ -63,7 +63,7 @@ export const AutomaticMessages = ({
       {templates.loading && byKey.size === 0 ? (
         <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,440px),1fr))] gap-4">
           {TEMPLATE_ORDER.map((key) => (
-            <div key={key} className="h-96 animate-pulse rounded-xl bg-[#F3F4F6]" />
+            <div key={key} className="h-96 animate-pulse rounded-xl bg-gray-100" />
           ))}
         </div>
       ) : (
@@ -203,11 +203,11 @@ const TemplateCard = ({
           <h3 id={`tpl-${template.key}`} className="text-base font-semibold text-primary">
             {meta.title}
           </h3>
-          <p className="text-sm text-[#4B5563]">{meta.description}</p>
+          <p className="text-sm text-gray-600">{meta.description}</p>
         </div>
         <ToggleSwitch on={enabled} onChange={setEnabled} label={`Send ${meta.title} messages`} disabled={!canManage} />
       </div>
-      <p className={`text-xs ${enabled ? "text-[#6B7280]" : "text-[#B45309]"}`}>{status}</p>
+      <p className={`text-xs ${enabled ? "text-gray-500" : "text-amber-700"}`}>{status}</p>
 
       <div className="flex flex-wrap gap-2" role="group" aria-label="Channels">
         {CHANNELS.map((channel) => {
@@ -256,13 +256,13 @@ const TemplateCard = ({
         />
       )}
 
-      <div className="flex flex-col gap-1 rounded-lg border border-[#E5E7EB] bg-[#F8F9FC] px-4 py-3">
-        <p className="text-xs font-semibold uppercase text-[#6B7280]">Preview for a sample member</p>
-        <p className="whitespace-pre-wrap text-sm text-[#374151]">{preview?.body ?? body}</p>
+      <div className="flex flex-col gap-1 rounded-lg border border-gray-200 bg-inputBackground px-4 py-3">
+        <p className="text-xs font-semibold uppercase text-gray-500">Preview for a sample member</p>
+        <p className="whitespace-pre-wrap text-sm text-gray-700">{preview?.body ?? body}</p>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <span className="flex-[1_1_160px] text-xs text-[#6B7280]">
+        <span className="flex-[1_1_160px] text-xs text-gray-500">
           {dirty ? "Unsaved changes" : `Last edited ${formatDay(template.updatedAt)}`}
         </span>
         {dirty && canManage && (

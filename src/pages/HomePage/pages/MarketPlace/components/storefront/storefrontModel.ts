@@ -49,9 +49,8 @@ const parseHex = (hex: string): [number, number, number] | null => {
 /** A pale background tint of a swatch colour, for imageless product tiles. */
 export const tint = (hex: string) => {
   const rgb = parseHex(hex);
-  if (!rgb) return "#F3F4F6";
-  const mix = rgb.map((c) => Math.round(c * 0.16 + 255 * 0.84));
-  return `rgb(${mix[0]}, ${mix[1]}, ${mix[2]})`;
+  if (!rgb) return "rgb(var(--color-gray-100))";
+  return `color-mix(in srgb, rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]}) 16%, rgb(var(--color-white)))`;
 };
 
 export const swatchHex = (colour?: Pick<ProductColour, "colour"> | null) =>

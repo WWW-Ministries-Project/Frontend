@@ -206,7 +206,7 @@ const ScheduleEventEditor = ({ mode, onClose, onSaved, frame = "drawer" }: Props
   const body = (form: FormikProps<EventsFormValues> | null) => {
     if (loadFailed) {
       return (
-        <p role="alert" className="rounded-lg border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 text-sm text-[#B91C1C]">
+        <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           Couldn’t load this event. Close this panel and open it again.
         </p>
       );
@@ -215,7 +215,7 @@ const ScheduleEventEditor = ({ mode, onClose, onSaved, frame = "drawer" }: Props
       return (
         <div className="flex flex-col gap-3" aria-busy="true">
           {Array.from({ length: 5 }).map((_, index) => (
-            <div key={index} className="h-12 animate-pulse rounded-lg bg-[#F3F4F6]" />
+            <div key={index} className="h-12 animate-pulse rounded-lg bg-gray-100" />
           ))}
         </div>
       );
@@ -260,11 +260,11 @@ const ScheduleEventEditor = ({ mode, onClose, onSaved, frame = "drawer" }: Props
       </Drawer>
     ) : (
       <section className="mx-auto flex w-full max-w-3xl flex-col rounded-2xl border border-lightGray bg-white">
-        <div className="border-b border-[#E5E7EB] px-4 py-5 tablet:px-6">
+        <div className="border-b border-gray-200 px-4 py-5 tablet:px-6">
           <h1 className="text-xl font-semibold leading-7 text-primary tablet:text-2xl tablet:leading-8">{title}</h1>
         </div>
         <div className="flex flex-col gap-6 px-4 py-6 tablet:px-6">{content}</div>
-        <div className="sticky bottom-0 flex flex-wrap justify-end gap-2 rounded-b-2xl border-t border-[#E5E7EB] bg-white px-4 py-4 tablet:px-6">
+        <div className="sticky bottom-0 flex flex-wrap justify-end gap-2 rounded-b-2xl border-t border-gray-200 bg-white px-4 py-4 tablet:px-6">
           {footer(form)}
         </div>
       </section>
@@ -477,7 +477,7 @@ const ScheduleFields = ({
       <FormikErrorSummary />
 
       {seriesEdit && (
-        <p className="rounded-lg border border-[#BFDBFE] bg-[#EFF6FF] px-4 py-3 text-sm text-[#1D4ED8]">
+        <p className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
           {presetScope === "all"
             ? "Part of a repeating series. Changes apply to every date in it."
             : presetScope === "following"
@@ -540,7 +540,7 @@ const ScheduleFields = ({
             </div>
           </MutedPanel>
         ) : (
-          <p className="text-xs text-[#6B7280]">
+          <p className="text-xs text-gray-500">
             {selected?.event_description || "Not listed? Add it here or under Events."}{" "}
             <button
               type="button"
@@ -619,7 +619,7 @@ const ScheduleFields = ({
           </Field>
         )}
         {crossesMidnight(values.start_time, values.end_time) && (
-          <p className="text-xs text-[#4B5563]">Ends after midnight, so it runs into the next day.</p>
+          <p className="text-xs text-gray-600">Ends after midnight, so it runs into the next day.</p>
         )}
 
         {!updating && (
@@ -684,17 +684,17 @@ const ScheduleFields = ({
                   </div>
                 )}
                 {repeat === "monthly" && startDay && (
-                  <p className="text-sm text-[#4B5563]">On the {ordinal(startDay.getDate())} of the month</p>
+                  <p className="text-sm text-gray-600">On the {ordinal(startDay.getDate())} of the month</p>
                 )}
                 {repeat === "yearly" && startDay && (
-                  <p className="text-sm text-[#4B5563]">
+                  <p className="text-sm text-gray-600">
                     Every {startDay.getDate()} {startDay.toLocaleString("en-GB", { month: "long" })}
                   </p>
                 )}
                 {multi && (
-                  <p className="text-xs text-[#4B5563]">Each date keeps the same number of days.</p>
+                  <p className="text-xs text-gray-600">Each date keeps the same number of days.</p>
                 )}
-                <p className="text-xs text-[#4B5563]">Creates {plural(count, "date")} on the calendar.</p>
+                <p className="text-xs text-gray-600">Creates {plural(count, "date")} on the calendar.</p>
               </MutedPanel>
             )}
           </>
@@ -715,7 +715,7 @@ const ScheduleFields = ({
         <div className="flex items-center justify-between gap-3">
           <span className="flex flex-col">
             <span className="text-sm font-medium text-primary">Also online</span>
-            <span className="text-xs text-[#6B7280]">
+            <span className="text-xs text-gray-500">
               Members get a Join button in the app.{seriesEdit ? " Links change for this date only." : ""}
             </span>
           </span>
@@ -740,7 +740,7 @@ const ScheduleFields = ({
                     onChange={(event) => set(platform.field, event.target.value)}
                     hasError={Boolean(showError(platform.field))}
                   />
-                  {warning && <span className="text-xs text-[#4B5563]">{warning}</span>}
+                  {warning && <span className="text-xs text-gray-600">{warning}</span>}
                 </Field>
               );
             })}
@@ -788,7 +788,7 @@ const ScheduleFields = ({
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-[#6B7280]">
+              <p className="text-sm text-gray-500">
                 No {values.audience_type === "department" ? "departments" : "positions"} yet. Add them in Settings.
               </p>
             )}

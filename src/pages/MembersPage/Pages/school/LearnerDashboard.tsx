@@ -100,7 +100,7 @@ const LearnerDashboard = () => {
           {current && (
             <section className="flex flex-wrap items-center justify-between gap-5 rounded-xl border border-gray-200 bg-white p-5">
               <div className="flex min-w-0 flex-[1_1_320px] flex-col gap-2">
-                <p className="text-xs font-semibold uppercase tracking-wider text-[#9A5D1A]">
+                <p className="text-xs font-semibold uppercase tracking-wider text-secondary">
                   {current.nextTopic ? "Continue where you left off" : "All units complete"}
                 </p>
                 <h2 className="text-xl font-semibold text-primary">

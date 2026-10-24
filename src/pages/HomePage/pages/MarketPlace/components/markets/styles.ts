@@ -28,4 +28,4 @@ export const labelCls = "flex flex-col gap-1.5 text-sm font-medium text-primary"
 
 /** Soft background tint for colour-swatch placeholder tiles. */
 export const tint = (hex?: string) =>
-  `color-mix(in oklch, ${hex || "#D8DAE5"} 26%, #F3F5FA)`;
+  `color-mix(in oklch, ${hex || "#D8DAE5"} 26%, rgb(var(--color-background)))`;

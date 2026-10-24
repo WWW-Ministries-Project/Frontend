@@ -32,7 +32,7 @@ const EditIcon = () => (
 );
 
 const TrashIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B91C1C" strokeWidth="1.8" aria-hidden="true">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgb(var(--color-red-700))" strokeWidth="1.8" aria-hidden="true">
     <path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12M9 7V4h6v3" strokeLinejoin="round" />
   </svg>
 );
@@ -259,9 +259,9 @@ const FinanceManager = () => {
               className="flex w-full flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-lg border border-lightGray bg-lightGray/30 px-4 py-3 text-left text-primary"
             >
               <span className="text-lg font-semibold">
-                {MONF[g.m]} {yr} <span className="font-normal text-[#4B5563]">({g.items.length})</span>
+                {MONF[g.m]} {yr} <span className="font-normal text-gray-600">({g.items.length})</span>
               </span>
-              <span className="flex items-center gap-4 text-sm text-[#4B5563]">
+              <span className="flex items-center gap-4 text-sm text-gray-600">
                 Receipts {moneyS(g.receipts)} · balance {moneyS(g.balance)}
                 <span className="text-lg text-primary">{g.isOpen ? "−" : "+"}</span>
               </span>
@@ -273,13 +273,13 @@ const FinanceManager = () => {
                   return (
                     <div
                       key={r.id}
-                      className="flex flex-col gap-3 rounded-xl border border-lightGray bg-white p-4 shadow-[0_8px_24px_rgba(8,13,45,0.08)] transition-shadow hover:shadow-[0_10px_28px_rgba(8,13,45,0.2)]"
+                      className="flex flex-col gap-3 rounded-xl border border-lightGray bg-white p-4 shadow-[0_8px_24px_rgb(var(--color-shadow)_/_0.08)] transition-shadow hover:shadow-[0_10px_28px_rgb(var(--color-shadow)_/_0.2)]"
                     >
                       <div className="flex items-start gap-2">
                         <button
                           type="button"
                           onClick={() => openRec(r)}
-                          className="min-w-0 flex-1 bg-transparent p-0 text-left text-base font-semibold text-[#111827] hover:underline"
+                          className="min-w-0 flex-1 bg-transparent p-0 text-left text-base font-semibold text-gray-900 hover:underline"
                         >
                           {recordTitle(r)}
                         </button>
@@ -288,7 +288,7 @@ const FinanceManager = () => {
                             type="button"
                             aria-label="Edit record"
                             onClick={() => openRec(r, true)}
-                            className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[10px] border border-lightGray bg-white hover:bg-[#F8F9FC]"
+                            className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[10px] border border-lightGray bg-white hover:bg-inputBackground"
                           >
                             <EditIcon />
                           </button>
@@ -298,31 +298,31 @@ const FinanceManager = () => {
                             type="button"
                             aria-label="Delete draft"
                             onClick={() => delRec(r)}
-                            className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[10px] border border-[#FECACA] bg-white hover:bg-[#FEF2F2]"
+                            className="inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[10px] border border-red-200 bg-white hover:bg-red-50"
                           >
                             <TrashIcon />
                           </button>
                         )}
                       </div>
-                      <div className="flex flex-col gap-1.5 text-sm text-[#4B5563]">
+                      <div className="flex flex-col gap-1.5 text-sm text-gray-600">
                         <div>
-                          <span className="font-medium text-[#374151]">Status:</span> <Pill tone={s.tone}>{s.label}</Pill>
+                          <span className="font-medium text-gray-700">Status:</span> <Pill tone={s.tone}>{s.label}</Pill>
                         </div>
                         <div>
-                          <span className="font-medium text-[#374151]">Created by:</span> {r.createdBy} on {fmtD(r.createdOn)}
+                          <span className="font-medium text-gray-700">Created by:</span> {r.createdBy} on {fmtD(r.createdOn)}
                         </div>
                         <div>
-                          <span className="font-medium text-[#374151]">Last updated:</span> {r.updatedBy} on {fmtD(r.updatedOn)}
+                          <span className="font-medium text-gray-700">Last updated:</span> {r.updatedBy} on {fmtD(r.updatedOn)}
                         </div>
                       </div>
-                      <div className="grid grid-cols-2 gap-2 border-t border-[#E5E7EB] pt-3 text-sm">
+                      <div className="grid grid-cols-2 gap-2 border-t border-gray-200 pt-3 text-sm">
                         <div>
-                          <p className="text-xs text-[#6B7280]">Receipts</p>
+                          <p className="text-xs text-gray-500">Receipts</p>
                           <p className="font-semibold">{money(r.totals.R)}</p>
                         </div>
                         <div>
-                          <p className="text-xs text-[#6B7280]">Total balance</p>
-                          <p className={cn("font-semibold", r.totals.fin < 0 && "text-[#B91C1C]")}>{money(r.totals.fin)}</p>
+                          <p className="text-xs text-gray-500">Total balance</p>
+                          <p className={cn("font-semibold", r.totals.fin < 0 && "text-red-700")}>{money(r.totals.fin)}</p>
                         </div>
                       </div>
                     </div>
@@ -333,7 +333,7 @@ const FinanceManager = () => {
                     key={w.from}
                     type="button"
                     onClick={() => newRecord(w.from)}
-                    className="flex min-h-40 flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-lightGray bg-[#FAFBFC] p-4 text-sm text-[#4B5563] transition-colors hover:border-primary hover:text-primary"
+                    className="flex min-h-40 flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-lightGray bg-[#FAFBFC] p-4 text-sm text-gray-600 transition-colors hover:border-primary hover:text-primary"
                   >
                     <span className="font-semibold">
                       {w.label} · {fmtD(w.from).replace(/, \d{4}$/, "")} – {fmtD(w.to)}

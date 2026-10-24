@@ -70,9 +70,9 @@ export const LEVELS: { value: Level; label: string }[] = [
 export const LEVEL_RANK: Record<Level, number> = { No_Access: 0, Can_View: 1, Can_Manage: 2, Super_Admin: 3 };
 
 /** Dot colour per level (index = rank). */
-export const LEVEL_DOT = ["#FFFFFF", "rgba(8,13,45,0.2)", "rgba(8,13,45,0.55)", "#080D2D"];
+export const LEVEL_DOT = ["rgb(var(--color-white))", "rgb(var(--color-primary) / 0.2)", "rgb(var(--color-primary) / 0.55)", "rgb(var(--color-primary))"];
 /** Border for the dot; "None" is white so it needs a visible ring. */
-export const LEVEL_DOT_BORDER = ["#9CA3AF", "rgba(8,13,45,0.2)", "rgba(8,13,45,0.55)", "#080D2D"];
+export const LEVEL_DOT_BORDER = ["rgb(var(--color-gray-400))", "rgb(var(--color-primary) / 0.2)", "rgb(var(--color-primary) / 0.55)", "rgb(var(--color-primary))"];
 
 export const levelLabel = (level: Level) => LEVELS[LEVEL_RANK[level]].label;
 

@@ -113,7 +113,7 @@ const GeneralConfiguration = () => {
       <div className="flex flex-1 flex-col gap-6 px-4 py-4 tablet:px-6 tablet:py-6">
         <div className="flex flex-col gap-1">
           <h1 className="text-2xl font-semibold leading-8 text-primary">General configuration</h1>
-          <p className="text-base leading-6 text-[#4B5563]">
+          <p className="text-base leading-6 text-gray-600">
             Branches, positions and the rules that shape attendance, reports, eligibility and alerts.
           </p>
         </div>
@@ -131,7 +131,7 @@ const GeneralConfiguration = () => {
           >
             {SECTION_GROUPS.map((group) => (
               <div key={group.heading} className="flex flex-col">
-                <p className="px-3 pb-1 pt-3 text-xs font-semibold uppercase tracking-[0.04em] text-[#6B7280]">
+                <p className="px-3 pb-1 pt-3 text-xs font-semibold uppercase tracking-[0.04em] text-gray-500">
                   {group.heading}
                 </p>
                 {group.items.filter(visible).map((key) => {
@@ -143,13 +143,13 @@ const GeneralConfiguration = () => {
                       aria-current={on ? "page" : undefined}
                       onClick={() => pick(key)}
                       className={cn(
-                        "flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm text-primary hover:bg-[#F3F4F6]",
+                        "flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm text-primary hover:bg-gray-100",
                         on ? "bg-lightGray/50 font-semibold" : "font-normal"
                       )}
                     >
                       {SECTION_LABEL[key]}
                       {dirtySections.includes(key) && (
-                        <span aria-label="Unsaved" className="h-2 w-2 rounded-full bg-[#B45309]" />
+                        <span aria-label="Unsaved" className="h-2 w-2 rounded-full bg-warning" />
                       )}
                     </button>
                   );

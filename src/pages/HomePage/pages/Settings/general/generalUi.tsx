@@ -8,7 +8,7 @@ export const SectionTitle = ({ title, text, action }: { title: string; text: str
   <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
     <div className="flex min-w-0 flex-col gap-0.5">
       <h2 className="text-xl font-semibold leading-7 text-primary">{title}</h2>
-      <p className="text-sm text-[#4B5563]">{text}</p>
+      <p className="text-sm text-gray-600">{text}</p>
     </div>
     {action}
   </div>
@@ -20,7 +20,7 @@ export const Card = ({ children, className }: { children: ReactNode; className?:
 
 /** Muted strip at the top of a card. */
 export const CardHead = ({ children }: { children: ReactNode }) => (
-  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#E5E7EB] bg-[#F8F9FC] px-4 py-3">
+  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 bg-inputBackground px-4 py-3">
     {children}
   </div>
 );
@@ -34,7 +34,7 @@ export const RowsSkeleton = ({ rows = 3 }: { rows?: number }) => (
   <Card>
     <div aria-busy="true" aria-label="Loading">
       {Array.from({ length: rows }, (_, index) => (
-        <div key={index} className="flex items-center gap-4 border-b border-[#E5E7EB] p-4 last:border-b-0">
+        <div key={index} className="flex items-center gap-4 border-b border-gray-200 p-4 last:border-b-0">
           <div className="flex flex-1 flex-col gap-2">
             <Bar className="h-4 w-40" />
             <Bar className="h-3 w-64 max-w-full" />
@@ -84,7 +84,7 @@ export const ProgramChip = ({
     disabled={disabled}
     className={cn(
       "rounded-full border px-3 py-1 text-xs font-medium transition-colors disabled:cursor-default",
-      on ? "border-primary bg-primary text-white" : "border-lightGray bg-white text-primary enabled:hover:bg-[#F8F9FC]"
+      on ? "border-primary bg-primary text-white" : "border-lightGray bg-white text-primary enabled:hover:bg-inputBackground"
     )}
   >
     {children}

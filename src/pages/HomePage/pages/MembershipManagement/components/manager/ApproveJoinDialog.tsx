@@ -86,7 +86,7 @@ export const ApproveJoinDialog = ({
             />
           </Field>
         ) : positionNote ? (
-          <p className="text-sm text-[#4B5563]">{positionNote}</p>
+          <p className="text-sm text-gray-600">{positionNote}</p>
         ) : null}
         <Field label="Start date">
           <TextInput

@@ -172,7 +172,7 @@ const UsersPage = () => {
       return (
         <span className="flex flex-wrap gap-1">
           {grants.map((g) => (
-            <Pill key={g.branch_id} tone="neutral" className="bg-[#F8F9FC] font-medium">
+            <Pill key={g.branch_id} tone="neutral" className="bg-inputBackground font-medium">
               {shortBranch(branchName(g.branch_id))} · {g.access_level_name || roleName(g.access_level_id)}
             </Pill>
           ))}
@@ -191,7 +191,7 @@ const UsersPage = () => {
           onChange={(event) => setRowRole(user, Number(event.target.value) || null)}
           className={cn(
             "h-10 w-full rounded-lg border px-2 text-sm text-primary disabled:cursor-not-allowed disabled:opacity-80",
-            current ? "border-[rgba(107,114,128,0.35)] bg-white" : "border-[#FDE68A] bg-[#FFFBEB]"
+            current ? "border-gray-500/35 bg-white" : "border-amber-200 bg-amber-50"
           )}
         >
           <option value="">No access</option>
@@ -205,7 +205,7 @@ const UsersPage = () => {
           <button
             type="button"
             onClick={() => setOpenId(user.id)}
-            className="self-start text-xs text-[#4B5563] underline hover:text-primary"
+            className="self-start text-xs text-gray-600 underline hover:text-primary"
           >
             + {others} other {others === 1 ? "branch" : "branches"}
           </button>
@@ -316,7 +316,7 @@ const UsersPage = () => {
       )}
 
       {/* Desktop table */}
-      <div className="hidden overflow-x-auto rounded-lg bg-white shadow-[0_8px_24px_rgba(8,13,45,0.08)] tablet:block">
+      <div className="hidden overflow-x-auto rounded-lg bg-white shadow-[0_8px_24px_rgb(var(--color-shadow)_/_0.08)] tablet:block">
         <div className="min-w-[880px] text-sm text-primary">
           <div className={cn(GRID, "bg-lightGray font-semibold")}>
             <span className="py-4 pl-6 pr-2">
@@ -365,13 +365,13 @@ const UsersPage = () => {
                     <Avatar name={user.name} />
                     <span className="flex min-w-0 flex-col">
                       <span className="font-medium">{displayName(user)}</span>
-                      <span className="truncate text-xs text-[#6B7280]">{user.email}</span>
+                      <span className="truncate text-xs text-gray-500">{user.email}</span>
                     </span>
                   </button>
-                  <span className="px-4 py-3 text-[#4B5563]">{user.member_id || "—"}</span>
+                  <span className="px-4 py-3 text-gray-600">{user.member_id || "—"}</span>
                   <span className="px-4 py-3">{renderRole(user)}</span>
                   <span className="px-4 py-3">{statusPill(user)}</span>
-                  <span className="px-4 py-3 text-[#4B5563]">{formatLastActive(user.last_active_at)}</span>
+                  <span className="px-4 py-3 text-gray-600">{formatLastActive(user.last_active_at)}</span>
                   <span className="py-3 pr-6 text-right">
                     <button
                       type="button"
@@ -415,7 +415,7 @@ const UsersPage = () => {
                     <Avatar name={user.name} />
                     <span className="flex min-w-0 flex-col">
                       <span className="font-medium">{displayName(user)}</span>
-                      <span className="text-xs text-[#6B7280]">
+                      <span className="text-xs text-gray-500">
                         {user.member_id || "—"} · {formatLastActive(user.last_active_at)}
                       </span>
                     </span>
@@ -427,7 +427,7 @@ const UsersPage = () => {
             ))}
       </div>
 
-      {!loading && !failed && !list.length && <p className="py-6 text-center text-[#6B7280]">{emptyText}</p>}
+      {!loading && !failed && !list.length && <p className="py-6 text-center text-gray-500">{emptyText}</p>}
 
       <UserDrawer
         user={openUser}

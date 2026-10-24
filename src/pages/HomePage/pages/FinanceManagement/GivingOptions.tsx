@@ -227,14 +227,14 @@ const GivingOptions = () => {
                 key={o.id}
                 className={cn(
                   "flex flex-col gap-3 rounded-xl border bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.05)]",
-                  !paused && !o.is_synced ? "border-[#FECACA]" : "border-lightGray",
+                  !paused && !o.is_synced ? "border-red-200" : "border-lightGray",
                   paused && "opacity-70"
                 )}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <p className="text-xl font-semibold leading-7 text-primary">{o.name}</p>
-                    <p className="text-sm text-[#4B5563]">{o.description || "No description"}</p>
+                    <p className="text-sm text-gray-600">{o.description || "No description"}</p>
                   </div>
                   {paused ? (
                     <Pill tone="neutral">Paused</Pill>
@@ -244,15 +244,15 @@ const GivingOptions = () => {
                     <Pill tone="danger">Not ready</Pill>
                   )}
                 </div>
-                <div className="flex flex-col gap-0.5 rounded-lg bg-[#F8F9FC] p-3 text-sm">
-                  <p className="text-xs text-[#6B7280]">{o.account_type === "ghipss" ? "Bank account" : "Mobile money"}</p>
+                <div className="flex flex-col gap-0.5 rounded-lg bg-inputBackground p-3 text-sm">
+                  <p className="text-xs text-gray-500">{o.account_type === "ghipss" ? "Bank account" : "Mobile money"}</p>
                   <p className="font-semibold">
                     {o.bank_name} · {o.masked_account_number || `••••${String(o.account_number ?? "").slice(-4)}`}
                   </p>
-                  <p className="text-[#4B5563]">{o.account_name}</p>
+                  <p className="text-gray-600">{o.account_name}</p>
                 </div>
                 {!paused && !o.is_synced && (
-                  <p className="text-xs text-[#B91C1C]">
+                  <p className="text-xs text-red-700">
                     Paystack couldn’t create a settlement account. Check the account details and save again.
                   </p>
                 )}
@@ -330,7 +330,7 @@ const GivingOptions = () => {
               </FullRow>
             )}
             <FullRow>
-              <p className="border-t border-[#E5E7EB] pt-2 text-base font-semibold text-primary">Settlement account</p>
+              <p className="border-t border-gray-200 pt-2 text-base font-semibold text-primary">Settlement account</p>
             </FullRow>
             <SettlementAccountFields
               value={draft.account}

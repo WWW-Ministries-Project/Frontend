@@ -227,7 +227,7 @@ const DepartmentReportDetail = () => {
   if (!report) {
     return (
       <section className="flex flex-col gap-6 p-4 sm:p-6">
-        <button type="button" onClick={back} className="self-start bg-transparent p-0 text-sm text-[#4B5563] hover:text-primary">
+        <button type="button" onClick={back} className="self-start bg-transparent p-0 text-sm text-gray-600 hover:text-primary">
           ← {backLabel}
         </button>
         {loading || !error ? (
@@ -356,12 +356,12 @@ const DepartmentReportDetail = () => {
         />
       )}
 
-      <div className={print ? "flex flex-1 flex-col gap-4 bg-[#F3F5FA] px-4 py-6 print:bg-white print:p-0" : "flex flex-1 flex-col bg-white"}>
+      <div className={print ? "flex flex-1 flex-col gap-4 bg-background px-4 py-6 print:bg-white print:p-0" : "flex flex-1 flex-col bg-white"}>
         {print && (
           <div className="mx-auto flex w-full max-w-[794px] flex-wrap items-center justify-between gap-2 print:hidden">
             <div>
               <p className="font-semibold">Print preview · A4 portrait</p>
-              <p className="text-xs text-[#4B5563]">Controls are hidden. Commentary and sign-off are included.</p>
+              <p className="text-xs text-gray-600">Controls are hidden. Commentary and sign-off are included.</p>
             </div>
             <div className="flex gap-2">
               <UiButton tone="secondary" onClick={() => setPrint(false)}>Back to report</UiButton>
@@ -373,22 +373,22 @@ const DepartmentReportDetail = () => {
           data-print-root={print ? "" : undefined}
           className={
             print
-              ? "mx-auto flex w-full max-w-[794px] flex-1 flex-col gap-6 bg-white p-6 shadow-[0_8px_24px_rgba(8,13,45,0.08)] sm:p-10 print:max-w-none print:p-0 print:shadow-none"
+              ? "mx-auto flex w-full max-w-[794px] flex-1 flex-col gap-6 bg-white p-6 shadow-[0_8px_24px_rgb(var(--color-shadow)_/_0.08)] sm:p-10 print:max-w-none print:p-0 print:shadow-none"
               : "flex w-full flex-1 flex-col gap-6 p-4 sm:p-6"
           }
         >
           {print && (
             <div className="flex flex-wrap justify-between gap-4 border-b-2 border-primary pb-4">
               <div className="flex flex-col gap-1">
-                <span className="text-xs font-semibold tracking-[0.04em] text-[#6B7280]">WORLDWIDE WORD MINISTRIES</span>
+                <span className="text-xs font-semibold tracking-[0.04em] text-gray-500">WORLDWIDE WORD MINISTRIES</span>
                 <h1 className="text-2xl font-semibold leading-8">{report.meta.name}</h1>
-                <p className="text-[#4B5563]">
+                <p className="text-gray-600">
                   {period.label} · {report.branch.name} · Prepared by {prepared}
                 </p>
               </div>
               <div className="flex flex-col items-end gap-1">
                 <Pill tone={status.tone}>{status.label}</Pill>
-                <span className="text-xs text-[#6B7280]">{statusMeta}</span>
+                <span className="text-xs text-gray-500">{statusMeta}</span>
               </div>
             </div>
           )}
@@ -446,17 +446,17 @@ const DepartmentReportDetail = () => {
             <section className="flex flex-col gap-5 [break-inside:avoid]">
               <div className="flex flex-wrap items-end justify-between gap-2">
                 <div className="flex flex-col gap-1">
-                  <h2 className="text-xl font-bold leading-7 text-[#1F2937]">Head of department commentary</h2>
-                  <p className="text-[#4B5563]">
+                  <h2 className="text-xl font-bold leading-7 text-gray-800">Head of department commentary</h2>
+                  <p className="text-gray-600">
                     {editable ? "Your view of the numbers. Saved as you type and locked once submitted." : `Written by ${prepared}`}
                   </p>
                 </div>
-                {editable && <span className="text-xs text-[#6B7280]" aria-live="polite">{saved}</span>}
+                {editable && <span className="text-xs text-gray-500" aria-live="polite">{saved}</span>}
               </div>
               {FIELDS.map(([field, label, hint]) => (
                 <div key={field} className="flex flex-col gap-1">
                   <label htmlFor={`comm-${field}`} className="font-medium">{label}</label>
-                  <span className="text-xs text-[#6B7280]">{hint}</span>
+                  <span className="text-xs text-gray-500">{hint}</span>
                   {editable ? (
                     <TextArea
                       id={`comm-${field}`}
@@ -470,7 +470,7 @@ const DepartmentReportDetail = () => {
                       }}
                     />
                   ) : (
-                    <p className={`whitespace-pre-wrap rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 ${draft[field] ? "text-primary" : "text-[#6B7280]"}`}>
+                    <p className={`whitespace-pre-wrap rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 ${draft[field] ? "text-primary" : "text-gray-500"}`}>
                       {draft[field] || "Nothing written yet."}
                     </p>
                   )}
@@ -479,7 +479,7 @@ const DepartmentReportDetail = () => {
 
               <div className="flex flex-col gap-2">
                 <span className="font-medium">Requests to leadership</span>
-                <span className="text-xs text-[#6B7280]">Mark anything that needs a decision. These collect on the executive summary.</span>
+                <span className="text-xs text-gray-500">Mark anything that needs a decision. These collect on the executive summary.</span>
                 {requests.map((request, index) => {
                   const decided = workflow.requests.find((r) => r.id === request.id);
                   return (
@@ -521,11 +521,11 @@ const DepartmentReportDetail = () => {
                       ) : request.needs_decision ? (
                         <Pill tone="warning">Needs decision</Pill>
                       ) : null}
-                      {decided?.response && <p className="w-full text-sm text-[#4B5563]">Response: {decided.response}</p>}
+                      {decided?.response && <p className="w-full text-sm text-gray-600">Response: {decided.response}</p>}
                     </div>
                   );
                 })}
-                {requests.length === 0 && <p className="text-[#6B7280]">No requests this period.</p>}
+                {requests.length === 0 && <p className="text-gray-500">No requests this period.</p>}
                 {editable && (
                   <form
                     className="flex flex-wrap gap-2"
@@ -544,7 +544,7 @@ const DepartmentReportDetail = () => {
                       onChange={(event) => setNewReq(event.target.value)}
                       placeholder="Add a request to leadership"
                       aria-label="New request"
-                      className="h-10 min-w-0 flex-[1_1_280px] rounded-lg border border-[rgba(107,114,128,0.35)] px-3 text-sm text-primary outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(8,13,45,0.08)]"
+                      className="h-10 min-w-0 flex-[1_1_280px] rounded-lg border border-gray-500/35 px-3 text-sm text-primary outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgb(var(--color-shadow)_/_0.08)]"
                     />
                     <UiButton type="submit" tone="secondary">Add request</UiButton>
                   </form>
@@ -552,7 +552,7 @@ const DepartmentReportDetail = () => {
               </div>
 
               {editable && (
-                <div className="flex flex-wrap justify-end gap-2 border-t border-[#E5E7EB] pt-4">
+                <div className="flex flex-wrap justify-end gap-2 border-t border-gray-200 pt-4">
                   <UiButton tone="secondary" onClick={() => { clearTimeout(saveTimer.current); persist(draft, requests, false); }}>
                     Save draft
                   </UiButton>

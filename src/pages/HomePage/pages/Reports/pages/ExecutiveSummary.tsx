@@ -124,7 +124,7 @@ const ExecutiveSummary = () => {
                 aria-label="Period"
                 value={summary.period.key}
                 onChange={(event) => controls.setPeriodKey(event.target.value)}
-                className="h-10 rounded-lg border border-[rgba(107,114,128,0.35)] bg-white px-3 text-sm text-primary"
+                className="h-10 rounded-lg border border-gray-500/35 bg-white px-3 text-sm text-primary"
               >
                 {summary.period_options.map((option) => (
                   <option key={option.key} value={option.key}>
@@ -171,7 +171,7 @@ const ExecutiveSummary = () => {
                   key={card.key}
                   type="button"
                   onClick={() => navigate(reportPath(card.key, query))}
-                  className="flex min-w-0 flex-col gap-4 rounded-xl border border-lightGray bg-white p-5 text-left text-sm text-primary transition-shadow hover:shadow-[0_8px_24px_rgba(8,13,45,0.08)]"
+                  className="flex min-w-0 flex-col gap-4 rounded-xl border border-lightGray bg-white p-5 text-left text-sm text-primary transition-shadow hover:shadow-[0_8px_24px_rgb(var(--color-shadow)_/_0.08)]"
                 >
                   <div className="flex w-full items-start justify-between gap-2">
                     <h2 className="text-base font-semibold leading-6">{card.area}</h2>
@@ -179,14 +179,14 @@ const ExecutiveSummary = () => {
                   </div>
                   <div className="grid w-full grid-cols-2 gap-3">
                     {card.failed ? (
-                      <p className="col-span-2 text-[#6B7280]">Figures couldn’t be worked out for this period.</p>
+                      <p className="col-span-2 text-gray-500">Figures couldn’t be worked out for this period.</p>
                     ) : (
                       card.headline.map((kpi) => <MiniStat key={kpi.key} kpi={toKpi(kpi)} />)
                     )}
                   </div>
-                  <div className="flex w-full items-center justify-between gap-2 border-t border-[#E5E7EB] pt-3">
+                  <div className="flex w-full items-center justify-between gap-2 border-t border-gray-200 pt-3">
                     <Pill tone={status.tone}>{status.label}</Pill>
-                    <span className="truncate text-xs text-[#6B7280]">{card.prepared_by}</span>
+                    <span className="truncate text-xs text-gray-500">{card.prepared_by}</span>
                   </div>
                 </button>
               );
@@ -201,11 +201,11 @@ const ExecutiveSummary = () => {
               {summary.top.map((item, index) => {
                 const sev = severityPill(item.severity);
                 return (
-                  <div key={`${item.report_key}-${index}`} className="flex items-start gap-3 border-b border-[#E5E7EB] py-3 last:border-b-0">
+                  <div key={`${item.report_key}-${index}`} className="flex items-start gap-3 border-b border-gray-200 py-3 last:border-b-0">
                     <Avatar initials={String(index + 1)} size={28} dark />
                     <div className="flex min-w-0 flex-1 flex-col items-start gap-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-xs font-semibold uppercase text-[#6B7280]">{item.area}</span>
+                        <span className="text-xs font-semibold uppercase text-gray-500">{item.area}</span>
                         <Pill tone={sev.tone} className="px-2 py-0">{sev.label}</Pill>
                       </div>
                       <p className="font-medium">{item.text}</p>
@@ -221,7 +221,7 @@ const ExecutiveSummary = () => {
                 );
               })}
               {summary.top.length === 0 && (
-                <p className="rounded-lg border border-[#BBF7D0] bg-[#F0FDF4] p-3 font-medium text-[#15803D]">
+                <p className="rounded-lg border border-green-200 bg-green-50 p-3 font-medium text-green-700">
                   ✓ Nothing needs attention this period.
                 </p>
               )}
@@ -246,11 +246,11 @@ const ExecutiveSummary = () => {
                         ? `Submitted ${fmtDate(item.submitted_at)}`
                         : `Due ${fmtDate(summary.tracker.due_date)}`;
                 return (
-                  <div key={item.report_key} className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-[#E5E7EB] py-3 last:border-b-0">
+                  <div key={item.report_key} className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-gray-200 py-3 last:border-b-0">
                     <Avatar initials={initialsOf(item.prepared_by)} />
                     <div className="min-w-0 flex-[1_1_160px]">
                       <p className="font-medium">{item.area}</p>
-                      <p className={item.overdue ? "text-xs text-[#B91C1C]" : "text-xs text-[#6B7280]"}>
+                      <p className={item.overdue ? "text-xs text-red-700" : "text-xs text-gray-500"}>
                         {item.prepared_by} · {when}
                       </p>
                     </div>
@@ -276,11 +276,11 @@ const ExecutiveSummary = () => {
               <CardTitle title="Requests to leadership" sub="Items heads of department marked as needing a decision" />
             </div>
             {summary.requests.map((request) => (
-              <div key={request.id} className="flex flex-wrap items-center gap-3 border-b border-[#E5E7EB] py-3 last:border-b-0">
+              <div key={request.id} className="flex flex-wrap items-center gap-3 border-b border-gray-200 py-3 last:border-b-0">
                 <div className="flex min-w-0 flex-[1_1_320px] flex-col gap-1">
                   <p className="font-medium">{request.text}</p>
-                  <p className="text-xs text-[#6B7280]">{request.from}</p>
-                  {request.response && <p className="text-sm text-[#4B5563]">Response: {request.response}</p>}
+                  <p className="text-xs text-gray-500">{request.from}</p>
+                  {request.response && <p className="text-sm text-gray-600">Response: {request.response}</p>}
                 </div>
                 {!request.outcome && leadership ? (
                   <div className="flex gap-2">
@@ -300,7 +300,7 @@ const ExecutiveSummary = () => {
                 )}
               </div>
             ))}
-            {summary.requests.length === 0 && <p className="text-[#6B7280]">No requests this period.</p>}
+            {summary.requests.length === 0 && <p className="text-gray-500">No requests this period.</p>}
           </Card>
 
           <Card className="gap-4">
@@ -314,7 +314,7 @@ const ExecutiveSummary = () => {
                       className={
                         last
                           ? "flex min-w-0 flex-1 flex-col gap-1 rounded-lg border border-lightGray bg-primary p-4 text-white"
-                          : "flex min-w-0 flex-1 flex-col gap-1 rounded-lg border border-lightGray bg-[#F8F9FC] p-4 text-primary"
+                          : "flex min-w-0 flex-1 flex-col gap-1 rounded-lg border border-lightGray bg-inputBackground p-4 text-primary"
                       }
                     >
                       <span className="text-xs font-semibold">{step.label}</span>
@@ -322,7 +322,7 @@ const ExecutiveSummary = () => {
                       <span className="text-xs">{step.sub}</span>
                     </div>
                     {!last && (
-                      <span aria-hidden="true" className="text-xl text-[#6B7280]">
+                      <span aria-hidden="true" className="text-xl text-gray-500">
                         {index === 0 ? "+" : "→"}
                       </span>
                     )}
@@ -335,7 +335,7 @@ const ExecutiveSummary = () => {
           {summary.branches && summary.branches.length > 0 && (
             <section className="flex flex-col gap-3">
               <CardTitle title="Branch comparison" sub="Per-person figures make branches of different sizes comparable" />
-              <div className="overflow-x-auto rounded-lg border border-lightGray bg-white shadow-[0_8px_24px_rgba(8,13,45,0.08)]">
+              <div className="overflow-x-auto rounded-lg border border-lightGray bg-white shadow-[0_8px_24px_rgb(var(--color-shadow)_/_0.08)]">
                 <div className="min-w-[920px]">
                   <div className="grid gap-3 bg-lightGray px-6 py-4 font-semibold [grid-template-columns:minmax(180px,1.4fr)_repeat(6,minmax(110px,1fr))]">
                     <span>Branch</span>

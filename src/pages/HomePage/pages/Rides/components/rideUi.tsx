@@ -55,7 +55,7 @@ export const Avatar = ({
 
 /** Green "Member" tick under a driver's name. */
 export const MemberTick = () => (
-  <span className="inline-flex items-center gap-1 text-xs text-green-700 dark:text-green-300">
+  <span className="inline-flex items-center gap-1 text-xs text-green-700">
     <ShieldTick className="h-3.5 w-3.5" strokeWidth={2.5} />
     Member
   </span>
@@ -330,7 +330,7 @@ export interface TimelineStop {
 
 const DOT: Record<TimelineStop["dot"], string> = {
   primary: "bg-primary",
-  here: "bg-green-700 dark:bg-green-400",
+  here: "bg-green-700",
   muted: "bg-lightGray",
   church: "bg-secondary",
 };
@@ -368,7 +368,7 @@ export const RouteTimeline = ({ stops }: { stops: TimelineStop[] }) => (
               className={cn(
                 "text-xs",
                 stop.subTone === "success"
-                  ? "text-green-700 dark:text-green-300"
+                  ? "text-green-700"
                   : "text-mainGray"
               )}
             >
@@ -408,7 +408,7 @@ export const SafetyCard = () => (
     <ul className="flex flex-col gap-3">
       {SAFETY_RULES.map(([title, body]) => (
         <li key={title} className="flex items-start gap-3">
-          <ShieldTick className="mt-px h-[18px] w-[18px] flex-none text-green-700 dark:text-green-300" />
+          <ShieldTick className="mt-px h-[18px] w-[18px] flex-none text-green-700" />
           <span className="flex flex-col">
             <span className="text-sm font-semibold text-primary">{title}</span>
             <span className="text-xs text-primaryGray">{body}</span>
@@ -450,7 +450,7 @@ export const LoadError = ({
 }) => (
   <div
     role="alert"
-    className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-400/30 dark:bg-red-400/15 dark:text-red-300"
+    className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
   >
     <span>{message}</span>
     <button type="button" onClick={onRetry} className={btnSecondary}>

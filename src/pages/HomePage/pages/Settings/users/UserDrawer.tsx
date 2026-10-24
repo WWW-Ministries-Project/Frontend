@@ -15,7 +15,7 @@ import { describeExpiry, grantsOf, isActive, type UsersData } from "./useUsersDa
 import { usePickableBranches } from "../utils/usePickableBranches";
 
 const selectClass =
-  "h-10 min-w-0 rounded-lg border border-[rgba(107,114,128,0.35)] bg-white px-2 text-sm text-primary disabled:cursor-not-allowed disabled:bg-[#F8F9FC] disabled:opacity-60";
+  "h-10 min-w-0 rounded-lg border border-gray-500/35 bg-white px-2 text-sm text-primary disabled:cursor-not-allowed disabled:bg-inputBackground disabled:opacity-60";
 
 const LEVEL_WORD = ["", "View", "Manage", "Full"];
 
@@ -176,7 +176,7 @@ export const UserDrawer = ({
               {user.name}
               {isMe ? " (you)" : ""}
             </p>
-            <p className="truncate text-sm text-[#4B5563]">{user.email || "No email"}</p>
+            <p className="truncate text-sm text-gray-600">{user.email || "No email"}</p>
           </div>
         </div>
       }
@@ -184,7 +184,7 @@ export const UserDrawer = ({
       <section className="flex flex-col gap-2">
         <SubHeading title="Branch access" />
         {!grants.length && (
-          <p className="rounded-lg border border-[#FDE68A] bg-[#FFFBEB] px-4 py-3 text-sm text-[#B45309]">
+          <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
             No branch access yet. They can sign in but won’t see any admin module.
           </p>
         )}
@@ -196,7 +196,7 @@ export const UserDrawer = ({
               key={grant.branch_id}
               className={cn(
                 "flex flex-wrap items-center gap-2 rounded-lg border py-2 pl-3 pr-2",
-                on ? "border-primary bg-[#F8F9FC]" : "border-lightGray bg-white"
+                on ? "border-primary bg-inputBackground" : "border-lightGray bg-white"
               )}
             >
               <button
@@ -229,7 +229,7 @@ export const UserDrawer = ({
                   type="button"
                   onClick={() => remove(grant.branch_id)}
                   aria-label={`Remove access to ${name}`}
-                  className="h-9 w-9 flex-shrink-0 rounded-lg border border-[#FECACA] bg-white text-lg text-[#B91C1C] hover:bg-[#FEF2F2]"
+                  className="h-9 w-9 flex-shrink-0 rounded-lg border border-red-200 bg-white text-lg text-red-700 hover:bg-red-50"
                 >
                   ×
                 </button>
@@ -287,26 +287,26 @@ export const UserDrawer = ({
             <button
               type="button"
               onClick={() => navigate(`/home/settings/access-rights/${role.id}`)}
-              className="text-xs text-[#4B5563] underline hover:text-primary"
+              className="text-xs text-gray-600 underline hover:text-primary"
             >
               In {branchName(shownBranch)} as {role.name}
             </button>
           )}
         </SubHeading>
-        {!role && <p className="text-sm text-[#6B7280]">Give them access to a branch to see this.</p>}
+        {!role && <p className="text-sm text-gray-500">Give them access to a branch to see this.</p>}
         {caps.map((cap) => (
           <div key={cap.rank} className="flex items-start gap-3 text-sm">
             <span className="inline-flex w-[72px] flex-shrink-0 items-center gap-1.5 font-semibold text-primary">
               <LevelDot rank={cap.rank} />
               {LEVEL_WORD[cap.rank]}
             </span>
-            <p className="text-[#374151]">{cap.text}</p>
+            <p className="text-gray-700">{cap.text}</p>
           </div>
         ))}
         {notes.length > 0 && (
-          <div className="flex flex-col gap-1 rounded-lg bg-[#F8F9FC] px-4 py-3">
+          <div className="flex flex-col gap-1 rounded-lg bg-inputBackground px-4 py-3">
             {notes.map((note) => (
-              <p key={note} className="text-xs text-[#4B5563]">
+              <p key={note} className="text-xs text-gray-600">
                 {note}
               </p>
             ))}
@@ -319,7 +319,7 @@ export const UserDrawer = ({
         <div className="flex items-center justify-between gap-3 rounded-lg border border-lightGray px-4 py-3">
           <div className="flex flex-col">
             <span className="text-sm font-medium text-primary">Can sign in</span>
-            <span className="text-xs text-[#6B7280]">
+            <span className="text-xs text-gray-500">
               {isMe
                 ? "You can’t deactivate your own account."
                 : active
@@ -332,7 +332,7 @@ export const UserDrawer = ({
         <div className="flex items-center justify-between gap-3 rounded-lg border border-lightGray px-4 py-3">
           <div className="flex flex-col">
             <span className="text-sm font-medium text-primary">Password</span>
-            <span className="text-xs text-[#6B7280]">Email them a link to set a new one.</span>
+            <span className="text-xs text-gray-500">Email them a link to set a new one.</span>
           </div>
           <UiButton
             tone="secondary"
@@ -348,7 +348,7 @@ export const UserDrawer = ({
       <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,120px),1fr))] gap-3">
         {facts.map(([label, value]) => (
           <div key={label} className="flex flex-col gap-0.5">
-            <span className="text-xs text-[#6B7280]">{label}</span>
+            <span className="text-xs text-gray-500">{label}</span>
             <span className="text-sm font-medium text-primary">{value}</span>
           </div>
         ))}

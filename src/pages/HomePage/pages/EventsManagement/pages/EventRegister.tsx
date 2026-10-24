@@ -674,9 +674,9 @@ const EventRegister = () => {
           className="min-w-0 [grid-area:form] lg:sticky lg:top-6"
           aria-label="Registration"
         >
-          <div className="overflow-hidden rounded-2xl border border-lightGray bg-white shadow-[0_8px_24px_rgba(8,13,45,0.08)]">
+          <div className="overflow-hidden rounded-2xl border border-lightGray bg-white shadow-[0_8px_24px_rgb(var(--color-shadow)_/_0.08)]">
             {showCapacity && capacity && spotsLeft !== null ? (
-              <div className="flex flex-col gap-2 border-b border-gray-200 bg-[#F8F9FC] px-5 py-4">
+              <div className="flex flex-col gap-2 border-b border-gray-200 bg-inputBackground px-5 py-4">
                 <div className="flex justify-between gap-3 text-sm">
                   <span className="font-semibold text-primary">
                     {spotsLeft === 1 ? "1 spot left" : `${spotsLeft} spots left`}
@@ -1000,7 +1000,7 @@ const EventRegister = () => {
   }
 
   return (
-    <div ref={topRef} className="flex min-h-screen flex-col bg-[#F3F5FA] font-sans text-primary">
+    <div ref={topRef} className="flex min-h-screen flex-col bg-background font-sans text-primary">
       {header}
       {body}
       {footer}

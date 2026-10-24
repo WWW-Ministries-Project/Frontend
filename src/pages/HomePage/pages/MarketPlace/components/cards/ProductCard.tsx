@@ -60,7 +60,7 @@ export const ProductCard = ({
         }
       }}
       aria-label={`${product.name}, ${formatMoney(product.price_amount)}`}
-      className="flex cursor-pointer flex-col gap-3 rounded-xl border border-lightGray bg-white p-2.5 text-primary transition-shadow duration-150 hover:shadow-[0_10px_24px_rgba(8,13,45,0.10)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+      className="flex cursor-pointer flex-col gap-3 rounded-xl border border-lightGray bg-white p-2.5 text-primary transition-shadow duration-150 hover:shadow-[0_10px_24px_rgb(var(--color-shadow)_/_0.10)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
     >
       <ProductTile
         hex={hex}

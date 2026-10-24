@@ -62,7 +62,7 @@ export const OrdersFilterPanel = ({
 }: IProps) => {
   const count = countOrderFilters(values);
   return (
-    <div className="flex flex-col gap-4 rounded-2xl border border-lightGray bg-[#FAFBFC] p-4">
+    <div className="flex flex-col gap-4 rounded-2xl border border-lightGray bg-inputBackground p-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="flex flex-col gap-1">
           <h2 className="text-base font-semibold text-primary">Refine orders</h2>

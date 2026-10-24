@@ -317,7 +317,7 @@ const GivingContributions = () => {
                   t.key === "pending" && stuck.length ? (
                     <span className="inline-flex items-center gap-2">
                       {t.label}
-                      <span className="rounded-full bg-[#B91C1C] px-2 text-xs font-semibold text-white">
+                      <span className="rounded-full bg-error px-2 text-xs font-semibold text-white">
                         {base.filter((c) => c.status === "pending").length}
                       </span>
                     </span>
@@ -338,7 +338,7 @@ const GivingContributions = () => {
               className="max-w-[360px]"
             />
           </div>
-          <p className="text-sm text-[#4B5563]">
+          <p className="text-sm text-gray-600">
             {plural(list.length, "contribution")} · {money(list.filter((c) => c.status === "success").reduce((a, c) => a + m(c.amount), 0))} received
             {q || filterCount ? " · filtered" : ""}
             {total > rows.length ? ` · latest ${rows.length.toLocaleString("en-US")} of ${total.toLocaleString("en-US")}; narrow the dates to see older gifts` : ""}
@@ -368,9 +368,9 @@ const GivingContributions = () => {
                 },
                 { key: "opt", header: "Giving option", width: "minmax(130px,1fr)", render: (c) => optName(c.giving_option_id, c.giving_option_name) },
                 { key: "gift", header: <span className="block text-right">Gift</span>, width: "110px", render: (c) => <span className="block text-right font-semibold tabular-nums">{money(m(c.amount))}</span> },
-                { key: "fee", header: <span className="block text-right">Fee</span>, width: "90px", render: (c) => <span className="block text-right tabular-nums text-[#4B5563]">{amt(m(c.fee))}</span> },
+                { key: "fee", header: <span className="block text-right">Fee</span>, width: "90px", render: (c) => <span className="block text-right tabular-nums text-gray-600">{amt(m(c.fee))}</span> },
                 { key: "charged", header: <span className="block text-right">Charged</span>, width: "110px", render: (c) => <span className="block text-right tabular-nums">{amt(m(charged(c)))}</span> },
-                { key: "channel", header: "Channel", width: "110px", render: (c) => <span className="text-[#4B5563]">{channelLabel(c.channel)}</span> },
+                { key: "channel", header: "Channel", width: "110px", render: (c) => <span className="text-gray-600">{channelLabel(c.channel)}</span> },
                 {
                   key: "status",
                   header: "Status",
@@ -380,7 +380,7 @@ const GivingContributions = () => {
                     return (
                       <div className="flex flex-col items-start gap-0.5">
                         <Pill tone={s.pill.tone}>{s.pill.label}</Pill>
-                        {s.sub && <span className={cn("text-xs", s.subDanger ? "text-[#B91C1C]" : "text-[#6B7280]")}>{s.sub}</span>}
+                        {s.sub && <span className={cn("text-xs", s.subDanger ? "text-red-700" : "text-gray-500")}>{s.sub}</span>}
                       </div>
                     );
                   },
@@ -403,14 +403,14 @@ const GivingContributions = () => {
                     <div className="flex w-full items-start gap-3">
                       <div className="min-w-0 flex-1">
                         <p className="font-semibold">{c.donor_name}</p>
-                        <p className="text-xs text-[#6B7280]">
+                        <p className="text-xs text-gray-500">
                           {fmtD(atOf(c))} · {optName(c.giving_option_id, c.giving_option_name)}
                         </p>
                       </div>
                       <Pill tone={s.pill.tone}>{s.pill.label}</Pill>
                     </div>
                     <div className="flex w-full justify-between gap-2">
-                      <span className={cn("text-xs", s.subDanger ? "text-[#B91C1C]" : "text-[#6B7280]")}>{s.sub}</span>
+                      <span className={cn("text-xs", s.subDanger ? "text-red-700" : "text-gray-500")}>{s.sub}</span>
                       <span className="font-semibold">{money(m(c.amount))}</span>
                     </div>
                   </button>
@@ -458,12 +458,12 @@ const GivingContributions = () => {
               <div
                 key={l}
                 className={cn(
-                  "flex justify-between gap-3 border-b border-[#E5E7EB] px-4 py-2.5 tabular-nums last:border-b-0",
-                  strong ? "bg-[#F8F9FC] font-semibold" : "bg-white"
+                  "flex justify-between gap-3 border-b border-gray-200 px-4 py-2.5 tabular-nums last:border-b-0",
+                  strong ? "bg-inputBackground font-semibold" : "bg-white"
                 )}
               >
                 <span>{l}</span>
-                <span className={cn(l.startsWith("Collected") && mismatch(drawerRow) && "text-[#B91C1C]")}>
+                <span className={cn(l.startsWith("Collected") && mismatch(drawerRow) && "text-red-700")}>
                   {v === null ? "—" : money(m(v))}
                 </span>
               </div>
@@ -480,13 +480,13 @@ const GivingContributions = () => {
               ] as [string, string][]
             ).map(([l, v]) => (
               <div key={l} className="flex min-w-0 flex-col gap-0.5">
-                <span className="text-xs text-[#6B7280]">{l}</span>
+                <span className="text-xs text-gray-500">{l}</span>
                 <span className="font-medium [overflow-wrap:anywhere]">{v}</span>
               </div>
             ))}
           </div>
           {(drawerRow.status === "failed" || drawerRow.status === "abandoned") && !drawerRow.user_id && (
-            <p className="text-xs text-[#6B7280]">This giver has no member account, so they can’t be messaged from here.</p>
+            <p className="text-xs text-gray-500">This giver has no member account, so they can’t be messaged from here.</p>
           )}
         </SideDrawer>
       )}

@@ -83,7 +83,7 @@ const readView = (): "table" | "cards" => {
 const Initials = ({ name, className }: { name: string; className?: string }) => (
   <span
     className={cn(
-      "flex flex-shrink-0 items-center justify-center rounded-lg border border-[#E5E7EB] bg-[#F3F5FA] text-xs font-semibold text-[#4B5563]",
+      "flex flex-shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-background text-xs font-semibold text-gray-600",
       className
     )}
   >
@@ -533,11 +533,11 @@ const AssetManager = () => {
       </div>
 
       {attention.length > 0 && (
-        <section className="overflow-hidden rounded-xl border border-[#FDE68A] bg-white">
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#FDE68A] bg-[#FFFBEB] px-5 py-4">
+        <section className="overflow-hidden rounded-xl border border-amber-200 bg-white">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-200 bg-amber-50 px-5 py-4">
             <div className="flex flex-col gap-1">
               <h2 className="text-base font-semibold text-primary">Needs your attention</h2>
-              <p className="text-sm text-[#374151]">{attentionNote}</p>
+              <p className="text-sm text-gray-700">{attentionNote}</p>
             </div>
             {attention.length > 4 && (
               <UiButton size="sm" onClick={() => setAttAll((v) => !v)}>
@@ -546,13 +546,13 @@ const AssetManager = () => {
             )}
           </div>
           {(attAll ? attention : attention.slice(0, 4)).map((item) => (
-            <div key={item.key} className="flex flex-wrap items-center gap-3 border-b border-[#E5E7EB] px-5 py-4 last:border-b-0">
+            <div key={item.key} className="flex flex-wrap items-center gap-3 border-b border-gray-200 px-5 py-4 last:border-b-0">
               <Pill tone={item.pill.tone} className="flex-shrink-0">
                 {item.pill.label}
               </Pill>
               <div className="flex min-w-0 flex-[1_1_260px] flex-col gap-0.5">
                 <p className="text-sm font-semibold text-primary">{item.title}</p>
-                <p className="text-sm text-[#4B5563]">{item.text}</p>
+                <p className="text-sm text-gray-600">{item.text}</p>
               </div>
               <div className="flex flex-wrap gap-2">
                 {item.actions.map((action) => (
@@ -623,7 +623,7 @@ const AssetManager = () => {
           </div>
         )}
 
-        <p className="text-sm text-[#4B5563]">
+        <p className="text-sm text-gray-600">
           {plural(list.length, "asset")} · {money(valueOf(list))} purchase value{term || filterCount ? " · filtered" : ""}
         </p>
 
@@ -652,7 +652,7 @@ const AssetManager = () => {
                 render: (a) => (
                   <div className="flex min-w-0 items-center gap-3">
                     {a.photo ? (
-                      <img src={a.photo} alt="" className="h-10 w-10 flex-shrink-0 rounded-lg border border-[#E5E7EB] object-cover" />
+                      <img src={a.photo} alt="" className="h-10 w-10 flex-shrink-0 rounded-lg border border-gray-200 object-cover" />
                     ) : (
                       <Initials name={a.name} className="h-10 w-10" />
                     )}
@@ -660,7 +660,7 @@ const AssetManager = () => {
                   </div>
                 ),
               },
-              { key: "cat", header: "Category", width: "minmax(140px,1fr)", render: (a) => <span className="text-[#4B5563]">{categoryLabel(a.category)}</span> },
+              { key: "cat", header: "Category", width: "minmax(140px,1fr)", render: (a) => <span className="text-gray-600">{categoryLabel(a.category)}</span> },
               {
                 key: "dept",
                 header: "Assigned to",
@@ -680,7 +680,7 @@ const AssetManager = () => {
         ) : (
           <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,260px),1fr))] gap-4">
             {!data.loaded &&
-              [0, 1, 2].map((n) => <div key={n} className="h-[260px] animate-pulse rounded-xl bg-[#F3F4F6]" />)}
+              [0, 1, 2].map((n) => <div key={n} className="h-[260px] animate-pulse rounded-xl bg-gray-100" />)}
             {shown.map((a) => {
               const on = selected.includes(a.id);
               const sub = subOf(a, today, staleDays);
@@ -688,28 +688,28 @@ const AssetManager = () => {
                 <div
                   key={a.id}
                   className={cn(
-                    "relative flex flex-col overflow-hidden rounded-xl border bg-white transition-shadow hover:shadow-[0_8px_24px_rgba(8,13,45,0.08)]",
+                    "relative flex flex-col overflow-hidden rounded-xl border bg-white transition-shadow hover:shadow-[0_8px_24px_rgb(var(--color-shadow)_/_0.08)]",
                     on ? "border-primary" : "border-lightGray"
                   )}
                 >
                   <button type="button" onClick={() => setDrawerId(a.id)} className="flex flex-col bg-transparent p-0 text-left text-sm text-primary">
                     {a.photo ? (
-                      <img src={a.photo} alt="" className="h-[120px] w-full border-b border-[#E5E7EB] object-cover" />
+                      <img src={a.photo} alt="" className="h-[120px] w-full border-b border-gray-200 object-cover" />
                     ) : (
-                      <div className="flex h-[120px] flex-col items-center justify-center gap-1 border-b border-[#E5E7EB] bg-[#F3F5FA]">
-                        <span className="text-xl font-semibold text-[#4B5563]">{initials(a.name)}</span>
-                        <span className="text-xs text-[#6B7280]">{categoryLabel(a.category)}</span>
+                      <div className="flex h-[120px] flex-col items-center justify-center gap-1 border-b border-gray-200 bg-background">
+                        <span className="text-xl font-semibold text-gray-600">{initials(a.name)}</span>
+                        <span className="text-xs text-gray-500">{categoryLabel(a.category)}</span>
                       </div>
                     )}
                     <div className="flex flex-col gap-2 p-4">
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
                           <p className="font-semibold">{a.name}</p>
-                          <p className="text-xs text-[#6B7280]">{a.code}</p>
+                          <p className="text-xs text-gray-500">{a.code}</p>
                         </div>
                         <Pill tone={STATUS[a.status].tone}>{STATUS[a.status].label}</Pill>
                       </div>
-                      <p className="text-[#4B5563]">{a.department?.name || "Not assigned"}</p>
+                      <p className="text-gray-600">{a.department?.name || "Not assigned"}</p>
                       <div className="flex items-baseline justify-between gap-2">
                         <span className="text-xs" style={{ color: sub.color }}>
                           {sub.text}
@@ -741,7 +741,7 @@ const AssetManager = () => {
           </UiButton>
         )}
         {data.loaded && !list.length && (
-          <p className="rounded-xl border border-dashed border-lightGray bg-white p-6 text-center text-sm text-[#4B5563]">
+          <p className="rounded-xl border border-dashed border-lightGray bg-white p-6 text-center text-sm text-gray-600">
             {term || filterCount
               ? "Nothing matches these filters. Try clearing the search or resetting filters."
               : tab === "LOST_OR_STOLEN"

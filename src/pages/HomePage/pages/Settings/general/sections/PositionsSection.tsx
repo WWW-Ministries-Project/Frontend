@@ -81,7 +81,7 @@ export const PositionsSection = ({ canEdit, canDelete }: { canEdit: boolean; can
       ) : status === "error" ? (
         <LoadFailed what="positions" onRetry={() => void load()} />
       ) : !positions.length ? (
-        <p className="rounded-xl border border-dashed border-lightGray bg-white p-6 text-center text-sm text-[#4B5563]">
+        <p className="rounded-xl border border-dashed border-lightGray bg-white p-6 text-center text-sm text-gray-600">
           No positions yet.{canEdit ? " Add the titles people hold, like Head Usher or Choir Director." : ""}
         </p>
       ) : (
@@ -89,13 +89,13 @@ export const PositionsSection = ({ canEdit, canDelete }: { canEdit: boolean; can
           {positions.map((position) => (
             <div
               key={position.id}
-              className="flex min-h-16 flex-wrap items-center gap-x-4 gap-y-1 border-b border-[#E5E7EB] px-4 py-3 last:border-b-0 hover:bg-lightGray/20"
+              className="flex min-h-16 flex-wrap items-center gap-x-4 gap-y-1 border-b border-gray-200 px-4 py-3 last:border-b-0 hover:bg-lightGray/20"
             >
               <div className="flex min-w-0 flex-[1_1_220px] flex-col">
                 <span className="text-sm font-medium text-primary">{position.name}</span>
-                <span className="text-xs text-[#6B7280]">{position.description || "—"}</span>
+                <span className="text-xs text-gray-500">{position.description || "—"}</span>
               </div>
-              <span className="flex-[0_0_140px] text-sm text-[#4B5563]">{branchName(position.branch_id)}</span>
+              <span className="flex-[0_0_140px] text-sm text-gray-600">{branchName(position.branch_id)}</span>
               {(canEdit || canDelete) && (
                 <div className="flex gap-1">
                   {canEdit && (
@@ -111,7 +111,7 @@ export const PositionsSection = ({ canEdit, canDelete }: { canEdit: boolean; can
                     <button
                       type="button"
                       onClick={() => remove(position)}
-                      className="min-h-10 rounded-lg px-3 py-2 text-sm font-medium text-[#B91C1C] hover:bg-[#FEF2F2]"
+                      className="min-h-10 rounded-lg px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
                     >
                       Delete
                     </button>

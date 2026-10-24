@@ -20,7 +20,7 @@ export const MembershipJourneyCard = ({
   onAdvance: () => void;
   busy?: boolean;
 }) => (
-  <section className="flex flex-col gap-4 rounded-xl border border-lightGray bg-white p-6 shadow-[0_8px_24px_rgba(8,13,45,0.08)]">
+  <section className="flex flex-col gap-4 rounded-xl border border-lightGray bg-white p-6 shadow-[0_8px_24px_rgb(var(--color-shadow)_/_0.08)]">
     <div className="flex items-center justify-between gap-2">
       <h2 className="text-base font-semibold text-primary">Membership journey</h2>
       <MemberStatusPill member={member} />
@@ -37,7 +37,7 @@ export const MembershipJourneyCard = ({
                   "flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border text-xs font-semibold",
                   step.done
                     ? "border-primary bg-primary text-white"
-                    : "border-lightGray bg-white text-[#4B5563]"
+                    : "border-lightGray bg-white text-gray-600"
                 )}
                 aria-hidden="true"
               >
@@ -46,7 +46,7 @@ export const MembershipJourneyCard = ({
               <span
                 className={cn(
                   "min-h-4 w-0.5 flex-1",
-                  last ? "bg-transparent" : nextDone ? "bg-primary" : "bg-[#E5E7EB]"
+                  last ? "bg-transparent" : nextDone ? "bg-primary" : "bg-gray-200"
                 )}
               />
             </div>
@@ -55,13 +55,13 @@ export const MembershipJourneyCard = ({
                 className={cn(
                   "text-sm",
                   step.current ? "font-semibold" : "font-medium",
-                  step.done ? "text-primary" : "text-[#6B7280]"
+                  step.done ? "text-primary" : "text-gray-500"
                 )}
               >
                 {step.label}
                 {step.current && <span className="sr-only"> (current stage)</span>}
               </p>
-              <p className="text-xs text-[#6B7280]">{step.sub}</p>
+              <p className="text-xs text-gray-500">{step.sub}</p>
             </div>
           </li>
         );
@@ -80,7 +80,7 @@ export const AtAGlanceCard = ({ rows }: { rows: [string, string][] }) => (
     <h2 className="text-base font-semibold text-primary">At a glance</h2>
     {rows.map(([label, value]) => (
       <div key={label} className="flex justify-between gap-3 text-sm">
-        <span className="text-[#4B5563]">{label}</span>
+        <span className="text-gray-600">{label}</span>
         <span className="text-right font-semibold text-primary">{value || "—"}</span>
       </div>
     ))}

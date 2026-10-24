@@ -13,7 +13,7 @@ const SkeletonLoader = () => {
       </thead>
       <tbody className="bg-white">
         {Array(5).fill(null).map((_, index) => (
-          <tr key={index} className="border-b-2 border-[#EBEFF2] h-20 text-primary leading-6 hover:bg-[#f8f9f999]">
+          <tr key={index} className="border-b-2 border-gray-100 h-20 text-primary leading-6 hover:bg-gray-50/60">
             {Array(5).fill(null).map((_, index) => (
               <td key={index} className="px-1">
                 <div className="h-4 bg-lightGray rounded animate-pulse w-full"></div>

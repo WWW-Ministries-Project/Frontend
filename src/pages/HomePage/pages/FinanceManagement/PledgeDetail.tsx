@@ -203,7 +203,7 @@ const PledgeDetail = () => {
               <h1 className="text-xl font-semibold leading-8 text-primary sm:text-2xl">{title}</h1>
               <Pill tone={s.pill.tone}>{s.pill.label}</Pill>
             </div>
-            <p className="text-sm text-[#4B5563]">
+            <p className="text-sm text-gray-600">
               {pledge.event?.event_name ?? "No event"}
               {callersText(pledge) ? ` · called by ${callersText(pledge)}` : ""} ·{" "}
               {s.deadline ? `deadline ${fmtD(s.deadline)}` : "no deadline"}
@@ -261,7 +261,7 @@ const PledgeDetail = () => {
               label: uncredited.length ? (
                 <span className="inline-flex items-center gap-2">
                   Online payments
-                  <span className="rounded-full bg-[#B91C1C] px-2 text-xs font-semibold text-white">{payments.length}</span>
+                  <span className="rounded-full bg-error px-2 text-xs font-semibold text-white">{payments.length}</span>
                 </span>
               ) : (
                 "Online payments"
@@ -276,12 +276,12 @@ const PledgeDetail = () => {
             {!groups.length && <EmptyNote>No groups on this pledge.</EmptyNote>}
             {groups.map(({ g, rows, paidFull, red: gRed, tot: gTot }) => (
               <section key={g.id ?? g.label} className="overflow-hidden rounded-xl border border-lightGray bg-white">
-                <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-[#E5E7EB] px-5 py-4">
+                <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-gray-200 px-5 py-4">
                   <div>
                     <h2 className="text-base font-semibold text-primary">
                       {g.label ?? "Group"} · called at {money(num(g.called_amount))}
                     </h2>
-                    <p className="text-sm text-[#4B5563]">
+                    <p className="text-sm text-gray-600">
                       {plural(rows.length, "pledger")} · {paidFull} paid in full
                     </p>
                   </div>
@@ -289,19 +289,19 @@ const PledgeDetail = () => {
                     {money(gRed)} of {money(gTot)}
                   </span>
                 </div>
-                {!rows.length && <p className="px-5 py-4 text-sm text-[#6B7280]">No pledgers in this group yet.</p>}
+                {!rows.length && <p className="px-5 py-4 text-sm text-gray-500">No pledgers in this group yet.</p>}
                 {rows.map((p) => {
                   const r = Math.max(0, num(p.remaining));
                   const last = [...(p.redemptions ?? [])].sort((a, b) => String(b.date).localeCompare(String(a.date)))[0];
                   const percent = num(p.pledged_amount) ? Math.min(100, Math.round((num(p.redeemed) / num(p.pledged_amount)) * 100)) : 0;
                   return (
-                    <div key={p.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-[#E5E7EB] px-5 py-3 last:border-b-0">
+                    <div key={p.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-gray-200 px-5 py-3 last:border-b-0">
                       <div className="min-w-0 flex-[1_1_200px]">
                         <p className="font-semibold text-primary">
                           {pledgerName(p)}
-                          {!p.user && <span className="ml-2 text-xs font-normal text-[#6B7280]">guest</span>}
+                          {!p.user && <span className="ml-2 text-xs font-normal text-gray-500">guest</span>}
                         </p>
-                        <p className="text-xs text-[#6B7280]">
+                        <p className="text-xs text-gray-500">
                           {[
                             p.guest_phone,
                             last ? `last paid ${fmtS(last.date)} (${String(last.method).toLowerCase()})` : "nothing paid yet",
@@ -316,7 +316,7 @@ const PledgeDetail = () => {
                           <span>
                             {money(num(p.redeemed))} of {money(num(p.pledged_amount))}
                           </span>
-                          <span className={cn("font-semibold", r > 0 ? "text-[#B45309]" : "text-[#15803D]")}>
+                          <span className={cn("font-semibold", r > 0 ? "text-amber-700" : "text-green-700")}>
                             {r > 0 ? `${money(r)} left` : "Paid in full"}
                           </span>
                         </div>
@@ -351,7 +351,7 @@ const PledgeDetail = () => {
           </div>
         ) : (
           <div className="flex flex-col gap-2">
-            <p className="text-sm text-[#4B5563]">
+            <p className="text-sm text-gray-600">
               Paystack attempts against this pledge. Successful ones are credited to the pledger automatically.
             </p>
             {payRes.loading && !payments.length && <div className="h-16 animate-pulse rounded-lg bg-white" />}
@@ -363,23 +363,23 @@ const PledgeDetail = () => {
                   key={p.id}
                   className={cn(
                     "flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border bg-white px-4 py-3 text-sm",
-                    unc ? "border-[#FECACA]" : "border-lightGray"
+                    unc ? "border-red-200" : "border-lightGray"
                   )}
                 >
                   <div className="min-w-0 flex-[1_1_200px]">
                     <p className="font-semibold">{p.payer_name}</p>
-                    <p className="text-xs text-[#6B7280]">
+                    <p className="text-xs text-gray-500">
                       {fmtD(p.paid_at || p.createdAt)} · {channelLabel(p.channel)} · {p.reference}
                     </p>
                   </div>
                   <div className="flex-[0_1_220px] tabular-nums">
                     <p className="font-semibold">{money(fromMinor(p.amount) ?? 0)}</p>
-                    <p className="text-xs text-[#6B7280]">
+                    <p className="text-xs text-gray-500">
                       Charged {money(fromMinor(p.amount_charged ?? p.amount + p.fee) ?? 0)} incl. fee
                     </p>
                   </div>
                   <Pill tone={pill.tone}>{pill.label}</Pill>
-                  <span className={cn("flex-[1_1_160px] text-xs", unc ? "text-[#B91C1C]" : "text-[#6B7280]")}>
+                  <span className={cn("flex-[1_1_160px] text-xs", unc ? "text-red-700" : "text-gray-500")}>
                     {p.status !== "success"
                       ? "Nothing collected"
                       : p.redemption_id

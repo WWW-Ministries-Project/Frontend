@@ -305,7 +305,7 @@ const PromotionManager = () => {
       <section className="flex flex-col gap-4 rounded-xl border border-lightGray bg-white p-5">
         <div className="flex flex-col gap-1">
           <h2 className="text-base font-semibold text-primary">On Home now</h2>
-          <p className="text-sm text-[#4B5563]">
+          <p className="text-sm text-gray-600">
             The first {HOME_SLOTS} live promotions show, in this order.
             {canManage ? " Use the arrows to reorder." : ""}
           </p>
@@ -342,7 +342,7 @@ const PromotionManager = () => {
                   )}
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={`flex-1 text-xs ${shown ? "text-[#6B7280]" : "text-[#B45309]"}`}>
+                  <span className={`flex-1 text-xs ${shown ? "text-gray-500" : "text-amber-700"}`}>
                     {shown
                       ? promotion.end_date
                         ? `Until ${formatDay(promotion.end_date)}`
@@ -376,7 +376,7 @@ const PromotionManager = () => {
             );
           })}
           {!loading && live.length === 0 && (
-            <p className="text-sm text-[#6B7280]">Nothing is live. Home shows the annual theme only.</p>
+            <p className="text-sm text-gray-500">Nothing is live. Home shows the annual theme only.</p>
           )}
         </div>
       </section>
@@ -392,7 +392,7 @@ const PromotionManager = () => {
       {loading && promotions.length === 0 ? (
         <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,300px),1fr))] gap-4">
           {Array.from({ length: 3 }).map((_, index) => (
-            <div key={index} className="h-72 animate-pulse rounded-xl bg-[#F3F4F6]" />
+            <div key={index} className="h-72 animate-pulse rounded-xl bg-gray-100" />
           ))}
         </div>
       ) : list.length === 0 ? (
@@ -429,13 +429,13 @@ const PromotionManager = () => {
                   <div className="flex items-center justify-between gap-2">
                     {pill}
                     {state === "live" && (
-                      <span className="text-xs text-[#6B7280]">
+                      <span className="text-xs text-gray-500">
                         {index < HOME_SLOTS ? `Slide ${index + 1}` : `Hidden, position ${index + 1}`}
                       </span>
                     )}
                   </div>
-                  <p className="break-words text-[#4B5563]">{describePromotionLink(promotion.deep_link)}</p>
-                  <p className="text-xs text-[#6B7280]">
+                  <p className="break-words text-gray-600">{describePromotionLink(promotion.deep_link)}</p>
+                  <p className="text-xs text-gray-500">
                     {promotion.start_date
                       ? `${formatDay(promotion.start_date)}${promotion.end_date ? ` – ${formatDay(promotion.end_date)}` : " · no end date"}`
                       : "No dates set"}

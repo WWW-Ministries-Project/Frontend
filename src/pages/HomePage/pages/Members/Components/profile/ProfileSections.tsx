@@ -51,8 +51,8 @@ const SectionCard = ({
   <section className="flex flex-col gap-4 rounded-xl border border-lightGray bg-white p-6">
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div className="flex min-w-0 flex-col gap-1">
-        <h2 className="text-xl font-bold leading-7 text-[#1F2937]">{title}</h2>
-        {subtitle && <p className="text-sm text-[#4B5563]">{subtitle}</p>}
+        <h2 className="text-xl font-bold leading-7 text-gray-800">{title}</h2>
+        {subtitle && <p className="text-sm text-gray-600">{subtitle}</p>}
       </div>
       {action}
     </div>
@@ -64,8 +64,8 @@ const InfoGrid = ({ rows }: { rows: [string, ReactNode][] }) => (
   <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,220px),1fr))] gap-x-8 gap-y-4">
     {rows.map(([label, value]) => (
       <div key={label} className="flex min-w-0 flex-col gap-1">
-        <p className="text-sm font-medium text-[#4B5563]">{label}</p>
-        <p className="break-words text-base font-semibold leading-6 text-[#111827] [overflow-wrap:anywhere]">
+        <p className="text-sm font-medium text-gray-600">{label}</p>
+        <p className="break-words text-base font-semibold leading-6 text-gray-900 [overflow-wrap:anywhere]">
           {value === null || value === undefined || value === "" ? "—" : value}
         </p>
       </div>
@@ -80,7 +80,7 @@ const InfoCard = ({ title, rows }: { title: string; rows: [string, ReactNode][] 
 );
 
 const DashedEmpty = ({ children }: { children: ReactNode }) => (
-  <p className="rounded-lg border border-dashed border-lightGray px-4 py-3 text-sm text-[#6B7280]">
+  <p className="rounded-lg border border-dashed border-lightGray px-4 py-3 text-sm text-gray-500">
     {children}
   </p>
 );
@@ -189,13 +189,13 @@ export const ProfileSections = ({
             departments.map((department) => (
               <div
                 key={department.key}
-                className="flex items-center gap-3 rounded-lg border border-[#E5E7EB] px-4 py-3"
+                className="flex items-center gap-3 rounded-lg border border-gray-200 px-4 py-3"
               >
                 <div className="min-w-0 flex-1">
                   <p className="text-base font-semibold text-primary">
                     {department.department}
                   </p>
-                  <p className="text-sm text-[#4B5563]">
+                  <p className="text-sm text-gray-600">
                     {department.position || "No position"}
                   </p>
                 </div>
@@ -269,14 +269,14 @@ export const ProfileSections = ({
                 return (
                   <div
                     key={`${child.user_id ?? name}-${index}`}
-                    className="flex items-center gap-3 rounded-lg border border-[#E5E7EB] p-4"
+                    className="flex items-center gap-3 rounded-lg border border-gray-200 p-4"
                   >
                     <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-lightGray font-semibold text-primary/70">
                       {initialsOf(name)}
                     </span>
                     <div className="min-w-0">
                       <p className="text-base font-semibold text-primary">{name}</p>
-                      <p className="text-sm text-[#4B5563]">{childMeta(child) || "—"}</p>
+                      <p className="text-sm text-gray-600">{childMeta(child) || "—"}</p>
                     </div>
                   </div>
                 );
@@ -294,13 +294,13 @@ export const ProfileSections = ({
                   return (
                     <div
                       key={`${relation}-${name}-${index}`}
-                      className="flex flex-col gap-1 rounded-lg border border-[#E5E7EB] p-4"
+                      className="flex flex-col gap-1 rounded-lg border border-gray-200 p-4"
                     >
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <p className="text-base font-semibold text-primary">{name}</p>
                         <Pill tone="neutral">{relationLabel(relation)}</Pill>
                       </div>
-                      <p className="text-sm text-[#4B5563]">
+                      <p className="text-sm text-gray-600">
                         {[childMeta(person), phone].filter(Boolean).join(" · ") || "—"}
                       </p>
                     </div>
@@ -323,7 +323,7 @@ export const ProfileSections = ({
         programs.map((program) => (
           <div
             key={program.key}
-            className="flex flex-col gap-2 rounded-lg border border-[#E5E7EB] p-4"
+            className="flex flex-col gap-2 rounded-lg border border-gray-200 p-4"
           >
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="text-base font-semibold text-primary">{program.name}</p>
@@ -331,7 +331,7 @@ export const ProfileSections = ({
             </div>
             {program.percent !== null && (
               <div
-                className="h-2 overflow-hidden rounded-full bg-[#E5E7EB]"
+                className="h-2 overflow-hidden rounded-full bg-gray-200"
                 role="progressbar"
                 aria-valuenow={program.percent}
                 aria-valuemin={0}
@@ -344,7 +344,7 @@ export const ProfileSections = ({
                 />
               </div>
             )}
-            <p className="text-xs text-[#4B5563]">{program.meta}</p>
+            <p className="text-xs text-gray-600">{program.meta}</p>
           </div>
         ))
       )}

@@ -276,7 +276,7 @@ export const MessageCompose = ({
   return (
     <PageOutline className={`flex flex-col gap-6 ${phone ? "pb-28" : ""}`}>
       <div className="flex flex-col gap-2">
-        <button type="button" onClick={close} className="self-start text-sm text-[#4B5563] hover:text-primary">
+        <button type="button" onClick={close} className="self-start text-sm text-gray-600 hover:text-primary">
           ← Messaging
         </button>
         <h1 className="text-xl font-semibold leading-8 text-primary sm:text-2xl">New message</h1>
@@ -298,7 +298,7 @@ export const MessageCompose = ({
             />
             {scope === "CHURCH" && (
               <div className="flex flex-col gap-2 text-sm text-primary">
-                <p className="text-[#4B5563]">{baseCounts ? `${nf(baseCounts.members)} active members.` : "All active members."}</p>
+                <p className="text-gray-600">{baseCounts ? `${nf(baseCounts.members)} active members.` : "All active members."}</p>
                 <label className="flex min-h-8 cursor-pointer items-center gap-2">
                   <input type="checkbox" checked={includeGuests} onChange={(event) => setIncludeGuests(event.target.checked)} className="h-4 w-4 accent-primary" />
                   <span>Include guests{baseCounts ? ` (${nf(baseCounts.guests)})` : ""}</span>
@@ -328,12 +328,12 @@ export const MessageCompose = ({
                       />
                       <span className="flex-1">{department.name}</span>
                       {department.member_count !== undefined && (
-                        <span className="text-xs text-[#6B7280]">{nf(department.member_count)} people</span>
+                        <span className="text-xs text-gray-500">{nf(department.member_count)} people</span>
                       )}
                     </label>
                   );
                 })}
-                {departments.length === 0 && <p className="text-sm text-[#6B7280]">Loading departments…</p>}
+                {departments.length === 0 && <p className="text-sm text-gray-500">Loading departments…</p>}
               </div>
             )}
             {scope === "PEOPLE" && (
@@ -363,7 +363,7 @@ export const MessageCompose = ({
                   </div>
                 )}
                 {matches.filter((match) => !people.some((person) => person.id === match.id)).length > 0 && (
-                  <div className="max-h-[200px] overflow-y-auto rounded-lg border border-[#E5E7EB]">
+                  <div className="max-h-[200px] overflow-y-auto rounded-lg border border-gray-200">
                     {matches
                       .filter((match) => !people.some((person) => person.id === match.id))
                       .map((match) => (
@@ -374,10 +374,10 @@ export const MessageCompose = ({
                             setPeople([...people, match]);
                             setPeopleQuery("");
                           }}
-                          className="flex min-h-11 w-full justify-between gap-2 border-b border-[#E5E7EB] bg-white px-3 py-2 text-left text-sm text-primary last:border-b-0 hover:bg-[#F3F4F6]"
+                          className="flex min-h-11 w-full justify-between gap-2 border-b border-gray-200 bg-white px-3 py-2 text-left text-sm text-primary last:border-b-0 hover:bg-gray-100"
                         >
                           <span>{match.name}</span>
-                          <span className="text-xs text-[#6B7280]">{match.department ?? ""}</span>
+                          <span className="text-xs text-gray-500">{match.department ?? ""}</span>
                         </button>
                       ))}
                   </div>
@@ -401,13 +401,13 @@ export const MessageCompose = ({
                   >
                     <span className="flex items-center gap-2 text-sm font-semibold">
                       <span
-                        className={`flex h-4 w-4 items-center justify-center rounded border text-[12px] leading-none text-white ${on ? "border-primary bg-primary" : "border-[#9CA3AF] bg-white"}`}
+                        className={`flex h-4 w-4 items-center justify-center rounded border text-[12px] leading-none text-white ${on ? "border-primary bg-primary" : "border-gray-400 bg-white"}`}
                       >
                         {on ? "✓" : ""}
                       </span>
                       {channel.label}
                     </span>
-                    <span className="text-xs text-[#6B7280]">{reachLabel(channel.key)}</span>
+                    <span className="text-xs text-gray-500">{reachLabel(channel.key)}</span>
                   </button>
                 );
               })}
@@ -502,38 +502,38 @@ export const MessageCompose = ({
                   value={activePreview}
                   onChange={setPreviewChannel}
                 />
-                <div className="flex min-h-[160px] flex-col gap-2 rounded-2xl bg-[#F3F5FA] p-4 text-sm text-primary">
+                <div className="flex min-h-[160px] flex-col gap-2 rounded-2xl bg-background p-4 text-sm text-primary">
                   {activePreview === "sms" && (
                     <>
-                      <p className="text-center text-xs text-[#6B7280]">WWM · SMS</p>
-                      <p className="max-w-[90%] self-start whitespace-pre-wrap rounded-[16px_16px_16px_4px] border border-[#E5E7EB] bg-white px-3 py-2 [text-wrap:pretty]">
+                      <p className="text-center text-xs text-gray-500">WWM · SMS</p>
+                      <p className="max-w-[90%] self-start whitespace-pre-wrap rounded-[16px_16px_16px_4px] border border-gray-200 bg-white px-3 py-2 [text-wrap:pretty]">
                         {previewText}
                       </p>
                     </>
                   )}
                   {activePreview === "email" && (
-                    <div className="overflow-hidden rounded-lg border border-[#E5E7EB] bg-white">
-                      <div className="border-b border-[#E5E7EB] px-4 py-3">
-                        <p className="text-xs text-[#6B7280]">From {CHURCH_NAME}</p>
+                    <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+                      <div className="border-b border-gray-200 px-4 py-3">
+                        <p className="text-xs text-gray-500">From {CHURCH_NAME}</p>
                         <p className="font-semibold">{preview?.subject || subject || "(No subject)"}</p>
                       </div>
                       <p className="whitespace-pre-wrap px-4 py-3 [text-wrap:pretty]">{previewText}</p>
                     </div>
                   )}
                   {activePreview === "inApp" && (
-                    <div className="flex gap-3 rounded-xl border border-[#E5E7EB] bg-white px-4 py-3 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+                    <div className="flex gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
                       <span className="flex h-8 w-8 flex-none items-center justify-center rounded-lg bg-primary text-xs font-semibold text-white">W</span>
                       <div className="min-w-0">
                         <p className="font-semibold">{title || "Message title"}</p>
-                        <p className="line-clamp-3 text-[#4B5563]">{previewText}</p>
+                        <p className="line-clamp-3 text-gray-600">{previewText}</p>
                       </div>
                     </div>
                   )}
                 </div>
-                <p className="text-xs text-[#6B7280]">Filled in for a sample member.</p>
+                <p className="text-xs text-gray-500">Filled in for a sample member.</p>
               </>
             ) : (
-              <p className="text-sm text-[#6B7280]">Choose a channel to see how it looks.</p>
+              <p className="text-sm text-gray-500">Choose a channel to see how it looks.</p>
             )}
           </section>
 
@@ -545,7 +545,7 @@ export const MessageCompose = ({
                 const n = reach?.[reachKey[channel.key]] ?? 0;
                 return (
                   <div key={channel.key} className="flex justify-between gap-2">
-                    <span className="text-[#4B5563]">{channel.label}</span>
+                    <span className="text-gray-600">{channel.label}</span>
                     <span className="font-semibold text-primary">
                       {nf(n)}
                       {channel.key === "sms" ? ` · ${nf(n * segments)} segments` : ""}
@@ -555,10 +555,10 @@ export const MessageCompose = ({
               })}
             </div>
             {missing.length > 0 && (
-              <div className="flex flex-col gap-1 rounded-lg bg-[#F8F9FC] p-3 text-sm">
-                <p className="text-xs font-semibold uppercase text-[#6B7280]">Still needed</p>
+              <div className="flex flex-col gap-1 rounded-lg bg-inputBackground p-3 text-sm">
+                <p className="text-xs font-semibold uppercase text-gray-500">Still needed</p>
                 {missing.map((item) => (
-                  <p key={item} className="text-[#374151]">
+                  <p key={item} className="text-gray-700">
                     · {item}
                   </p>
                 ))}
@@ -570,10 +570,10 @@ export const MessageCompose = ({
       </div>
 
       {phone && (
-        <div className="fixed inset-x-0 bottom-0 z-[90] flex items-center gap-3 border-t border-lightGray bg-white px-4 py-3 shadow-[0_-4px_12px_rgba(8,13,45,0.08)]">
+        <div className="fixed inset-x-0 bottom-0 z-[90] flex items-center gap-3 border-t border-lightGray bg-white px-4 py-3 shadow-[0_-4px_12px_rgb(var(--color-shadow)_/_0.08)]">
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-primary">{reach ? `${nf(reach.people)} people` : "—"}</p>
-            <p className="truncate text-xs text-[#6B7280]">{missing[0] ?? chosen.map((channel) => channel.label).join(", ")}</p>
+            <p className="truncate text-xs text-gray-500">{missing[0] ?? chosen.map((channel) => channel.label).join(", ")}</p>
           </div>
           {sendButton}
         </div>

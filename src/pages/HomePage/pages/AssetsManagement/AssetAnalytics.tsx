@@ -63,7 +63,7 @@ const Card = ({ title, sub, children, full }: { title: string; sub?: string; chi
   <section className={`flex min-w-0 flex-col gap-4 rounded-xl border border-lightGray bg-white p-6 ${full ? "col-span-full" : ""}`}>
     <div>
       <h3 className="text-base font-semibold text-primary">{title}</h3>
-      {sub && <p className="text-sm text-[#4B5563]">{sub}</p>}
+      {sub && <p className="text-sm text-gray-600">{sub}</p>}
     </div>
     {children}
   </section>
@@ -75,10 +75,10 @@ const HBar = ({ label, value, width, color, sub }: { label: string; value: React
       <span>{label}</span>
       <span className="font-semibold">{value}</span>
     </div>
-    <div className="h-2 overflow-hidden rounded-full bg-[#E5E7EB]">
+    <div className="h-2 overflow-hidden rounded-full bg-gray-200">
       <div className="h-full rounded-r-[4px]" style={{ width, background: color }} />
     </div>
-    <span className="text-xs text-[#6B7280]">{sub}</span>
+    <span className="text-xs text-gray-500">{sub}</span>
   </div>
 );
 
@@ -188,10 +188,10 @@ const AssetAnalytics = () => {
 
   const ages = (
     [
-      ["Under 1 year", 0, 1, "#15803D"],
-      ["1 to 3 years", 1, 3, "#080D2D"],
-      ["3 to 5 years", 3, 5, "#080D2D"],
-      ["Over 5 years", 5, 999, "#B45309"],
+      ["Under 1 year", 0, 1, "rgb(var(--color-green-700))"],
+      ["1 to 3 years", 1, 3, "rgb(var(--color-primary))"],
+      ["3 to 5 years", 3, 5, "rgb(var(--color-primary))"],
+      ["Over 5 years", 5, 999, "rgb(var(--color-amber-700))"],
     ] as [string, number, number, string][]
   ).map(([l, a, b, c]) => {
     const x = reg.filter((z) => ageY(z) >= a && ageY(z) < b);
@@ -302,7 +302,7 @@ const AssetAnalytics = () => {
             {by === "range" && (
               <div className="flex items-center gap-2">
                 <TextInput type="date" aria-label="From" className={sel} value={from} max={to} onChange={(e) => setFrom(e.target.value)} />
-                <span className="text-sm text-[#6B7280]">to</span>
+                <span className="text-sm text-gray-500">to</span>
                 <TextInput type="date" aria-label="To" className={sel} value={to} min={from} max={today} onChange={(e) => setTo(e.target.value)} />
               </div>
             )}
@@ -324,28 +324,28 @@ const AssetAnalytics = () => {
           </>
         }
       />
-      <p className="text-xs text-[#6B7280]">
+      <p className="text-xs text-gray-500">
         Cumulative: the register counts everything bought up to {fmtD(asAt)}. “Bought” counts purchases inside the period. Status and department are as they stand today.
       </p>
 
       {!loaded ? (
         <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,180px),1fr))] gap-4">
           {[0, 1, 2, 3, 4].map((n) => (
-            <div key={n} className="h-24 animate-pulse rounded-xl bg-[#F3F4F6]" />
+            <div key={n} className="h-24 animate-pulse rounded-xl bg-gray-100" />
           ))}
         </div>
       ) : (
         <>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,180px),1fr))] gap-4">
             {[
-              { l: "On the register", v: reg.length, s: `${moneyS(valueOf(reg))} purchase value`, c: "#6B7280" },
-              { l: "Bought in period", v: inPeriod.length, s: moneyS(valueOf(inPeriod)), c: "#6B7280" },
-              { l: "Assigned", v: pct(asg.length, reg.length), s: `${asg.length} in use by departments`, c: "#6B7280" },
-              { l: "Out of use", v: outL.length, s: `${moneyS(valueOf(outL))} · ${pct(valueOf(outL), valueOf(reg))} of value`, c: outL.length ? "#B91C1C" : "#6B7280" },
-              { l: "Average age", v: `${avgAge.toFixed(1)} yrs`, s: `${reg.filter((a) => ageY(a) > 5).length} older than 5 years`, c: "#6B7280" },
+              { l: "On the register", v: reg.length, s: `${moneyS(valueOf(reg))} purchase value`, c: "rgb(var(--color-gray-500))" },
+              { l: "Bought in period", v: inPeriod.length, s: moneyS(valueOf(inPeriod)), c: "rgb(var(--color-gray-500))" },
+              { l: "Assigned", v: pct(asg.length, reg.length), s: `${asg.length} in use by departments`, c: "rgb(var(--color-gray-500))" },
+              { l: "Out of use", v: outL.length, s: `${moneyS(valueOf(outL))} · ${pct(valueOf(outL), valueOf(reg))} of value`, c: outL.length ? "rgb(var(--color-red-700))" : "rgb(var(--color-gray-500))" },
+              { l: "Average age", v: `${avgAge.toFixed(1)} yrs`, s: `${reg.filter((a) => ageY(a) > 5).length} older than 5 years`, c: "rgb(var(--color-gray-500))" },
             ].map((k) => (
               <div key={k.l} className="flex flex-col gap-1 rounded-xl border border-lightGray bg-white px-5 py-4">
-                <p className="text-sm text-[#4B5563]">{k.l}</p>
+                <p className="text-sm text-gray-600">{k.l}</p>
                 <p className="text-2xl font-semibold leading-8 text-primary">{k.v}</p>
                 <p className="text-xs" style={{ color: k.c }}>
                   {k.s}
@@ -361,11 +361,11 @@ const AssetAnalytics = () => {
               sub={`Purchase value by ${by === "all" ? "year" : by === "year" ? "month" : by === "month" ? "week" : by === "week" ? "day" : "period"} (GHS), with number of items.`}
             >
               {bv.length === 0 ? (
-                <p className="text-sm text-[#6B7280]">Nothing bought in this period.</p>
+                <p className="text-sm text-gray-500">Nothing bought in this period.</p>
               ) : (
                 <div className="overflow-x-auto">
                   <div className="flex min-w-[480px] flex-col gap-2" role="img" aria-label="Purchase value by period">
-                    <div className="flex h-[200px] items-end gap-2 border-b border-[#E5E7EB]">
+                    <div className="flex h-[200px] items-end gap-2 border-b border-gray-200">
                       {bv.map((b) => (
                         <div key={b.a} title={`${b.l}: ${plural(b.n, "item")} bought, ${money(b.v)}`} className="flex h-full min-w-0 flex-1 cursor-default flex-col items-center justify-end gap-1">
                           <span className="whitespace-nowrap text-xs font-semibold">{b.v ? moneyS(b.v, "") : ""}</span>
@@ -376,8 +376,8 @@ const AssetAnalytics = () => {
                     <div className="flex gap-2">
                       {bv.map((b) => (
                         <div key={b.a} className="flex min-w-0 flex-1 flex-col text-center">
-                          <span className="truncate text-xs text-[#4B5563]">{b.l}</span>
-                          <span className="text-xs text-[#6B7280]">{b.n ? plural(b.n, "item") : ""}</span>
+                          <span className="truncate text-xs text-gray-600">{b.l}</span>
+                          <span className="text-xs text-gray-500">{b.n ? plural(b.n, "item") : ""}</span>
                         </div>
                       ))}
                     </div>
@@ -387,7 +387,7 @@ const AssetAnalytics = () => {
             </Card>
 
             <Card title="Status today" sub="Share of assets on the register, by count">
-              <div className="flex h-4 gap-0.5 overflow-hidden rounded-full bg-[#E5E7EB]">
+              <div className="flex h-4 gap-0.5 overflow-hidden rounded-full bg-gray-200">
                 {statusRows
                   .filter((s) => s.n)
                   .map((s) => (
@@ -396,10 +396,10 @@ const AssetAnalytics = () => {
               </div>
               <div className="flex flex-col">
                 {statusRows.map((s) => (
-                  <div key={s.k} className="flex items-center gap-3 border-b border-[#E5E7EB] py-2 text-sm last:border-b-0">
+                  <div key={s.k} className="flex items-center gap-3 border-b border-gray-200 py-2 text-sm last:border-b-0">
                     <span className="h-2.5 w-2.5 rounded-sm" style={{ background: STATUS[s.k].color }} />
                     <span className="flex-1">{STATUS[s.k].label}</span>
-                    <span className="text-[#4B5563]">{moneyS(s.v)}</span>
+                    <span className="text-gray-600">{moneyS(s.v)}</span>
                     <span className="min-w-[40px] text-right font-semibold">{s.n}</span>
                   </div>
                 ))}
@@ -414,12 +414,12 @@ const AssetAnalytics = () => {
                     label={d.l}
                     value={moneyS(d.v)}
                     width={`${Math.round((d.v / mxD) * 100)}%`}
-                    color={d.store ? "#9CA3AF" : "#080D2D"}
+                    color={d.store ? "rgb(var(--color-gray-400))" : "rgb(var(--color-primary))"}
                     sub={`${plural(d.n, "item")}${d.o ? ` · ${d.o} out of use` : ""}`}
                   />
                 ))
               ) : (
-                <p className="text-sm text-[#6B7280]">No assets in this selection.</p>
+                <p className="text-sm text-gray-500">No assets in this selection.</p>
               )}
             </Card>
 
@@ -439,7 +439,7 @@ const AssetAnalytics = () => {
                     <span>Out of use</span>
                   </div>
                   {catRows.map((c) => (
-                    <div key={c.l} className="grid min-h-[48px] grid-cols-[minmax(140px,1.5fr)_60px_minmax(90px,1fr)_100px] items-center gap-3 border-b border-[#E5E7EB] px-4 py-2 last:border-b-0">
+                    <div key={c.l} className="grid min-h-[48px] grid-cols-[minmax(140px,1.5fr)_60px_minmax(90px,1fr)_100px] items-center gap-3 border-b border-gray-200 px-4 py-2 last:border-b-0">
                       <span className="font-medium">{c.l}</span>
                       <span>{c.n}</span>
                       <span>{moneyS(c.v)}</span>
@@ -450,7 +450,7 @@ const AssetAnalytics = () => {
                       </div>
                     </div>
                   ))}
-                  {!catRows.length && <p className="px-4 py-3 text-[#6B7280]">No assets in this selection.</p>}
+                  {!catRows.length && <p className="px-4 py-3 text-gray-500">No assets in this selection.</p>}
                 </div>
               </div>
             </Card>
@@ -458,10 +458,10 @@ const AssetAnalytics = () => {
             <Card title="Suppliers" sub="Who we buy from, and how their items hold up">
               <div className="flex flex-col">
                 {sups.slice(0, 6).map((x) => (
-                  <div key={x.l} className="flex items-center gap-3 border-b border-[#E5E7EB] py-3 last:border-b-0">
+                  <div key={x.l} className="flex items-center gap-3 border-b border-gray-200 py-3 last:border-b-0">
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-semibold">{x.l}</p>
-                      <p className="text-xs" style={{ color: x.o / x.n > 0.2 ? "#B45309" : "#6B7280" }}>
+                      <p className="text-xs" style={{ color: x.o / x.n > 0.2 ? "rgb(var(--color-amber-700))" : "rgb(var(--color-gray-500))" }}>
                         {plural(x.n, "item")}
                         {x.o ? ` · ${x.o} broken or in repair (${pct(x.o, x.n)})` : " · none broken"}
                       </p>
@@ -469,20 +469,20 @@ const AssetAnalytics = () => {
                     <span className="whitespace-nowrap text-sm font-semibold">{moneyS(x.v)}</span>
                   </div>
                 ))}
-                {!sups.length && <p className="text-sm text-[#6B7280]">No suppliers recorded in this selection.</p>}
+                {!sups.length && <p className="text-sm text-gray-500">No suppliers recorded in this selection.</p>}
               </div>
             </Card>
 
             <Card full title="What stands out">
               <div className="flex flex-col">
                 {insights.map((i) => (
-                  <div key={i.t} className="flex gap-3 border-b border-[#E5E7EB] py-3 last:border-b-0">
+                  <div key={i.t} className="flex gap-3 border-b border-gray-200 py-3 last:border-b-0">
                     <Pill tone={i.p[1]} className="self-start">
                       {i.p[0]}
                     </Pill>
                     <div>
                       <p className="text-sm font-semibold">{i.t}</p>
-                      <p className="text-sm text-[#4B5563]">{i.s}</p>
+                      <p className="text-sm text-gray-600">{i.s}</p>
                     </div>
                   </div>
                 ))}

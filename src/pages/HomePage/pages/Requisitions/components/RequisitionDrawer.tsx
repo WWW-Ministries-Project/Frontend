@@ -32,17 +32,17 @@ import { ApprovalTimeline, DrawerSection, RequisitionDrawerShell, SimilarBox } f
 
 const TONE_TEXT = {
   neutral: "bg-[#374151]",
-  info: "bg-[#1D4ED8]",
-  success: "bg-[#15803D]",
-  warning: "bg-[#B45309]",
-  danger: "bg-[#B91C1C]",
+  info: "bg-blue-600",
+  success: "bg-success",
+  warning: "bg-warning",
+  danger: "bg-error",
 } as const;
 
 const ALERT = {
-  info: "border-[#BFDBFE] bg-[#EFF6FF] text-[#1D4ED8]",
-  danger: "border-[#FECACA] bg-[#FEF2F2] text-[#B91C1C]",
-  warning: "border-[#FDE68A] bg-[#FFFBEB] text-[#B45309]",
-  success: "border-[#BBF7D0] bg-[#F0FDF4] text-[#15803D]",
+  info: "border-blue-200 bg-blue-50 text-blue-700",
+  danger: "border-red-200 bg-red-50 text-red-700",
+  warning: "border-amber-200 bg-amber-50 text-amber-700",
+  success: "border-green-200 bg-green-50 text-green-700",
 } as const;
 
 
@@ -122,7 +122,7 @@ export const RequisitionDrawer = ({
       <RequisitionDrawerShell open onClose={onClose} title="Loading requisition…" buttons={[]}>
         <div className="space-y-3">
           {Array.from({ length: 4 }).map((_, index) => (
-            <div key={index} className="h-12 animate-pulse rounded-lg bg-[#F3F4F6]" />
+            <div key={index} className="h-12 animate-pulse rounded-lg bg-gray-100" />
           ))}
         </div>
       </RequisitionDrawerShell>
@@ -231,7 +231,7 @@ export const RequisitionDrawer = ({
         {row.steps.length ? (
           <ApprovalTimeline row={row} me={me} now={now} reply={replyDays} />
         ) : (
-          <p className="text-sm text-[#6B7280]">
+          <p className="text-sm text-gray-500">
             {row.status === "DRAFT"
               ? "Approvers are set when you submit, from the approval workflow in settings."
               : "This requisition was approved under the old process, so step details aren’t available."}
@@ -250,7 +250,7 @@ export const RequisitionDrawer = ({
       <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,160px),1fr))] gap-4">
         {facts.map(([label, value]) => (
           <div key={label} className="flex flex-col gap-0.5">
-            <span className="text-xs text-[#6B7280]">{label}</span>
+            <span className="text-xs text-gray-500">{label}</span>
             <span className="text-sm font-medium text-primary">{value}</span>
           </div>
         ))}
@@ -267,16 +267,16 @@ export const RequisitionDrawer = ({
             </div>
           )}
           {row.products.map((item) => (
-            <div key={item.id} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-[#E5E7EB] px-4 py-3">
+            <div key={item.id} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-gray-200 px-4 py-3">
               <span className="min-w-0 flex-[1_1_200px] font-medium text-primary">{item.name}</span>
-              <span className="flex-[0_0_56px] text-right text-[#4B5563]">{item.quantity}</span>
-              <span className="flex-[0_0_110px] text-right text-[#4B5563]">{money(item.unit_price, row.currency)}</span>
+              <span className="flex-[0_0_56px] text-right text-gray-600">{item.quantity}</span>
+              <span className="flex-[0_0_110px] text-right text-gray-600">{money(item.unit_price, row.currency)}</span>
               <span className="ml-auto flex-[0_0_120px] text-right font-semibold text-primary">
                 {money(item.quantity * item.unit_price, row.currency)}
               </span>
             </div>
           ))}
-          <div className="flex justify-between gap-3 bg-[#F8F9FC] px-4 py-3 font-semibold text-primary">
+          <div className="flex justify-between gap-3 bg-inputBackground px-4 py-3 font-semibold text-primary">
             <span>Total</span>
             <span>{money(row.total_amount, row.currency)}</span>
           </div>
@@ -284,7 +284,7 @@ export const RequisitionDrawer = ({
       </DrawerSection>
 
       <DrawerSection title="Why it’s needed" className="gap-1">
-        <p className="text-sm text-[#374151]">{row.purpose || "No reason given."}</p>
+        <p className="text-sm text-gray-700">{row.purpose || "No reason given."}</p>
       </DrawerSection>
 
       <DrawerSection title="Attachments">
@@ -296,9 +296,9 @@ export const RequisitionDrawer = ({
                 href={isSafeUrl(attachment.url) ? attachment.url : undefined}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-lightGray bg-[#F8F9FC] px-3 py-1.5 text-sm text-primary hover:no-underline hover:bg-[#F3F4F6]"
+                className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-lightGray bg-inputBackground px-3 py-1.5 text-sm text-primary hover:no-underline hover:bg-gray-100"
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4B5563" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgb(var(--color-gray-600))" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z" />
                   <path d="M14 3v5h5" />
                 </svg>
@@ -307,20 +307,20 @@ export const RequisitionDrawer = ({
             ))}
           </div>
         ) : (
-          <p className="text-sm text-[#6B7280]">No quotes or photos attached.</p>
+          <p className="text-sm text-gray-500">No quotes or photos attached.</p>
         )}
       </DrawerSection>
 
       <DrawerSection title="Comments" className="gap-3">
         {row.comments.map((entry) => (
-          <div key={entry.id} className="flex flex-col gap-0.5 rounded-lg bg-[#F8F9FC] px-4 py-3">
-            <p className="text-xs text-[#6B7280]">
+          <div key={entry.id} className="flex flex-col gap-0.5 rounded-lg bg-inputBackground px-4 py-3">
+            <p className="text-xs text-gray-500">
               <span className="font-semibold text-primary">{entry.name}</span> · {fmtDT(entry.created_at)}
             </p>
-            <p className="text-sm text-[#374151]">{entry.comment}</p>
+            <p className="text-sm text-gray-700">{entry.comment}</p>
           </div>
         ))}
-        {!row.comments.length && <p className="text-sm text-[#6B7280]">No comments yet.</p>}
+        {!row.comments.length && <p className="text-sm text-gray-500">No comments yet.</p>}
         <div className="flex items-end gap-2">
           <TextArea
             value={draft}
@@ -343,7 +343,7 @@ export const RequisitionDrawer = ({
               <span className={`mt-[5px] h-2.5 w-2.5 flex-shrink-0 rounded-full ${TONE_TEXT[entry.tone]}`} />
               <div>
                 <p className="text-sm text-primary">{entry.text}</p>
-                <p className="text-xs text-[#6B7280]">{fmtDT(entry.at)}</p>
+                <p className="text-xs text-gray-500">{fmtDT(entry.at)}</p>
               </div>
             </li>
           ))}

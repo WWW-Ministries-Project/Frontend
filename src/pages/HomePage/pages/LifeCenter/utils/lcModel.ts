@@ -128,11 +128,11 @@ export const ghsOf = (list: Money[]) =>
 
 export const rateTone = (rate: number): PillTone => (rate >= 85 ? "success" : rate >= 60 ? "warning" : "danger");
 export const TONE_TEXT: Record<string, string> = {
-  success: "#15803D",
-  warning: "#B45309",
-  danger: "#B91C1C",
-  info: "#1D4ED8",
-  neutral: "#6B7280",
+  success: "rgb(var(--color-green-700))",
+  warning: "rgb(var(--color-amber-700))",
+  danger: "rgb(var(--color-red-700))",
+  info: "rgb(var(--color-blue-700))",
+  neutral: "rgb(var(--color-gray-500))",
 };
 export const rateColor = (rate: number) => TONE_TEXT[rateTone(rate)];
 

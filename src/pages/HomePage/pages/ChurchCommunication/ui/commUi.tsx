@@ -18,7 +18,7 @@ import { UiButton } from "../../MembershipManagement/components/membershipUi";
 
 /** Dashed box shown when a filtered list has nothing to show. */
 export const ListEmpty = ({ children }: { children: ReactNode }) => (
-  <p className="rounded-xl border border-dashed border-lightGray bg-white p-6 text-center text-sm text-[#4B5563]">
+  <p className="rounded-xl border border-dashed border-lightGray bg-white p-6 text-center text-sm text-gray-600">
     {children}
   </p>
 );
@@ -77,7 +77,7 @@ export const ChoiceButtons = <K extends string>({
             onClick={() => onChange(option.value)}
             className={cn(
               "min-h-10 flex-[1_1_140px] rounded-lg border px-3 py-2 text-sm text-primary transition-colors",
-              on ? "border-primary bg-primary/5 font-semibold" : "border-lightGray bg-white font-normal hover:bg-[#F8F9FC]"
+              on ? "border-primary bg-primary/5 font-semibold" : "border-lightGray bg-white font-normal hover:bg-inputBackground"
             )}
           >
             {option.label}
@@ -100,7 +100,7 @@ export const CheckCard = ({
   label: string;
   help?: string;
 }) => (
-  <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-lightGray bg-[#F8F9FC] px-4 py-3">
+  <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-lightGray bg-inputBackground px-4 py-3">
     <input
       type="checkbox"
       checked={checked}
@@ -109,7 +109,7 @@ export const CheckCard = ({
     />
     <span className="flex flex-col gap-0.5">
       <span className="text-sm font-semibold text-primary">{label}</span>
-      {help && <span className="text-xs text-[#6B7280]">{help}</span>}
+      {help && <span className="text-xs text-gray-500">{help}</span>}
     </span>
   </label>
 );
@@ -130,7 +130,7 @@ export const ChipToggle = ({
     onClick={onClick}
     className={cn(
       "min-h-8 rounded-full border px-3 py-1 text-xs font-semibold transition-colors",
-      on ? "border-primary bg-primary text-white" : "border-lightGray bg-white text-[#374151] hover:bg-[#F8F9FC]"
+      on ? "border-primary bg-primary text-white" : "border-lightGray bg-white text-gray-700 hover:bg-inputBackground"
     )}
   >
     {children}
@@ -153,7 +153,7 @@ export const OptionToggle = ({
     onClick={onClick}
     className={cn(
       "min-h-9 rounded-lg border px-3 py-1.5 text-sm font-medium text-primary transition-colors",
-      on ? "border-primary bg-primary/5" : "border-lightGray bg-white hover:bg-[#F8F9FC]"
+      on ? "border-primary bg-primary/5" : "border-lightGray bg-white hover:bg-inputBackground"
     )}
   >
     {children}
@@ -176,12 +176,12 @@ export const PlaceholderChips = ({
         key={chip.token}
         type="button"
         onClick={() => onAdd(chip.token)}
-        className="min-h-7 rounded-full border border-dashed border-lightGray bg-[#F8F9FC] px-2.5 py-0.5 text-xs text-[#374151] hover:bg-white"
+        className="min-h-7 rounded-full border border-dashed border-lightGray bg-inputBackground px-2.5 py-0.5 text-xs text-gray-700 hover:bg-white"
       >
         + {chip.label}
       </button>
     ))}
-    {counter !== undefined && <span className="ml-auto text-xs text-[#6B7280]">{counter}</span>}
+    {counter !== undefined && <span className="ml-auto text-xs text-gray-500">{counter}</span>}
   </div>
 );
 
@@ -191,7 +191,7 @@ export const FieldHint = ({ children, tone = "muted" }: { children: ReactNode; t
     role={tone === "error" ? "alert" : undefined}
     className={cn(
       "text-xs",
-      tone === "error" ? "text-[#B91C1C]" : tone === "warning" ? "text-[#B45309]" : "text-[#6B7280]"
+      tone === "error" ? "text-red-700" : tone === "warning" ? "text-amber-700" : "text-gray-500"
     )}
   >
     {children}
@@ -306,11 +306,11 @@ export const ImageDropField = ({
           }}
           className={cn(
             "flex cursor-pointer flex-col items-center gap-1 rounded-lg border border-dashed p-5 text-center",
-            dragging ? "border-primary bg-primary/5" : "border-lightGray bg-[#F8F9FC]"
+            dragging ? "border-primary bg-primary/5" : "border-lightGray bg-inputBackground"
           )}
         >
           <p className="text-sm font-semibold text-primary">{busy ? "Uploading…" : "Drop an image or browse"}</p>
-          <p className="text-xs text-[#6B7280]">{help}</p>
+          <p className="text-xs text-gray-500">{help}</p>
         </label>
       )}
       <input
@@ -379,10 +379,10 @@ export const CommDialog = ({
           style={{ maxWidth: width }}
           className="flex h-full w-full flex-col overflow-hidden bg-white focus:outline-none sm:h-auto sm:max-h-[calc(100dvh-32px)] sm:rounded-2xl sm:border sm:border-lightGray"
         >
-          <div className="flex items-start gap-3 border-b border-[#E5E7EB] px-6 py-5">
+          <div className="flex items-start gap-3 border-b border-gray-200 px-6 py-5">
             <div className="flex min-w-0 flex-1 flex-col gap-1">
               <Dialog.Title className="text-xl font-semibold leading-7 text-primary">{title}</Dialog.Title>
-              <Dialog.Description className={cn("text-sm text-[#4B5563]", !subtitle && "sr-only")}>
+              <Dialog.Description className={cn("text-sm text-gray-600", !subtitle && "sr-only")}>
                 {subtitle || title}
               </Dialog.Description>
             </div>
@@ -391,7 +391,7 @@ export const CommDialog = ({
               onClick={onClose}
               disabled={busy}
               aria-label="Close"
-              className="h-9 w-9 flex-shrink-0 rounded-lg text-xl text-[#6B7280] hover:bg-[#F3F4F6]"
+              className="h-9 w-9 flex-shrink-0 rounded-lg text-xl text-gray-500 hover:bg-gray-100"
             >
               ×
             </button>
@@ -413,7 +413,7 @@ export const CommDialog = ({
               {children}
             </div>
           </div>
-          <div className="flex flex-wrap justify-end gap-3 border-t border-[#E5E7EB] px-6 py-4">
+          <div className="flex flex-wrap justify-end gap-3 border-t border-gray-200 px-6 py-4">
             {buttons.map((button, index) => (
               <UiButton
                 key={button.label}

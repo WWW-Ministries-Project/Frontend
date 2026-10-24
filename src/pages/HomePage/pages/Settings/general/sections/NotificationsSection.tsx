@@ -112,7 +112,7 @@ export const NotificationsSection = () => {
       ) : status === "error" ? (
         <LoadFailed what="your notification settings" onRetry={() => void load()} />
       ) : !prefs.length ? (
-        <p className="rounded-xl border border-dashed border-lightGray bg-white p-6 text-center text-sm text-[#4B5563]">
+        <p className="rounded-xl border border-dashed border-lightGray bg-white p-6 text-center text-sm text-gray-600">
           No notifications to set up yet.
         </p>
       ) : (
@@ -127,14 +127,14 @@ export const NotificationsSection = () => {
           </div>
           {groups.map(([category, items]) => (
             <Fragment key={category}>
-              <p className="border-b border-[#E5E7EB] bg-[#F8F9FC] px-4 py-2 text-xs font-semibold uppercase tracking-[0.04em] text-[#6B7280]">
+              <p className="border-b border-gray-200 bg-inputBackground px-4 py-2 text-xs font-semibold uppercase tracking-[0.04em] text-gray-500">
                 {category}
               </p>
               {items.map((pref) => (
-                <div key={pref.type} className={`${COLS} min-h-16 items-center border-b border-[#E5E7EB] last:border-b-0`}>
+                <div key={pref.type} className={`${COLS} min-h-16 items-center border-b border-gray-200 last:border-b-0`}>
                   <div className="flex min-w-0 flex-col px-4 py-3">
                     <span className="text-sm font-medium text-primary">{pref.title}</span>
-                    {pref.description && <span className="text-xs text-[#6B7280]">{pref.description}</span>}
+                    {pref.description && <span className="text-xs text-gray-500">{pref.description}</span>}
                   </div>
                   {CHANNELS.map((channel) => (
                     <span key={channel.key} className="flex justify-center">
@@ -146,7 +146,7 @@ export const NotificationsSection = () => {
                           onChange={(next) => void toggle(pref, channel, next)}
                         />
                       ) : (
-                        <span title="Not available" className="text-[#6B7280]">
+                        <span title="Not available" className="text-gray-500">
                           —
                         </span>
                       )}
