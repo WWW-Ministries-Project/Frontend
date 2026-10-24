@@ -318,9 +318,9 @@ export const Header = ({ handleShowNav }: IProps) => {
       ref={headerRef}
       className="sticky top-0 z-[120] md:text-sm lg:text-md"
     >
-      <div className="flex items-center justify-between px-4 ">
+      <div className="flex items-center justify-between gap-2 px-3 tablet:px-4">
         {/* Left */}
-        <div className="flex items-center gap-3">
+        <div className="flex min-w-0 items-center gap-2 tablet:gap-3">
           {isMemberRoute && (
             <button
               ref={mobileToggleRef}
@@ -488,7 +488,7 @@ export const Header = ({ handleShowNav }: IProps) => {
                     {groupStart(index) && (
                       <p
                         role="presentation"
-                        className="mt-1 border-t border-[#E5E7EB] px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wide text-[#6B7280]"
+                        className="mt-1 border-t border-gray-200 px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wide text-gray-500"
                       >
                         {groupStart(index)}
                       </p>
@@ -513,7 +513,7 @@ export const Header = ({ handleShowNav }: IProps) => {
           <nav className="flex items-center">
             <button
               onClick={() => handleNavigate(adminAIPath)}
-              className={`px-4 py-2 rounded-md font-semibold transition ${
+              className={`px-3 py-2 rounded-md font-semibold transition tablet:px-4 ${
                 isActive(adminAIPath)
                   ? "bg-primary text-white"
                   : "text-primary hover:bg-primary/10"
@@ -525,7 +525,7 @@ export const Header = ({ handleShowNav }: IProps) => {
         )}
 
         {/* Right */}
-        <div ref={profileRef} className="flex items-center gap-3 relative">
+        <div ref={profileRef} className="relative flex shrink-0 items-center gap-1.5 tablet:gap-3">
           {!isMemberRoute && <BranchSwitcher />}
           {isMemberRoute && <CartIcon />}
           <HeaderNotificationMenu isMemberRoute={isMemberRoute} />
@@ -535,7 +535,7 @@ export const Header = ({ handleShowNav }: IProps) => {
             aria-haspopup="menu"
             aria-expanded={isProfileMenuOpen}
             onClick={() => setIsProfileMenuOpen(v => !v)}
-            className="flex items-center gap-2 p-2 rounded-md hover:bg-gray-100"
+            className="flex items-center gap-2 rounded-md p-1.5 hover:bg-gray-100 tablet:p-2"
           >
             <ProfilePicture alt={name} src={profileImg} name={name} className="w-8 h-8" />
             <span className="hidden md:block font-semibold text-primary">
@@ -743,7 +743,7 @@ export const Header = ({ handleShowNav }: IProps) => {
                 {moreItems.map((item, index) => (
                   <Fragment key={item.path}>
                     {groupStart(index) && (
-                      <p className="px-6 pb-1 pt-3 text-xs font-semibold uppercase tracking-wide text-[#6B7280]">
+                      <p className="px-6 pb-1 pt-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
                         {groupStart(index)}
                       </p>
                     )}

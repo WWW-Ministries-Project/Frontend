@@ -171,8 +171,8 @@ function TableComponent<TData>({
                 onClick={() => handleBulkAction(action.value)}
                 className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
                   action.variant === 'danger'
-                    ? 'bg-red-600 text-white hover:bg-red-700'
-                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                    ? 'bg-red-600 text-white hover:bg-red-600/90'
+                    : 'bg-blue-600 text-white hover:bg-blue-600/90'
                 }`}
               >
                 {action.label}
@@ -189,7 +189,7 @@ function TableComponent<TData>({
       )}
 
       <div className="app-surface overflow-hidden rounded-lg bg-white">
-        <div className="rounded-lg overflow-y-auto">
+        <div className="rounded-lg overflow-auto">
           <table className="w-full text-sm text-left table-auto">
             <thead>
               {table.getHeaderGroups().map((headerGroup) => (

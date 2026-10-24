@@ -250,7 +250,7 @@ const ViewEvents = () => {
       ) : !eventdetails ? (
         <EmptyState
           scope="page"
-          className="mx-auto w-[20rem]"
+          className="mx-auto w-full max-w-[20rem]"
           msg="Unable to load event details"
         />
       ) : (
@@ -359,7 +359,7 @@ const ViewEvents = () => {
                 ) : canManageEvents ? (
                   <EmptyState
                     scope="section"
-                    className="mx-auto w-[20rem]"
+                    className="mx-auto w-full max-w-[20rem]"
                     msg="No online link added yet"
                     description="Add a Zoom or YouTube link so members can join this event online."
                     actionLabel="Click here to add"
@@ -368,7 +368,7 @@ const ViewEvents = () => {
                 ) : (
                   <EmptyState
                     scope="section"
-                    className="mx-auto w-[20rem]"
+                    className="mx-auto w-full max-w-[20rem]"
                     msg="No online link added yet"
                     description="An administrator has not added an online link for this event yet."
                   />
@@ -386,7 +386,7 @@ const ViewEvents = () => {
                 {!eventdetails.event_attendance?.length ? (
                   <EmptyState
                     scope="section"
-                    className="mx-auto w-[20rem]"
+                    className="mx-auto w-full max-w-[20rem]"
                     msg="No attendance records yet"
                   />
                 ) : (
@@ -434,7 +434,7 @@ const ViewEvents = () => {
               {!eventdetails.event_registers?.length ? (
                 <EmptyState
                   scope="section"
-                  className="mx-auto w-[20rem]"
+                  className="mx-auto w-full max-w-[20rem]"
                   msg="No registrations yet"
                 />
               ) : (

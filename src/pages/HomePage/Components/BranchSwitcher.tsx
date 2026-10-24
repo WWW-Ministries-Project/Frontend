@@ -107,11 +107,11 @@ export function BranchSwitcher() {
   if (branches.length === 1) {
     return (
       <div
-        title="Your branch"
+        title={`Your branch: ${current.name}`}
         className="flex min-h-10 items-center gap-2 rounded-lg border border-borderGray bg-background px-2.5 py-1 text-primary"
       >
         <BranchIcon />
-        <span className="flex min-w-0 flex-col leading-[18px]">
+        <span className="hidden min-w-0 flex-col leading-[18px] phone:flex">
           <span className="max-w-[160px] truncate text-sm font-semibold sm:max-w-[220px]">
             {current.name}
           </span>
@@ -139,10 +139,12 @@ export function BranchSwitcher() {
         aria-expanded={open}
         aria-controls={open ? listId : undefined}
         aria-label={`Switch branch, currently ${current.name}`}
-        className="flex min-h-10 max-w-[160px] items-center gap-2 rounded-lg border border-lightGray bg-white px-2.5 py-1 text-left text-primary hover:bg-background focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/10 sm:max-w-[240px]"
+        title={current.name}
+        className="flex min-h-10 max-w-[160px] items-center gap-1.5 rounded-lg border border-lightGray bg-white px-2 py-1 text-left text-primary hover:bg-background focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/10 phone:gap-2 phone:px-2.5 sm:max-w-[240px]"
       >
         <BranchIcon />
-        <span className="flex min-w-0 flex-col leading-[18px]">
+        {/* Below 450px the trigger collapses to icon + chevron so the header fits. */}
+        <span className="hidden min-w-0 flex-col leading-[18px] phone:flex">
           <span className="truncate text-sm font-semibold">{current.name}</span>
           {currentRole && (
             <span className="hidden truncate text-xs text-primaryGray sm:block">
