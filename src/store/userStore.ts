@@ -5,8 +5,10 @@ import {
   PermissionMap,
 } from "@/utils/accessControl";
 import { useBranchStore } from "@/store/useBranchStore";
-import { resolveBranchPermissions } from "@/utils/branchAccess";
+import { resolveBranchPermissions, resolveBranchWorkspaces } from "@/utils/branchAccess";
+import type { WorkspaceKey } from "@/utils/api/workspaces/interfaces";
 import { userType } from "@/utils/interfaces";
+import { useMemo } from "react";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
@@ -203,3 +205,13 @@ export const useUserStore = create<UserState & UserActions>()(
     }
   )
 );
+
+/** Home workspaces the signed-in user's role grants in the active branch. */
+export const useActiveWorkspaces = (): WorkspaceKey[] => {
+  const grants = useUserStore((state) => state.branch_access);
+  const activeBranchId = useBranchStore((state) => state.activeBranchId);
+  return useMemo(
+    () => resolveBranchWorkspaces(grants, activeBranchId),
+    [grants, activeBranchId]
+  );
+};

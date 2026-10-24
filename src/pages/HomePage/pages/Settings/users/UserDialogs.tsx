@@ -6,8 +6,18 @@ import { api } from "@/utils/api/apiCalls";
 
 import { CommDialog, FieldHint } from "../../ChurchCommunication/ui/commUi";
 import { Field, SelectInput } from "../../MembershipManagement/components/membershipUi";
+import { roleWorkspaceNote } from "../access/workspacesModel";
+import type { AccessRight } from "../utils/settingsInterfaces";
 import type { UsersData } from "./useUsersData";
 import { usePickableBranches } from "../utils/usePickableBranches";
+
+/** Which Home workspaces the chosen role adds. */
+const RoleWorkspaceNote = ({ role }: { role?: AccessRight }) =>
+  role ? (
+    <p className="rounded-lg border border-gray-200 bg-inputBackground px-4 py-3 text-sm text-gray-600">
+      {roleWorkspaceNote(role)}
+    </p>
+  ) : null;
 
 /* -------------------------------------------------------------------------- */
 /*                                 Give access                                */
@@ -144,6 +154,7 @@ export const GiveAccessDialog = ({
           ]}
         />
       </Field>
+      <RoleWorkspaceNote role={roles.find((role) => String(role.id) === form.rid)} />
       <label className="flex cursor-pointer items-center gap-2 text-sm text-primary">
         <input
           type="checkbox"
@@ -177,7 +188,7 @@ export const BulkBranchDialog = ({
   onDone: () => void;
 }) => {
   const branches = usePickableBranches();
-  const { assign, roleName, branchName } = data;
+  const { assign, roleName, branchName, roles } = data;
   const [branch, setBranch] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -241,6 +252,7 @@ export const BulkBranchDialog = ({
           ]}
         />
       </Field>
+      <RoleWorkspaceNote role={roles.find((role) => role.id === roleId)} />
     </CommDialog>
   );
 };

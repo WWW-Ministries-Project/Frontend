@@ -9,6 +9,7 @@ import { cn } from "@/utils/cn";
 
 import { FieldHint, ToggleSwitch } from "../../ChurchCommunication/ui/commUi";
 import { UiButton } from "../../MembershipManagement/components/membershipUi";
+import { roleWorkspaceNote } from "../access/workspacesModel";
 import { Avatar, LevelDot, SettingsDrawer, SubHeading } from "../Components/settingsUi";
 import { draftFromAccessRight, formatLastActive, LEVEL_RANK, MODULES } from "../utils/settingsModel";
 import { describeExpiry, grantsOf, isActive, type UsersData } from "./useUsersData";
@@ -276,7 +277,11 @@ export const UserDrawer = ({
                 + Add branch
               </UiButton>
             </div>
-            {addError && <FieldHint tone="error">{addError}</FieldHint>}
+            {addError ? (
+              <FieldHint tone="error">{addError}</FieldHint>
+            ) : add.r ? (
+              <FieldHint>{roleWorkspaceNote(roles.find((r) => String(r.id) === add.r))}</FieldHint>
+            ) : null}
           </div>
         )}
       </section>

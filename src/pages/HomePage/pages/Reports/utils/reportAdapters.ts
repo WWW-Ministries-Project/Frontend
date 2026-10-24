@@ -5,6 +5,8 @@ import { ALL_BRANCHES, useBranchStore } from "@/store/useBranchStore";
 import type {
   ApiKpi,
   ApiSection,
+  DeptAttendanceReportKey,
+  DeptReportListItem,
   DeptReportStatus,
   ReportPeriodType,
 } from "@/utils/api/reports/interfaces";
@@ -38,6 +40,14 @@ export const toSection = (section: ApiSection): ReportSection => {
   }
   return section as ReportSection;
 };
+
+/** Department attendance reports use `dept_att:<department id>` keys and exist for monthly periods only. */
+export const isDeptAttendanceKey = (key: string | null | undefined): key is DeptAttendanceReportKey =>
+  Boolean(key && key.startsWith("dept_att:"));
+
+/** Who prepares a report: the responsible department's head (Settings › Reports), else whoever is on record, else the role. */
+export const preparedByName = (r: Pick<DeptReportListItem, "owner" | "prepared_by" | "hod_role">) =>
+  r.prepared_by?.name || r.owner?.head?.name || r.hod_role;
 
 export const deptStatusPill = (status: DeptReportStatus, overdue?: boolean): PillSpec => {
   if (overdue) return { tone: "danger", label: "Overdue" };

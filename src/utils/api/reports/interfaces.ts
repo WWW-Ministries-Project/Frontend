@@ -3,7 +3,8 @@
  * Contract: docs/DEPARTMENT_REPORTS_BACKEND_CONTRACT.md
  */
 
-export type DeptReportKey =
+/** Church-wide reports, each prepared by the department set in Settings. */
+export type ChurchReportKey =
   | "membership"
   | "visitors"
   | "events"
@@ -11,6 +12,11 @@ export type DeptReportKey =
   | "assets"
   | "finance"
   | "lifecenters";
+
+/** Monthly attendance report for one department. Contract: docs/WORKSPACES_AND_REPORT_CONFIG_BACKEND_CONTRACT.md §3 */
+export type DeptAttendanceReportKey = `dept_att:${number}`;
+
+export type DeptReportKey = ChurchReportKey | DeptAttendanceReportKey;
 
 export type ReportPeriodType = "WEEKLY" | "MONTHLY" | "QUARTERLY" | "ANNUAL" | "CUSTOM";
 export type DeptReportStatus = "DRAFT" | "SUBMITTED" | "RETURNED" | "APPROVED";
@@ -199,6 +205,12 @@ export interface DeptReportListItem extends DeptReportMeta {
   approved_at: string | null;
   returned_at: string | null;
   prepared_by: { id: number; name: string | null } | null;
+  /** Department responsible for a church-wide report (Settings › Reports); null when none is set. */
+  owner?: {
+    department_id: number;
+    department_name: string;
+    head: { id: number; name: string } | null;
+  } | null;
   health: ReportHealth;
   headline: ApiKpi[];
   failed?: boolean;
@@ -211,6 +223,10 @@ export interface DeptReportList {
   branch: { id: number | null; name: string };
   viewer: { is_leadership: boolean; hod_of: DeptReportKey[] };
   reports: DeptReportListItem[];
+  /** One per department the viewer may read; empty unless the period type is MONTHLY. */
+  department_attendance?: DeptReportListItem[];
+  /** Day of the month department attendance reports fall due. */
+  department_attendance_due_day?: number;
 }
 
 export interface ExecutiveSummary {

@@ -1,5 +1,5 @@
 import { routes } from "@/routes/appRoutes";
-import { matchRoutes, useLocation } from "react-router-dom";
+import { matchRoutes, useLocation, useSearchParams } from "react-router-dom";
 import { useEffect, useMemo } from "react";
 
 import { useAuth } from "@/context/AuthWrapper";
@@ -12,6 +12,9 @@ import {
   useLearnerOverview,
 } from "@/pages/MembersPage/Pages/school/learnerUtils";
 import { useStore } from "@/store/useStore";
+import { useActiveWorkspaces } from "@/store/userStore";
+import { isWorkspaceKey, type WorkspaceKey } from "@/utils/api/workspaces/interfaces";
+import { PillTabs } from "@/pages/HomePage/pages/MembershipManagement/components/membershipUi";
 import { api } from "@/utils/api/apiCalls";
 import { Appointment } from "@/utils/api/appointment/interfaces";
 import { normalizeAppointmentRecord, toStringValue } from "@/utils/api/appointment/bookingUtils";
@@ -36,6 +39,8 @@ import {
   upcomingEventsFor,
   userAudienceIds,
 } from "./utils/homeUtils";
+import { WorkspaceView } from "./workspaces/WorkspaceView";
+import { WORKSPACE_LABELS } from "./workspaces/wsTypes";
 
 const appointmentStart = (a: Appointment) => {
   const day = (a.date || "").split("T")[0];
@@ -44,10 +49,60 @@ const appointmentStart = (a: Appointment) => {
   return Number.isNaN(d.getTime()) ? null : d;
 };
 
+type HomeTab = "home" | WorkspaceKey;
+
+/**
+ * Home: the personal overview, plus a tab per workspace the user's role grants
+ * in the active branch (kept in `?ws=`). No tab bar without workspaces.
+ */
 export const DashBoardPage = () => {
   const location = useLocation();
   const matches = matchRoutes(routes, location);
   const isMemberRoute = matches?.find((m) => m.route.name)?.route.name === "member";
+  const workspaces = useActiveWorkspaces();
+  const [params, setParams] = useSearchParams();
+  const wsParam = params.get("ws");
+  const showTabs = !isMemberRoute && workspaces.length > 0;
+  const current: HomeTab =
+    showTabs && isWorkspaceKey(wsParam) && workspaces.includes(wsParam) ? wsParam : "home";
+
+  const selectTab = (tab: HomeTab) => {
+    const next = new URLSearchParams(params);
+    if (tab === "home") next.delete("ws");
+    else next.set("ws", tab);
+    setParams(next);
+  };
+
+  return (
+    <div
+      className={cn(
+        "mx-auto flex w-full max-w-[1280px] flex-col gap-6 pb-12 text-primary",
+        isMemberRoute ? "pt-6" : "px-[clamp(16px,3vw,32px)] pt-[clamp(16px,3vw,32px)]"
+      )}
+    >
+      {showTabs ? (
+        <PillTabs<HomeTab>
+          ariaLabel="Home workspaces"
+          className="self-start"
+          value={current}
+          onChange={selectTab}
+          tabs={[
+            { key: "home", label: "Home" },
+            ...workspaces.map((key) => ({ key, label: WORKSPACE_LABELS[key] })),
+          ]}
+        />
+      ) : null}
+      {current === "home" ? (
+        <HomeOverview isMemberRoute={isMemberRoute} />
+      ) : (
+        <WorkspaceView key={current} ws={current} />
+      )}
+    </div>
+  );
+};
+
+/** The personal Home overview (unchanged). */
+const HomeOverview = ({ isMemberRoute }: { isMemberRoute: boolean }) => {
   const guest = isGuestViewer();
 
   const { user } = useAuth();
@@ -168,12 +223,7 @@ export const DashBoardPage = () => {
     : `${relativePath.home.main}/${relativePath.home.notifications}`;
 
   return (
-    <div
-      className={cn(
-        "mx-auto flex w-full max-w-[1280px] flex-col gap-6 pb-12 text-primary",
-        isMemberRoute ? "pt-6" : "px-[clamp(16px,3vw,32px)] pt-[clamp(16px,3vw,32px)]"
-      )}
-    >
+    <>
       <HomeHeader theme={theme} isMemberRoute={isMemberRoute} />
 
       <NextUpHero
@@ -196,6 +246,6 @@ export const DashBoardPage = () => {
           <QuickActions />
         </aside>
       </div>
-    </div>
+    </>
   );
 };

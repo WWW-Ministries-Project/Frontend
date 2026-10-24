@@ -12,6 +12,10 @@ import type {
   UserBranchAccess,
 } from "./settings/accessLevelAssignmentInterfaces";
 import type {
+  AccessLevelWorkspacesPayload,
+  AccessLevelWorkspacesResult,
+} from "./settings/accessLevelWorkspaceInterfaces";
+import type {
   CommunityPost,
   UpdateCommunityPostDto,
 } from "./community/interfaces";
@@ -264,6 +268,13 @@ export class ApiUpdateCalls {
     payload: SetUserBranchAccessPayload
   ): Promise<ApiResponse<UserBranchAccess>> => {
     return this.apiExecution.updateData("access/user-branch-access", payload);
+  };
+
+  // Set a role's Home workspaces without resending its permission map
+  updateAccessLevelWorkspaces = (
+    payload: AccessLevelWorkspacesPayload
+  ): Promise<ApiResponse<AccessLevelWorkspacesResult>> => {
+    return this.apiExecution.updateData("access/access-level-workspaces", payload);
   };
 
   // Assign and/or unassign many users on one access level

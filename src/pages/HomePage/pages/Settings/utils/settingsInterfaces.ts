@@ -1,5 +1,6 @@
 import { ISelectOption } from "@/pages/HomePage/utils/homeInterfaces";
 import { ExclusionsMap, PermissionValue } from "@/utils/accessControl";
+import type { AccessLevelWorkspaceKey } from "@/utils/api/settings/accessLevelWorkspaceInterfaces";
 
 export interface Department {
   id: number;
@@ -87,6 +88,10 @@ export interface AccessRight {
   /** Who holds this role, per branch (limited to the viewer's branches). */
   grants?: AccessLevelGrant[];
   exclusion_users?: Record<string, AccessLevelExclusionUser[]>;
+  /** Home workspaces (stored, else derived from permissions). */
+  workspaces?: AccessLevelWorkspaceKey[];
+  /** True when `workspaces` is derived, not saved on the role. */
+  workspaces_default?: boolean;
   created_at?: string | null;
   updated_at?: string | null;
 }

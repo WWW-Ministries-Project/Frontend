@@ -52,6 +52,8 @@ export interface BranchAccessGrant {
   access_level_name: string;
   /** Sent by `user/current-user`; absent in the JWT to keep the cookie small. */
   permissions?: Record<string, unknown>;
+  /** Home workspace keys this branch's role grants (`user/current-user`). */
+  workspaces?: string[];
 }
 
 export interface userType {

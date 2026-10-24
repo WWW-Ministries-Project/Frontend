@@ -6,7 +6,7 @@ import type { AssignableUser } from "@/utils/api/settings/accessLevelAssignmentI
 import type { Branch } from "@/utils/api/settings/branchInterfaces";
 import { cn } from "@/utils/cn";
 
-import { CommDialog } from "../../ChurchCommunication/ui/commUi";
+import { CommDialog, FieldHint } from "../../ChurchCommunication/ui/commUi";
 import {
   Field,
   Pill,
@@ -24,6 +24,7 @@ import {
   type StartKey,
 } from "../utils/settingsModel";
 import { createRole, isNameTaken, roleIn, updateRole } from "./useAccessRights";
+import { toggleWorkspace, WORKSPACES, WORKSPACES_FROM_START, workspacesOf, type WorkspaceKey } from "./workspacesModel";
 
 const ErrorLine = ({ text }: { text: string }) =>
   text ? (
@@ -53,6 +54,8 @@ export const NewRoleDialog = ({
   const [desc, setDesc] = useState("");
   const [from, setFrom] = useState<StartKey>("view");
   const [copy, setCopy] = useState("");
+  /** Picked workspaces; null follows the chosen starting point. */
+  const [ws, setWs] = useState<WorkspaceKey[] | null>(null);
   const [err, setErr] = useState<{ field?: "name"; text: string }>({ text: "" });
   const [busy, setBusy] = useState(false);
 
@@ -62,10 +65,15 @@ export const NewRoleDialog = ({
     setDesc("");
     setFrom("view");
     setCopy(roles[0] ? String(roles[0].id) : "");
+    setWs(null);
     setErr({ text: "" });
     // Reset only when the dialog opens.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
+
+  const copySource = roles.find((r) => String(r.id) === copy);
+  const workspaces: WorkspaceKey[] =
+    ws ?? (from === "copy" ? (copySource ? workspacesOf(copySource) : []) : WORKSPACES_FROM_START[from]);
 
   const submit = async () => {
     const trimmed = name.trim();
@@ -77,7 +85,7 @@ export const NewRoleDialog = ({
     const description = desc.trim() || (from === "copy" ? source?.description || "" : "");
     setBusy(true);
     try {
-      const created = await createRole(trimmed, description, draft, reloadRoles);
+      const created = await createRole(trimmed, description, draft, reloadRoles, workspaces);
       if (created) onCreated(created);
       else onClose();
     } catch {
@@ -136,6 +144,7 @@ export const NewRoleDialog = ({
                 aria-checked={on}
                 onClick={() => {
                   setFrom(start.key);
+                  setWs(null);
                   setErr({ text: "" });
                 }}
                 className={cn(
@@ -150,11 +159,41 @@ export const NewRoleDialog = ({
           })}
         </div>
       </div>
+      <div className="flex flex-col gap-2">
+        <p className="text-sm font-medium text-primary">
+          Home workspaces <span className="font-normal text-gray-500">(tabs next to Home)</span>
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {WORKSPACES.map((w) => {
+            const on = workspaces.includes(w.key);
+            return (
+              <button
+                key={w.key}
+                type="button"
+                role="checkbox"
+                aria-checked={on}
+                onClick={() => setWs(toggleWorkspace(workspaces, w.key))}
+                className={cn(
+                  "min-h-10 rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors",
+                  on ? "border-primary bg-primary text-white" : "border-primary/30 bg-white text-primary hover:bg-inputBackground"
+                )}
+              >
+                {on ? "✓ " : ""}
+                {w.label}
+              </button>
+            );
+          })}
+        </div>
+        <FieldHint>You can change this later on the role’s Home workspaces tab.</FieldHint>
+      </div>
       {from === "copy" && (
         <Field label="Role to copy">
           <SelectInput
             value={copy}
-            onChange={(e) => setCopy(e.target.value)}
+            onChange={(e) => {
+              setCopy(e.target.value);
+              setWs(null);
+            }}
             options={roles.map((r) => ({ value: String(r.id), label: r.name }))}
           />
         </Field>
