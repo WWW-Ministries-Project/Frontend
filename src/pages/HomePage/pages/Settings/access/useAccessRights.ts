@@ -7,6 +7,7 @@ import type { Branch } from "@/utils/api/settings/branchInterfaces";
 
 import type { AccessLevelGrant, AccessRight } from "../utils/settingsInterfaces";
 import { permissionsPayload, type RoleDraft } from "../utils/settingsModel";
+import type { WorkspaceKey } from "./workspacesModel";
 
 /** Base path of the access-rights screens. */
 export const ACCESS_BASE = "/home/settings/access-rights";
@@ -142,12 +143,14 @@ export const createRole = async (
   name: string,
   description: string,
   draft: RoleDraft,
-  reloadRoles: () => Promise<AccessRight[]>
+  reloadRoles: () => Promise<AccessRight[]>,
+  workspaces?: WorkspaceKey[]
 ): Promise<AccessRight | undefined> => {
   const response = await api.post.createAccessRight<AccessRight[] | AccessRight>({
     name,
     description,
     permissions: permissionsPayload(draft),
+    ...(workspaces && { workspaces }),
   });
   const match = (list: AccessRight[]) =>
     list.find((r) => r.name.trim().toLowerCase() === name.trim().toLowerCase());

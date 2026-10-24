@@ -1,8 +1,13 @@
 import type { PermissionRequirement } from "@/utils/accessControl";
 
-/** Modules each department report reads; viewing one lets you open its report. */
+/**
+ * Modules each department report reads; viewing one lets you open its report.
+ * Departments view covers department attendance reports (`dept_att:<id>`).
+ * The server filters the list to what the viewer may read.
+ */
 export const DEPARTMENT_REPORTS_ACCESS: PermissionRequirement = [
   { domain: "Reports", action: "view" },
+  { domain: "Departments", action: "view" },
   { domain: "Membership_Management", action: "view" },
   { domain: "Visitors", action: "view" },
   { domain: "Events", action: "view" },

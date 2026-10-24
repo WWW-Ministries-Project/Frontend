@@ -29,7 +29,7 @@ import {
   TextArea,
   UiButton,
 } from "../components/reportsUi";
-import { deptStatusPill, toKpi, toSection, useReportControls } from "../utils/reportAdapters";
+import { deptStatusPill, isDeptAttendanceKey, toKpi, toSection, useReportControls } from "../utils/reportAdapters";
 import { fmtDate, fmtDateTime } from "../utils/reportFormat";
 import type { PillTone } from "../components/reportsUi";
 import { usePrintRoot } from "../utils/reportUiHelpers";
@@ -52,17 +52,39 @@ interface DraftRequest {
 }
 
 const DepartmentReportDetail = () => {
-  const { key = "" } = useParams<{ key: DeptReportKey }>();
+  const { key: rawKey = "" } = useParams<{ key: DeptReportKey }>();
+  const key = useMemo(() => {
+    try {
+      return decodeURIComponent(rawKey);
+    } catch {
+      return rawKey;
+    }
+  }, [rawKey]);
   const [params] = useSearchParams();
   const navigate = useNavigate();
-  const controls = useReportControls();
+  // Department attendance reports (`dept_att:<id>`) exist for monthly periods only.
+  const deptAttendance = isDeptAttendanceKey(key);
+  const controls = useReportControls(deptAttendance ? { periodType: "MONTHLY" } : {});
   const from = params.get("from");
+  const { setPeriodType } = controls;
+  const wrongPeriodType = deptAttendance && controls.periodType !== "MONTHLY";
+  useEffect(() => {
+    if (wrongPeriodType) setPeriodType("MONTHLY");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wrongPeriodType]);
 
-  const query = useMemo(() => ({ ...controls.query, report_key: key }), [controls.query, key]);
+  const query = useMemo(
+    () => ({
+      ...controls.query,
+      ...(deptAttendance ? { period_type: "MONTHLY" as const } : {}),
+      report_key: key,
+    }),
+    [controls.query, key, deptAttendance]
+  );
   const { data, loading, error, refetch } = useFetch<ApiResponse<DeptReportDetail>>(
     api.fetch.fetchDepartmentReport,
     query,
-    !controls.ready,
+    !controls.ready || wrongPeriodType,
     { silent: true }
   );
   const [override, setOverride] = useState<DeptReportDetail | null>(null);
@@ -222,7 +244,17 @@ const DepartmentReportDetail = () => {
 
   /* ---------------------------------- view ---------------------------------- */
   const backLabel = from === "exec" ? "Executive summary" : "Department reports";
-  const back = () => navigate(from === "exec" ? "/home/reports/executive-summary" : "/home/reports/department");
+  const back = () => {
+    if (from === "exec") return navigate("/home/reports/executive-summary");
+    // Department attendance reports only list under a monthly period, so return to one.
+    if (deptAttendance) {
+      const next = new URLSearchParams({ period_type: "MONTHLY" });
+      const periodKey = report?.period.key || controls.periodKey;
+      if (periodKey) next.set("period_key", periodKey);
+      return navigate(`/home/reports/department?${next.toString()}`);
+    }
+    navigate("/home/reports/department");
+  };
 
   if (!report) {
     return (
@@ -395,7 +427,8 @@ const DepartmentReportDetail = () => {
 
           {showReport && !print && (
             <ReportControls
-              periodType={controls.periodType}
+              periodType={deptAttendance ? "MONTHLY" : controls.periodType}
+              periodTypes={deptAttendance ? ["MONTHLY"] : undefined}
               periodKey={controls.periodKey || period.key}
               period={period}
               options={report.period_options}

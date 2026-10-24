@@ -66,6 +66,7 @@ export const ReportControls = ({
   onPeriodKey,
   onCompare,
   onBranch,
+  periodTypes,
 }: {
   periodType: ReportPeriodType;
   periodKey: string;
@@ -77,6 +78,8 @@ export const ReportControls = ({
   onPeriodKey: (key: string) => void;
   onCompare: (mode: CompareMode) => void;
   onBranch: (value: string) => void;
+  /** Period types this report supports; defaults to all of them. */
+  periodTypes?: ReportPeriodType[];
 }) => {
   const isCustom = periodType === "CUSTOM";
   const [customFrom, customTo] = (periodKey || period?.key || "").split("_");
@@ -91,7 +94,7 @@ export const ReportControls = ({
             className="flex-nowrap"
             value={periodType}
             onChange={onPeriodType}
-            tabs={(Object.keys(PERIOD_TYPE_LABEL) as ReportPeriodType[]).map((key) => ({
+            tabs={(periodTypes ?? (Object.keys(PERIOD_TYPE_LABEL) as ReportPeriodType[])).map((key) => ({
               key,
               label: PERIOD_TYPE_LABEL[key],
             }))}

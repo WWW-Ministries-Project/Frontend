@@ -6,6 +6,7 @@ import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { confirmAction } from "@/pages/HomePage/utils/helperFunctions";
 import { useUserStore } from "@/store/userStore";
 import { api } from "@/utils/api/apiCalls";
+import { cn } from "@/utils/cn";
 
 import {
   BandTabs,
@@ -31,6 +32,14 @@ import {
 } from "../utils/settingsModel";
 import { AddPeopleDialog, DeleteRoleDialog, EditRoleDialog } from "./RoleDialogs";
 import {
+  isDefaultWorkspaces,
+  toggleWorkspace,
+  workspaceNames,
+  WORKSPACES,
+  workspacesOf,
+  type WorkspaceKey,
+} from "./workspacesModel";
+import {
   ACCESS_BASE,
   copyName,
   createRole,
@@ -43,7 +52,7 @@ import {
   useMemberOptions,
 } from "./useAccessRights";
 
-type Tab = "perm" | "people";
+type Tab = "perm" | "ws" | "people";
 type Modal = "edit" | "del" | "add" | null;
 
 const BAND_BUTTON = "border-white/40 bg-transparent text-white hover:bg-white/10";
@@ -175,6 +184,79 @@ const ModuleRow = ({
 };
 
 /* -------------------------------------------------------------------------- */
+/*                               Home workspaces                              */
+/* -------------------------------------------------------------------------- */
+
+const WorkspaceCards = ({
+  value,
+  isDefault,
+  canEdit,
+  saving,
+  onToggle,
+}: {
+  value: WorkspaceKey[];
+  isDefault: boolean;
+  canEdit: boolean;
+  saving: boolean;
+  onToggle: (key: WorkspaceKey) => void;
+}) => (
+  <>
+    <div className="flex flex-col gap-1">
+      <h2 className="text-base font-semibold text-primary">Home workspaces</h2>
+      <p className="text-sm text-gray-600">
+        Everyone with this role gets these as tabs next to Home. Widgets inside still follow this role’s permissions, so
+        nobody sees data they can’t open.
+      </p>
+    </div>
+    {isDefault && (
+      <InlineAlert tone="info">
+        Picked automatically from this role’s permissions. Change any of them to set them on purpose.
+      </InlineAlert>
+    )}
+    <div className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr))]">
+      {WORKSPACES.map((w) => {
+        const on = value.includes(w.key);
+        return (
+          <button
+            key={w.key}
+            type="button"
+            role="checkbox"
+            aria-checked={on}
+            disabled={!canEdit || saving}
+            onClick={() => onToggle(w.key)}
+            className={cn(
+              "flex items-start gap-3 rounded-xl border p-4 text-left text-sm text-primary transition-colors",
+              on ? "border-primary bg-inputBackground" : "border-lightGray bg-white",
+              canEdit ? "cursor-pointer hover:bg-inputBackground disabled:cursor-wait" : "cursor-default"
+            )}
+          >
+            <span
+              aria-hidden="true"
+              className={cn(
+                "mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded border-2 text-xs font-bold text-white",
+                on ? "border-primary bg-primary" : "border-gray-500 bg-white"
+              )}
+            >
+              {on ? "✓" : ""}
+            </span>
+            <span className="flex min-w-0 flex-col gap-1">
+              <span className="font-semibold">{w.title}</span>
+              <span className="text-gray-600">{w.question}</span>
+              <span className="text-xs text-gray-500">{w.description}</span>
+            </span>
+          </button>
+        );
+      })}
+    </div>
+    <p className="text-xs text-gray-500">
+      {value.length
+        ? `People with this role see Home, then ${workspaceNames(value)}. If someone has different roles in different branches, their tabs follow the branch they have selected.`
+        : "No workspaces selected. People with this role see Home only."}
+    </p>
+  </>
+);
+
+/* -------------------------------------------------------------------------- */
 /*                                   Page                                     */
 /* -------------------------------------------------------------------------- */
 
@@ -197,7 +279,8 @@ const RoleDetail = () => {
   const { roleId } = useParams();
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
-  const tab: Tab = params.get("tab") === "people" ? "people" : "perm";
+  const tabParam = params.get("tab");
+  const tab: Tab = tabParam === "people" || tabParam === "ws" ? tabParam : "perm";
   const { canManage, canAdmin } = useAccessControl();
   const canEdit = canManage("Access_rights");
   const canDelete = canAdmin("Access_rights");
@@ -213,12 +296,15 @@ const RoleDetail = () => {
   const [onlyWithAccess, setOnlyWithAccess] = useState<"all" | "with">("all");
   const [modal, setModal] = useState<Modal>(null);
   const [saving, setSaving] = useState(false);
+  /** Optimistic workspaces while a toggle saves. */
+  const [wsPending, setWsPending] = useState<WorkspaceKey[] | null>(null);
 
   // A new role starts with a clean draft and filters.
   useEffect(() => {
     setDraft(null);
     setPq("");
     setOnlyWithAccess("all");
+    setWsPending(null);
   }, [roleId]);
 
   // "?add=1" (from the "Role created" toast) opens Add people once the role is loaded.
@@ -272,7 +358,7 @@ const RoleDetail = () => {
 
   const setTab = (next: Tab) => {
     const p = new URLSearchParams(params);
-    if (next === "people") p.set("tab", "people");
+    if (next !== "perm") p.set("tab", next);
     else p.delete("tab");
     setParams(p, { replace: true });
   };
@@ -325,7 +411,13 @@ const RoleDetail = () => {
   const duplicate = () =>
     guard(async () => {
       try {
-        const copy = await createRole(copyName(roles, role.name), role.description || "", base, reloadRoles);
+        const copy = await createRole(
+          copyName(roles, role.name),
+          role.description || "",
+          base,
+          reloadRoles,
+          isDefaultWorkspaces(role) ? undefined : workspacesOf(role)
+        );
         if (!copy) return;
         navigate(rolePath(copy.id));
         notify.success({ title: "Role duplicated", message: "Rename it and adjust what’s different." });
@@ -353,6 +445,34 @@ const RoleDetail = () => {
         });
       },
     });
+
+  /* ------------------------------- workspaces ----------------------------- */
+  const workspaces = wsPending ?? workspacesOf(role);
+
+  const toggleWs = async (key: WorkspaceKey) => {
+    if (!canEdit || wsPending) return;
+    const added = !workspaces.includes(key);
+    const next = toggleWorkspace(workspaces, key);
+    setWsPending(next);
+    try {
+      await api.put.updateAccessLevelWorkspaces({ id: role.id, workspaces: next });
+    } catch {
+      // The API layer already raised a toast.
+      setWsPending(null);
+      return;
+    }
+    notify.success({
+      title: added ? "Workspace added" : "Workspace removed",
+      message: next.length
+        ? `${role.name} now gets: ${workspaceNames(next)}.`
+        : `${role.name} now sees Home only.`,
+    });
+    try {
+      await reloadRoles();
+    } finally {
+      setWsPending(null);
+    }
+  };
 
   /* ------------------------------ permissions ----------------------------- */
   const query = pq.trim().toLowerCase();
@@ -550,6 +670,7 @@ const RoleDetail = () => {
             onChange={setTab}
             tabs={[
               { key: "perm", label: "Permissions" },
+              { key: "ws", label: "Home workspaces" },
               { key: "people", label: `People (${nP})` },
             ]}
           />
@@ -560,7 +681,19 @@ const RoleDetail = () => {
         {!canEdit && (
           <InlineAlert tone="info">View only. You can see this role’s permissions but not change them.</InlineAlert>
         )}
-        {tab === "perm" ? permissions : people}
+        {tab === "perm" ? (
+          permissions
+        ) : tab === "ws" ? (
+          <WorkspaceCards
+            value={workspaces}
+            isDefault={!wsPending && isDefaultWorkspaces(role)}
+            canEdit={canEdit}
+            saving={!!wsPending}
+            onToggle={(key) => void toggleWs(key)}
+          />
+        ) : (
+          people
+        )}
       </div>
 
       {dirty && (

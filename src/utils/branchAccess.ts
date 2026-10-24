@@ -1,5 +1,6 @@
 import { ALL_BRANCHES, type ActiveBranchId } from "@/store/useBranchStore";
 import type { BranchAccessGrant } from "@/utils/interfaces";
+import { WORKSPACE_KEYS, type WorkspaceKey } from "@/utils/api/workspaces/interfaces";
 
 const PERMISSION_RANK: Record<string, number> = {
   No_Access: 0,
@@ -70,4 +71,25 @@ export const resolveAllowedBranchIds = (user: {
     return grants.length ? grants.map((grant) => grant.branch_id) : null;
   }
   return user.branch_id ? [user.branch_id] : null;
+};
+
+/**
+ * The Home workspaces granted in the active branch, in display order. With
+ * "all branches" it is the union across every grant; a branch the user holds
+ * no grant in has none (the server would refuse them there).
+ */
+export const resolveBranchWorkspaces = (
+  grants: BranchAccessGrant[] | undefined,
+  activeBranchId: ActiveBranchId
+): WorkspaceKey[] => {
+  if (!grants?.length) return [];
+  const scoped =
+    activeBranchId === ALL_BRANCHES
+      ? grants
+      : grants.filter((item) => item.branch_id === activeBranchId);
+  const keys = new Set<string>();
+  scoped.forEach((item) =>
+    (item.workspaces ?? []).forEach((key) => keys.add(key))
+  );
+  return WORKSPACE_KEYS.filter((key) => keys.has(key));
 };

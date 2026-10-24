@@ -16,7 +16,14 @@ import {
   SkeletonGrid,
   UiButton,
 } from "../components/reportsUi";
-import { PERIOD_TYPE_LABEL, deptStatusPill, toKpi, useReportControls } from "../utils/reportAdapters";
+import {
+  PERIOD_TYPE_LABEL,
+  deptStatusPill,
+  isDeptAttendanceKey,
+  preparedByName,
+  toKpi,
+  useReportControls,
+} from "../utils/reportAdapters";
 import { fmtDate } from "../utils/reportFormat";
 
 type LibFilter = "ALL" | "SUBMITTED" | "DRAFT" | "RETURNED" | "APPROVED";
@@ -43,8 +50,12 @@ const DepartmentReports = () => {
   const list = data?.data ?? null;
   const leadership = Boolean(list?.viewer.is_leadership);
 
+  const churchWide = useMemo(() => list?.reports ?? [], [list]);
+  const deptAttendance = useMemo(() => list?.department_attendance ?? [], [list]);
+
+  // Filter tabs count both groups.
   const counts = useMemo(() => {
-    const reports = list?.reports ?? [];
+    const reports = [...churchWide, ...deptAttendance];
     return {
       ALL: reports.length,
       SUBMITTED: reports.filter((r) => r.status === "SUBMITTED").length,
@@ -52,15 +63,63 @@ const DepartmentReports = () => {
       RETURNED: reports.filter((r) => r.status === "RETURNED").length,
       APPROVED: reports.filter((r) => r.status === "APPROVED").length,
     };
-  }, [list]);
+  }, [churchWide, deptAttendance]);
 
-  const cards = (list?.reports ?? []).filter((r) => filter === "ALL" || r.status === filter);
+  const matches = (r: DeptReportListItem) => filter === "ALL" || r.status === filter;
+  const cards = churchWide.filter(matches);
+  const deptCards = deptAttendance.filter(matches);
+  const total = churchWide.length + deptAttendance.length;
+  const dueDay = list?.department_attendance_due_day;
+  const deptSub = `${deptAttendance.length} ${deptAttendance.length === 1 ? "department" : "departments"} · each head of department submits their team’s attendance${
+    dueDay ? `, due day ${dueDay} of the month` : ""
+  }`;
 
   const open = (r: DeptReportListItem) => {
-    const params = new URLSearchParams({ from: "dept", period_type: controls.periodType });
-    if (list?.period.key) params.set("period_key", list.period.key);
-    navigate(`/home/reports/department/${r.key}?${params.toString()}`);
+    // Department attendance reports exist for monthly periods only.
+    const periodType = isDeptAttendanceKey(r.key) ? "MONTHLY" : controls.periodType;
+    const params = new URLSearchParams({ from: "dept", period_type: periodType });
+    if (list?.period.key && periodType === list.period.type) params.set("period_key", list.period.key);
+    navigate(`/home/reports/department/${encodeURIComponent(r.key)}?${params.toString()}`);
   };
+
+  const renderCard = (r: DeptReportListItem) => {
+    const status = deptStatusPill(r.status);
+    const editable = r.permissions.can_edit;
+    const cta = r.permissions.can_approve ? "Review" : editable ? "Complete" : "Open";
+    return (
+      <button
+        key={r.key}
+        type="button"
+        onClick={() => open(r)}
+        className="flex min-w-0 flex-col gap-4 rounded-2xl border border-lightGray bg-white p-5 text-left text-sm text-primary transition-shadow hover:shadow-[0_10px_28px_rgb(var(--color-shadow)_/_0.2)]"
+      >
+        <div className="flex w-full items-start justify-between gap-3">
+          <div className="flex min-w-0 flex-col gap-1">
+            <h2 className="text-xl font-semibold leading-7">{r.name}</h2>
+            <p className="text-gray-600">
+              Prepared by {preparedByName(r)} · {r.cadence}
+            </p>
+          </div>
+          <Pill tone={status.tone} className="flex-shrink-0">{status.label}</Pill>
+        </div>
+        <div className="grid w-full grid-cols-2 gap-3 border-t border-gray-200 pt-4">
+          {r.failed ? (
+            <p className="col-span-2 text-gray-500">Figures couldn’t be worked out for this period.</p>
+          ) : (
+            r.headline.map((kpi) => <MiniStat key={kpi.key} kpi={toKpi(kpi)} muted />)
+          )}
+        </div>
+        <div className="flex w-full items-center justify-between gap-2">
+          <span className={r.overdue ? "text-xs font-semibold text-red-700" : "text-xs text-gray-500"}>
+            {dueLine(r)}
+          </span>
+          <span className="font-medium">{cta} →</span>
+        </div>
+      </button>
+    );
+  };
+
+  const cardGrid = "grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(min(100%,320px),1fr))]";
 
   return (
     <section className="flex flex-col gap-6 p-4 sm:p-6">
@@ -132,56 +191,35 @@ const DepartmentReports = () => {
         />
       )}
 
-      {list && list.reports.length === 0 && (
+      {list && total === 0 && (
         <PageEmpty
           badge="NO ACCESS"
           title="No reports to show"
-          text="You can see a department report when your access level lets you view that module or Reports."
+          text="You can see a department report when your access level lets you view that module or Reports, or when you head a department."
         />
       )}
 
-      {list && list.reports.length > 0 && (
-        <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(min(100%,320px),1fr))]">
-          {cards.map((r) => {
-            const status = deptStatusPill(r.status);
-            const editable = r.permissions.can_edit;
-            const cta = r.permissions.can_approve ? "Review" : editable ? "Complete" : "Open";
-            return (
-              <button
-                key={r.key}
-                type="button"
-                onClick={() => open(r)}
-                className="flex min-w-0 flex-col gap-4 rounded-2xl border border-lightGray bg-white p-5 text-left text-sm text-primary transition-shadow hover:shadow-[0_10px_28px_rgb(var(--color-shadow)_/_0.2)]"
-              >
-                <div className="flex w-full items-start justify-between gap-3">
-                  <div className="flex min-w-0 flex-col gap-1">
-                    <h2 className="text-xl font-semibold leading-7">{r.name}</h2>
-                    <p className="text-gray-600">
-                      Prepared by {r.prepared_by?.name || r.hod_role} · {r.cadence}
-                    </p>
-                  </div>
-                  <Pill tone={status.tone} className="flex-shrink-0">{status.label}</Pill>
-                </div>
-                <div className="grid w-full grid-cols-2 gap-3 border-t border-gray-200 pt-4">
-                  {r.failed ? (
-                    <p className="col-span-2 text-gray-500">Figures couldn’t be worked out for this period.</p>
-                  ) : (
-                    r.headline.map((kpi) => <MiniStat key={kpi.key} kpi={toKpi(kpi)} muted />)
-                  )}
-                </div>
-                <div className="flex w-full items-center justify-between gap-2">
-                  <span className={r.overdue ? "text-xs font-semibold text-red-700" : "text-xs text-gray-500"}>
-                    {dueLine(r)}
-                  </span>
-                  <span className="font-medium">{cta} →</span>
-                </div>
-              </button>
-            );
-          })}
-        </div>
+      {list && cards.length > 0 && (
+        <>
+          <div className="flex flex-col gap-1">
+            <h2 className="text-xl font-semibold leading-7 text-primary">Church-wide reports</h2>
+            <p className="text-gray-600">Prepared by the responsible department set in Settings.</p>
+          </div>
+          <div className={cardGrid}>{cards.map(renderCard)}</div>
+        </>
       )}
 
-      {list && list.reports.length > 0 && cards.length === 0 && (
+      {list && deptCards.length > 0 && (
+        <>
+          <div className="flex flex-col gap-1 pt-2">
+            <h2 className="text-xl font-semibold leading-7 text-primary">Department attendance reports</h2>
+            <p className="text-gray-600">{deptSub}</p>
+          </div>
+          <div className={cardGrid}>{deptCards.map(renderCard)}</div>
+        </>
+      )}
+
+      {list && total > 0 && cards.length === 0 && deptCards.length === 0 && (
         <p className="rounded-xl border border-dashed border-lightGray bg-white p-6 text-center text-gray-600">
           No reports match this filter.
         </p>

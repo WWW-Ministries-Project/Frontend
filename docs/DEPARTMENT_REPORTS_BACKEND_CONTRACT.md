@@ -73,6 +73,7 @@ Section shapes are in `ApiSection` (`src/utils/api/reports/interfaces.ts`) and `
 Reports the caller can read, for the library page.
 `data: { period, period_options, branch: {id, name}, viewer: { is_leadership, hod_of: report_key[] }, reports: DeptReportListItem[] }`
 Each item: meta (`key, area, name, hod_role, cadence`), workflow summary (`status, status_label, overdue, due_date, submitted_at, approved_at, returned_at, prepared_by`), `health`, `headline: Kpi[]`, `failed`, `permissions`.
+Each item also has `owner: { department_id, department_name, head: {id, name}|null } | null`, and `data` also has `department_attendance: DeptReportListItem[]` and `department_attendance_due_day` — see `WORKSPACES_AND_REPORT_CONFIG_BACKEND_CONTRACT.md` §2–3 (responsible department heads can prepare and submit; `dept_att:<id>` reports).
 
 ### `GET /department-reports/report?report_key&period_type&period_key&branch_id`
 `data: { meta, period, period_options, branch, workflow, permissions, body, failed }`

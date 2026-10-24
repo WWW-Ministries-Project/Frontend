@@ -7,6 +7,7 @@ import type {
   RoleEligibilityConfig,
   RoleEligibilityConfigPayload,
 } from "@/utils/api/settings/eligibilityInterfaces";
+import type { ReportConfig, ReportConfigKey, ReportConfigPayload } from "@/utils/api/settings/reportConfigInterfaces";
 
 /* -------------------------------------------------------------------------- */
 /*                                  Sections                                  */
@@ -49,17 +50,18 @@ export const isSectionKey = (value: string | null): value is SectionKey =>
 /* -------------------------------------------------------------------------- */
 
 /** The parts of the page that share one draft and one Save button. */
-export type RulesPart = "att" | "req" | "elig" | "repExcl" | "logTo";
+export type RulesPart = "att" | "req" | "elig" | "repExcl" | "repCfg" | "logTo";
 
 export const PART_SECTION: Record<RulesPart, SectionKey> = {
   att: "attendance",
   req: "requisition",
   elig: "eligibility",
   repExcl: "reports",
+  repCfg: "reports",
   logTo: "logs",
 };
 
-export const PART_ORDER: RulesPart[] = ["att", "req", "elig", "repExcl", "logTo"];
+export const PART_ORDER: RulesPart[] = ["att", "req", "elig", "repExcl", "repCfg", "logTo"];
 
 /** Requisition approval timing, in whole days (kept as typed). */
 export interface ReqDraft {
@@ -88,11 +90,22 @@ export interface EligDraft {
   positions: PositionRuleDraft[];
 }
 
+/** Report configuration as edited on the Reports section. */
+export interface RepCfgDraft {
+  /** Responsible department per church-wide report. */
+  owners: Record<ReportConfigKey, number | null>;
+  /** Day of the month department attendance reports are due. */
+  due: number;
+  /** Departments that don't get a monthly attendance report. */
+  off: number[];
+}
+
 export interface RulesValues {
   att: AttDraft;
   req: ReqDraft;
   elig: EligDraft;
   repExcl: number[];
+  repCfg: RepCfgDraft;
   logTo: number | null;
 }
 
@@ -114,6 +127,42 @@ export const ELIG_ROLES: { key: EligibilityRoleKey; label: string }[] = [
   { key: "life_center_leader", label: "Life center leader" },
   { key: "head_of_department", label: "Head of department" },
 ];
+
+/** Church-wide reports a department can be responsible for, in display order. */
+export const REPORT_TYPES: { key: ReportConfigKey; label: string; description: string }[] = [
+  { key: "membership", label: "Membership", description: "New members, confirmations, transfers and profile health. Monthly." },
+  { key: "visitors", label: "Visitors & follow-up", description: "First-time visitors, follow-up progress and conversion. Weekly, with a monthly roll-up." },
+  { key: "events", label: "Events", description: "Events held, registrations and turn-up. Monthly." },
+  { key: "attendance", label: "Church attendance", description: "Service headcounts, worker check-ins and punctuality. Weekly, with a monthly roll-up." },
+  { key: "assets", label: "Assets", description: "Asset register, repairs, losses and stock checks. Monthly, with a quarterly stock check." },
+  { key: "finance", label: "Finance", description: "Income, giving, pledges and approved requisitions. Weekly, with monthly, quarterly and annual roll-ups." },
+  { key: "lifecenters", label: "Life centers", description: "Meetings, attendance and souls won. Monthly, with a quarterly roll-up." },
+];
+
+/** Days of the month a department attendance report can be due. */
+export const DUE_DAYS = [1, 3, 5, 7, 10, 14];
+
+export const repCfgFromConfig = (config: ReportConfig | null | undefined): RepCfgDraft => {
+  const owners = REPORT_TYPES.reduce(
+    (acc, type) => {
+      const id = Number(config?.owners?.[type.key]);
+      acc[type.key] = Number.isFinite(id) && id > 0 ? id : null;
+      return acc;
+    },
+    {} as Record<ReportConfigKey, number | null>
+  );
+  const due = Number(config?.dept_attendance?.due_day);
+  return {
+    owners,
+    due: DUE_DAYS.includes(due) ? due : 5,
+    off: toIds(config?.dept_attendance?.disabled_department_ids),
+  };
+};
+
+export const repCfgPayload = (draft: RepCfgDraft): ReportConfigPayload => ({
+  owners: { ...draft.owners },
+  dept_attendance: { due_day: draft.due, disabled_department_ids: [...draft.off] },
+});
 
 export const isWholePositive = (value: string) => {
   const parsed = Number(value);
@@ -183,6 +232,10 @@ export const normPart = <P extends RulesPart>(part: P, value: RulesValues[P]): s
     return JSON.stringify([req.lookback.trim(), req.reply.trim()]);
   }
   if (part === "repExcl") return JSON.stringify(sorted(value as number[]));
+  if (part === "repCfg") {
+    const cfg = value as RepCfgDraft;
+    return JSON.stringify([REPORT_TYPES.map((type) => cfg.owners[type.key]), cfg.due, sorted(cfg.off)]);
+  }
   return String(value ?? "");
 };
 

@@ -117,6 +117,7 @@ import type {
   EventReportExclusionsConfig,
   EventReportExclusionsPayload,
 } from "./settings/eventReportExclusionInterfaces";
+import type { ReportConfig, ReportConfigPayload } from "./settings/reportConfigInterfaces";
 import type {
   RoleEligibilityConfig,
   RoleEligibilityConfigPayload,
@@ -383,6 +384,12 @@ export class ApiCreationCalls {
     payload: EventReportExclusionsPayload
   ): Promise<ApiResponse<EventReportExclusionsConfig>> => {
     return this.postToApi("settings/upsert-event-report-exclusions", payload);
+  };
+
+  upsertReportConfig = (
+    payload: ReportConfigPayload
+  ): Promise<ApiResponse<ReportConfig>> => {
+    return this.postToApi("settings/upsert-report-config", payload);
   };
 
   upsertSystemNotificationConfig = (

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "@/utils/api/apiCalls";
 import type { AttendanceTimingSettingsConfig } from "@/utils/api/settings/attendanceTimingInterfaces";
 import type { EventReportExcludedUser } from "@/utils/api/settings/eventReportExclusionInterfaces";
+import type { ReportConfigDepartment } from "@/utils/api/settings/reportConfigInterfaces";
 import type {
   SystemNotificationAdminCandidate,
   SystemNotificationSettingsConfig,
@@ -23,6 +24,8 @@ import {
   eligPayload,
   normPart,
   PART_ORDER,
+  repCfgFromConfig,
+  repCfgPayload,
   type RulesPart,
   type RulesValues,
 } from "./generalModel";
@@ -38,11 +41,18 @@ export interface AttendanceApply {
   applyFrom?: string;
 }
 
-const LOADING: Status = { att: "loading", req: "loading", elig: "loading", repExcl: "loading", logTo: "loading" };
+const LOADING: Status = {
+  att: "loading",
+  req: "loading",
+  elig: "loading",
+  repExcl: "loading",
+  repCfg: "loading",
+  logTo: "loading",
+};
 
 /**
- * Attendance timing, requisition timing, eligibility rules, report exclusions
- * and the failure alert recipient share one page-level draft and one Save
+ * Attendance timing, requisition timing, eligibility rules, report exclusions,
+ * report configuration and the failure alert recipient share one page-level draft and one Save
  * button. Each part loads on its own so a slow or failing endpoint only
  * affects its section. Requisition timing loads only for people who can view
  * Requisition, so others don't get an access-denied toast.
@@ -54,6 +64,7 @@ export const useRulesDraft = ({ withRequisition }: { withRequisition: boolean })
   const [saving, setSaving] = useState(false);
   const [attConfig, setAttConfig] = useState<AttendanceTimingSettingsConfig | null>(null);
   const [excludedUsers, setExcludedUsers] = useState<EventReportExcludedUser[]>([]);
+  const [reportDepartments, setReportDepartments] = useState<ReportConfigDepartment[]>([]);
   const [logsConfig, setLogsConfig] = useState<SystemNotificationSettingsConfig | null>(null);
   const [admins, setAdmins] = useState<SystemNotificationAdminCandidate[]>([]);
   /** The whole stored requisition workflow; timing saves re-send the rest unchanged. */
@@ -98,6 +109,11 @@ export const useRulesDraft = ({ withRequisition }: { withRequisition: boolean })
         const users = response.data?.users ?? [];
         setExcludedUsers(users);
         setSaved((current) => ({ ...current, repExcl: users.map((user) => user.id) }));
+      } else if (part === "repCfg") {
+        const response = await api.fetch.fetchReportConfig();
+        if (!alive.current) return;
+        setReportDepartments(Array.isArray(response.data?.departments) ? response.data.departments : []);
+        setSaved((current) => ({ ...current, repCfg: repCfgFromConfig(response.data) }));
       } else {
         const [configResponse, adminsResponse] = await Promise.all([
           api.fetch.fetchSystemNotificationConfig(),
@@ -210,6 +226,12 @@ export const useRulesDraft = ({ withRequisition }: { withRequisition: boolean })
             if (users) setExcludedUsers(users);
             return { part, next: users ? users.map((user) => user.id) : drafts.repExcl };
           }
+          if (part === "repCfg" && drafts.repCfg) {
+            const response = await api.post.upsertReportConfig(repCfgPayload(drafts.repCfg));
+            const data = response.data;
+            if (Array.isArray(data?.departments)) setReportDepartments(data.departments);
+            return { part, next: data ? repCfgFromConfig(data) : drafts.repCfg };
+          }
           const response = await api.post.upsertSystemNotificationConfig({
             system_failure_recipient_user_id: drafts.logTo ?? null,
           });
@@ -251,6 +273,7 @@ export const useRulesDraft = ({ withRequisition }: { withRequisition: boolean })
     reqStored,
     attConfig,
     excludedUsers,
+    reportDepartments,
     logsConfig,
     admins,
   };

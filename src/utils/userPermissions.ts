@@ -167,6 +167,9 @@ export const normalizeBranchAccess = (value: unknown): BranchAccessGrant[] | und
       access_level_id: accessLevelId,
       access_level_name: String(record.access_level_name ?? ""),
       permissions: asRecord(record.permissions),
+      ...(Array.isArray(record.workspaces)
+        ? { workspaces: record.workspaces.filter((key): key is string => typeof key === "string") }
+        : {}),
     });
     return grants;
   }, []);
