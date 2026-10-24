@@ -136,7 +136,7 @@ export const requesterCanEdit = (row: Row, me: number) =>
 /* -------------------------------------------------------------------------- */
 
 export const waitColor = (days: number, reply: number) =>
-  days > reply ? "text-[#B91C1C]" : days >= reply - 1 ? "text-[#B45309]" : "text-[#6B7280]";
+  days > reply ? "text-red-700" : days >= reply - 1 ? "text-amber-700" : "text-gray-500";
 
 export const pillOf = (row: Row, me: number, now: Date, reply: number): { label: string; tone: PillTone } => {
   if (row.status === "DRAFT") return { label: "Draft", tone: "neutral" };
@@ -149,7 +149,7 @@ export const pillOf = (row: Row, me: number, now: Date, reply: number): { label:
 
 /** Second line under the status pill. */
 export const subOf = (row: Row, me: number, now: Date, reply: number): { text: string; className: string } => {
-  const muted = "text-[#6B7280]";
+  const muted = "text-gray-500";
   if (row.status === "DRAFT") return { text: "Not submitted yet", className: muted };
   if (row.status === "APPROVED") {
     const took = row.submitted_at && row.decided_at ? ` · took ${dur(daysBetween(row.submitted_at, row.decided_at))}` : "";

@@ -555,14 +555,14 @@ export function Members() {
           )}
 
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-sm text-[#4B5563]">
+            <p className="text-sm text-gray-600">
               {initialLoading ? "Loading members…" : countLabel}
             </p>
             {canManageMembers && rows.length > 0 && (
               <button
                 type="button"
                 onClick={togglePage}
-                className="bg-transparent p-0 text-sm text-[#4B5563] underline hover:text-primary"
+                className="bg-transparent p-0 text-sm text-gray-600 underline hover:text-primary"
               >
                 {allPageSelected ? "Deselect this page" : "Select this page"}
               </button>
@@ -624,7 +624,7 @@ export function Members() {
 
           {totalPages > 1 && !impossibleView && (
             <div className="flex items-center justify-end gap-2">
-              <span className="mr-2 text-sm text-[#4B5563]">
+              <span className="mr-2 text-sm text-gray-600">
                 Page {currentPage} of {totalPages}
               </span>
               <UiButton tone="secondary" onClick={goBack} disabled={!canGoBack}>

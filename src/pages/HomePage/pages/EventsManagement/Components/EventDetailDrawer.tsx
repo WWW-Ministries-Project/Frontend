@@ -138,14 +138,14 @@ const EventDetailDrawer = ({ event, siblings, attendance, canManage, onClose, on
   const header = (
     <div className="flex min-w-0 flex-col gap-1">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="inline-flex items-center gap-1.5 text-xs text-[#4B5563]">
+        <span className="inline-flex items-center gap-1.5 text-xs text-gray-600">
           <Dot color={typeColor(event.type)} />
           {typeLabel(event.type)}
         </span>
         <Pill tone={pillTone}>{pillText}</Pill>
       </div>
       <h2 className="text-xl font-semibold leading-7 text-primary">{event.name}</h2>
-      <p className="text-sm text-[#4B5563]">{when}</p>
+      <p className="text-sm text-gray-600">{when}</p>
     </div>
   );
 
@@ -159,7 +159,7 @@ const EventDetailDrawer = ({ event, siblings, attendance, canManage, onClose, on
       footer={
         <>
           {canManage && (
-            <UiButton tone="ghost" className="mr-auto text-[#B91C1C] hover:bg-[#FEF2F2] hover:text-[#B91C1C]" onClick={() => onDelete(event)}>
+            <UiButton tone="ghost" className="mr-auto text-red-700 hover:bg-red-50 hover:text-red-700" onClick={() => onDelete(event)}>
               Delete
             </UiButton>
           )}
@@ -177,24 +177,24 @@ const EventDetailDrawer = ({ event, siblings, attendance, canManage, onClose, on
         </>
       }
     >
-      {raw.description ? <p className="text-sm text-[#374151]">{raw.description}</p> : null}
+      {raw.description ? <p className="text-sm text-gray-700">{raw.description}</p> : null}
 
       <dl className="m-0 grid grid-cols-[120px_minmax(0,1fr)] gap-x-4 gap-y-3 text-sm">
-        <dt className="text-[#6B7280]">Where</dt>
+        <dt className="text-gray-500">Where</dt>
         <dd className="m-0 text-primary">{event.location || "No location"}</dd>
         {audience && (
           <>
-            <dt className="text-[#6B7280]">Who it’s for</dt>
+            <dt className="text-gray-500">Who it’s for</dt>
             <dd className="m-0 text-primary">{audience}</dd>
           </>
         )}
         {repeat && (
           <>
-            <dt className="text-[#6B7280]">Repeats</dt>
+            <dt className="text-gray-500">Repeats</dt>
             <dd className="m-0 text-primary">{repeat}</dd>
           </>
         )}
-        <dt className="text-[#6B7280]">Reminders</dt>
+        <dt className="text-gray-500">Reminders</dt>
         <dd className="m-0 text-primary">{reminderText}</dd>
       </dl>
 
@@ -207,22 +207,22 @@ const EventDetailDrawer = ({ event, siblings, attendance, canManage, onClose, on
               href={link.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex justify-between gap-2 rounded-lg border border-lightGray px-4 py-3 text-primary no-underline hover:bg-[#F8F9FC]"
+              className="flex justify-between gap-2 rounded-lg border border-lightGray px-4 py-3 text-primary no-underline hover:bg-inputBackground"
             >
               <span className="font-medium">{link.label || link.platform}</span>
-              <span className="min-w-0 truncate text-xs text-[#4B5563]">{link.url}</span>
+              <span className="min-w-0 truncate text-xs text-gray-600">{link.url}</span>
             </a>
           ))}
         </div>
       )}
 
       {status === "ended" && (
-        <div className="flex flex-col gap-0.5 rounded-xl bg-[#F8F9FC] p-4">
+        <div className="flex flex-col gap-0.5 rounded-xl bg-inputBackground p-4">
           <span className="text-xl font-semibold leading-7 text-primary">
             {attendance !== null ? `${attendance.toLocaleString()} people attended` : "Attendance not recorded yet"}
           </span>
           {event.requiresRegistration && attendance !== null && registered > 0 && (
-            <span className="text-sm text-[#4B5563]">
+            <span className="text-sm text-gray-600">
               {Math.round((attendance / registered) * 100)}% of registrants came
             </span>
           )}
@@ -252,26 +252,26 @@ const EventDetailDrawer = ({ event, siblings, attendance, canManage, onClose, on
               ["Who can register", raw.registration_audience === "MEMBERS_ONLY" ? "Members only" : "Anyone with the link"],
             ].map(([label, value]) => (
               <div key={label} className="flex flex-col gap-0.5">
-                <span className="text-xs text-[#6B7280]">{label}</span>
+                <span className="text-xs text-gray-500">{label}</span>
                 <span className="text-sm font-semibold text-primary">{value}</span>
               </div>
             ))}
           </div>
           {registrants.length > 0 && (
-            <div className="overflow-hidden rounded-lg border border-[#E5E7EB]">
+            <div className="overflow-hidden rounded-lg border border-gray-200">
               {registrants.slice(0, SHOWN_REGISTRANTS).map((row) => (
                 <div
                   key={row.id}
-                  className="flex justify-between gap-2 border-b border-[#E5E7EB] px-3 py-2 text-sm last:border-b-0"
+                  className="flex justify-between gap-2 border-b border-gray-200 px-3 py-2 text-sm last:border-b-0"
                 >
                   <span className="min-w-0 truncate font-medium text-primary">{row.name || "Unnamed"}</span>
-                  <span className="flex-shrink-0 text-xs text-[#6B7280]">
+                  <span className="flex-shrink-0 text-xs text-gray-500">
                     {row.is_member ? "Member" : `Guest${row.phone ? ` · ${row.phone}` : ""}`}
                   </span>
                 </div>
               ))}
               {registrants.length > SHOWN_REGISTRANTS && (
-                <p className="border-t border-[#E5E7EB] px-3 py-2 text-xs text-[#6B7280]">
+                <p className="border-t border-gray-200 px-3 py-2 text-xs text-gray-500">
                   + {registrants.length - SHOWN_REGISTRANTS} more in the export
                 </p>
               )}

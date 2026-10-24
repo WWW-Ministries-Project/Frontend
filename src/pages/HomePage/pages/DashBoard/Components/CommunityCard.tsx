@@ -37,7 +37,7 @@ const TAG: Partial<Record<CommunityPostType, [string, string]>> = {
   TESTIMONY: ["#FDE8E8", "#C81E1E"],
   MESSAGE: ["#FDF6B2", "#8E4B10"],
 };
-const TAG_FALLBACK: [string, string] = ["#F3F4F6", "#374151"];
+const TAG_FALLBACK: [string, string] = ["rgb(var(--color-gray-100))", "rgb(var(--color-gray-700))"];
 
 /** The reaction each post type invites, labelled as in the design. */
 const ACTION: Partial<Record<CommunityPostType, [string, CommunityReactionType]>> = {
@@ -92,10 +92,10 @@ export const CommunityCard = () => {
   if (guest) return null;
 
   return (
-    <section className="flex flex-col gap-4 rounded-2xl border border-[#E5E7EB] bg-white p-[clamp(16px,2.5vw,24px)]">
+    <section className="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-[clamp(16px,2.5vw,24px)]">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h3 className="text-lg font-semibold leading-7 text-[#080D2D]">Community</h3>
-        <div className="flex max-w-full gap-1 overflow-x-auto rounded-lg bg-[#F3F4F6] p-1">
+        <h3 className="text-lg font-semibold leading-7 text-primary">Community</h3>
+        <div className="flex max-w-full gap-1 overflow-x-auto rounded-lg bg-gray-100 p-1">
           {(Object.keys(FILTERS) as Filter[]).map((label) => {
             const on = label === filter;
             return (
@@ -105,8 +105,8 @@ export const CommunityCard = () => {
                 onClick={() => setFilter(label)}
                 className="rounded-md px-3 py-1.5 text-[13px] font-semibold"
                 style={{
-                  background: on ? "#fff" : "transparent",
-                  color: on ? "#080D2D" : "#6B7280",
+                  background: on ? "rgb(var(--color-white))" : "transparent",
+                  color: on ? "rgb(var(--color-primary))" : "rgb(var(--color-gray-500))",
                   boxShadow: on ? "0 1px 2px rgba(0,0,0,0.08)" : "none",
                 }}
               >
@@ -119,17 +119,17 @@ export const CommunityCard = () => {
 
       <Link
         to={`${relativePath.member.community}?compose=1`}
-        className="flex items-center gap-3 rounded-xl border border-dashed border-[#D1D5DB] bg-[#F9FAFB] px-3.5 py-3 hover:border-[#080D2D] hover:no-underline"
+        className="flex items-center gap-3 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-3.5 py-3 hover:border-primary hover:no-underline"
       >
         <span className="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-[#080D2D] text-[11px] font-bold text-[#fff]">
           {initials(name)}
         </span>
-        <span className="flex-1 text-sm text-[#6B7280]">Share a testimony or prayer request…</span>
-        <span className="text-[13px] font-semibold text-[#080D2D]">Post</span>
+        <span className="flex-1 text-sm text-gray-500">Share a testimony or prayer request…</span>
+        <span className="text-[13px] font-semibold text-primary">Post</span>
       </Link>
 
       {loaded && posts.length === 0 && (
-        <p className="py-6 text-center text-sm text-[#6B7280]">Nothing here yet.</p>
+        <p className="py-6 text-center text-sm text-gray-500">Nothing here yet.</p>
       )}
 
       <div className="flex flex-col">
@@ -138,7 +138,7 @@ export const CommunityCard = () => {
           const author = authorDisplayName(post);
           const path = communityPostPath(post.id);
           return (
-            <article key={post.id} className="flex gap-3 border-t border-[#F3F4F6] py-4">
+            <article key={post.id} className="flex gap-3 border-t border-gray-100 py-4">
               <span
                 className="flex h-9 w-9 flex-none items-center justify-center rounded-full text-xs font-bold"
                 style={{ background: tagBg, color: tagFg }}
@@ -147,8 +147,8 @@ export const CommunityCard = () => {
               </span>
               <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-sm font-semibold text-[#080D2D]">{author}</span>
-                  <span className="text-xs text-[#6B7280]">{timeAgo(post.createdAt)}</span>
+                  <span className="text-sm font-semibold text-primary">{author}</span>
+                  <span className="text-xs text-gray-500">{timeAgo(post.createdAt)}</span>
                   <span
                     className="rounded-md px-2 py-0.5 text-xs font-semibold"
                     style={{ background: tagBg, color: tagFg }}
@@ -160,13 +160,13 @@ export const CommunityCard = () => {
                   body={post.body}
                   lines={3}
                   inertLinks
-                  className="text-sm leading-[22px] text-[#374151] [text-wrap:pretty]"
+                  className="text-sm leading-[22px] text-gray-700 [text-wrap:pretty]"
                 />
                 <div className="flex gap-4 text-[13px] font-semibold">
-                  <Link to={path} className="text-[#4B5563] hover:text-[#080D2D] hover:no-underline">
+                  <Link to={path} className="text-gray-600 hover:text-primary hover:no-underline">
                     {actionFor(post)}
                   </Link>
-                  <Link to={path} className="text-[#4B5563] hover:text-[#080D2D] hover:no-underline">
+                  <Link to={path} className="text-gray-600 hover:text-primary hover:no-underline">
                     Reply
                   </Link>
                 </div>
@@ -176,7 +176,7 @@ export const CommunityCard = () => {
         })}
       </div>
 
-      <Link to={relativePath.member.community} className="self-start text-sm font-semibold text-[#080D2D]">
+      <Link to={relativePath.member.community} className="self-start text-sm font-semibold text-primary">
         Open community
       </Link>
     </section>

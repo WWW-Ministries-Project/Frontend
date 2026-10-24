@@ -13,7 +13,7 @@ const StatCard = ({ label, group }: { label: string; group: Group }) => {
   return (
     <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-lightGray bg-white px-5 py-4 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
       <div className="flex flex-col gap-1">
-        <p className="text-sm font-semibold text-[#4B5563]">{label}</p>
+        <p className="text-sm font-semibold text-gray-600">{label}</p>
         <p className="text-2xl font-semibold leading-8 text-primary">
           {group?.total_members ?? 0}
         </p>
@@ -22,10 +22,10 @@ const StatCard = ({ label, group }: { label: string; group: Group }) => {
         {parts.map((part) => (
           <div
             key={part.label}
-            className="flex flex-col items-center gap-0.5 border-l border-[#E5E7EB] px-4"
+            className="flex flex-col items-center gap-0.5 border-l border-gray-200 px-4"
           >
             <p className="text-lg font-semibold text-primary">{part.value}</p>
-            <p className="whitespace-nowrap text-xs text-[#4B5563]">{part.label}</p>
+            <p className="whitespace-nowrap text-xs text-gray-600">{part.label}</p>
           </div>
         ))}
       </div>

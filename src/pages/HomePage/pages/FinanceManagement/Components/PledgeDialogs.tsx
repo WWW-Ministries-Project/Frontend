@@ -239,7 +239,7 @@ export const PledgeFormDialog = ({
         {!editing && (
           <>
             <FullRow>
-              <p className="border-t border-[#E5E7EB] pt-2 text-base font-semibold text-primary">Groups</p>
+              <p className="border-t border-gray-200 pt-2 text-base font-semibold text-primary">Groups</p>
             </FullRow>
             {groups.map((g, i) => (
               <FullRow key={i}>
@@ -267,7 +267,7 @@ export const PledgeFormDialog = ({
                     aria-label={`Remove group ${i + 1}`}
                     disabled={groups.length === 1}
                     onClick={() => setGroups(groups.filter((_, j) => j !== i))}
-                    className="h-10 w-10 rounded-lg border border-lightGray bg-white text-lg text-[#B91C1C] hover:bg-[#FEF2F2] disabled:opacity-40"
+                    className="h-10 w-10 rounded-lg border border-lightGray bg-white text-lg text-red-700 hover:bg-red-50 disabled:opacity-40"
                   >
                     ×
                   </button>
@@ -283,9 +283,9 @@ export const PledgeFormDialog = ({
         )}
 
         <FullRow>
-          <p className="border-t border-[#E5E7EB] pt-2 text-base font-semibold text-primary">Settlement account for online payments</p>
+          <p className="border-t border-gray-200 pt-2 text-base font-semibold text-primary">Settlement account for online payments</p>
           {editing && pledge && !changeAccount && (
-            <div className="mt-2 flex flex-wrap items-center justify-between gap-2 rounded-lg bg-[#F8F9FC] p-3 text-sm">
+            <div className="mt-2 flex flex-wrap items-center justify-between gap-2 rounded-lg bg-inputBackground p-3 text-sm">
               <span>
                 {pledge.bank_name ? `${pledge.bank_name} · ${pledge.masked_account_number ?? ""}` : "Not set up"}
                 {pledge.account_name ? ` · ${pledge.account_name}` : ""}
@@ -402,11 +402,11 @@ export const AddPledgersDialog = ({
       {rows.map((r, i) => {
         const isMember = byName.has(r.name.trim().toLowerCase());
         return (
-          <div key={i} className="flex flex-col gap-2 border-t border-[#E5E7EB] pt-3">
+          <div key={i} className="flex flex-col gap-2 border-t border-gray-200 pt-3">
             <div className="flex items-center justify-between gap-2">
               <p className="text-sm font-semibold text-primary">Pledger {i + 1}</p>
               {rows.length > 1 && (
-                <button type="button" onClick={() => setRows(rows.filter((_, j) => j !== i))} className="text-sm text-[#B91C1C] underline">
+                <button type="button" onClick={() => setRows(rows.filter((_, j) => j !== i))} className="text-sm text-red-700 underline">
                   Remove
                 </button>
               )}

@@ -23,7 +23,7 @@ export const DepartmentCard = ({
   const headName = department.department_head_info?.name?.trim();
 
   return (
-    <article className="flex flex-col gap-4 rounded-2xl border border-lightGray bg-white p-4 shadow-[0_8px_24px_rgba(8,13,45,0.08)] transition-shadow hover:shadow-[0_10px_28px_rgba(8,13,45,0.2)]">
+    <article className="flex flex-col gap-4 rounded-2xl border border-lightGray bg-white p-4 shadow-[0_8px_24px_rgb(var(--color-shadow)_/_0.08)] transition-shadow hover:shadow-[0_10px_28px_rgb(var(--color-shadow)_/_0.2)]">
       <div className="flex items-start gap-3">
         <div className="flex min-w-0 flex-1 flex-col gap-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -36,24 +36,24 @@ export const DepartmentCard = ({
             </button>
             <Pill tone={status.tone}>{status.label}</Pill>
           </div>
-          <p className={headName ? "text-sm text-[#4B5563]" : "text-sm text-[#B45309]"}>
+          <p className={headName ? "text-sm text-gray-600" : "text-sm text-amber-700"}>
             {headName ? `Head: ${headName}` : "Head not assigned"}
           </p>
         </div>
         <ActionMenu items={menuItems} ariaLabel="Department actions" width={200} />
       </div>
 
-      <p className="line-clamp-2 text-sm text-[#4B5563]">
+      <p className="line-clamp-2 text-sm text-gray-600">
         {department.description?.trim() || "No description yet."}
       </p>
 
       <div className="grid grid-cols-2 gap-2">
-        <div className="rounded-lg bg-[#F8F9FC] p-3">
-          <p className="text-xs text-[#4B5563]">Members</p>
+        <div className="rounded-lg bg-inputBackground p-3">
+          <p className="text-xs text-gray-600">Members</p>
           <p className="text-lg font-semibold text-primary">{department.member_count ?? 0}</p>
         </div>
-        <div className="rounded-lg bg-[#F8F9FC] p-3">
-          <p className="text-xs text-[#4B5563]">Pending requests</p>
+        <div className="rounded-lg bg-inputBackground p-3">
+          <p className="text-xs text-gray-600">Pending requests</p>
           <p className="text-lg font-semibold text-primary">{pendingRequests ?? "—"}</p>
         </div>
       </div>

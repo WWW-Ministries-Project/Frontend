@@ -26,7 +26,7 @@ const ContactDeadline = ({ createdAt }: { createdAt: string }) => {
   const due = created + DAY_MS;
   if (Date.now() > due) return <Pill tone="danger">Over 24 hours old</Pill>;
   return (
-    <span className="text-xs text-amber-700 dark:text-amber-300">
+    <span className="text-xs text-amber-700">
       Contact by {formatWhen(new Date(due).toISOString())}
     </span>
   );

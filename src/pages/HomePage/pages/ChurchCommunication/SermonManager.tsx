@@ -378,7 +378,7 @@ const SermonManager = () => {
               ariaLabel="Search sermons"
               className="max-w-[420px]"
             />
-            <p className="text-sm text-[#4B5563]">
+            <p className="text-sm text-gray-600">
               {filtered.length} of {plural(sermons.length, "sermon")}
             </p>
           </div>
@@ -386,7 +386,7 @@ const SermonManager = () => {
           {loading && sermons.length === 0 ? (
             <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,260px),1fr))] gap-4">
               {Array.from({ length: 6 }).map((_, index) => (
-                <div key={index} className="h-72 animate-pulse rounded-xl bg-[#F3F4F6]" />
+                <div key={index} className="h-72 animate-pulse rounded-xl bg-gray-100" />
               ))}
             </div>
           ) : filtered.length === 0 ? (
@@ -402,7 +402,7 @@ const SermonManager = () => {
                 return (
                   <div
                     key={sermon.id}
-                    className="flex flex-col overflow-hidden rounded-xl border border-lightGray bg-white transition-shadow hover:shadow-[0_10px_28px_rgba(8,13,45,0.2)]"
+                    className="flex flex-col overflow-hidden rounded-xl border border-lightGray bg-white transition-shadow hover:shadow-[0_10px_28px_rgb(var(--color-shadow)_/_0.2)]"
                   >
                     <a
                       href={sermon.youtube_url}
@@ -421,7 +421,7 @@ const SermonManager = () => {
                     </a>
                     <div className="flex flex-1 flex-col gap-2 p-4">
                       <p className="line-clamp-2 text-base font-semibold text-primary">{sermon.title}</p>
-                      <p className="text-xs text-[#6B7280]">
+                      <p className="text-xs text-gray-500">
                         {[sermon.series?.title, day > today ? `Planned for ${formatDay(day)}` : formatDay(day)]
                           .filter(Boolean)
                           .join(" · ")}
@@ -429,7 +429,7 @@ const SermonManager = () => {
                       {sermon.tags.length > 0 && (
                         <div className="flex flex-wrap gap-1">
                           {sermon.tags.map((tag) => (
-                            <span key={tag.id} className="rounded-full bg-[#F3F4F6] px-2 text-xs text-[#374151]">
+                            <span key={tag.id} className="rounded-full bg-gray-100 px-2 text-xs text-gray-700">
                               {tag.name}
                             </span>
                           ))}
@@ -478,8 +478,8 @@ const SermonManager = () => {
                   </div>
                   <div className="flex min-w-0 flex-[1_1_260px] flex-col gap-1">
                     <p className="text-base font-semibold text-primary">{item.title}</p>
-                    {item.description && <p className="text-sm text-[#4B5563]">{item.description}</p>}
-                    <p className="text-xs text-[#6B7280]">
+                    {item.description && <p className="text-sm text-gray-600">{item.description}</p>}
+                    <p className="text-xs text-gray-500">
                       {items.length
                         ? `${plural(items.length, "sermon")} · ${published} published · ${formatDay(dayOf(items[0]))} – ${formatDay(dayOf(items[items.length - 1]))}`
                         : "No sermons yet"}

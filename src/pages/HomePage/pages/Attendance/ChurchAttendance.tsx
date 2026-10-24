@@ -168,7 +168,7 @@ export default function ChurchAttendance() {
         sub: last
           ? `${fmtDate(last)}${avg4 ? ` · ${delta >= 0 ? "+" : ""}${delta.toFixed(1)}% vs 4-week average` : ""}`
           : "No Sunday recorded yet",
-        color: delta < -5 ? "#B91C1C" : delta > 5 ? "#15803D" : "#6B7280",
+        color: delta < -5 ? "rgb(var(--color-red-700))" : delta > 5 ? "rgb(var(--color-green-700))" : "rgb(var(--color-gray-500))",
       },
       {
         label: `Average Sunday, ${MONF[Number(monthKey.slice(5)) - 1]}`,
@@ -188,7 +188,7 @@ export default function ChurchAttendance() {
         sub: unrecorded.length
           ? `Latest: ${unrecorded[0].name}, ${fmtShort(unrecorded[0].date)}`
           : "Every service is recorded",
-        color: unrecorded.length ? "#B45309" : "#15803D",
+        color: unrecorded.length ? "rgb(var(--color-amber-700))" : "rgb(var(--color-green-700))",
       },
     ];
   }, [records, held, recByEvent, unrecorded, today]);
@@ -453,7 +453,7 @@ export default function ChurchAttendance() {
           />
         </div>
 
-        <p className="text-sm text-[#4B5563]">
+        <p className="text-sm text-gray-600">
           {isRec
             ? `Showing ${nf(recList.length)} recorded service${recList.length === 1 ? "" : "s"} in ${plural(sections.length, "group")}.${canRecord ? " Select a row to edit it." : ""}`
             : `${plural(unList.length, "service")} held without a headcount.`}

@@ -151,7 +151,7 @@ const EventCatalogueDialog = ({
               <TextInput type="time" value={draft.end} onChange={(e) => update({ end: e.target.value })} />
             </Field>
             {draft.end && draft.start && draft.end < draft.start && (
-              <p className="col-span-full text-xs text-[#4B5563]">Ends after midnight, so it runs into the next day.</p>
+              <p className="col-span-full text-xs text-gray-600">Ends after midnight, so it runs into the next day.</p>
             )}
           </div>
         )}
@@ -160,7 +160,7 @@ const EventCatalogueDialog = ({
           <TextArea rows={3} value={draft.description} onChange={(e) => update({ description: e.target.value })} />
         </Field>
         {error && (
-          <p role="alert" className="text-sm text-[#B91C1C]">
+          <p role="alert" className="text-sm text-red-700">
             {error}
           </p>
         )}

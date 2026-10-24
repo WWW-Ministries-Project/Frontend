@@ -48,7 +48,7 @@ export function ShopHero({ market, secondary, secondaryCount, onShop }: IProps) 
       </div>
 
       {secondary && (
-        <div className="flex flex-col justify-between gap-4 rounded-2xl border border-lightGray bg-white p-6 text-primary shadow-[0_8px_24px_rgba(8,13,45,0.06)]">
+        <div className="flex flex-col justify-between gap-4 rounded-2xl border border-lightGray bg-white p-6 text-primary shadow-[0_8px_24px_rgb(var(--color-shadow)_/_0.06)]">
           <div className="flex flex-col gap-2">
             <p className="text-xs font-semibold uppercase tracking-[0.05em] text-primaryGray">
               Also open

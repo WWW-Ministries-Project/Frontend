@@ -1,15 +1,15 @@
 import type { PillTone } from "@/pages/HomePage/pages/MembershipManagement/components/membershipUi";
 
 /* Palette taken from the design system (see CLAUDE.md in the design project). */
-export const NV = "#080D2D";
-export const BZ = "#9A5D1A";
-export const SF = "rgba(8,13,45,0.3)";
-export const GR = "#D8DAE5";
-export const MG = "#6B7280";
-export const GN = "#15803D";
-export const AM = "#B45309";
-export const RD = "#B91C1C";
-export const BL = "#1D4ED8";
+export const NV = "rgb(var(--color-primary))";
+export const BZ = "rgb(var(--color-secondary))";
+export const SF = "rgb(var(--color-primary) / 0.3)";
+export const GR = "rgb(var(--color-lightGray))";
+export const MG = "rgb(var(--color-gray-500))";
+export const GN = "rgb(var(--color-green-700))";
+export const AM = "rgb(var(--color-amber-700))";
+export const RD = "rgb(var(--color-red-700))";
+export const BL = "rgb(var(--color-blue-700))";
 
 export type ChartColor = string;
 

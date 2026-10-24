@@ -41,7 +41,7 @@ const DepartmentRow = ({
   const noPositions = Boolean(row.department_id) && positions.length === 0;
 
   return (
-    <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,220px),1fr))] items-start gap-3 rounded-lg border border-[#E5E7EB] p-4">
+    <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,220px),1fr))] items-start gap-3 rounded-lg border border-gray-200 p-4">
       <Field label="Department *" error={departmentError}>
         <SelectInput
           id={`${name}.department_id`}
@@ -131,7 +131,7 @@ const DepartmentPositionSubFormComponent = ({
 
   return (
     <div className="flex flex-col gap-3">
-      <h2 className="text-xl font-bold leading-7 text-[#1F2937]">
+      <h2 className="text-xl font-bold leading-7 text-gray-800">
         Departments &amp; positions
       </h2>
       <FieldArray name={prefix}>

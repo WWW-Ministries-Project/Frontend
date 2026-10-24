@@ -101,7 +101,7 @@ const LifeCenterList = () => {
       l: "Overdue for a meeting",
       v: String(overdue),
       s: overdue ? "Select to see which ones" : `Every center met in the last ${OVERDUE_DAYS} days`,
-      c: overdue ? "#B91C1C" : "#15803D",
+      c: overdue ? "rgb(var(--color-red-700))" : "rgb(var(--color-green-700))",
       danger: overdue > 0,
       go: overdue
         ? () => {
@@ -229,13 +229,13 @@ const LifeCenterList = () => {
               disabled={!k.go}
               className={cn(
                 "flex flex-col gap-1 rounded-xl border bg-white px-5 py-4 text-left text-sm text-primary shadow-[0_1px_2px_rgba(0,0,0,0.05)] transition-shadow disabled:cursor-default",
-                k.go && "hover:shadow-[0_8px_24px_rgba(8,13,45,0.08)]",
-                k.danger ? "border-[#FECACA]" : "border-lightGray"
+                k.go && "hover:shadow-[0_8px_24px_rgb(var(--color-shadow)_/_0.08)]",
+                k.danger ? "border-red-200" : "border-lightGray"
               )}
             >
-              <span className="text-[#4B5563]">{k.l}</span>
+              <span className="text-gray-600">{k.l}</span>
               <span className="text-2xl font-semibold leading-8">{loaded ? k.v : "—"}</span>
-              <span className="text-xs" style={{ color: k.c ?? "#6B7280" }}>
+              <span className="text-xs" style={{ color: k.c ?? "rgb(var(--color-gray-500))" }}>
                 {loaded ? k.s : " "}
               </span>
             </button>
@@ -252,7 +252,7 @@ const LifeCenterList = () => {
             ariaLabel="Search life centers"
             className="max-w-[420px] flex-[1_1_240px]"
           />
-          <p className="text-sm text-[#4B5563]">
+          <p className="text-sm text-gray-600">
             {list.length === centers.length
               ? plural(centers.length, "life center")
               : `Showing ${list.length} of ${plural(centers.length, "life center")}`}
@@ -268,12 +268,12 @@ const LifeCenterList = () => {
         </div>
       ) : empty ? (
         <div className="flex flex-col items-center gap-3 rounded-xl border border-lightGray bg-white px-6 py-12 text-center">
-          <div className="flex h-36 w-36 items-center justify-center rounded-3xl bg-[#F8F9FC]">
+          <div className="flex h-36 w-36 items-center justify-center rounded-3xl bg-inputBackground">
             <img src={EmptyStateImage} alt="" className="w-24" />
           </div>
           <Pill>NO LIFE CENTERS YET</Pill>
           <h2 className="text-2xl font-semibold leading-8 text-primary">Start your first life center</h2>
-          <p className="max-w-[440px] text-base text-[#4B5563]">
+          <p className="max-w-[440px] text-base text-gray-600">
             Add where it meets, which days, and who leads it. Leaders can then record meetings and souls won.
           </p>
           {manage && (
@@ -283,7 +283,7 @@ const LifeCenterList = () => {
           )}
         </div>
       ) : list.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-lightGray bg-white p-6 text-center text-sm text-[#4B5563]">
+        <p className="rounded-xl border border-dashed border-lightGray bg-white p-6 text-center text-sm text-gray-600">
           No life centers match your search or filters.
         </p>
       ) : (
@@ -300,12 +300,12 @@ const LifeCenterList = () => {
                 onKeyDown={(e) => {
                   if (e.key === "Enter") open();
                 }}
-                className="flex min-w-0 cursor-pointer flex-col gap-4 rounded-2xl border border-lightGray bg-white p-5 text-primary transition-shadow hover:shadow-[0_10px_28px_rgba(8,13,45,0.2)] focus-visible:outline-none focus-visible:shadow-[0_0_0_4px_rgba(8,13,45,0.08)]"
+                className="flex min-w-0 cursor-pointer flex-col gap-4 rounded-2xl border border-lightGray bg-white p-5 text-primary transition-shadow hover:shadow-[0_10px_28px_rgb(var(--color-shadow)_/_0.2)] focus-visible:outline-none focus-visible:shadow-[0_0_0_4px_rgb(var(--color-shadow)_/_0.08)]"
               >
                 <div className="flex items-start gap-3">
                   <div className="flex min-w-0 flex-1 flex-col gap-1">
                     <h2 className="text-xl font-semibold leading-7">{r.c.name}</h2>
-                    <p className="line-clamp-2 text-sm text-[#4B5563]">{r.c.description || "—"}</p>
+                    <p className="line-clamp-2 text-sm text-gray-600">{r.c.description || "—"}</p>
                   </div>
                   <ActionMenu
                     ariaLabel={`More actions for ${r.c.name}`}
@@ -317,7 +317,7 @@ const LifeCenterList = () => {
                     ]}
                   />
                 </div>
-                <div className="flex flex-col gap-2 text-sm text-[#4B5563]">
+                <div className="flex flex-col gap-2 text-sm text-gray-600">
                   <div className="flex items-center gap-2">
                     <PinIcon />
                     <span className="min-w-0 truncate">{r.c.location || "—"}</span>
@@ -341,7 +341,7 @@ const LifeCenterList = () => {
                     <span className="min-w-0 truncate">{r.c.leader ? `Led by ${r.c.leader}` : "No leader yet"}</span>
                   </div>
                 </div>
-                <div className="grid grid-cols-3 gap-2 border-t border-[#E5E7EB] pt-4">
+                <div className="grid grid-cols-3 gap-2 border-t border-gray-200 pt-4">
                   {[
                     { v: String(r.c.memberCount), l: "Members" },
                     { v: String(r.soulsY), l: `Souls won (${year})` },
@@ -349,7 +349,7 @@ const LifeCenterList = () => {
                   ].map((t) => (
                     <div key={t.l} className="flex min-w-0 flex-col gap-0.5">
                       <span className="text-xl font-semibold leading-7">{t.v}</span>
-                      <span className="text-xs text-[#6B7280]">{t.l}</span>
+                      <span className="text-xs text-gray-500">{t.l}</span>
                     </div>
                   ))}
                 </div>

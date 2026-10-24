@@ -117,7 +117,7 @@ export const PositionDialog = ({
       <Field
         label={
           <>
-            Description <span className="text-[#6B7280]">(optional)</span>
+            Description <span className="text-gray-500">(optional)</span>
           </>
         }
       >

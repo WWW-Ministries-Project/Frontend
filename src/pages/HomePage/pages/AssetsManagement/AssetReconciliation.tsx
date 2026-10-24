@@ -67,13 +67,13 @@ const StepCard = ({ n, title, text }: { n: number; title: string; text: string }
     <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-white">{n}</span>
     <div>
       <p className="text-sm font-semibold text-primary">{title}</p>
-      <p className="text-sm text-[#4B5563]">{text}</p>
+      <p className="text-sm text-gray-600">{text}</p>
     </div>
   </div>
 );
 
 const Bar = ({ pct: value, height = "h-3", color = "bg-primary" }: { pct: number; height?: string; color?: string }) => (
-  <div className={cn("overflow-hidden rounded-full bg-[#E5E7EB]", height)}>
+  <div className={cn("overflow-hidden rounded-full bg-gray-200", height)}>
     <div className={cn("h-full", color)} style={{ width: `${Math.max(0, Math.min(100, value))}%` }} />
   </div>
 );
@@ -83,9 +83,9 @@ const Banner = ({ tone, children, action }: { tone: "success" | "info" | "warnin
     role="status"
     className={cn(
       "flex flex-wrap items-center gap-3 rounded-lg border px-4 py-3 text-sm",
-      tone === "success" && "border-[#BBF7D0] bg-[#F0FDF4] text-[#15803D]",
-      tone === "info" && "border-[#BFDBFE] bg-[#EFF6FF] text-[#1D4ED8]",
-      tone === "warning" && "border-[#FDE68A] bg-[#FFFBEB] text-[#B45309]"
+      tone === "success" && "border-green-200 bg-green-50 text-green-700",
+      tone === "info" && "border-blue-200 bg-blue-50 text-blue-700",
+      tone === "warning" && "border-amber-200 bg-amber-50 text-amber-700"
     )}
   >
     <p className="flex-[1_1_260px]">{children}</p>
@@ -93,9 +93,9 @@ const Banner = ({ tone, children, action }: { tone: "success" | "info" | "warnin
   </div>
 );
 
-const KpiTile = ({ label, value, sub, color = "#6B7280" }: { label: string; value: ReactNode; sub: string; color?: string }) => (
+const KpiTile = ({ label, value, sub, color = "rgb(var(--color-gray-500))" }: { label: string; value: ReactNode; sub: string; color?: string }) => (
   <div className="flex flex-col gap-1 rounded-xl border border-lightGray bg-white px-5 py-4">
-    <p className="text-sm text-[#4B5563]">{label}</p>
+    <p className="text-sm text-gray-600">{label}</p>
     <p className="text-2xl font-semibold leading-8 text-primary">{value}</p>
     <p className="text-xs" style={{ color }}>
       {sub}
@@ -104,7 +104,7 @@ const KpiTile = ({ label, value, sub, color = "#6B7280" }: { label: string; valu
 );
 
 const BackLink = ({ label, onClick }: { label: string; onClick: () => void }) => (
-  <button type="button" onClick={onClick} className="self-start bg-transparent p-0 text-sm text-[#4B5563] hover:text-primary">
+  <button type="button" onClick={onClick} className="self-start bg-transparent p-0 text-sm text-gray-600 hover:text-primary">
     ← {label}
   </button>
 );
@@ -224,12 +224,12 @@ const AssetReconciliation = () => {
           const due = dueInfo(active!, today);
           const sb = d.submitted_at;
           return (
-            <section key={d.key} className="flex flex-col gap-4 rounded-xl border border-lightGray bg-white p-6 shadow-[0_8px_24px_rgba(8,13,45,0.08)]">
+            <section key={d.key} className="flex flex-col gap-4 rounded-xl border border-lightGray bg-white p-6 shadow-[0_8px_24px_rgb(var(--color-shadow)_/_0.08)]">
               <div className="flex flex-wrap items-center gap-2">
                 <h2 className="text-xl font-semibold leading-7 text-primary">{active!.name}</h2>
                 <Pill tone={sb ? "success" : done ? "info" : "neutral"}>{sb ? "Submitted" : done ? "Counting" : "Not started"}</Pill>
               </div>
-              <p className="text-sm text-[#4B5563]">
+              <p className="text-sm text-gray-600">
                 {sb
                   ? `You submitted the ${d.name} count on ${fmtD(sb)}. ${active!.created_by?.name || "The administrator"} will review any differences and close the check.`
                   : `${active!.created_by?.name || "The administrator"} asked you to count the ${plural(items.length, "asset")} ${d.name} holds. Mark each one as you see it, then submit.`}
@@ -244,7 +244,7 @@ const AssetReconciliation = () => {
                   <span className="font-semibold">
                     {done} of {items.length} counted
                   </span>
-                  <span className="text-[#4B5563]">{pct(done, items.length)}</span>
+                  <span className="text-gray-600">{pct(done, items.length)}</span>
                 </div>
                 <Bar pct={(done / (items.length || 1)) * 100} />
               </div>
@@ -262,7 +262,7 @@ const AssetReconciliation = () => {
         {(!active || (!admin && !mine.length)) && stock.loaded && (
           <div className="flex flex-col items-center gap-1 rounded-xl border border-dashed border-lightGray bg-white p-6 text-center">
             <p className="text-sm font-semibold text-primary">No stock check in progress</p>
-            <p className="text-sm text-[#4B5563]">
+            <p className="text-sm text-gray-600">
               {!admin
                 ? "Nothing for you to count right now. You’ll be notified when the next check starts."
                 : past.length
@@ -271,7 +271,7 @@ const AssetReconciliation = () => {
             </p>
           </div>
         )}
-        {!stock.loaded && <div className="h-40 animate-pulse rounded-xl bg-[#F3F4F6]" />}
+        {!stock.loaded && <div className="h-40 animate-pulse rounded-xl bg-gray-100" />}
 
         {admin && (
           <section className="flex flex-col gap-3">
@@ -284,18 +284,18 @@ const AssetReconciliation = () => {
                 <div key={c.id} className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-xl border border-lightGray bg-white px-5 py-4">
                   <div className="min-w-0 flex-[1_1_220px]">
                     <p className="text-sm font-semibold text-primary">{c.name}</p>
-                    <p className="text-xs text-[#6B7280]">
+                    <p className="text-xs text-gray-500">
                       {c.scope_label} · closed {fmtD(c.closed_at)} by {c.closed_by?.name || c.created_by?.name || "—"}
                     </p>
                   </div>
                   {[
-                    { l: "Counted", v: `${st.counted} of ${st.expected}`, c: "#080D2D" },
-                    { l: "Matched", v: pct(st.matched, st.expected), c: "#080D2D" },
-                    { l: "Differences", v: String(diffs), c: diffs ? "#B45309" : "#080D2D" },
-                    { l: "Not found", v: moneyS(misV), c: misV ? "#B91C1C" : "#080D2D" },
+                    { l: "Counted", v: `${st.counted} of ${st.expected}`, c: "rgb(var(--color-primary))" },
+                    { l: "Matched", v: pct(st.matched, st.expected), c: "rgb(var(--color-primary))" },
+                    { l: "Differences", v: String(diffs), c: diffs ? "rgb(var(--color-amber-700))" : "rgb(var(--color-primary))" },
+                    { l: "Not found", v: moneyS(misV), c: misV ? "rgb(var(--color-red-700))" : "rgb(var(--color-primary))" },
                   ].map((x) => (
                     <div key={x.l} className="flex flex-col">
-                      <span className="text-xs text-[#6B7280]">{x.l}</span>
+                      <span className="text-xs text-gray-500">{x.l}</span>
                       <span className="text-sm font-semibold" style={{ color: x.c }}>
                         {x.v}
                       </span>
@@ -310,7 +310,7 @@ const AssetReconciliation = () => {
                 Show {Math.min(10, stock.pastTotal - past.length)} more
               </UiButton>
             )}
-            {stock.loaded && !past.length && <p className="text-sm text-[#6B7280]">No closed stock checks yet.</p>}
+            {stock.loaded && !past.length && <p className="text-sm text-gray-500">No closed stock checks yet.</p>}
           </section>
         )}
       </>
@@ -336,14 +336,14 @@ const AssetReconciliation = () => {
       .sort((a, b) => Number(!!a.d.submitted_at) - Number(!!b.d.submitted_at) || a.done / a.total - b.done / b.total);
 
     return (
-      <section className="flex flex-col gap-5 rounded-xl border border-lightGray bg-white p-6 shadow-[0_8px_24px_rgba(8,13,45,0.08)]">
+      <section className="flex flex-col gap-5 rounded-xl border border-lightGray bg-white p-6 shadow-[0_8px_24px_rgb(var(--color-shadow)_/_0.08)]">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex min-w-0 flex-col gap-1">
             <div className="flex flex-wrap items-center gap-2">
               <h2 className="text-xl font-semibold leading-7 text-primary">{c.name}</h2>
               <Pill tone="info">In progress</Pill>
             </div>
-            <p className="text-sm text-[#4B5563]">
+            <p className="text-sm text-gray-600">
               {c.scope_label} · started {fmtD(c.started_at)} by {c.created_by?.name || "—"}
             </p>
             <p className="text-xs font-semibold" style={{ color: due.color }}>
@@ -365,7 +365,7 @@ const AssetReconciliation = () => {
             <span className="font-semibold">
               {st.done} of {st.expected} assets counted · {nSub} of {c.departments.length} departments submitted
             </span>
-            <span className="text-[#4B5563]">{pct(st.done, st.expected)}</span>
+            <span className="text-gray-600">{pct(st.done, st.expected)}</span>
           </div>
           <Bar pct={(st.done / (st.expected || 1)) * 100} />
         </div>
@@ -384,7 +384,7 @@ const AssetReconciliation = () => {
             {depts.map(({ d, total, done }) => {
               const mineK = d.counter?.id === me;
               return (
-                <div key={d.key} className="flex flex-col gap-2 rounded-lg border border-[#E5E7EB] bg-white px-4 py-3">
+                <div key={d.key} className="flex flex-col gap-2 rounded-lg border border-gray-200 bg-white px-4 py-3">
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-sm font-semibold">{d.name}</span>
                     <Pill tone={d.submitted_at ? "success" : done ? "info" : "neutral"}>
@@ -393,13 +393,13 @@ const AssetReconciliation = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="flex-1">
-                      <Bar pct={(done / (total || 1)) * 100} height="h-1.5" color={d.submitted_at ? "bg-[#15803D]" : "bg-primary"} />
+                      <Bar pct={(done / (total || 1)) * 100} height="h-1.5" color={d.submitted_at ? "bg-success" : "bg-primary"} />
                     </div>
                     <span className="text-xs font-semibold">
                       {done} / {total}
                     </span>
                   </div>
-                  <span className="text-xs text-[#6B7280]">
+                  <span className="text-xs text-gray-500">
                     {d.submitted_at
                       ? `Submitted ${fmtS(d.submitted_at)} by ${d.submitted_by_name || "—"}`
                       : `Counter: ${mineK ? "you" : d.counter?.name || "no department head set"}${d.reminded_at ? ` · reminded ${fmtS(d.reminded_at)}` : ""}`}
@@ -559,7 +559,7 @@ const AssetReconciliation = () => {
             <span className="font-semibold">
               {deptAll.filter(isDone).length} of {deptAll.length} counted{key !== null ? ` in ${deptName(key)}` : ""}
             </span>
-            <span className="text-[#4B5563]">{pct(deptAll.filter(isDone).length, deptAll.length)}</span>
+            <span className="text-gray-600">{pct(deptAll.filter(isDone).length, deptAll.length)}</span>
           </div>
           <Bar pct={(deptAll.filter(isDone).length / (deptAll.length || 1)) * 100} height="h-2" />
         </div>
@@ -618,11 +618,11 @@ const AssetReconciliation = () => {
 
         {canEdit && key !== null && left.length > 0 && (
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-xs text-[#6B7280]">Walked the room and everything is there? Mark the rest in one go, then fix any exceptions.</p>
+            <p className="text-xs text-gray-500">Walked the room and everything is there? Mark the rest in one go, then fix any exceptions.</p>
             <button
               type="button"
               onClick={bulkFound}
-              className="min-h-10 rounded-lg border border-[#BBF7D0] bg-[#F0FDF4] px-4 py-2 text-sm font-medium text-[#15803D] hover:bg-[#DCFCE7]"
+              className="min-h-10 rounded-lg border border-green-200 bg-green-50 px-4 py-2 text-sm font-medium text-green-700 hover:bg-[#DCFCE7]"
             >
               Mark remaining {left.length} as found
             </button>
@@ -656,12 +656,12 @@ const AssetReconciliation = () => {
             return (
               <div key={item.asset_id} className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-lg border border-lightGray bg-white px-4 py-3">
                 <div className="flex min-w-0 flex-[1_1_240px] items-center gap-3">
-                  <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border border-[#E5E7EB] bg-[#F3F5FA] text-xs font-semibold text-[#4B5563]">
+                  <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-background text-xs font-semibold text-gray-600">
                     {initials(a.name)}
                   </span>
                   <div className="flex min-w-0 flex-col gap-0.5">
                     <p className="text-sm font-semibold text-primary">{a.name}</p>
-                    <p className="text-xs text-[#6B7280]">
+                    <p className="text-xs text-gray-500">
                       {a.code} · {categoryLabel(a.category)}
                     </p>
                     {(a.status === "NEEDS_REPAIR" || a.status === "OUT_OF_REPAIRS" || a.status === "NOT_FIXABLE") && (
@@ -669,13 +669,13 @@ const AssetReconciliation = () => {
                         <Pill tone={STATUS[a.status].tone} className="px-2 py-0">
                           {STATUS[a.status].label}
                         </Pill>
-                        <span className="text-xs text-[#4B5563]">{statusNote}</span>
+                        <span className="text-xs text-gray-600">{statusNote}</span>
                       </div>
                     )}
                   </div>
                 </div>
                 <div className="min-w-0 flex-[0_1_200px]">
-                  <p className="text-xs text-[#6B7280]">Should be with</p>
+                  <p className="text-xs text-gray-500">Should be with</p>
                   <p className="text-sm">{item.expected_name}</p>
                 </div>
                 <div className="flex flex-[1_1_340px] flex-wrap items-center justify-end gap-2">
@@ -688,7 +688,7 @@ const AssetReconciliation = () => {
                   {picking && canEdit && (
                     <>
                       <label className="flex flex-[1_1_220px] flex-col gap-1">
-                        <span className="text-xs text-[#4B5563]">Found with</span>
+                        <span className="text-xs text-gray-600">Found with</span>
                         <select
                           value=""
                           disabled={busy}
@@ -711,7 +711,7 @@ const AssetReconciliation = () => {
                     <>
                       <div className="flex flex-col items-end gap-0.5">
                         <Pill tone={RESULT[item.result!].tone}>{RESULT[item.result!].label}</Pill>
-                        <span className="text-xs text-[#6B7280]">
+                        <span className="text-xs text-gray-500">
                           {item.result === "elsewhere" ? `With ${item.found_name} · ` : ""}
                           {item.counted_at ? `${fmtS(item.counted_at)} · ${item.counted_by_name || ""}` : ""}
                         </span>
@@ -733,7 +733,7 @@ const AssetReconciliation = () => {
             </UiButton>
           )}
           {!list.length && (
-            <p className="rounded-xl border border-dashed border-lightGray bg-white p-6 text-center text-sm text-[#4B5563]">
+            <p className="rounded-xl border border-dashed border-lightGray bg-white p-6 text-center text-sm text-gray-600">
               {filter === "todo" && !term
                 ? `Everything here has been counted.${key !== null && !sb ? " Submit the count below." : admin && st.done === st.expected ? " Review the differences to close the check." : ""}`
                 : "Nothing matches."}
@@ -745,10 +745,10 @@ const AssetReconciliation = () => {
           <section className="flex flex-col gap-2">
             <h2 className="text-base font-semibold text-primary">Found but not on the register</h2>
             {extras.map((x) => (
-              <div key={x.id} className="flex flex-wrap items-center gap-3 rounded-lg border border-[#BFDBFE] bg-white px-4 py-3">
+              <div key={x.id} className="flex flex-wrap items-center gap-3 rounded-lg border border-blue-200 bg-white px-4 py-3">
                 <div className="min-w-0 flex-[1_1_240px]">
                   <p className="text-sm font-semibold text-primary">{x.name}</p>
-                  <p className="text-xs text-[#6B7280]">
+                  <p className="text-xs text-gray-500">
                     Found with {x.found_name} · {categoryLabel(x.category)}
                     {x.note ? ` · ${x.note}` : ""} · {x.recorded_by_name || "—"}
                   </p>
@@ -771,7 +771,7 @@ const AssetReconciliation = () => {
                   ? `Submit count for ${deptName(key)}${dept?.counter && dept.counter.id !== me ? ` on behalf of ${dept.counter.name}` : ""}`
                   : "Submit your count"}
               </p>
-              <p className="text-xs" style={{ color: left.length ? "#B45309" : "#15803D" }}>
+              <p className="text-xs" style={{ color: left.length ? "rgb(var(--color-amber-700))" : "rgb(var(--color-green-700))" }}>
                 {left.length
                   ? `${left.length} still to count before you can submit`
                   : `All ${deptAll.length} counted · ${plural(diffN, "difference")} for ${c.created_by?.name || "the administrator"} to review`}
@@ -783,7 +783,7 @@ const AssetReconciliation = () => {
               disabled={busy}
               className={cn(
                 "min-h-11 rounded-lg px-6 py-2 text-sm font-medium text-white disabled:opacity-60",
-                left.length ? "bg-[#6B7280]" : "bg-primary hover:bg-primary/90"
+                left.length ? "bg-gray-500" : "bg-primary hover:bg-primary/90"
               )}
             >
               Submit count
@@ -858,15 +858,15 @@ const AssetReconciliation = () => {
             ? `With ${exp} · ${categoryLabel(item.asset.category)} · was ${STATUS[item.asset.status].label.toLowerCase()}`
             : `Should be with ${exp} · worth ${money(item.asset.price)}`) + (item.counted_by_name ? ` · counted by ${item.counted_by_name}` : "");
       return (
-        <div key={item.asset_id} className="flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-[#E5E7EB] px-5 py-3 last:border-b-0">
+        <div key={item.asset_id} className="flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-gray-200 px-5 py-3 last:border-b-0">
           <div className="min-w-0 flex-[1_1_240px]">
             <p className="text-sm font-semibold text-primary">
               {item.asset.name} · {item.asset.code}
             </p>
-            <p className="text-xs text-[#6B7280]">{detail}</p>
+            <p className="text-xs text-gray-500">{detail}</p>
           </div>
           {closed ? (
-            <span className="text-sm text-[#374151]">{item.fix ? FIX_TEXT[item.fix] : "—"}</span>
+            <span className="text-sm text-gray-700">{item.fix ? FIX_TEXT[item.fix] : "—"}</span>
           ) : (
             <Options
               current={item.fix}
@@ -878,7 +878,7 @@ const AssetReconciliation = () => {
                     type="button"
                     disabled={busy}
                     onClick={() => recount(item)}
-                    className="min-h-10 flex-auto rounded-lg border border-[#BFDBFE] bg-white px-3 py-2 text-sm font-medium text-[#1D4ED8] hover:bg-[#EFF6FF] disabled:opacity-60"
+                    className="min-h-10 flex-auto rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 disabled:opacity-60"
                   >
                     Ask for recount
                   </button>
@@ -930,16 +930,16 @@ const AssetReconciliation = () => {
         title: `${st.extras.length} found but not on the register`,
         sub: "Added items get an asset ID. Purchase details can be filled in later.",
         body: st.extras.map((x) => (
-          <div key={x.id} className="flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-[#E5E7EB] px-5 py-3 last:border-b-0">
+          <div key={x.id} className="flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-gray-200 px-5 py-3 last:border-b-0">
             <div className="min-w-0 flex-[1_1_240px]">
               <p className="text-sm font-semibold text-primary">{x.name}</p>
-              <p className="text-xs text-[#6B7280]">
+              <p className="text-xs text-gray-500">
                 Found with {x.found_name}
                 {x.note ? ` · ${x.note}` : ""} · {x.recorded_by_name || "—"}
               </p>
             </div>
             {closed ? (
-              <span className="text-sm text-[#374151]">{FIX_TEXT[x.fix]}</span>
+              <span className="text-sm text-gray-700">{FIX_TEXT[x.fix]}</span>
             ) : (
               <Options current={x.fix} options={FIX_OPTIONS.extra} onPick={(fix) => setFix({ extra_id: x.id, fix })} />
             )}
@@ -1027,23 +1027,23 @@ const AssetReconciliation = () => {
         />
         <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,180px),1fr))] gap-4">
           <KpiTile label="Expected" value={st.expected} sub="Assets on the register in scope" />
-          <KpiTile label="Found as recorded" value={pct(st.found.length, st.expected)} sub={plural(st.found.length, "item")} color="#15803D" />
+          <KpiTile label="Found as recorded" value={pct(st.found.length, st.expected)} sub={plural(st.found.length, "item")} color="rgb(var(--color-green-700))" />
           <KpiTile
             label="Differences"
             value={diffs}
             sub={`${st.elsewhere.length} elsewhere · ${st.damaged.length} damaged · ${st.back.length} back from repair · ${st.missing.length} not found`}
-            color={diffs ? "#B45309" : "#6B7280"}
+            color={diffs ? "rgb(var(--color-amber-700))" : "rgb(var(--color-gray-500))"}
           />
-          <KpiTile label="Not found value" value={moneyS(misV)} sub={plural(st.missing.length, "item")} color={misV ? "#B91C1C" : "#6B7280"} />
+          <KpiTile label="Not found value" value={moneyS(misV)} sub={plural(st.missing.length, "item")} color={misV ? "rgb(var(--color-red-700))" : "rgb(var(--color-gray-500))"} />
         </div>
 
         {!closed && todoN > 0 && (
-          <div role="alert" className="flex flex-wrap items-center gap-3 rounded-xl border border-[#FDE68A] bg-[#FFFBEB] px-5 py-4">
+          <div role="alert" className="flex flex-wrap items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-5 py-4">
             <div className="flex-[1_1_280px]">
               <p className="text-sm font-semibold text-primary">
                 {plural(todoN, "asset")} {todoN === 1 ? "hasn’t" : "haven’t"} been counted yet
               </p>
-              <p className="text-sm text-[#374151]">Count them, or record them as not found so the check can close.</p>
+              <p className="text-sm text-gray-700">Count them, or record them as not found so the check can close.</p>
             </div>
             <div className="flex flex-wrap gap-2">
               <UiButton onClick={() => go({ view: "count", check: c.id, filter: "todo" })}>Keep counting</UiButton>
@@ -1054,12 +1054,12 @@ const AssetReconciliation = () => {
           </div>
         )}
         {!closed && uns.length > 0 && (
-          <div className="flex flex-wrap items-center gap-3 rounded-xl border border-[#BFDBFE] bg-[#EFF6FF] px-5 py-4">
+          <div className="flex flex-wrap items-center gap-3 rounded-xl border border-blue-200 bg-blue-50 px-5 py-4">
             <div className="flex-[1_1_280px]">
               <p className="text-sm font-semibold text-primary">
                 {uns.length === 1 ? "1 department hasn’t" : `${uns.length} departments haven’t`} submitted: {uns.map((d) => d.name).join(", ")}
               </p>
-              <p className="text-sm text-[#374151]">You can still close, but their counts haven’t been signed off.</p>
+              <p className="text-sm text-gray-700">You can still close, but their counts haven’t been signed off.</p>
             </div>
             <UiButton disabled={busy} onClick={() => void remind(c)}>
               Remind them
@@ -1069,18 +1069,18 @@ const AssetReconciliation = () => {
 
         {groups.map((g) => (
           <section key={g.key} className="overflow-hidden rounded-xl border border-lightGray bg-white">
-            <div className="flex items-center gap-3 border-b border-[#E5E7EB] px-5 py-4">
+            <div className="flex items-center gap-3 border-b border-gray-200 px-5 py-4">
               <Pill tone={g.pill[1]}>{g.pill[0]}</Pill>
               <div>
                 <h2 className="text-base font-semibold text-primary">{g.title}</h2>
-                <p className="text-sm text-[#4B5563]">{g.sub}</p>
+                <p className="text-sm text-gray-600">{g.sub}</p>
               </div>
             </div>
             {g.body}
           </section>
         ))}
         {!diffs && (
-          <p className="rounded-xl border border-dashed border-lightGray bg-white p-6 text-center text-sm text-[#4B5563]">
+          <p className="rounded-xl border border-dashed border-lightGray bg-white p-6 text-center text-sm text-gray-600">
             Everything counted matches the register.
           </p>
         )}
@@ -1089,7 +1089,7 @@ const AssetReconciliation = () => {
           <section className="flex flex-wrap items-center gap-4 rounded-xl border border-lightGray bg-white p-5">
             <div className="flex flex-[1_1_320px] flex-col gap-1">
               <h2 className="text-base font-semibold text-primary">When you close this check</h2>
-              <ul className="m-0 flex flex-col gap-0.5 pl-[18px] text-sm text-[#374151]">
+              <ul className="m-0 flex flex-col gap-0.5 pl-[18px] text-sm text-gray-700">
                 {summary.map((s) => (
                   <li key={s}>{s}</li>
                 ))}
@@ -1110,8 +1110,8 @@ const AssetReconciliation = () => {
     <PageOutline className="flex flex-col gap-6">
       {loadingCheck ? (
         <div className="flex flex-col gap-4" aria-busy="true">
-          <div className="h-8 w-64 animate-pulse rounded bg-[#F3F4F6]" />
-          <div className="h-40 animate-pulse rounded-xl bg-[#F3F4F6]" />
+          <div className="h-8 w-64 animate-pulse rounded bg-gray-100" />
+          <div className="h-40 animate-pulse rounded-xl bg-gray-100" />
         </div>
       ) : view === "home" || !check ? (
         renderHome()
@@ -1215,7 +1215,7 @@ const StartCheckDialog = ({
             onChange={(e) => setDept(e.target.value)}
             options={[{ value: "", label: "All departments" }, { value: "0", label: "Store only" }, ...departments.map((d) => ({ value: String(d.id), label: d.name }))]}
           />
-          <span className="text-xs text-[#6B7280]">Each department head counts their own items.</span>
+          <span className="text-xs text-gray-500">Each department head counts their own items.</span>
         </Field>
         <Field label="Category">
           <SelectInput
@@ -1226,7 +1226,7 @@ const StartCheckDialog = ({
         </Field>
         <Field label="Count by">
           <TextInput type="date" value={due} min={todayKey()} onChange={(e) => setDue(e.target.value)} hasError={tried && !due} />
-          <span className="text-xs text-[#6B7280]">Counters get a reminder 3 days before.</span>
+          <span className="text-xs text-gray-500">Counters get a reminder 3 days before.</span>
         </Field>
       </FieldGrid>
     </RequisitionDialog>

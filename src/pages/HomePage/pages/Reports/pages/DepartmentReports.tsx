@@ -77,7 +77,7 @@ const DepartmentReports = () => {
               aria-label="Period type"
               value={controls.periodType}
               onChange={(event) => controls.setPeriodType(event.target.value as typeof controls.periodType)}
-              className="h-10 rounded-lg border border-[rgba(107,114,128,0.35)] bg-white px-3 text-sm text-primary"
+              className="h-10 rounded-lg border border-gray-500/35 bg-white px-3 text-sm text-primary"
             >
               {(["WEEKLY", "MONTHLY", "QUARTERLY", "ANNUAL"] as const).map((type) => (
                 <option key={type} value={type}>
@@ -90,7 +90,7 @@ const DepartmentReports = () => {
                 aria-label="Period"
                 value={list.period.key}
                 onChange={(event) => controls.setPeriodKey(event.target.value)}
-                className="h-10 max-w-full rounded-lg border border-[rgba(107,114,128,0.35)] bg-white px-3 text-sm text-primary"
+                className="h-10 max-w-full rounded-lg border border-gray-500/35 bg-white px-3 text-sm text-primary"
               >
                 {list.period_options.map((option) => (
                   <option key={option.key} value={option.key}>
@@ -151,26 +151,26 @@ const DepartmentReports = () => {
                 key={r.key}
                 type="button"
                 onClick={() => open(r)}
-                className="flex min-w-0 flex-col gap-4 rounded-2xl border border-lightGray bg-white p-5 text-left text-sm text-primary transition-shadow hover:shadow-[0_10px_28px_rgba(8,13,45,0.2)]"
+                className="flex min-w-0 flex-col gap-4 rounded-2xl border border-lightGray bg-white p-5 text-left text-sm text-primary transition-shadow hover:shadow-[0_10px_28px_rgb(var(--color-shadow)_/_0.2)]"
               >
                 <div className="flex w-full items-start justify-between gap-3">
                   <div className="flex min-w-0 flex-col gap-1">
                     <h2 className="text-xl font-semibold leading-7">{r.name}</h2>
-                    <p className="text-[#4B5563]">
+                    <p className="text-gray-600">
                       Prepared by {r.prepared_by?.name || r.hod_role} · {r.cadence}
                     </p>
                   </div>
                   <Pill tone={status.tone} className="flex-shrink-0">{status.label}</Pill>
                 </div>
-                <div className="grid w-full grid-cols-2 gap-3 border-t border-[#E5E7EB] pt-4">
+                <div className="grid w-full grid-cols-2 gap-3 border-t border-gray-200 pt-4">
                   {r.failed ? (
-                    <p className="col-span-2 text-[#6B7280]">Figures couldn’t be worked out for this period.</p>
+                    <p className="col-span-2 text-gray-500">Figures couldn’t be worked out for this period.</p>
                   ) : (
                     r.headline.map((kpi) => <MiniStat key={kpi.key} kpi={toKpi(kpi)} muted />)
                   )}
                 </div>
                 <div className="flex w-full items-center justify-between gap-2">
-                  <span className={r.overdue ? "text-xs font-semibold text-[#B91C1C]" : "text-xs text-[#6B7280]"}>
+                  <span className={r.overdue ? "text-xs font-semibold text-red-700" : "text-xs text-gray-500"}>
                     {dueLine(r)}
                   </span>
                   <span className="font-medium">{cta} →</span>
@@ -182,7 +182,7 @@ const DepartmentReports = () => {
       )}
 
       {list && list.reports.length > 0 && cards.length === 0 && (
-        <p className="rounded-xl border border-dashed border-lightGray bg-white p-6 text-center text-[#4B5563]">
+        <p className="rounded-xl border border-dashed border-lightGray bg-white p-6 text-center text-gray-600">
           No reports match this filter.
         </p>
       )}

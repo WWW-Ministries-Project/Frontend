@@ -66,7 +66,7 @@ const performanceOf = (count: number, average: number): { label: string; tone: P
 const Section = ({ title, sub }: { title: string; sub: string }) => (
   <div className="flex flex-col gap-1 border-t border-lightGray pt-6 first:border-t-0 first:pt-0">
     <h2 className="text-xl font-semibold leading-7 text-primary">{title}</h2>
-    <p className="text-sm text-[#4B5563]">{sub}</p>
+    <p className="text-sm text-gray-600">{sub}</p>
   </div>
 );
 
@@ -74,9 +74,9 @@ const Kpis = ({ items, loaded }: { items: { l: string; v: string; s: string; c?:
   <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,180px),1fr))] gap-4">
     {items.map((k) => (
       <div key={k.l} className="flex min-w-0 flex-col gap-1 rounded-xl border border-lightGray bg-white px-5 py-4">
-        <p className="text-sm text-[#4B5563]">{k.l}</p>
+        <p className="text-sm text-gray-600">{k.l}</p>
         <p className="break-words text-2xl font-semibold leading-8 text-primary">{loaded ? k.v : "—"}</p>
-        <p className="text-xs" style={{ color: k.c ?? "#6B7280" }}>
+        <p className="text-xs" style={{ color: k.c ?? "rgb(var(--color-gray-500))" }}>
           {loaded ? k.s : " "}
         </p>
       </div>
@@ -89,7 +89,7 @@ const Card = ({ title, sub, action, children }: { title: string; sub?: string; a
     <div className="flex flex-wrap items-start justify-between gap-3">
       <div>
         <h3 className="text-base font-semibold text-primary">{title}</h3>
-        {sub && <p className="text-sm text-[#4B5563]">{sub}</p>}
+        {sub && <p className="text-sm text-gray-600">{sub}</p>}
       </div>
       {action}
     </div>
@@ -103,15 +103,15 @@ const HBar = ({ label, value, width, sub }: { label: string; value: ReactNode; w
       <span className="min-w-0 truncate">{label}</span>
       <span className="whitespace-nowrap font-semibold">{value}</span>
     </div>
-    <div className="h-2 overflow-hidden rounded-full bg-[#E5E7EB]">
+    <div className="h-2 overflow-hidden rounded-full bg-gray-200">
       <div className="h-full bg-primary" style={{ width }} />
     </div>
-    <span className="text-xs text-[#6B7280]">{sub}</span>
+    <span className="text-xs text-gray-500">{sub}</span>
   </div>
 );
 
 const Legend = ({ items }: { items: { label: string; className: string }[] }) => (
-  <div className="flex flex-wrap gap-3 text-xs text-[#4B5563]">
+  <div className="flex flex-wrap gap-3 text-xs text-gray-600">
     {items.map((i) => (
       <span key={i.label} className="inline-flex items-center gap-1.5">
         <span className={`h-2.5 w-2.5 rounded-sm ${i.className}`} />
@@ -131,7 +131,7 @@ const Bars = ({
 }) => (
   <div className="overflow-x-auto">
     <div className="flex flex-col gap-2" style={{ minWidth: Math.max(320, rows.length * 48) }}>
-      <div className="flex h-[220px] items-end gap-2 border-b border-[#E5E7EB]">
+      <div className="flex h-[220px] items-end gap-2 border-b border-gray-200">
         {rows.map((r) => (
           <div key={r.key} title={r.tip} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1">
             <span className="whitespace-nowrap text-xs font-semibold text-primary">{loaded ? r.label : ""}</span>
@@ -151,7 +151,7 @@ const Bars = ({
       </div>
       <div className="flex gap-2">
         {rows.map((r) => (
-          <span key={r.key} className="min-w-0 flex-1 truncate text-center text-xs text-[#6B7280]">
+          <span key={r.key} className="min-w-0 flex-1 truncate text-center text-xs text-gray-500">
             {r.l}
           </span>
         ))}
@@ -563,13 +563,13 @@ export const LifeCenterAnalyticsView = ({
       {embedded ? (
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex flex-col gap-1">
-            {eyebrow && <p className="text-xs font-semibold tracking-[0.04em] text-[#6B7280]">{eyebrow}</p>}
+            {eyebrow && <p className="text-xs font-semibold tracking-[0.04em] text-gray-500">{eyebrow}</p>}
             {eyebrow ? (
               <h1 className="text-xl font-semibold leading-8 text-primary tablet:text-2xl">Analytics</h1>
             ) : (
               <h2 className="text-xl font-semibold leading-7 text-primary">Analytics</h2>
             )}
-            <p className="text-sm text-[#4B5563]">Souls won, meetings and offering for this center.</p>
+            <p className="text-sm text-gray-600">Souls won, meetings and offering for this center.</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">{controls}</div>
         </div>
@@ -580,14 +580,14 @@ export const LifeCenterAnalyticsView = ({
           actions={controls}
         />
       )}
-      <p className="text-xs text-[#6B7280]">{note}</p>
+      <p className="text-xs text-gray-500">{note}</p>
 
       {/* ------------------------------ souls won ----------------------------- */}
       <Section title="Souls won" sub="People won through life centers in the selected period." />
       <Kpis items={soulKpis} loaded={loaded} />
       <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,380px),1fr))] items-start gap-4">
         <Card title="Souls won over time" sub={allYears ? "By year" : month === "all" ? "By month" : week === "all" ? "By week of the month" : "By day"}>
-          <Legend items={[{ label: "Became members", className: "bg-[#9A5D1A]" }, { label: "Still to follow up", className: "bg-primary" }]} />
+          <Legend items={[{ label: "Became members", className: "bg-secondary" }, { label: "Still to follow up", className: "bg-primary" }]} />
           <Bars
             loaded={loaded}
             rows={soulTrend.map((t) => ({
@@ -598,7 +598,7 @@ export const LifeCenterAnalyticsView = ({
               a: t.conv,
               b: t.n - t.conv,
               max: soulMax,
-              aClass: "bg-[#9A5D1A]",
+              aClass: "bg-secondary",
               bClass: "bg-primary",
               stack: true,
             }))}
@@ -617,7 +617,7 @@ export const LifeCenterAnalyticsView = ({
                 />
               ))
             ) : (
-              <p className="text-sm text-[#6B7280]">No souls won in this period.</p>
+              <p className="text-sm text-gray-500">No souls won in this period.</p>
             )}
           </Card>
         ) : (
@@ -633,7 +633,7 @@ export const LifeCenterAnalyticsView = ({
               return list.length ? (
                 list.slice(0, 8).map(([name, n]) => <HBar key={name} label={name} value={n} width={`${(n / mx) * 100}%`} sub={plural(n, "soul")} />)
               ) : (
-                <p className="text-sm text-[#6B7280]">No souls won in this period.</p>
+                <p className="text-sm text-gray-500">No souls won in this period.</p>
               );
             })()}
           </Card>
@@ -642,11 +642,11 @@ export const LifeCenterAnalyticsView = ({
       <Card title="What stands out">
         <div className="-mt-1 flex flex-col">
           {insights.map((i) => (
-            <div key={i.p} className="flex gap-3 border-b border-[#E5E7EB] py-3 last:border-b-0">
+            <div key={i.p} className="flex gap-3 border-b border-gray-200 py-3 last:border-b-0">
               <Pill tone={i.tone} className="flex-shrink-0 self-start">
                 {i.p}
               </Pill>
-              <p className="text-sm text-[#374151]">{i.s}</p>
+              <p className="text-sm text-gray-700">{i.s}</p>
             </div>
           ))}
         </div>
@@ -655,7 +655,7 @@ export const LifeCenterAnalyticsView = ({
         <section className="flex min-w-0 flex-col gap-3">
           <div>
             <h3 className="text-base font-semibold text-primary">Souls won by life center</h3>
-            <p className="text-sm text-[#4B5563]">Performance compares each center with the average of {n1(average)} souls.</p>
+            <p className="text-sm text-gray-600">Performance compares each center with the average of {n1(average)} souls.</p>
           </div>
           {soulsByCenter.length ? (
             <>
@@ -695,7 +695,7 @@ export const LifeCenterAnalyticsView = ({
                     >
                       <div className="min-w-0">
                         <p className="font-semibold">{r.c.name}</p>
-                        <p className="text-xs text-[#6B7280]">
+                        <p className="text-xs text-gray-500">
                           {r.c.leader ?? "No leader yet"} · {plural(r.count, "soul")} · {r.conv} members
                         </p>
                       </div>
@@ -706,7 +706,7 @@ export const LifeCenterAnalyticsView = ({
               </div>
             </>
           ) : (
-            <p className="rounded-xl border border-dashed border-lightGray bg-white p-6 text-center text-sm text-[#4B5563]">
+            <p className="rounded-xl border border-dashed border-lightGray bg-white p-6 text-center text-sm text-gray-600">
               {loaded ? "No life centers to show." : "Loading life centers…"}
             </p>
           )}
@@ -718,21 +718,21 @@ export const LifeCenterAnalyticsView = ({
       <Kpis items={meetKpis} loaded={loaded} />
 
       {loaded && attention.length > 0 && (
-        <section className="overflow-hidden rounded-xl border border-[#FDE68A] bg-white">
-          <div className="flex flex-col gap-1 border-b border-[#FDE68A] bg-[#FFFBEB] px-5 py-4">
+        <section className="overflow-hidden rounded-xl border border-amber-200 bg-white">
+          <div className="flex flex-col gap-1 border-b border-amber-200 bg-amber-50 px-5 py-4">
             <h3 className="text-base font-semibold text-primary">Needs your attention</h3>
-            <p className="text-sm text-[#374151]">
+            <p className="text-sm text-gray-700">
               {plural(attention.length, "life center")} need follow-up. Overdue is based on today; irregular on the selected period.
             </p>
           </div>
           {attention.map((a) => (
-            <div key={a.r.c.id} className="flex flex-wrap items-center gap-3 border-b border-[#E5E7EB] px-5 py-4 last:border-b-0">
+            <div key={a.r.c.id} className="flex flex-wrap items-center gap-3 border-b border-gray-200 px-5 py-4 last:border-b-0">
               <Pill tone={a.tone} className="flex-shrink-0">
                 {a.pill}
               </Pill>
               <div className="flex min-w-0 flex-[1_1_280px] flex-col gap-0.5">
                 <p className="text-sm font-semibold text-primary">{a.title}</p>
-                <p className="text-sm text-[#4B5563]">{a.text}</p>
+                <p className="text-sm text-gray-600">{a.text}</p>
               </div>
               <div className="flex flex-wrap gap-2">
                 {manage && a.r.c.leader && (
@@ -769,7 +769,7 @@ export const LifeCenterAnalyticsView = ({
         }
       >
         {metric === "meetings" && <Legend items={[{ label: "Scheduled", className: "bg-lightGray" }, { label: "Held", className: "bg-primary" }]} />}
-        {metric === "attendance" && <Legend items={[{ label: "First-timers", className: "bg-[#9A5D1A]" }, { label: "Attendees", className: "bg-primary" }]} />}
+        {metric === "attendance" && <Legend items={[{ label: "First-timers", className: "bg-secondary" }, { label: "Attendees", className: "bg-primary" }]} />}
         <Bars
           loaded={loaded}
           rows={meetTrend.map((t) => {
@@ -777,7 +777,7 @@ export const LifeCenterAnalyticsView = ({
             if (metric === "meetings")
               return { key: t.b.key, l: t.b.l, label: `${t.x.held}/${t.x.exp}`, tip, a: t.x.exp, b: t.x.held, max: meetMax, aClass: "bg-lightGray", bClass: "bg-primary" };
             if (metric === "attendance")
-              return { key: t.b.key, l: t.b.l, label: String(t.x.people), tip, a: t.x.ft, b: t.x.attendees, max: meetMax, aClass: "bg-[#9A5D1A]", bClass: "bg-primary", stack: true };
+              return { key: t.b.key, l: t.b.l, label: String(t.x.people), tip, a: t.x.ft, b: t.x.attendees, max: meetMax, aClass: "bg-secondary", bClass: "bg-primary", stack: true };
             return { key: t.b.key, l: t.b.l, label: t.x.ghs >= 1000 ? `${n1(t.x.ghs / 1000)}k` : n0(t.x.ghs), tip, b: t.x.ghs, max: meetMax, bClass: "bg-primary" };
           })}
         />
@@ -799,7 +799,7 @@ export const LifeCenterAnalyticsView = ({
                 />
               ))
             ) : (
-              <p className="text-sm text-[#6B7280]">No offering recorded in this period.</p>
+              <p className="text-sm text-gray-500">No offering recorded in this period.</p>
             )}
           </Card>
         )}
@@ -822,7 +822,7 @@ export const LifeCenterAnalyticsView = ({
               />
             ))
           ) : (
-            <p className="text-sm text-[#6B7280]">No meetings in this period.</p>
+            <p className="text-sm text-gray-500">No meetings in this period.</p>
           )}
         </Card>
       </div>
@@ -832,9 +832,9 @@ export const LifeCenterAnalyticsView = ({
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <h3 className="text-base font-semibold text-primary">Meetings by life center</h3>
-              <p className="text-sm text-[#4B5563]">Select a row to open the center.</p>
+              <p className="text-sm text-gray-600">Select a row to open the center.</p>
             </div>
-            <label className="flex items-center gap-2 text-sm text-[#4B5563]">
+            <label className="flex items-center gap-2 text-sm text-gray-600">
               <span className="whitespace-nowrap">Sort by</span>
               <SelectInput
                 className="w-auto"
@@ -888,7 +888,7 @@ export const LifeCenterAnalyticsView = ({
                       key: "last",
                       header: "Last met",
                       width: "120px",
-                      render: (r) => <span style={{ color: r.gap > OVERDUE_DAYS ? "#B91C1C" : undefined }}>{lastText(r)}</span>,
+                      render: (r) => <span style={{ color: r.gap > OVERDUE_DAYS ? "rgb(var(--color-red-700))" : undefined }}>{lastText(r)}</span>,
                     },
                   ]}
                 />
@@ -906,7 +906,7 @@ export const LifeCenterAnalyticsView = ({
                       <div className="flex w-full items-start justify-between gap-3">
                         <div className="min-w-0">
                           <p className="font-semibold">{r.c.name}</p>
-                          <p className="text-xs text-[#6B7280]">{r.c.leader ?? "No leader yet"}</p>
+                          <p className="text-xs text-gray-500">{r.c.leader ?? "No leader yet"}</p>
                         </div>
                         <Pill tone={p.tone}>{p.label}</Pill>
                       </div>
@@ -918,11 +918,11 @@ export const LifeCenterAnalyticsView = ({
                         ].map((t) => (
                           <div key={t.l}>
                             <p className="font-semibold">{t.v}</p>
-                            <p className="text-xs text-[#6B7280]">{t.l}</p>
+                            <p className="text-xs text-gray-500">{t.l}</p>
                           </div>
                         ))}
                       </div>
-                      <p className="text-xs" style={{ color: r.gap > OVERDUE_DAYS ? "#B91C1C" : "#6B7280" }}>
+                      <p className="text-xs" style={{ color: r.gap > OVERDUE_DAYS ? "rgb(var(--color-red-700))" : "rgb(var(--color-gray-500))" }}>
                         Last met {lastText(r)} · {r.x.money}
                       </p>
                     </button>
@@ -934,7 +934,7 @@ export const LifeCenterAnalyticsView = ({
         </section>
       )}
       {byId.size === 0 && loaded && (
-        <p className="rounded-xl border border-dashed border-lightGray bg-white p-6 text-center text-sm text-[#4B5563]">No life centers yet.</p>
+        <p className="rounded-xl border border-dashed border-lightGray bg-white p-6 text-center text-sm text-gray-600">No life centers yet.</p>
       )}
     </>
   );

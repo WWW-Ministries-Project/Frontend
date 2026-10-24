@@ -236,12 +236,12 @@ export const RequisitionFormDialog = ({
       <div className="flex flex-col gap-2">
         <div className="flex items-baseline justify-between gap-3">
           <h3 className="text-base font-semibold text-primary">Items</h3>
-          <span className="text-sm text-[#4B5563]">
+          <span className="text-sm text-gray-600">
             {named.length} of {items.length} named
           </span>
         </div>
         {!phone && (
-          <div className="flex gap-2 px-1 text-xs font-semibold text-[#4B5563]">
+          <div className="flex gap-2 px-1 text-xs font-semibold text-gray-600">
             <span className="flex-[1_1_220px]">ITEM</span>
             <span className="flex-[0_0_80px]">QTY</span>
             <span className="flex-[0_0_120px]">UNIT PRICE</span>
@@ -294,7 +294,7 @@ export const RequisitionFormDialog = ({
                 onClick={() => setItems((prev) => (prev.length > 1 ? prev.filter((_, i) => i !== index) : prev))}
                 disabled={items.length === 1}
                 aria-label={`Remove item ${index + 1}`}
-                className="h-9 w-9 flex-[0_0_36px] rounded-lg border border-lightGray bg-white text-lg text-[#B91C1C] disabled:opacity-40"
+                className="h-9 w-9 flex-[0_0_36px] rounded-lg border border-lightGray bg-white text-lg text-red-700 disabled:opacity-40"
               >
                 ×
               </button>
@@ -318,7 +318,7 @@ export const RequisitionFormDialog = ({
           placeholder="What it’s for and what happens if it isn’t bought"
           hasError={bad(!why.trim())}
         />
-        <span className="text-xs text-[#6B7280]">Approvers read this first.</span>
+        <span className="text-xs text-gray-500">Approvers read this first.</span>
       </Field>
 
       <div className="flex flex-col gap-1">
@@ -336,8 +336,8 @@ export const RequisitionFormDialog = ({
             void addFiles(e.dataTransfer.files);
           }}
           className={cn(
-            "cursor-pointer rounded-lg border border-dashed p-5 text-center text-sm text-[#4B5563]",
-            dragging ? "border-primary bg-primary/5" : "border-lightGray bg-[#F9FAFB]"
+            "cursor-pointer rounded-lg border border-dashed p-5 text-center text-sm text-gray-600",
+            dragging ? "border-primary bg-primary/5" : "border-lightGray bg-gray-50"
           )}
         >
           {uploading ? (
@@ -365,14 +365,14 @@ export const RequisitionFormDialog = ({
             {files.map((file) => (
               <span
                 key={file.url}
-                className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-lightGray bg-[#F8F9FC] px-3 py-1.5 text-sm text-primary"
+                className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-lightGray bg-inputBackground px-3 py-1.5 text-sm text-primary"
               >
                 <span className="max-w-[200px] truncate">{fileNameOf(file.url)}</span>
                 <button
                   type="button"
                   onClick={() => setFiles((prev) => prev.filter((x) => x.url !== file.url))}
                   aria-label={`Remove ${fileNameOf(file.url)}`}
-                  className="text-[#B91C1C]"
+                  className="text-red-700"
                 >
                   ×
                 </button>

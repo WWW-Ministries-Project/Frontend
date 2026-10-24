@@ -29,7 +29,7 @@ import {
 import { useCheckIns, useImportJobs } from "../utils/useAttendanceData";
 
 const SELECT =
-  "h-10 w-full rounded-lg border border-[rgba(107,114,128,0.35)] bg-white px-3 text-sm text-primary disabled:opacity-60";
+  "h-10 w-full rounded-lg border border-gray-500/35 bg-white px-3 text-sm text-primary disabled:opacity-60";
 
 const jobStatus = (job: BiometricAttendanceImportJob): [string, PillTone] => {
   if (job.status === "COMPLETED") return ["Completed", "success"];
@@ -129,9 +129,9 @@ export const ImportCheckInsDialog = ({
       className="max-w-[880px] overflow-hidden"
     >
       <div className="flex min-h-0 flex-1 flex-col">
-        <div className="flex flex-col gap-1 border-b border-[#E5E7EB] px-6 py-5">
+        <div className="flex flex-col gap-1 border-b border-gray-200 px-6 py-5">
           <h2 className="text-xl font-semibold leading-7 text-primary">Import check-ins</h2>
-          <p className="text-sm text-[#4B5563]">
+          <p className="text-sm text-gray-600">
             Pick a month, choose events, then preview or import punches from the biometric devices.
             Duplicate punches are removed before attendance is staged.
           </p>
@@ -139,7 +139,7 @@ export const ImportCheckInsDialog = ({
 
         <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-6">
           {!canManage && (
-            <p className="rounded-lg border border-[#FDE68A] bg-[#FFFBEB] px-4 py-3 text-sm text-[#B45309]">
+            <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
               You can view check-ins, but you need manage attendance access to preview or import.
             </p>
           )}
@@ -188,7 +188,7 @@ export const ImportCheckInsDialog = ({
                 <h3 className="text-base font-semibold text-primary">
                   Events in {MONF[month - 1]} {year}
                 </h3>
-                <p className="text-xs text-[#6B7280]">
+                <p className="text-xs text-gray-500">
                   Only events that have already started are listed.
                 </p>
               </div>
@@ -229,7 +229,7 @@ export const ImportCheckInsDialog = ({
                     />
                     <span className="flex min-w-0 flex-1 flex-col">
                       <span className="text-sm font-semibold text-primary">{occ.name}</span>
-                      <span className="text-xs text-[#6B7280]">
+                      <span className="text-xs text-gray-500">
                         {fmtShort(occ.date)}
                         {occ.time ? ` · ${t12(occ.time)}` : ""} · {occ.typeLabel}
                       </span>
@@ -241,12 +241,12 @@ export const ImportCheckInsDialog = ({
                 );
               })}
               {!events.length && (
-                <p className="py-3 text-sm text-[#6B7280]">
+                <p className="py-3 text-sm text-gray-500">
                   {eventsLoading ? "Loading events…" : "No events were held in this month."}
                 </p>
               )}
             </div>
-            <p className="text-xs text-[#6B7280]">
+            <p className="text-xs text-gray-500">
               {plural(selected.length, "event")} selected. Events already imported skip existing
               check-ins.
             </p>
@@ -265,7 +265,7 @@ export const ImportCheckInsDialog = ({
                       {job.event_name || "Selected event"}
                       {job.occurrence_date ? ` · ${fmtShort(job.occurrence_date.slice(0, 10))}` : ""}
                     </span>
-                    <span className="text-xs text-[#6B7280]">
+                    <span className="text-xs text-gray-500">
                       {job.dry_run ? "Preview only" : "Import attendance"}
                       {range ? ` · window ${clock(range.start)} to ${clock(range.end)}` : ""}
                     </span>
@@ -290,7 +290,7 @@ export const ImportCheckInsDialog = ({
                     aria-valuenow={job.progress_percentage}
                     aria-valuemin={0}
                     aria-valuemax={100}
-                    className="h-2 overflow-hidden rounded-full bg-[#E5E7EB]"
+                    className="h-2 overflow-hidden rounded-full bg-gray-200"
                   >
                     <div
                       className="h-full rounded-full bg-primary transition-[width] duration-300"
@@ -299,19 +299,19 @@ export const ImportCheckInsDialog = ({
                   </div>
                 </div>
                 {job.status === "FAILED" && job.error_message && (
-                  <p className="text-sm text-[#B91C1C]">{job.error_message}</p>
+                  <p className="text-sm text-red-700">{job.error_message}</p>
                 )}
                 {stats.length > 0 && (
                   <>
                     <div className="grid grid-cols-[repeat(auto-fit,minmax(130px,1fr))] gap-2">
                       {stats.map((stat) => (
-                        <div key={stat.label} className="rounded-lg border border-lightGray bg-[#F8F9FC] px-3 py-2">
-                          <p className="text-xs text-[#6B7280]">{stat.label}</p>
+                        <div key={stat.label} className="rounded-lg border border-lightGray bg-inputBackground px-3 py-2">
+                          <p className="text-xs text-gray-500">{stat.label}</p>
                           <p className="text-lg font-semibold text-primary">{nf(stat.value)}</p>
                         </div>
                       ))}
                     </div>
-                    <p className={cn("text-sm", unmatched.length ? "text-[#B45309]" : "text-[#15803D]")}>
+                    <p className={cn("text-sm", unmatched.length ? "text-amber-700" : "text-green-700")}>
                       {unmatched.length
                         ? `${plural(unmatched.length, "device user")} not matched: ${unmatched
                             .slice(0, 6)
@@ -326,7 +326,7 @@ export const ImportCheckInsDialog = ({
           })}
         </div>
 
-        <div className="flex flex-wrap justify-end gap-3 border-t border-[#E5E7EB] px-6 py-4">
+        <div className="flex flex-wrap justify-end gap-3 border-t border-gray-200 px-6 py-4">
           <UiButton className="mr-auto" onClick={onClose} disabled={busy}>
             {busy ? "Processing…" : "Close"}
           </UiButton>

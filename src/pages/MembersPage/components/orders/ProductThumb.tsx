@@ -6,7 +6,7 @@ const HEX = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;
 
 /** Light tint of a colour hex for the placeholder tile background. */
 const tint = (hex: string) => {
-  if (!HEX.test(hex)) return "#F3F4F6";
+  if (!HEX.test(hex)) return "rgb(var(--color-gray-100))";
   const full =
     hex.length === 4
       ? `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`
@@ -45,7 +45,7 @@ export const ProductThumb = ({
         "relative flex size-14 flex-shrink-0 items-center justify-center rounded-lg",
         className
       )}
-      style={{ background: showImage ? "#F3F4F6" : tint(hex) }}
+      style={{ background: showImage ? "rgb(var(--color-gray-100))" : tint(hex) }}
     >
       {showImage ? (
         <img

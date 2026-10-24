@@ -108,7 +108,7 @@ const StatTile = ({ label, value, sub, hot, onClick }: StatTileProps) => {
       <span
         className={cn(
           "text-2xl font-semibold leading-8 tabular-nums",
-          hot ? "text-amber-700 dark:text-amber-300" : "text-primary"
+          hot ? "text-amber-700" : "text-primary"
         )}
       >
         {value}
@@ -119,7 +119,7 @@ const StatTile = ({ label, value, sub, hot, onClick }: StatTileProps) => {
   const className = cn(
     "flex flex-col gap-1 rounded-xl border p-4 text-left",
     hot
-      ? "border-amber-200 bg-amber-50 dark:border-amber-400/30 dark:bg-amber-400/10"
+      ? "border-amber-200 bg-amber-50"
       : "border-lightGray bg-white"
   );
   return onClick ? (

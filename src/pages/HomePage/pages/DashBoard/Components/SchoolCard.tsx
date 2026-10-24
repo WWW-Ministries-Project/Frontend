@@ -37,34 +37,34 @@ export const SchoolCard = ({
   const dueType = due ? ASSESSMENT_TYPE[due.type] : "";
 
   return (
-    <section className="flex flex-col gap-4 rounded-2xl border border-[#E5E7EB] bg-white p-[clamp(16px,2.5vw,24px)]">
+    <section className="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-[clamp(16px,2.5vw,24px)]">
       <div className="flex items-center justify-between gap-2">
-        <h3 className="text-lg font-semibold leading-7 text-[#080D2D]">School of Ministry</h3>
+        <h3 className="text-lg font-semibold leading-7 text-primary">School of Ministry</h3>
         {week && (
-          <span className="rounded-md bg-[#EDEBFE] px-2 py-0.5 text-xs font-semibold text-[#5521B5]">
+          <span className="rounded-md bg-violet-100 px-2 py-0.5 text-xs font-semibold text-violet-800">
             {week}
           </span>
         )}
       </div>
       <div className="flex flex-col gap-1.5">
-        <p className="text-[15px] font-semibold text-[#080D2D]">{current.program.title}</p>
-        {sub && <p className="text-[13px] text-[#6B7280]">{sub}</p>}
+        <p className="text-[15px] font-semibold text-primary">{current.program.title}</p>
+        {sub && <p className="text-[13px] text-gray-500">{sub}</p>}
       </div>
       <div className="flex flex-col gap-1.5">
         <div className="flex justify-between text-[13px]">
-          <span className="text-[#4B5563]">Progress</span>
-          <span className="font-semibold text-[#080D2D]">{percent}%</span>
+          <span className="text-gray-600">Progress</span>
+          <span className="font-semibold text-primary">{percent}%</span>
         </div>
-        <div className="h-2 overflow-hidden rounded-full bg-[#F3F4F6]">
-          <div className="h-full rounded-full bg-[#7E3AF2]" style={{ width: `${percent}%` }} />
+        <div className="h-2 overflow-hidden rounded-full bg-gray-100">
+          <div className="h-full rounded-full bg-violet-600" style={{ width: `${percent}%` }} />
         </div>
       </div>
       {due?.dueDate && (
-        <div className="flex flex-col gap-1 rounded-[10px] bg-[#F5F3FF] p-3">
-          <span className="text-xs font-semibold uppercase tracking-[0.04em] text-[#5521B5]">
+        <div className="flex flex-col gap-1 rounded-[10px] bg-violet-50 p-3">
+          <span className="text-xs font-semibold uppercase tracking-[0.04em] text-violet-800">
             Due next · {shortDay(new Date(due.dueDate))}
           </span>
-          <span className="text-sm font-semibold text-[#080D2D]">
+          <span className="text-sm font-semibold text-primary">
             {dueType ? `${dueType}: ${due.name}` : due.name}
           </span>
         </div>

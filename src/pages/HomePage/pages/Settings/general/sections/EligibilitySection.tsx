@@ -71,7 +71,7 @@ const Chips = ({
       ))}
     </>
   ) : (
-    <span className="text-xs text-[#6B7280]">No programs yet.</span>
+    <span className="text-xs text-gray-500">No programs yet.</span>
   );
 
 export const EligibilitySection = ({ rules, canEdit }: { rules: RulesDraft; canEdit: boolean }) => {
@@ -121,11 +121,11 @@ export const EligibilitySection = ({ rules, canEdit }: { rules: RulesDraft; canE
           return (
             <div
               key={role.key}
-              className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-[#E5E7EB] p-4 last:border-b-0"
+              className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-gray-200 p-4 last:border-b-0"
             >
               <div className="flex min-w-[160px] flex-[0_1_200px] flex-col">
                 <span className="text-sm font-medium text-primary">{role.label}</span>
-                <span className="text-xs text-[#6B7280]">
+                <span className="text-xs text-gray-500">
                   {picked.length ? `${picked.length} required` : "No programs required"}
                 </span>
               </div>
@@ -174,7 +174,7 @@ export const EligibilitySection = ({ rules, canEdit }: { rules: RulesDraft; canE
           return (
             <div
               key={index}
-              className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-[#E5E7EB] p-4 last:border-b-0"
+              className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-gray-200 p-4 last:border-b-0"
             >
               <select
                 value={rule.positionId}
@@ -219,7 +219,7 @@ export const EligibilitySection = ({ rules, canEdit }: { rules: RulesDraft; canE
                       return draft;
                     })
                   }
-                  className="h-9 w-9 rounded-lg border border-[#FECACA] bg-white text-lg text-[#B91C1C] hover:bg-[#FEF2F2]"
+                  className="h-9 w-9 rounded-lg border border-red-200 bg-white text-lg text-red-700 hover:bg-red-50"
                 >
                   ×
                 </button>
@@ -227,7 +227,7 @@ export const EligibilitySection = ({ rules, canEdit }: { rules: RulesDraft; canE
             </div>
           );
         })}
-        {!elig.positions.length && <p className="p-4 text-sm text-[#6B7280]">No position rules yet.</p>}
+        {!elig.positions.length && <p className="p-4 text-sm text-gray-500">No position rules yet.</p>}
       </Card>
     </>
   );

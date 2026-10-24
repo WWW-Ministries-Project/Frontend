@@ -159,7 +159,7 @@ export const DepartmentMembersTab = ({
 
       {totalPages > 1 && (
         <div className="flex flex-wrap items-center justify-end gap-3">
-          <span className="text-sm text-[#4B5563]">
+          <span className="text-sm text-gray-600">
             Page {page} of {totalPages}
           </span>
           <UiButton disabled={page <= 1} onClick={() => onPageChange(page - 1)}>
@@ -211,7 +211,7 @@ export const DepartmentPositionsTab = ({
               <h3 className="text-base font-semibold text-primary">{position.name}</h3>
               <Pill tone="neutral">{holders.length}</Pill>
             </div>
-            <p className="text-sm text-[#4B5563]">
+            <p className="text-sm text-gray-600">
               {holders.length
                 ? holders.map((member) => member.name).join(", ")
                 : "No one in this position yet."}

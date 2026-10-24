@@ -163,7 +163,7 @@ const LearnerSubmission = () => {
                       key={i}
                       className="flex items-start gap-3.5 border-t border-gray-100 px-4 py-3.5 first:border-0 md:px-6"
                     >
-                      <span className="flex size-7 flex-none items-center justify-center rounded-lg bg-[#F3F5FA] text-[13px] font-bold text-primary">
+                      <span className="flex size-7 flex-none items-center justify-center rounded-lg bg-background text-[13px] font-bold text-primary">
                         {i + 1}
                       </span>
                       <div className="flex min-w-0 flex-1 flex-col gap-1">
@@ -190,7 +190,7 @@ const LearnerSubmission = () => {
               ) : (
                 <Panel title="Your submission" bodyClassName="flex flex-col gap-3 p-4 md:p-6">
                   {s.prompt && (
-                    <p className="border-l-[3px] border-[#9A5D1A] bg-[#FFFDF8] px-4 py-3 text-sm text-primaryGray">
+                    <p className="border-l-[3px] border-secondary bg-amber-50/40 px-4 py-3 text-sm text-primaryGray">
                       {s.prompt}
                     </p>
                   )}

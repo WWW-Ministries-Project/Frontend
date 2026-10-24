@@ -29,10 +29,10 @@ export const AttendanceSection = ({ rules, canEdit }: { rules: RulesDraft; canEd
             const rule = att[row.key];
             const valid = isWholePositive(rule.value);
             return (
-              <div key={row.key} className="flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-[#E5E7EB] p-4">
+              <div key={row.key} className="flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-gray-200 p-4">
                 <div className="flex min-w-0 flex-[1_1_220px] flex-col">
                   <span className="text-sm font-medium text-primary">{row.label}</span>
-                  <span className="text-xs text-[#6B7280]">{row.description}</span>
+                  <span className="text-xs text-gray-500">{row.description}</span>
                 </div>
                 <div className="flex gap-2">
                   <input
@@ -51,7 +51,7 @@ export const AttendanceSection = ({ rules, canEdit }: { rules: RulesDraft; canEd
                     className={cn(
                       selectClass,
                       "w-24",
-                      !valid && "border-[#B91C1C] focus:border-[#B91C1C]"
+                      !valid && "border-red-700 focus:border-red-700"
                     )}
                   />
                   <select
@@ -74,9 +74,9 @@ export const AttendanceSection = ({ rules, canEdit }: { rules: RulesDraft; canEd
               </div>
             );
           })}
-          <div className="flex flex-col gap-1 bg-[#F8F9FC] px-4 py-3">
-            <p className="text-xs text-[#4B5563]">If a check-in fits two rules, Early and Late win over On time.</p>
-            {updated && <p className="text-xs text-[#6B7280]">Last updated {updated}</p>}
+          <div className="flex flex-col gap-1 bg-inputBackground px-4 py-3">
+            <p className="text-xs text-gray-600">If a check-in fits two rules, Early and Late win over On time.</p>
+            {updated && <p className="text-xs text-gray-500">Last updated {updated}</p>}
           </div>
         </Card>
       )}

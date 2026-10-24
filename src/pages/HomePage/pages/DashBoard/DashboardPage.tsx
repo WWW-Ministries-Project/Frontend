@@ -170,7 +170,7 @@ export const DashBoardPage = () => {
   return (
     <div
       className={cn(
-        "mx-auto flex w-full max-w-[1280px] flex-col gap-6 pb-12 text-[#080D2D]",
+        "mx-auto flex w-full max-w-[1280px] flex-col gap-6 pb-12 text-primary",
         isMemberRoute ? "pt-6" : "px-[clamp(16px,3vw,32px)] pt-[clamp(16px,3vw,32px)]"
       )}
     >

@@ -294,7 +294,7 @@ const EventsManagement = () => {
             type="button"
             aria-label="Previous month"
             onClick={() => goMonth(shiftMonth(month, -1))}
-            className="h-10 w-10 rounded-lg border border-lightGray bg-white text-base text-primary hover:bg-[#F3F4F6]"
+            className="h-10 w-10 rounded-lg border border-lightGray bg-white text-base text-primary hover:bg-gray-100"
           >
             ‹
           </button>
@@ -305,7 +305,7 @@ const EventsManagement = () => {
             type="button"
             aria-label="Next month"
             onClick={() => goMonth(shiftMonth(month, 1))}
-            className="h-10 w-10 rounded-lg border border-lightGray bg-white text-base text-primary hover:bg-[#F3F4F6]"
+            className="h-10 w-10 rounded-lg border border-lightGray bg-white text-base text-primary hover:bg-gray-100"
           >
             ›
           </button>
@@ -341,8 +341,8 @@ const EventsManagement = () => {
       </div>
 
       {eventFilter && (
-        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-[#BFDBFE] bg-[#EFF6FF] py-2 pl-4 pr-2">
-          <span className="flex-1 text-sm font-medium text-[#1D4ED8]">Showing {filterName} only</span>
+        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 py-2 pl-4 pr-2">
+          <span className="flex-1 text-sm font-medium text-blue-700">Showing {filterName} only</span>
           <UiButton size="sm" onClick={() => setParam("event", null)}>
             Show all events
           </UiButton>
@@ -355,7 +355,7 @@ const EventsManagement = () => {
             <button
               type="button"
               onClick={() => setShowPast(true)}
-              className="self-start text-sm text-[#4B5563] underline"
+              className="self-start text-sm text-gray-600 underline"
             >
               Show {plural(pastCount, "earlier event")} this month
             </button>
@@ -364,7 +364,7 @@ const EventsManagement = () => {
             <button
               type="button"
               onClick={() => setShowPast(false)}
-              className="self-start text-sm text-[#4B5563] underline"
+              className="self-start text-sm text-gray-600 underline"
             >
               Hide past events
             </button>
@@ -390,35 +390,35 @@ const EventsManagement = () => {
                         key={event.id}
                         type="button"
                         onClick={() => setOpenId(event.id)}
-                        className="flex min-h-16 w-full flex-wrap items-center gap-x-4 gap-y-2 border-b border-[#E5E7EB] bg-white px-4 py-3 text-left text-sm text-primary last:border-b-0 hover:bg-lightGray/20"
+                        className="flex min-h-16 w-full flex-wrap items-center gap-x-4 gap-y-2 border-b border-gray-200 bg-white px-4 py-3 text-left text-sm text-primary last:border-b-0 hover:bg-lightGray/20"
                       >
                         <span className="flex flex-[0_0_76px] flex-col">
                           <span className="font-semibold">{clockLabel(event.start) || "—"}</span>
-                          <span className="text-xs text-[#6B7280]">{clockLabel(event.end)}</span>
+                          <span className="text-xs text-gray-500">{clockLabel(event.end)}</span>
                         </span>
                         <span className="flex min-w-0 flex-[1_1_240px] flex-col gap-0.5">
                           <span className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
                             <Dot color={typeColor(event.type)} />
                             <span className="font-semibold">{event.name}</span>
-                            <span className="text-xs text-[#6B7280]">{typeLabel(event.type)}</span>
+                            <span className="text-xs text-gray-500">{typeLabel(event.type)}</span>
                             {event.status === "live" && <Pill tone={STATUS_PILL.live[1]}>{STATUS_PILL.live[0]}</Pill>}
                           </span>
-                          <span className="text-xs text-[#4B5563]">{rowMeta(event)}</span>
+                          <span className="text-xs text-gray-600">{rowMeta(event)}</span>
                         </span>
                         {showReg && (
                           <span className="flex flex-[0_0_140px] flex-col gap-1">
-                            <span className="text-xs text-[#4B5563]">
+                            <span className="text-xs text-gray-600">
                               {event.capacity
                                 ? `${event.registrations} / ${event.capacity} registered`
                                 : `${event.registrations} registered`}
                             </span>
-                            <span className="h-1.5 overflow-hidden rounded-full bg-[#F3F4F6]">
+                            <span className="h-1.5 overflow-hidden rounded-full bg-gray-100">
                               <span className="block h-full bg-primary" style={{ width: `${regWidth}%` }} />
                             </span>
                           </span>
                         )}
                         {attendance !== null && (
-                          <span className="flex-none text-xs text-[#4B5563]">
+                          <span className="flex-none text-xs text-gray-600">
                             {attendance.toLocaleString()} attended
                           </span>
                         )}
@@ -452,7 +452,7 @@ const EventsManagement = () => {
                 </span>
               ))}
             </div>
-            <div className="grid grid-cols-7 gap-px bg-[#E5E7EB]">
+            <div className="grid grid-cols-7 gap-px bg-gray-200">
               {cells.map((cell) => {
                 const selected = cell.key === selDay;
                 const isToday = cell.key === today;
@@ -472,7 +472,7 @@ const EventsManagement = () => {
                     }}
                     className={cn(
                       "flex min-h-[52px] min-w-0 cursor-pointer flex-col items-stretch gap-0.5 p-1 laptop:min-h-[112px]",
-                      selected ? "bg-[#F8F9FC] shadow-[inset_0_0_0_1px_#080D2D]" : "bg-white",
+                      selected ? "bg-inputBackground shadow-[inset_0_0_0_1px_#080D2D]" : "bg-white",
                       !cell.inMonth && "opacity-40"
                     )}
                   >
@@ -494,7 +494,7 @@ const EventsManagement = () => {
                             setSelDay(cell.key);
                             setOpenId(event.id);
                           }}
-                          className="flex min-w-0 items-center gap-1 rounded bg-[#F8F9FC] px-1 py-0.5 text-left text-xs text-primary hover:bg-[#E5E7EB]"
+                          className="flex min-w-0 items-center gap-1 rounded bg-inputBackground px-1 py-0.5 text-left text-xs text-primary hover:bg-gray-200"
                         >
                           <Dot size={6} color={typeColor(event.type)} />
                           <span className="truncate">
@@ -503,7 +503,7 @@ const EventsManagement = () => {
                         </button>
                       ))}
                       {cell.events.length > 2 && (
-                        <span className="px-1 text-xs text-[#4B5563]">+{cell.events.length - 2} more</span>
+                        <span className="px-1 text-xs text-gray-600">+{cell.events.length - 2} more</span>
                       )}
                     </div>
                     {cell.events.length > 0 && (
@@ -525,7 +525,7 @@ const EventsManagement = () => {
               {canManageEvents && <UiButton onClick={() => openNew(selDay)}>+ Add on this day</UiButton>}
             </div>
             {dayEvents.length === 0 ? (
-              <p className="text-sm text-[#6B7280]">Nothing scheduled.</p>
+              <p className="text-sm text-gray-500">Nothing scheduled.</p>
             ) : (
               <div className="overflow-hidden rounded-xl border border-lightGray bg-white">
                 {dayEvents.map((event) => {
@@ -535,7 +535,7 @@ const EventsManagement = () => {
                       key={event.id}
                       type="button"
                       onClick={() => setOpenId(event.id)}
-                      className="flex w-full items-center gap-4 border-b border-[#E5E7EB] bg-white px-4 py-3 text-left text-sm text-primary last:border-b-0 hover:bg-lightGray/20"
+                      className="flex w-full items-center gap-4 border-b border-gray-200 bg-white px-4 py-3 text-left text-sm text-primary last:border-b-0 hover:bg-lightGray/20"
                     >
                       <span className="flex-[0_0_76px] font-semibold">{clockLabel(event.start) || "—"}</span>
                       <span className="flex min-w-0 flex-1 flex-col">
@@ -543,7 +543,7 @@ const EventsManagement = () => {
                           <Dot color={typeColor(event.type)} />
                           <span className="truncate font-semibold">{event.name}</span>
                         </span>
-                        <span className="truncate text-xs text-[#4B5563]">{event.location || "No location"}</span>
+                        <span className="truncate text-xs text-gray-600">{event.location || "No location"}</span>
                       </span>
                       {status === "live" && <Pill tone="success">Happening now</Pill>}
                     </button>

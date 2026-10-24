@@ -37,11 +37,11 @@ export const LogsSection = ({ rules, canEdit }: { rules: RulesDraft; canEdit: bo
                 </option>
               ))}
             </select>
-            <span className="text-xs font-normal text-[#6B7280]">
+            <span className="text-xs font-normal text-gray-500">
               Only people with Full access to Settings can receive these.
             </span>
           </label>
-          <p className="text-xs text-[#4B5563]">
+          <p className="text-xs text-gray-600">
             Currently: <strong className="font-semibold">{saved?.name ?? "Backend default admin"}</strong>
           </p>
         </div>

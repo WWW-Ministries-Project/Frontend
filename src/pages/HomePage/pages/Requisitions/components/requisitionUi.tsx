@@ -16,9 +16,9 @@ import { type Row, type SimilarGroup, dur, fmtDT, stepDays, waitDays } from "../
 type DotState = "done" | "rej" | "cur" | "wait";
 
 const DOT: Record<DotState, string> = {
-  done: "border-[#15803D] bg-[#15803D]",
-  rej: "border-[#B91C1C] bg-[#B91C1C]",
-  cur: "border-[#B45309] bg-white",
+  done: "border-green-700 bg-success",
+  rej: "border-red-700 bg-error",
+  cur: "border-amber-700 bg-white",
   wait: "border-lightGray bg-white",
 };
 
@@ -40,7 +40,7 @@ export const StepperH = ({ row }: { row: Row }) => {
             <span
               className={cn(
                 "h-0.5 flex-1",
-                index === items.length - 1 ? "bg-transparent" : item.state === "done" ? "bg-[#15803D]" : "bg-lightGray"
+                index === items.length - 1 ? "bg-transparent" : item.state === "done" ? "bg-success" : "bg-lightGray"
               )}
             />
           </div>
@@ -48,7 +48,7 @@ export const StepperH = ({ row }: { row: Row }) => {
             className={cn(
               "truncate pr-1 text-xs leading-4",
               item.state === "cur" ? "font-semibold" : "font-normal",
-              item.state === "wait" ? "text-[#6B7280]" : "text-primary"
+              item.state === "wait" ? "text-gray-500" : "text-primary"
             )}
           >
             {item.label}
@@ -67,9 +67,9 @@ const ICON: Record<DotState, string> = {
 };
 
 const TIMELINE_DOT: Record<DotState, string> = {
-  done: "border-[#15803D] bg-[#15803D]",
-  rej: "border-[#B91C1C] bg-[#B91C1C]",
-  cur: "border-[#B45309] bg-[#B45309]",
+  done: "border-green-700 bg-success",
+  rej: "border-red-700 bg-error",
+  cur: "border-amber-700 bg-warning",
   wait: "border-lightGray bg-white",
 };
 
@@ -81,7 +81,7 @@ export const ApprovalTimeline = ({ row, me, now, reply }: { row: Row; me: number
       label: "Requester",
       who: `${row.requester.name}${row.requester.position ? ` · ${row.requester.position}` : ""}`,
       text: row.submitted_at ? `Signed and submitted ${fmtDT(row.submitted_at)}` : "Not submitted yet",
-      textClass: "text-[#4B5563]",
+      textClass: "text-gray-600",
       comment: "",
       sign: "",
       state: (row.submitted_at ? "done" : "wait") as DotState,
@@ -108,8 +108,8 @@ export const ApprovalTimeline = ({ row, me, now, reply }: { row: Row; me: number
         text,
         textClass:
           (step.status === "PENDING" && pendingFor > reply) || step.status === "REJECTED"
-            ? "text-[#B91C1C]"
-            : "text-[#4B5563]",
+            ? "text-red-700"
+            : "text-gray-600",
         comment: step.comment || "",
         sign: step.signature || "",
         state,
@@ -137,19 +137,19 @@ export const ApprovalTimeline = ({ row, me, now, reply }: { row: Row; me: number
             <span
               className={cn(
                 "min-h-4 w-0.5 flex-1",
-                index === entries.length - 1 ? "bg-transparent" : entry.state === "done" ? "bg-[#15803D]" : "bg-lightGray"
+                index === entries.length - 1 ? "bg-transparent" : entry.state === "done" ? "bg-success" : "bg-lightGray"
               )}
             />
           </div>
           <div className="flex min-w-0 flex-1 flex-col gap-0.5 pb-4">
-            <p className="text-xs text-[#6B7280]">{entry.label}</p>
+            <p className="text-xs text-gray-500">{entry.label}</p>
             <p className="font-semibold text-primary">{entry.who}</p>
             <p className={cn("text-xs", entry.textClass)}>{entry.text}</p>
             {entry.comment && (
-              <p className="mt-1 rounded-lg bg-[#F8F9FC] px-3 py-2 text-sm text-[#374151]">“{entry.comment}”</p>
+              <p className="mt-1 rounded-lg bg-inputBackground px-3 py-2 text-sm text-gray-700">“{entry.comment}”</p>
             )}
             {entry.sign && (
-              <p className="text-xs text-[#6B7280]">
+              <p className="text-xs text-gray-500">
                 Signed: <span className="text-base italic text-primary">{entry.sign}</span>
               </p>
             )}
@@ -172,18 +172,18 @@ export const SimilarBox = ({
   helper?: string;
   compact?: boolean;
 }) => (
-  <div className="flex flex-col gap-3 rounded-lg border border-[#BFDBFE] bg-[#EFF6FF] p-4">
+  <div className="flex flex-col gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4">
     <div className="flex flex-col gap-1">
       <h3 className={cn("font-semibold text-primary", compact ? "text-sm" : "text-base")}>
         Requested in the last {lookbackDays} days
       </h3>
-      {helper && <p className="text-sm text-[#374151]">{helper}</p>}
+      {helper && <p className="text-sm text-gray-700">{helper}</p>}
     </div>
     {groups.map((group) => (
       <div key={group.item} className="flex flex-col gap-1">
         <p className="text-sm font-semibold text-primary">{group.item}</p>
         {group.matches.map((match) => (
-          <p key={`${group.item}-${match.gid}`} className={cn("text-[#374151]", compact ? "text-xs" : "text-sm")}>
+          <p key={`${group.item}-${match.gid}`} className={cn("text-gray-700", compact ? "text-xs" : "text-sm")}>
             {match.gid} · {match.who} · {match.date} · qty {match.quantity} · {match.status}
           </p>
         ))}
@@ -217,11 +217,11 @@ export const SignatureField = ({
       maxLength={191}
       hasError={hasError}
     />
-    <div className="flex min-h-16 items-center rounded-lg border border-lightGray bg-[#F8F9FC] px-4 py-3">
+    <div className="flex min-h-16 items-center rounded-lg border border-lightGray bg-inputBackground px-4 py-3">
       {value.trim() ? (
         <span className="text-2xl italic leading-8 text-primary">{value}</span>
       ) : (
-        <span className="text-sm text-[#6B7280]">Your signature appears here</span>
+        <span className="text-sm text-gray-500">Your signature appears here</span>
       )}
     </div>
   </div>
@@ -229,7 +229,7 @@ export const SignatureField = ({
 
 /** Bulleted consequences shown at the top of a dialog. */
 export const Points = ({ points }: { points: string[] }) => (
-  <ul className="m-0 flex flex-col gap-1 pl-[18px] text-sm text-[#374151]">
+  <ul className="m-0 flex flex-col gap-1 pl-[18px] text-sm text-gray-700">
     {points.map((point) => (
       <li key={point}>{point}</li>
     ))}
@@ -280,14 +280,14 @@ export const RequisitionDrawerShell = ({
     <Dialog.Portal>
       <Dialog.Overlay className="fixed inset-0 z-[120] bg-primary/45" />
       <Dialog.Content className="fixed inset-y-0 right-0 z-[120] flex h-full w-full flex-col border-l border-lightGray bg-white focus:outline-none sm:w-[min(640px,100%)]">
-        <div className="flex items-start gap-3 border-b border-[#E5E7EB] px-5 py-5 sm:px-6">
+        <div className="flex items-start gap-3 border-b border-gray-200 px-5 py-5 sm:px-6">
           <div className="flex min-w-0 flex-1 flex-col gap-2">
             <div className="flex flex-wrap items-center gap-2">
               {pill && <Pill tone={pill.tone}>{pill.label}</Pill>}
-              {gid && <span className="text-xs text-[#6B7280]">{gid}</span>}
+              {gid && <span className="text-xs text-gray-500">{gid}</span>}
             </div>
             <Dialog.Title className="text-xl font-semibold leading-7 text-primary">{title}</Dialog.Title>
-            <Dialog.Description className={cn("text-sm text-[#4B5563]", !meta && "sr-only")}>
+            <Dialog.Description className={cn("text-sm text-gray-600", !meta && "sr-only")}>
               {meta || title}
             </Dialog.Description>
           </div>
@@ -297,7 +297,7 @@ export const RequisitionDrawerShell = ({
               onClick={onClose}
               disabled={busy}
               aria-label="Close"
-              className="h-9 w-9 flex-shrink-0 rounded-lg text-xl text-[#6B7280] hover:bg-[#F3F4F6]"
+              className="h-9 w-9 flex-shrink-0 rounded-lg text-xl text-gray-500 hover:bg-gray-100"
             >
               ×
             </button>
@@ -308,7 +308,7 @@ export const RequisitionDrawerShell = ({
           <div className="flex flex-col gap-6">{children}</div>
         </div>
         {buttons.length > 0 && (
-          <div className="flex flex-wrap justify-end gap-2 border-t border-[#E5E7EB] px-5 py-4 sm:px-6">
+          <div className="flex flex-wrap justify-end gap-2 border-t border-gray-200 px-5 py-4 sm:px-6">
             {buttons.map((button) => (
               <UiButton
                 key={button.label}
@@ -369,10 +369,10 @@ export const RequisitionDialog = ({
           style={{ maxWidth: width }}
           className="flex h-full w-full flex-col overflow-hidden bg-white focus:outline-none sm:h-auto sm:max-h-[90vh] sm:rounded-2xl sm:border sm:border-lightGray"
         >
-          <div className="flex items-start gap-3 border-b border-[#E5E7EB] px-6 py-5">
+          <div className="flex items-start gap-3 border-b border-gray-200 px-6 py-5">
             <div className="flex min-w-0 flex-1 flex-col gap-1">
               <Dialog.Title className="text-xl font-semibold leading-7 text-primary">{title}</Dialog.Title>
-              <Dialog.Description className={cn("text-sm text-[#4B5563]", !subtitle && "sr-only")}>
+              <Dialog.Description className={cn("text-sm text-gray-600", !subtitle && "sr-only")}>
                 {subtitle || title}
               </Dialog.Description>
             </div>
@@ -381,7 +381,7 @@ export const RequisitionDialog = ({
               onClick={onClose}
               disabled={busy}
               aria-label="Close"
-              className="h-9 w-9 flex-shrink-0 rounded-lg text-xl text-[#6B7280] hover:bg-[#F3F4F6]"
+              className="h-9 w-9 flex-shrink-0 rounded-lg text-xl text-gray-500 hover:bg-gray-100"
             >
               ×
             </button>
@@ -389,12 +389,12 @@ export const RequisitionDialog = ({
           <div className="flex-1 overflow-y-auto p-6">
             <div className="flex flex-col gap-5">
               {errors && errors.length > 0 && (
-                <div role="alert" className="flex flex-col gap-1 rounded-lg border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 text-sm">
+                <div role="alert" className="flex flex-col gap-1 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm">
                   <p className="font-semibold text-primary">
                     {errorTitle || (errors.length > 1 ? "Fix these before continuing" : "Fix this before continuing")}
                   </p>
                   {errors.map((error) => (
-                    <p key={error} className="text-[#B91C1C]">
+                    <p key={error} className="text-red-700">
                       · {error}
                     </p>
                   ))}
@@ -403,7 +403,7 @@ export const RequisitionDialog = ({
               {children}
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-3 border-t border-[#E5E7EB] px-6 py-4">
+          <div className="flex flex-wrap items-center gap-3 border-t border-gray-200 px-6 py-4">
             {footerLead && <div className="flex-[1_1_160px] text-base font-semibold text-primary">{footerLead}</div>}
             <div className="flex flex-auto flex-wrap justify-end gap-3">
               {buttons.map((button, index) => (
@@ -415,7 +415,7 @@ export const RequisitionDialog = ({
                   className={cn(
                     "flex-auto sm:flex-none",
                     index === buttons.length - 1 && buttons.length > 2 && "basis-full sm:basis-auto",
-                    button.solid && "border-[#B91C1C] bg-[#B91C1C] text-white hover:bg-[#B91C1C]/90"
+                    button.solid && "border-red-700 bg-error text-white hover:bg-error/90"
                   )}
                 >
                   {busy && button.tone === "primary" ? "Working…" : button.label}

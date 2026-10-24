@@ -153,7 +153,7 @@ export const SheetActions = ({
 /** Inline error inside a sheet. */
 export const SheetError = ({ message }: { message: string | null }) =>
   message ? (
-    <p role="alert" className="text-sm text-red-700 dark:text-red-300">
+    <p role="alert" className="text-sm text-red-700">
       {message}
     </p>
   ) : null;

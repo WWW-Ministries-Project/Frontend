@@ -70,10 +70,10 @@ export const RequisitionSection = ({ rules, canEdit }: { rules: RulesDraft; canE
               const value = req[row.key];
               const valid = isWholePositive(value) && (!row.max || Number(value) <= row.max);
               return (
-                <div key={row.key} className="flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-[#E5E7EB] p-4">
+                <div key={row.key} className="flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-gray-200 p-4">
                   <div className="flex min-w-0 flex-[1_1_220px] flex-col">
                     <span className="text-sm font-medium text-primary">{row.label}</span>
-                    <span className="text-xs text-[#6B7280]">{row.description}</span>
+                    <span className="text-xs text-gray-500">{row.description}</span>
                   </div>
                   <input
                     type="number"
@@ -89,13 +89,13 @@ export const RequisitionSection = ({ rules, canEdit }: { rules: RulesDraft; canE
                       const next = event.target.value;
                       rules.set("req", (draft) => ({ ...draft, [row.key]: next }));
                     }}
-                    className={cn(selectClass, "w-24", !valid && "border-[#B91C1C] focus:border-[#B91C1C]")}
+                    className={cn(selectClass, "w-24", !valid && "border-red-700 focus:border-red-700")}
                   />
                 </div>
               );
             })}
             {stored && ready && (
-              <div className="flex flex-wrap items-center gap-2 bg-[#F8F9FC] px-4 py-3 text-xs text-[#4B5563]">
+              <div className="flex flex-wrap items-center gap-2 bg-inputBackground px-4 py-3 text-xs text-gray-600">
                 <Pill tone={stored.draft.active ? "success" : "neutral"}>
                   {stored.draft.active ? "Approvals on" : "Approvals off"}
                 </Pill>

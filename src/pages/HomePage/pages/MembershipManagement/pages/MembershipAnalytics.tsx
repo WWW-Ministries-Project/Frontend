@@ -296,24 +296,24 @@ export const MembershipAnalytics = () => {
         />
 
         <div className="flex flex-col gap-1">
-          <h2 className="text-xl font-bold leading-7 text-[#1F2937]">{section.label}</h2>
-          <p className="text-sm text-[#4B5563]">
+          <h2 className="text-xl font-bold leading-7 text-gray-800">{section.label}</h2>
+          <p className="text-sm text-gray-600">
             {section.desc} · {memberCount} {memberCount === 1 ? "member" : "members"} in this
             view
           </p>
-          <p className="text-xs text-[#6B7280]">{rangeNote}</p>
+          <p className="text-xs text-gray-500">{rangeNote}</p>
         </div>
 
         {membersError || soulsWonError ? (
           <div
             role="alert"
-            className="rounded-lg border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 text-sm text-[#B91C1C]"
+            className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
           >
             Failed to load one or more membership datasets. Some charts may be partial.
           </div>
         ) : null}
         {membersLoading || soulsWonLoading ? (
-          <p role="status" className="text-sm text-[#6B7280]">
+          <p role="status" className="text-sm text-gray-500">
             Loading membership analytics…
           </p>
         ) : null}

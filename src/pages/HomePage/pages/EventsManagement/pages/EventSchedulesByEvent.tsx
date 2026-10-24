@@ -137,7 +137,7 @@ const EventSchedulesByEvent = () => {
       ) : schedules.length === 0 ? (
         <EmptyState
           scope="section"
-          className="mx-auto w-[20rem]"
+          className="mx-auto w-full max-w-[20rem]"
           msg="No scheduled events found for this event."
         />
       ) : (

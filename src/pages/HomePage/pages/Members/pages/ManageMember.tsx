@@ -198,12 +198,12 @@ export function ManageMember() {
           <button
             type="button"
             onClick={handleCancel}
-            className="self-start text-sm text-[#4B5563] transition-colors hover:text-primary"
+            className="self-start text-sm text-gray-600 transition-colors hover:text-primary"
           >
             ← {backLabel}
           </button>
           <h1 className="text-2xl font-semibold leading-8 text-primary">{title}</h1>
-          <p className="text-base leading-6 text-[#4B5563]">
+          <p className="text-base leading-6 text-gray-600">
             {isEditMode
               ? "Update the details below and save when you’re done."
               : "Register a new member. They start as unconfirmed until they complete the membership class."}
@@ -212,7 +212,7 @@ export function ManageMember() {
         {prefillSourceLabel ? (
           <p
             role="status"
-            className="rounded-lg border border-[#BFDBFE] bg-[#EFF6FF] px-4 py-3 text-sm text-[#1D4ED8]"
+            className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700"
           >
             Prefilled from {prefillSourceLabel}. Check the details and complete the remaining steps.
           </p>

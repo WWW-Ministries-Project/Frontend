@@ -151,7 +151,7 @@ const EventReportDetails = () => {
   if (!report) {
     return (
       <section className="flex flex-col gap-6 p-4 sm:p-6">
-        <button type="button" onClick={back} className="self-start bg-transparent p-0 text-sm text-[#4B5563] hover:text-primary">
+        <button type="button" onClick={back} className="self-start bg-transparent p-0 text-sm text-gray-600 hover:text-primary">
           ← Event reports
         </button>
         {loading || (!error && id) ? (
@@ -470,7 +470,7 @@ const EventReportDetails = () => {
                 ))}
               </div>
             </div>
-            <p className="text-xs text-[#6B7280]">
+            <p className="text-xs text-gray-500">
               Timing is measured against the {start || "event"} start using the attendance timing rules in Settings.
             </p>
             {deptRows.map(({ d, attendees, open }) => {
@@ -486,22 +486,22 @@ const EventReportDetails = () => {
                   >
                     <span className="min-w-0">
                       <span className="block font-semibold">{d.department_name}</span>
-                      <span className="block text-xs text-[#6B7280]">
+                      <span className="block text-xs text-gray-500">
                         Head: {d.head_name || "Not set"} · {lateN} late
                       </span>
                     </span>
-                    <span className="hidden whitespace-nowrap text-[#4B5563] sm:inline">
+                    <span className="hidden whitespace-nowrap text-gray-600 sm:inline">
                       {n(d.present_members)} of {n(d.total_members)}
                     </span>
                     <Pill tone={p >= 75 ? "success" : p >= 60 ? "warning" : "danger"}>{p < 60 ? `▼ ${p}%` : `${p}%`}</Pill>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4B5563" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={cn("transition-transform", open && "rotate-180")}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgb(var(--color-gray-600))" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={cn("transition-transform", open && "rotate-180")}>
                       <path d="M6 9l6 6 6-6" />
                     </svg>
                   </button>
                   {open && (
                     <div className="overflow-x-auto border-t border-lightGray">
                       <div className="min-w-[620px]">
-                        <div className="grid grid-cols-[minmax(180px,1.5fr)_110px_minmax(160px,1fr)_120px] gap-3 bg-[#F8F9FC] px-6 py-3 font-semibold">
+                        <div className="grid grid-cols-[minmax(180px,1.5fr)_110px_minmax(160px,1fr)_120px] gap-3 bg-inputBackground px-6 py-3 font-semibold">
                           <span>Name</span>
                           <span>Clock-in</span>
                           <span>Relative to start</span>
@@ -510,22 +510,22 @@ const EventReportDetails = () => {
                         {attendees.map((a) => {
                           const t = timingOf(a.status);
                           return (
-                            <div key={a.id} className="grid min-h-12 grid-cols-[minmax(180px,1.5fr)_110px_minmax(160px,1fr)_120px] items-center gap-3 border-t border-[#E5E7EB] px-6 py-2">
+                            <div key={a.id} className="grid min-h-12 grid-cols-[minmax(180px,1.5fr)_110px_minmax(160px,1fr)_120px] items-center gap-3 border-t border-gray-200 px-6 py-2">
                               <span>{a.name}</span>
                               <span>{fmtClock(a.arrival_time || a.arrival_at) || a.reported_time || "—"}</span>
-                              <span className="text-[#4B5563]">{a.relative_to_start && a.relative_to_start !== "-" ? a.relative_to_start : "—"}</span>
+                              <span className="text-gray-600">{a.relative_to_start && a.relative_to_start !== "-" ? a.relative_to_start : "—"}</span>
                               <span>{t ? <Pill tone={TIMING_TONE[t]}>{t}</Pill> : "—"}</span>
                             </div>
                           );
                         })}
-                        {attendees.length === 0 && <p className="px-6 py-4 text-[#6B7280]">Nobody in this department matches the arrival filter.</p>}
+                        {attendees.length === 0 && <p className="px-6 py-4 text-gray-500">Nobody in this department matches the arrival filter.</p>}
                       </div>
                     </div>
                   )}
                 </div>
               );
             })}
-            {departments.length === 0 && <p className="text-[#6B7280]">No department clock-ins were recorded for this event.</p>}
+            {departments.length === 0 && <p className="text-gray-500">No department clock-ins were recorded for this event.</p>}
           </div>
         )}
 

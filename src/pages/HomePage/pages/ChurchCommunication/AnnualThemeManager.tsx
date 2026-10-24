@@ -272,7 +272,7 @@ const AnnualThemeManager = () => {
         {loading && themes.length === 0 ? (
           <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,280px),1fr))] gap-4">
             {Array.from({ length: 4 }).map((_, index) => (
-              <div key={index} className="h-44 animate-pulse rounded-xl bg-[#F3F4F6]" />
+              <div key={index} className="h-44 animate-pulse rounded-xl bg-gray-100" />
             ))}
           </div>
         ) : themes.length === 0 ? (
@@ -297,8 +297,8 @@ const AnnualThemeManager = () => {
                   {statusPill(theme)}
                 </div>
                 <p className="text-base font-semibold text-primary">{theme.title}</p>
-                {theme.verseReference && <p className="text-sm text-[#4B5563]">{theme.verseReference}</p>}
-                {theme.verse && <p className="line-clamp-2 text-sm italic text-[#6B7280]">{theme.verse}</p>}
+                {theme.verseReference && <p className="text-sm text-gray-600">{theme.verseReference}</p>}
+                {theme.verse && <p className="line-clamp-2 text-sm italic text-gray-500">{theme.verse}</p>}
                 {canManage && (
                   <div className="mt-auto flex flex-wrap gap-2 pt-2">
                     <UiButton size="sm" onClick={() => openDialog(theme)}>
@@ -312,7 +312,7 @@ const AnnualThemeManager = () => {
                         <UiButton
                           size="sm"
                           tone="ghost"
-                          className="text-[#B91C1C] hover:bg-[#FEF2F2] hover:text-[#B91C1C]"
+                          className="text-red-700 hover:bg-red-50 hover:text-red-700"
                           onClick={() => deleteTheme(theme)}
                         >
                           Delete

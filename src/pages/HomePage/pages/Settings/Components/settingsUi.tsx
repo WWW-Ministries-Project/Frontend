@@ -16,7 +16,7 @@ export const Avatar = ({ name, size = 36, className }: { name: string; size?: 28
     aria-hidden="true"
     style={{ width: size, height: size }}
     className={cn(
-      "flex flex-shrink-0 items-center justify-center rounded-full bg-[#E5E7EB] font-semibold text-[#374151]",
+      "flex flex-shrink-0 items-center justify-center rounded-full bg-gray-200 font-semibold text-gray-700",
       size === 48 ? "text-base" : "text-xs",
       className
     )}
@@ -48,7 +48,7 @@ export const RemovableChip = ({
     className={cn(
       "inline-flex items-center gap-0.5 rounded-full border border-lightGray py-0.5 pl-2.5 text-xs font-medium text-primary",
       onRemove ? "pr-1" : "pr-2.5",
-      tone === "white" ? "bg-white" : "bg-[#F8F9FC]"
+      tone === "white" ? "bg-white" : "bg-inputBackground"
     )}
   >
     {label}
@@ -57,7 +57,7 @@ export const RemovableChip = ({
         type="button"
         onClick={onRemove}
         aria-label={`Remove ${label}`}
-        className="flex h-5 w-5 items-center justify-center rounded-full text-sm leading-none text-[#6B7280] hover:bg-[#F3F4F6]"
+        className="flex h-5 w-5 items-center justify-center rounded-full text-sm leading-none text-gray-500 hover:bg-gray-100"
       >
         ×
       </button>
@@ -99,7 +99,7 @@ export const PeopleChips = ({
     className={cn(
       "flex flex-wrap items-center gap-2",
       framed && "rounded-lg border p-3",
-      framed && (hasError ? "border-[#B91C1C]" : "border-lightGray")
+      framed && (hasError ? "border-red-700" : "border-lightGray")
     )}
   >
     {people.map((person) => (
@@ -110,7 +110,7 @@ export const PeopleChips = ({
         onRemove={disabled ? undefined : () => onRemove(person.id)}
       />
     ))}
-    {!people.length && <span className="text-xs text-[#6B7280]">{emptyText}</span>}
+    {!people.length && <span className="text-xs text-gray-500">{emptyText}</span>}
     {!disabled && (
       <select
         value=""
@@ -119,7 +119,7 @@ export const PeopleChips = ({
           if (id) onAdd(id);
         }}
         aria-label={addLabel}
-        className="h-10 max-w-[220px] rounded-lg border border-[rgba(107,114,128,0.35)] bg-white px-3 text-sm text-primary"
+        className="h-10 max-w-[220px] rounded-lg border border-gray-500/35 bg-white px-3 text-sm text-primary"
       >
         <option value="">{placeholder}</option>
         {options.map((option) => (
@@ -199,11 +199,11 @@ export const UnsavedBar = ({
   <div
     role="region"
     aria-label="Unsaved changes"
-    className="sticky bottom-0 z-40 flex flex-wrap items-center justify-between gap-3 border-t border-lightGray bg-white px-4 py-3 shadow-[0_-4px_12px_rgba(8,13,45,0.08)] tablet:px-6"
+    className="sticky bottom-0 z-40 flex flex-wrap items-center justify-between gap-3 border-t border-lightGray bg-white px-4 py-3 shadow-[0_-4px_12px_rgb(var(--color-shadow)_/_0.08)] tablet:px-6"
   >
     <div className="flex flex-col">
       <p className="text-sm font-semibold text-primary">{title}</p>
-      {subtitle && <p className="text-xs text-[#4B5563]">{subtitle}</p>}
+      {subtitle && <p className="text-xs text-gray-600">{subtitle}</p>}
     </div>
     <div className="flex gap-2">
       <UiButton tone="secondary" onClick={onDiscard} disabled={saving}>
@@ -251,7 +251,7 @@ export const SettingsDrawer = ({
         style={{ maxWidth: width }}
         className="fixed inset-y-0 right-0 z-[120] flex h-full w-full flex-col border-l border-lightGray bg-white focus:outline-none"
       >
-        <div className="flex items-start gap-3 border-b border-[#E5E7EB] px-6 py-5">
+        <div className="flex items-start gap-3 border-b border-gray-200 px-6 py-5">
           <div className="flex min-w-0 flex-1 flex-col gap-1">
             {header ?? (
               <>
@@ -259,7 +259,7 @@ export const SettingsDrawer = ({
               </>
             )}
             {header && <Dialog.Title className="sr-only">{title}</Dialog.Title>}
-            <Dialog.Description className={cn("text-sm text-[#4B5563]", (!description || Boolean(header)) && "sr-only")}>
+            <Dialog.Description className={cn("text-sm text-gray-600", (!description || Boolean(header)) && "sr-only")}>
               {description || title}
             </Dialog.Description>
           </div>
@@ -268,7 +268,7 @@ export const SettingsDrawer = ({
             onClick={onClose}
             disabled={busy}
             aria-label="Close"
-            className="h-9 w-9 flex-shrink-0 rounded-lg text-xl text-[#6B7280] hover:bg-[#F3F4F6]"
+            className="h-9 w-9 flex-shrink-0 rounded-lg text-xl text-gray-500 hover:bg-gray-100"
           >
             ×
           </button>
@@ -277,7 +277,7 @@ export const SettingsDrawer = ({
           <div className="flex flex-col gap-6">{children}</div>
         </div>
         {footer && (
-          <div className="flex flex-wrap justify-end gap-2 border-t border-[#E5E7EB] px-6 py-4">{footer}</div>
+          <div className="flex flex-wrap justify-end gap-2 border-t border-gray-200 px-6 py-4">{footer}</div>
         )}
       </Dialog.Content>
     </Dialog.Portal>
@@ -289,7 +289,7 @@ export const SubHeading = ({ title, text, children }: { title: string; text?: Re
   <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
     <div className="flex flex-col">
       <h3 className="text-base font-semibold text-primary">{title}</h3>
-      {text && <p className="text-sm text-[#4B5563]">{text}</p>}
+      {text && <p className="text-sm text-gray-600">{text}</p>}
     </div>
     {children}
   </div>

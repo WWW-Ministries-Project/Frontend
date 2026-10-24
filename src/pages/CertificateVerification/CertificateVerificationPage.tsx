@@ -19,7 +19,7 @@ export default function CertificateVerificationPage() {
   const certificate = data?.data ?? null;
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(6,44,94,0.12),_transparent_45%),linear-gradient(180deg,_#f8fafc_0%,_#eef4f8_100%)] px-4 py-10 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(6,44,94,0.12),_transparent_45%),linear-gradient(180deg,_rgb(var(--color-background))_0%,_rgb(var(--color-inputBackground))_100%)] px-4 py-10 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-4xl">
         <div className="rounded-[32px] border border-white/60 bg-white/90 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur sm:p-8">
           <div className="text-center">

@@ -23,10 +23,10 @@ export const YourWeek = ({ items, showSchool }: { items: WeekItem[]; showSchool:
   const legend = (Object.keys(KIND) as WeekItemKind[]).filter((k) => k !== "som" || showSchool);
 
   return (
-    <section className="flex min-w-0 flex-col gap-4 rounded-2xl border border-[#E5E7EB] bg-white p-[clamp(16px,2.5vw,24px)]">
+    <section className="flex min-w-0 flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-[clamp(16px,2.5vw,24px)]">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h3 className="text-lg font-semibold leading-7 text-[#080D2D]">Your week</h3>
-        <div className="flex flex-wrap gap-4 text-xs text-[#4B5563]">
+        <h3 className="text-lg font-semibold leading-7 text-primary">Your week</h3>
+        <div className="flex flex-wrap gap-4 text-xs text-gray-600">
           {legend.map((k) => (
             <span key={k} className="flex items-center gap-1.5">
               <span className="h-2 w-2 rounded-sm" style={{ background: KIND[k].color }} />
@@ -47,17 +47,17 @@ export const YourWeek = ({ items, showSchool }: { items: WeekItem[]; showSchool:
               key={day.toISOString()}
               className="flex min-h-[132px] snap-start flex-col gap-2 rounded-[10px] border p-2.5"
               style={{
-                borderColor: isToday ? "#080D2D" : "#E5E7EB",
-                background: isToday ? "#F9FAFB" : "#fff",
+                borderColor: isToday ? "rgb(var(--color-primary))" : "rgb(var(--color-gray-200))",
+                background: isToday ? "rgb(var(--color-gray-50))" : "rgb(var(--color-white))",
               }}
             >
               <div className="flex items-baseline justify-between">
-                <span className="text-xs font-semibold uppercase tracking-[0.04em] text-[#6B7280]">
+                <span className="text-xs font-semibold uppercase tracking-[0.04em] text-gray-500">
                   {day.toLocaleDateString("en-US", { weekday: "short" })}
                 </span>
                 <span
                   className="text-lg font-bold"
-                  style={{ color: isToday ? "#080D2D" : "#374151" }}
+                  style={{ color: isToday ? "rgb(var(--color-primary))" : "rgb(var(--color-gray-700))" }}
                 >
                   {day.getDate()}
                 </span>
@@ -68,8 +68,8 @@ export const YourWeek = ({ items, showSchool }: { items: WeekItem[]; showSchool:
                   className="flex flex-col gap-0.5 rounded-md border-l-[3px] px-2 py-1.5"
                   style={{ background: KIND[it.kind].bg, borderLeftColor: KIND[it.kind].color }}
                 >
-                  <span className="text-xs font-semibold leading-4 text-[#111827]">{it.title}</span>
-                  {it.time && <span className="text-[11px] text-[#4B5563]">{it.time}</span>}
+                  <span className="text-xs font-semibold leading-4 text-gray-900">{it.title}</span>
+                  {it.time && <span className="text-[11px] text-gray-600">{it.time}</span>}
                 </div>
               ))}
             </div>

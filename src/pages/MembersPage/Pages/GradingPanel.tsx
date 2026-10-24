@@ -355,11 +355,11 @@ const GradingPanel = () => {
       header: "Status",
       cell: ({ row }) =>
         row.original.status === "pending" ? (
-          <span className="inline-flex rounded-full bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-600 dark:bg-amber-900/30 dark:text-amber-300">
+          <span className="inline-flex rounded-full bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-600">
             Pending
           </span>
         ) : (
-          <span className="inline-flex rounded-full bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-600 dark:bg-green-900/30 dark:text-green-300">
+          <span className="inline-flex rounded-full bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-600">
             Graded
           </span>
         ),
@@ -495,11 +495,11 @@ const GradingPanel = () => {
                 {totalCount} submissions
               </span>
               <span className="flex items-center gap-1">
-                <ClockIcon className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                <ClockIcon className="h-4 w-4 text-amber-600" />
                 {pendingCount} pending
               </span>
               <span className="flex items-center gap-1">
-                <CheckIcon className="h-4 w-4 text-green-600 dark:text-green-400" />
+                <CheckIcon className="h-4 w-4 text-green-600" />
                 {gradedCount} graded
               </span>
             </div>

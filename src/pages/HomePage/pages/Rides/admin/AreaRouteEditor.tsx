@@ -135,7 +135,7 @@ export const AreaRouteEditor = ({
                 type="button"
                 className={cn(
                   iconButton,
-                  "border-red-200 text-red-700 hover:bg-red-50 dark:border-red-400/40 dark:text-red-300"
+                  "border-red-200 text-red-700 hover:bg-red-50"
                 )}
                 disabled={disabled}
                 onClick={() =>
@@ -150,7 +150,7 @@ export const AreaRouteEditor = ({
         );
       })}
       {outOfOrder ? (
-        <p className="text-xs text-amber-700 dark:text-amber-300">
+        <p className="text-xs text-amber-700">
           Minutes usually go up along the route. Check the order of the stops.
         </p>
       ) : null}

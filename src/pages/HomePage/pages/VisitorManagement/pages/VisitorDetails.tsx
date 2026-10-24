@@ -267,7 +267,7 @@ export const VisitorDetails = () => {
         </button>
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex min-w-0 flex-wrap items-center gap-4">
-            <div className="flex h-[72px] w-[72px] flex-shrink-0 items-center justify-center rounded-xl border border-[#E5E7EB] bg-lightGray/50 text-2xl font-bold outline outline-1 outline-white">
+            <div className="flex h-[72px] w-[72px] flex-shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-lightGray/50 text-2xl font-bold outline outline-1 outline-white">
               {initialsOf([visitor.firstName, visitor.lastName].filter(Boolean).join(" "))}
             </div>
             <div className="flex min-w-0 flex-col gap-2">
@@ -424,11 +424,11 @@ export const VisitorDetails = () => {
         </div>
 
         <aside className="flex min-w-0 flex-col gap-4">
-          <section className="flex flex-col gap-3 rounded-xl border border-lightGray bg-white p-6 shadow-[0_8px_24px_rgba(8,13,45,0.08)]">
+          <section className="flex flex-col gap-3 rounded-xl border border-lightGray bg-white p-6 shadow-[0_8px_24px_rgb(var(--color-shadow)_/_0.08)]">
             <h2 className="text-base font-semibold text-primary">Visitor details</h2>
             {facts.map((fact) => (
               <div key={fact.label} className="flex flex-col gap-0.5">
-                <span className="text-xs text-[#6B7280]">{fact.label}</span>
+                <span className="text-xs text-gray-500">{fact.label}</span>
                 <span className="break-words text-sm font-medium text-primary">{fact.value}</span>
               </div>
             ))}
@@ -453,7 +453,7 @@ export const VisitorDetails = () => {
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold text-primary">{person.label}</p>
-                  <p className="text-xs text-[#6B7280]">Responsible person</p>
+                  <p className="text-xs text-gray-500">Responsible person</p>
                 </div>
                 {canManageVisitors && (
                   <button
@@ -473,7 +473,7 @@ export const VisitorDetails = () => {
                         "Could not remove the responsible person."
                       )
                     }
-                    className="bg-transparent p-0 text-sm text-[#B91C1C] disabled:opacity-60"
+                    className="bg-transparent p-0 text-sm text-red-700 disabled:opacity-60"
                   >
                     Remove
                   </button>
@@ -481,7 +481,7 @@ export const VisitorDetails = () => {
               </div>
             ))}
             {responsible.length === 0 && (
-              <p className="text-sm text-[#B45309]">
+              <p className="text-sm text-amber-700">
                 Not assigned. Assign someone before recording follow-ups.
               </p>
             )}

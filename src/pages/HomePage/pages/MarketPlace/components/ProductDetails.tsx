@@ -172,7 +172,7 @@ export function ProductDetails({
             hex={hex}
             imageUrl={colourImage(colour)}
             alt={`${product.name}${colour ? ` in ${colourLabel(colour)}` : ""}`}
-            swatchClassName="w-[42%] shadow-[0_24px_48px_rgba(8,13,45,0.2)]"
+            swatchClassName="w-[42%] shadow-[0_24px_48px_rgb(var(--color-shadow)_/_0.2)]"
             className="rounded-2xl border border-lightGray"
             label={[product.product_type?.name, colourLabel(colour)].filter(Boolean).join(" · ")}
             labelClassName="bottom-3.5 left-4 text-xs"

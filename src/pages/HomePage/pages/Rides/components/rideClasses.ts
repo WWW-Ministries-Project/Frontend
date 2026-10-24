@@ -23,17 +23,17 @@ export const btnGhost = cn(
 
 export const btnDangerOutline = cn(
   buttonBase,
-  "border border-red-200 bg-white text-red-700 hover:bg-red-50 dark:border-red-400/40 dark:text-red-300 dark:hover:bg-red-400/10"
+  "border border-red-200 bg-white text-red-700 hover:bg-red-50"
 );
 
 export const btnDangerGhost = cn(
   buttonBase,
-  "bg-transparent px-3 text-red-700 hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-400/10"
+  "bg-transparent px-3 text-red-700 hover:bg-red-50"
 );
 
 export const btnDanger = cn(
   buttonBase,
-  "bg-red-700 px-5 text-white hover:bg-red-700/90"
+  "bg-error px-5 text-white hover:bg-error/90"
 );
 
 export const inputClass =
@@ -46,7 +46,7 @@ export const selectClass = cn(inputClass, "pr-8");
 
 /** White list card with the design's card shadow. */
 export const listCard =
-  "rounded-2xl border border-lightGray bg-white shadow-[0_8px_24px_rgba(8,13,45,0.08)]";
+  "rounded-2xl border border-lightGray bg-white shadow-[0_8px_24px_rgb(var(--color-shadow)_/_0.08)]";
 
 export const sectionTitle = "text-base font-semibold text-primary";
 
@@ -54,19 +54,19 @@ export type PillTone = "success" | "warning" | "danger" | "info" | "neutral";
 
 export const pillTone: Record<PillTone, string> = {
   success:
-    "border-green-200 bg-green-50 text-green-700 dark:border-green-400/30 dark:bg-green-400/15 dark:text-green-300",
+    "border-green-200 bg-green-50 text-green-700",
   warning:
-    "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-400/30 dark:bg-amber-400/15 dark:text-amber-300",
+    "border-amber-200 bg-amber-50 text-amber-700",
   danger:
-    "border-red-200 bg-red-50 text-red-700 dark:border-red-400/30 dark:bg-red-400/15 dark:text-red-300",
-  info: "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-400/30 dark:bg-blue-400/15 dark:text-blue-300",
+    "border-red-200 bg-red-50 text-red-700",
+  info: "border-blue-200 bg-blue-50 text-blue-700",
   neutral: "border-gray-200 bg-gray-100 text-gray-700",
 };
 
 export const toneText: Record<PillTone, string> = {
-  success: "text-green-700 dark:text-green-300",
-  warning: "text-amber-700 dark:text-amber-300",
-  danger: "text-red-700 dark:text-red-300",
-  info: "text-blue-700 dark:text-blue-300",
+  success: "text-green-700",
+  warning: "text-amber-700",
+  danger: "text-red-700",
+  info: "text-blue-700",
   neutral: "text-gray-700",
 };

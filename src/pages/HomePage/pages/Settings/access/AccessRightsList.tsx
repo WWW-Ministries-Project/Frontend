@@ -25,7 +25,7 @@ import {
 import { NewRoleDialog } from "./RoleDialogs";
 import { grantsInScope, rolePath, uniquePeople, useAccessData, useBranchScope } from "./useAccessRights";
 
-const BAR = ["#F3F4F6", LEVEL_DOT[1], LEVEL_DOT[2], LEVEL_DOT[3]];
+const BAR = ["rgb(var(--color-gray-100))", LEVEL_DOT[1], LEVEL_DOT[2], LEVEL_DOT[3]];
 
 const RoleCard = ({ role, scope, onOpen }: { role: AccessRight; scope: ReturnType<typeof useBranchScope>; onOpen: () => void }) => {
   const draft = draftFromAccessRight(role);
@@ -52,7 +52,7 @@ const RoleCard = ({ role, scope, onOpen }: { role: AccessRight; scope: ReturnTyp
           onOpen();
         }
       }}
-      className="flex min-w-0 cursor-pointer flex-col gap-3 rounded-2xl border border-lightGray bg-white p-5 text-primary shadow-[0_8px_24px_rgba(8,13,45,0.08)] transition-shadow hover:shadow-[0_10px_28px_rgba(8,13,45,0.2)] focus-visible:outline-none focus-visible:shadow-[0_0_0_4px_rgba(8,13,45,0.08)]"
+      className="flex min-w-0 cursor-pointer flex-col gap-3 rounded-2xl border border-lightGray bg-white p-5 text-primary shadow-[0_8px_24px_rgb(var(--color-shadow)_/_0.08)] transition-shadow hover:shadow-[0_10px_28px_rgb(var(--color-shadow)_/_0.2)] focus-visible:outline-none focus-visible:shadow-[0_0_0_4px_rgb(var(--color-shadow)_/_0.08)]"
     >
       <div className="flex items-start justify-between gap-3">
         <h2 className="min-w-0 break-words text-xl font-semibold leading-7">{role.name}</h2>
@@ -60,15 +60,15 @@ const RoleCard = ({ role, scope, onOpen }: { role: AccessRight; scope: ReturnTyp
           {plural(n, "person", "people")}
         </Pill>
       </div>
-      <p className="min-h-10 text-sm text-[#4B5563]">{role.description}</p>
-      <div aria-hidden="true" className="flex h-2 overflow-hidden rounded-full bg-[#F3F4F6]">
+      <p className="min-h-10 text-sm text-gray-600">{role.description}</p>
+      <div aria-hidden="true" className="flex h-2 overflow-hidden rounded-full bg-gray-100">
         {[3, 2, 1]
           .filter((i) => mix[i])
           .map((i) => (
             <span key={i} style={{ width: `${(mix[i] / MODULES.length) * 100}%`, background: BAR[i] }} />
           ))}
       </div>
-      <p className="text-xs text-[#4B5563]">
+      <p className="text-xs text-gray-600">
         {mix[3]} full · {mix[2]} manage · {mix[1]} view · {mix[0]} none
       </p>
       {tags.length > 0 && (
@@ -80,7 +80,7 @@ const RoleCard = ({ role, scope, onOpen }: { role: AccessRight; scope: ReturnTyp
           ))}
         </div>
       )}
-      <div className="mt-auto flex min-h-[41px] items-center justify-between gap-3 border-t border-[#E5E7EB] pt-3">
+      <div className="mt-auto flex min-h-[41px] items-center justify-between gap-3 border-t border-gray-200 pt-3">
         <div className="flex">
           {people.slice(0, 4).map((p, i) => (
             <Avatar
@@ -91,13 +91,13 @@ const RoleCard = ({ role, scope, onOpen }: { role: AccessRight; scope: ReturnTyp
             />
           ))}
           {n > 4 && (
-            <span className="-ml-1.5 flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-[#E5E7EB] text-xs font-semibold text-[#374151]">
+            <span className="-ml-1.5 flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-gray-200 text-xs font-semibold text-gray-700">
               +{n - 4}
             </span>
           )}
-          {!n && <span className="text-xs text-[#6B7280]">No one yet</span>}
+          {!n && <span className="text-xs text-gray-500">No one yet</span>}
         </div>
-        {edited && <span className="text-xs text-[#6B7280]">Edited {edited}</span>}
+        {edited && <span className="text-xs text-gray-500">Edited {edited}</span>}
       </div>
     </div>
   );
@@ -105,11 +105,11 @@ const RoleCard = ({ role, scope, onOpen }: { role: AccessRight; scope: ReturnTyp
 
 const CardSkeleton = () => (
   <div aria-hidden="true" className="flex animate-pulse flex-col gap-3 rounded-2xl border border-lightGray bg-white p-5">
-    <div className="h-7 w-1/2 rounded bg-[#F3F4F6]" />
-    <div className="h-10 w-full rounded bg-[#F3F4F6]" />
-    <div className="h-2 w-full rounded-full bg-[#F3F4F6]" />
-    <div className="h-4 w-2/3 rounded bg-[#F3F4F6]" />
-    <div className="h-7 w-24 rounded bg-[#F3F4F6]" />
+    <div className="h-7 w-1/2 rounded bg-gray-100" />
+    <div className="h-10 w-full rounded bg-gray-100" />
+    <div className="h-2 w-full rounded-full bg-gray-100" />
+    <div className="h-4 w-2/3 rounded bg-gray-100" />
+    <div className="h-7 w-24 rounded bg-gray-100" />
   </div>
 );
 
@@ -155,8 +155,8 @@ const AccessRightsList = () => {
         <InlineAlert tone="info">You can view roles but not change them. Ask someone with Manage access to Access rights.</InlineAlert>
       )}
       {noRole > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#FDE68A] bg-[#FFFBEB] px-4 py-3">
-          <p className="text-sm font-medium text-[#B45309]">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+          <p className="text-sm font-medium text-amber-700">
             {plural(noRole, "user has", "users have")} no branch access and can’t open any admin module.
           </p>
           <UiButton onClick={() => navigate("/home/settings/users?tab=noaccess")}>Assign roles</UiButton>
@@ -164,7 +164,7 @@ const AccessRightsList = () => {
       )}
       <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
         <SearchInput value={q} onChange={setQ} placeholder="Search roles" ariaLabel="Search roles" className="w-full max-w-[360px] flex-none" />
-        <div className="flex flex-wrap items-center gap-3 text-xs text-[#4B5563]">
+        <div className="flex flex-wrap items-center gap-3 text-xs text-gray-600">
           {LEVELS.map((lv, i) => (
             <span key={lv.value} className="inline-flex items-center gap-1.5">
               <LevelDot rank={i} size={10} />
@@ -181,7 +181,7 @@ const AccessRightsList = () => {
             ))}
       </div>
       {!loading && !cards.length && (
-        <p className="text-sm text-[#6B7280]">{roles.length ? "No roles match your search." : "No roles yet."}</p>
+        <p className="text-sm text-gray-500">{roles.length ? "No roles match your search." : "No roles yet."}</p>
       )}
 
       <NewRoleDialog

@@ -27,7 +27,7 @@ import { createRole, isNameTaken, roleIn, updateRole } from "./useAccessRights";
 
 const ErrorLine = ({ text }: { text: string }) =>
   text ? (
-    <p role="alert" className="text-sm text-[#B91C1C]">
+    <p role="alert" className="text-sm text-red-700">
       {text}
     </p>
   ) : null;
@@ -113,7 +113,7 @@ export const NewRoleDialog = ({
       <Field
         label={
           <>
-            What it’s for <span className="text-[#6B7280]">(optional)</span>
+            What it’s for <span className="text-gray-500">(optional)</span>
           </>
         }
       >
@@ -140,11 +140,11 @@ export const NewRoleDialog = ({
                 }}
                 className={cn(
                   "flex flex-col gap-0.5 rounded-lg border p-3 text-left text-primary transition-colors",
-                  on ? "border-primary bg-[#F8F9FC] shadow-[0_0_0_1px_#080D2D]" : "border-lightGray bg-white hover:bg-[#F8F9FC]"
+                  on ? "border-primary bg-inputBackground shadow-[0_0_0_1px_#080D2D]" : "border-lightGray bg-white hover:bg-inputBackground"
                 )}
               >
                 <span className="text-sm font-semibold">{start.label}</span>
-                <span className="text-xs text-[#4B5563]">{start.description}</span>
+                <span className="text-xs text-gray-600">{start.description}</span>
               </button>
             );
           })}
@@ -306,7 +306,7 @@ export const DeleteRoleDialog = ({
         { label: "Delete role", tone: "danger", onClick: submit },
       ]}
     >
-      <p className="text-sm text-[#4B5563]">
+      <p className="text-sm text-gray-600">
         {peopleCount
           ? `${plural(peopleCount, "person has", "people have")} this role. Choose where they go so no one is left without access.`
           : "No one has this role. It will be removed for good."}
@@ -456,7 +456,7 @@ export const AddPeopleDialog = ({
           return (
             <label
               key={u.id}
-              className="flex cursor-pointer items-center gap-3 border-b border-[#E5E7EB] px-4 py-3 last:border-b-0 hover:bg-lightGray/20"
+              className="flex cursor-pointer items-center gap-3 border-b border-gray-200 px-4 py-3 last:border-b-0 hover:bg-lightGray/20"
             >
               <input
                 type="checkbox"
@@ -470,7 +470,7 @@ export const AddPeopleDialog = ({
               <Avatar name={u.name} size={32} />
               <span className="flex min-w-0 flex-1 flex-col">
                 <span className="truncate text-sm font-medium text-primary">{u.name}</span>
-                <span className="truncate text-xs text-[#6B7280]">{u.email}</span>
+                <span className="truncate text-xs text-gray-500">{u.email}</span>
               </span>
               {!b ? (
                 <Pill tone="neutral">{plural(count, "branch", "branches")}</Pill>
@@ -482,11 +482,11 @@ export const AddPeopleDialog = ({
             </label>
           );
         })}
-        {!candidates.length && <p className="p-4 text-sm text-[#6B7280]">No users match.</p>}
+        {!candidates.length && <p className="p-4 text-sm text-gray-500">No users match.</p>}
       </div>
       <ErrorLine text={err} />
       {moving > 0 && b && (
-        <p className="text-xs text-[#B45309]">
+        <p className="text-xs text-amber-700">
           {moving} of them will move from their current role in {branchName(b)}.
         </p>
       )}

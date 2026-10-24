@@ -19,21 +19,21 @@ const BannerSkeletonLoader = () => {
             <div className="h-6 animate-pulse bg-lightGray rounded w-3/5"></div>
             
             
-            <div className="animate-pulse flex gap-4 justify-between  w-[40rem]">
+            <div className="animate-pulse flex gap-4 justify-between w-full max-w-[40rem]">
             <div className="h-4 bg-lightGray rounded w-2/6"></div>
             <div className="h-4 bg-lightGray rounded w-4/6"></div>
             </div>
             
             
             
-            <div className="animate-pulse flex gap-4 justify-between  w-[40rem]">
+            <div className="animate-pulse flex gap-4 justify-between w-full max-w-[40rem]">
             <div className="h-4 bg-lightGray rounded w-4/6"></div>
             <div className="h-4 bg-lightGray rounded w-3/6"></div>
             </div>
             
            
             
-            <div className="animate-pulse flex gap-4 justify-between  w-[40rem]">
+            <div className="animate-pulse flex gap-4 justify-between w-full max-w-[40rem]">
             <div className="h-4 bg-lightGray rounded w-3/6"></div>
             <div className="h-4 bg-lightGray rounded w-3/6"></div>
             </div>

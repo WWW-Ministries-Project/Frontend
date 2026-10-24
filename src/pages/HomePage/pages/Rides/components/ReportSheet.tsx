@@ -94,7 +94,7 @@ export const ReportSheet = ({
         hideHeader
       >
         <div className="flex flex-col items-center gap-3 px-2 py-4 text-center">
-          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-green-50 text-green-700 dark:bg-green-400/15 dark:text-green-300">
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-green-50 text-green-700">
             <svg
               viewBox="0 0 24 24"
               fill="none"

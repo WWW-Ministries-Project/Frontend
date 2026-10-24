@@ -102,7 +102,7 @@ export default function CartDrawer() {
         role="dialog"
         aria-modal="true"
         aria-label="Your cart"
-        className="relative flex h-full w-[min(440px,100vw)] flex-col bg-white text-primary shadow-[-12px_0_32px_rgba(8,13,45,0.18)]"
+        className="relative flex h-full w-[min(440px,100vw)] flex-col bg-white text-primary shadow-[-12px_0_32px_rgb(var(--color-shadow)_/_0.18)]"
         {...autoCloseHandlers}
       >
         <div className="flex items-center justify-between border-b border-gray-200 px-6 py-5">

@@ -93,14 +93,14 @@ interface Rec {
   occ?: Occurrence;
 }
 
-const PRIMARY = "#080D2D";
-const SECONDARY = "#9A5D1A";
-const MUTED = "rgba(8,13,45,0.45)";
-const SUCCESS = "#15803D";
-const WARNING = "#B45309";
-const DANGER = "#B91C1C";
-const INFO = "#1D4ED8";
-const GREY = "#6B7280";
+const PRIMARY = "rgb(var(--color-primary))";
+const SECONDARY = "rgb(var(--color-secondary))";
+const MUTED = "rgb(var(--color-primary) / 0.45)";
+const SUCCESS = "rgb(var(--color-green-700))";
+const WARNING = "rgb(var(--color-amber-700))";
+const DANGER = "rgb(var(--color-red-700))";
+const INFO = "rgb(var(--color-blue-700))";
+const GREY = "rgb(var(--color-gray-500))";
 
 const K = (label: string, value: string, sub = "", color = GREY): Kpi => ({ label, value, sub, color });
 const tx = (text: string | number, sub?: string, strong?: boolean): MiniCell => ({ text: String(text), sub, strong });

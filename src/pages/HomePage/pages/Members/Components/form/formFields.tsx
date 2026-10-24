@@ -32,8 +32,8 @@ export const FormGroup = ({
 }) => (
   <div className="flex flex-col gap-4">
     <div className="flex flex-col gap-1">
-      <h2 className="text-xl font-bold leading-7 text-[#1F2937]">{title}</h2>
-      {description && <p className="text-sm text-[#4B5563]">{description}</p>}
+      <h2 className="text-xl font-bold leading-7 text-gray-800">{title}</h2>
+      {description && <p className="text-sm text-gray-600">{description}</p>}
     </div>
     <FieldGrid>{children}</FieldGrid>
   </div>
@@ -168,7 +168,7 @@ export const ChoiceCards = <T extends string | boolean>({
   return (
     <div role="radiogroup" aria-label={label} className="col-span-full flex flex-col gap-1">
       <span className="text-sm text-primary">{label}</span>
-      {hint && <span className="text-xs text-[#6B7280]">{hint}</span>}
+      {hint && <span className="text-xs text-gray-500">{hint}</span>}
       <div className="mt-1 flex flex-wrap gap-2">
         {options.map((option) => {
           const selected = field.value === option.value;
@@ -184,14 +184,14 @@ export const ChoiceCards = <T extends string | boolean>({
                 "flex min-h-10 flex-[1_1_160px] items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm text-primary transition-colors disabled:cursor-not-allowed disabled:opacity-60",
                 selected
                   ? "border-primary bg-primary/[0.04] font-semibold"
-                  : "border-[#D8DAE5] bg-white font-normal hover:bg-primary/[0.02]"
+                  : "border-lightGray bg-white font-normal hover:bg-primary/[0.02]"
               )}
             >
               <span
                 aria-hidden="true"
                 className={cn(
                   "h-4 w-4 flex-shrink-0 rounded-full bg-white",
-                  selected ? "border-[5px] border-primary" : "border border-[#9CA3AF]"
+                  selected ? "border-[5px] border-primary" : "border border-gray-400"
                 )}
               />
               {option.label}
@@ -200,7 +200,7 @@ export const ChoiceCards = <T extends string | boolean>({
         })}
       </div>
       {error && (
-        <p role="alert" className="text-xs text-[#B91C1C]">
+        <p role="alert" className="text-xs text-red-700">
           {error}
         </p>
       )}
@@ -305,7 +305,7 @@ export const PhoneField = ({
         />
       </div>
       {error && (
-        <p role="alert" className="text-xs text-[#B91C1C]">
+        <p role="alert" className="text-xs text-red-700">
           {error}
         </p>
       )}
@@ -405,7 +405,7 @@ export const PhotoField = ({
 
   return (
     <div className="flex flex-wrap items-center gap-4">
-      <div className="flex h-28 w-28 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[#D8DAE5] bg-[#D8DAE5] text-2xl font-bold text-primary/70">
+      <div className="flex h-28 w-28 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl border border-lightGray bg-lightGray text-2xl font-bold text-primary/70">
         {src ? (
           <img src={src} alt="Profile" className="h-full w-full object-cover" />
         ) : initialsFrom.trim() ? (
@@ -430,7 +430,7 @@ export const PhotoField = ({
         >
           {src ? "Change photo" : "Upload photo"}
         </UiButton>
-        <p className="text-sm text-[#4B5563]">JPG or PNG, square works best.</p>
+        <p className="text-sm text-gray-600">JPG or PNG, square works best.</p>
       </div>
     </div>
   );

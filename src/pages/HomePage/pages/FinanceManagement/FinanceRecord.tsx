@@ -93,7 +93,7 @@ const LedgerRow = ({
   cols: string;
 }) => (
   <div
-    className={cn("grid min-h-12 items-center gap-3 border-b border-[#E5E7EB] px-3 py-1.5 text-sm", bold ? "bg-[#F8F9FC]" : "bg-white")}
+    className={cn("grid min-h-12 items-center gap-3 border-b border-gray-200 px-3 py-1.5 text-sm", bold ? "bg-inputBackground" : "bg-white")}
     style={{ gridTemplateColumns: cols }}
   >
     <div className="flex min-w-0 flex-col">
@@ -105,7 +105,7 @@ const LedgerRow = ({
             type="button"
             onClick={onRemove}
             aria-label={`Remove ${label}`}
-            className="ml-auto h-7 w-7 flex-shrink-0 rounded-lg text-base text-[#B91C1C] hover:bg-[#FEF2F2]"
+            className="ml-auto h-7 w-7 flex-shrink-0 rounded-lg text-base text-red-700 hover:bg-red-50"
           >
             ×
           </button>
@@ -124,12 +124,12 @@ const LedgerRow = ({
         aria-label={label}
         onWheel={(e) => e.currentTarget.blur()}
         onChange={(e) => onInput(e.target.value)}
-        className="h-10 w-full rounded-lg border border-[rgba(107,114,128,0.35)] bg-white px-3 text-right text-sm text-primary outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(8,13,45,0.08)]"
+        className="h-10 w-full rounded-lg border border-gray-500/35 bg-white px-3 text-right text-sm text-primary outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(8,13,45,0.08)]"
       />
     ) : (
       <span className={cn("text-right tabular-nums", bold && "font-semibold")}>{value}</span>
     )}
-    <span className={cn("text-right font-semibold tabular-nums", runDanger ? "text-[#B91C1C]" : "text-primary")}>{run ?? ""}</span>
+    <span className={cn("text-right font-semibold tabular-nums", runDanger ? "text-red-700" : "text-primary")}>{run ?? ""}</span>
   </div>
 );
 
@@ -560,7 +560,7 @@ const FinanceRecord = () => {
         onClick={() =>
           setEd((p) => (p ? { ...p, receipts: p.receipts.map((x) => (x.item === item ? { ...x, amount: auto[k]! } : x)) } : p))
         }
-        className="self-start bg-transparent p-0 text-xs text-[#1D4ED8] underline"
+        className="self-start bg-transparent p-0 text-xs text-blue-700 underline"
       >
         {k === "pledges" ? "Pledges" : "Giving"} now shows {money(auto[k]!)} for this week. Use it
       </button>
@@ -646,7 +646,7 @@ const FinanceRecord = () => {
               <h1 className="text-xl font-semibold leading-8 text-primary sm:text-2xl">{titleTxt}</h1>
               <Pill tone={pill.tone}>{pill.label}</Pill>
             </div>
-            <p className="text-sm text-[#4B5563]">
+            <p className="text-sm text-gray-600">
               {rec
                 ? `Created by ${rec.createdBy} on ${fmtD(rec.createdOn)} · last updated by ${rec.updatedBy} on ${fmtD(rec.updatedOn)}`
                 : "Lines come from Finance configuration. Pledges and online giving fill in automatically for the week."}
@@ -657,10 +657,10 @@ const FinanceRecord = () => {
 
         {banner && <ToneNote tone={banner.tone}>{banner.text}</ToneNote>}
         {errs.length > 0 && (
-          <div role="alert" className="flex flex-col gap-1 rounded-lg border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 text-sm">
+          <div role="alert" className="flex flex-col gap-1 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm">
             <p className="font-semibold text-primary">Fix these before saving</p>
             {errs.map((e) => (
-              <p key={e} className="text-[#B91C1C]">
+              <p key={e} className="text-red-700">
                 · {e}
               </p>
             ))}
@@ -699,20 +699,20 @@ const FinanceRecord = () => {
                 ) : (
                   <>
                     <Field label="Month">
-                      <p className="flex min-h-10 items-center rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] px-3 text-sm">
+                      <p className="flex min-h-10 items-center rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm">
                         {meta?.month} {meta?.year}
                       </p>
                     </Field>
                     <Field label="Week">
-                      <p className="flex min-h-10 items-center rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] px-3 text-sm">{meta?.week}</p>
+                      <p className="flex min-h-10 items-center rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm">{meta?.week}</p>
                     </Field>
                   </>
                 )}
                 <Field label="From">
-                  <p className="flex min-h-10 items-center rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] px-3 text-sm">{fmtD(from)}</p>
+                  <p className="flex min-h-10 items-center rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm">{fmtD(from)}</p>
                 </Field>
                 <Field label="To">
-                  <p className="flex min-h-10 items-center rounded-lg border border-[#E5E7EB] bg-[#F9FAFB] px-3 text-sm">{fmtD(to)}</p>
+                  <p className="flex min-h-10 items-center rounded-lg border border-gray-200 bg-gray-50 px-3 text-sm">{fmtD(to)}</p>
                 </Field>
               </div>
               {editing && isNew && (
@@ -762,7 +762,7 @@ const FinanceRecord = () => {
                 <LedgerRow key={`${b.item}-${i}`} cols={cols} label={`${b.item} · ${b.percentage}%`} value={amt(b.amount)} />
               ))}
               {!t.tb.length && (
-                <p className="px-3 py-3 text-sm text-[#6B7280]">No tithe breakdown configured.</p>
+                <p className="px-3 py-3 text-sm text-gray-500">No tithe breakdown configured.</p>
               )}
               <LedgerRow cols={cols} label="Funds after tithe" bold value="" run={amt(t.F)} />
             </section>
@@ -836,7 +836,7 @@ const FinanceRecord = () => {
                   {t.al.map((a, i) => (
                     <div
                       key={`${a.movement}-${i}`}
-                      className="grid min-h-11 grid-cols-[minmax(140px,1fr)_80px_120px_120px] items-center gap-3 border-b border-[#E5E7EB] px-3 py-1.5 text-sm tabular-nums"
+                      className="grid min-h-11 grid-cols-[minmax(140px,1fr)_80px_120px_120px] items-center gap-3 border-b border-gray-200 px-3 py-1.5 text-sm tabular-nums"
                     >
                       <span>{a.movement}</span>
                       <span className="text-right">{a.portion}%</span>
@@ -844,13 +844,13 @@ const FinanceRecord = () => {
                       <span className="text-right">{amt(a.adjusted)}</span>
                     </div>
                   ))}
-                  <div className="grid min-h-11 grid-cols-[minmax(140px,1fr)_80px_120px_120px] items-center gap-3 border-b border-[#E5E7EB] bg-[#F8F9FC] px-3 py-1.5 text-sm font-semibold tabular-nums">
+                  <div className="grid min-h-11 grid-cols-[minmax(140px,1fr)_80px_120px_120px] items-center gap-3 border-b border-gray-200 bg-inputBackground px-3 py-1.5 text-sm font-semibold tabular-nums">
                     <span>Total</span>
                     <span className="text-right">{Math.round(t.al.reduce((a, x) => a + x.portion, 0) * 100) / 100}%</span>
                     <span className="text-right">{amt(t.al.reduce((a, x) => a + x.actual, 0))}</span>
                     <span className="text-right">{amt(t.al.reduce((a, x) => a + x.adjusted, 0))}</span>
                   </div>
-                  {!t.al.length && <p className="px-3 py-3 text-sm text-[#6B7280]">No fund accounts configured.</p>}
+                  {!t.al.length && <p className="px-3 py-3 text-sm text-gray-500">No fund accounts configured.</p>}
                 </div>
               </div>
             </section>
@@ -870,19 +870,19 @@ const FinanceRecord = () => {
                   ["Refund and office reserve", t.refund + t.office],
                 ] as [string, number][]
               ).map(([l, v]) => (
-                <div key={l} className="flex justify-between gap-3 border-b border-[#E5E7EB] py-1.5 text-sm">
-                  <span className="text-[#4B5563]">{l}</span>
-                  <span className={cn("tabular-nums", v < 0 ? "text-[#4B5563]" : "text-primary")}>{money(v)}</span>
+                <div key={l} className="flex justify-between gap-3 border-b border-gray-200 py-1.5 text-sm">
+                  <span className="text-gray-600">{l}</span>
+                  <span className={cn("tabular-nums", v < 0 ? "text-gray-600" : "text-primary")}>{money(v)}</span>
                 </div>
               ))}
               <div className="flex justify-between gap-3 py-1.5 text-sm font-semibold">
                 <span>Total balance</span>
-                <span className={cn("tabular-nums", t.fin < 0 ? "text-[#B91C1C]" : "text-primary")}>{money(t.fin)}</span>
+                <span className={cn("tabular-nums", t.fin < 0 ? "text-red-700" : "text-primary")}>{money(t.fin)}</span>
               </div>
             </section>
             <section className="flex flex-col gap-2 rounded-xl border border-lightGray bg-white p-5">
               <h2 className="text-base font-semibold text-primary">Approval</h2>
-              <p className="text-sm text-[#4B5563]">
+              <p className="text-sm text-gray-600">
                 Finance approver: <span className="font-semibold text-primary">{approverName || "Not set"}</span>
               </p>
               <ol className="m-0 flex list-none flex-col p-0">
@@ -891,7 +891,7 @@ const FinanceRecord = () => {
                     <span className="mt-[5px] h-2.5 w-2.5 flex-shrink-0 rounded-full" style={{ background: l.c }} />
                     <div className="min-w-0">
                       <p className="[overflow-wrap:anywhere]">{l.t}</p>
-                      <p className="text-xs text-[#6B7280]">{fmtD(l.when)}</p>
+                      <p className="text-xs text-gray-500">{fmtD(l.when)}</p>
                     </div>
                   </li>
                 ))}
@@ -954,7 +954,7 @@ const FinanceRecord = () => {
             { label: `Return to ${rec.createdBy.split(" ")[0]}`, onClick: () => void submitReturn(), tone: "primary" },
           ]}
         >
-          <ul className="m-0 flex list-disc flex-col gap-1 rounded-lg bg-[#F8F9FC] py-3 pl-8 pr-4 text-sm text-[#374151]">
+          <ul className="m-0 flex list-disc flex-col gap-1 rounded-lg bg-inputBackground py-3 pl-8 pr-4 text-sm text-gray-700">
             <li>{rec.createdBy} is notified with your note.</li>
             <li>They fix it and submit again. Nothing is approved in the meantime.</li>
           </ul>

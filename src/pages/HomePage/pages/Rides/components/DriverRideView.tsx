@@ -87,7 +87,7 @@ export const DriverRideView = ({
           {pending.map((request) => (
             <div
               key={request.id}
-              className="flex flex-wrap items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-400/30 dark:bg-amber-400/10"
+              className="flex flex-wrap items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3"
             >
               <Avatar initials={request.passenger.initials} className="bg-white" />
               <div className="flex min-w-0 flex-[1_1_160px] flex-col">

@@ -19,7 +19,7 @@ const refreshBranches = async () => {
 
 const Detail = ({ label, value, wide }: { label: string; value: string; wide?: boolean }) => (
   <div className={wide ? "col-span-full" : undefined}>
-    <p className="text-xs text-[#6B7280]">{label}</p>
+    <p className="text-xs text-gray-500">{label}</p>
     <p className="text-sm text-primary">{value}</p>
   </div>
 );
@@ -30,7 +30,7 @@ const LinkButton = ({ children, onClick, danger }: { children: string; onClick: 
     onClick={onClick}
     className={
       danger
-        ? "ml-auto min-h-10 rounded-lg px-3 py-2 text-sm font-medium text-[#B91C1C] hover:bg-[#FEF2F2]"
+        ? "ml-auto min-h-10 rounded-lg px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
         : "min-h-10 rounded-lg px-3 py-2 text-sm font-medium text-primary hover:bg-primary/5"
     }
   >
@@ -156,7 +156,7 @@ export const BranchesSection = ({ canEdit, canDelete }: { canEdit: boolean; canD
                 <Detail label="Pastor in charge" value={branch.pastor_in_charge?.name || "—"} wide />
               </div>
               {(canEdit || canDelete) && mine(branch) && (
-                <div className="flex flex-wrap gap-1 border-t border-[#E5E7EB] pt-3">
+                <div className="flex flex-wrap gap-1 border-t border-gray-200 pt-3">
                   {canEdit && <LinkButton onClick={() => setDialog({ branch })}>Edit</LinkButton>}
                   {canEdit && !branch.is_default && (
                     <LinkButton onClick={() => void makeDefault(branch)}>Make default</LinkButton>

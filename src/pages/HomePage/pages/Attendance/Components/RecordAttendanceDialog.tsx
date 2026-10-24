@@ -41,7 +41,7 @@ const EMPTY: Record<CountKey, string> = {
 
 const GRID = "grid grid-cols-[minmax(100px,1.2fr)_1fr_1fr_minmax(64px,0.6fr)] items-center gap-3 px-4 py-3";
 const INPUT =
-  "h-10 w-full min-w-0 rounded-lg border border-[rgba(107,114,128,0.35)] bg-white px-3 text-sm text-primary outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(8,13,45,0.08)]";
+  "h-10 w-full min-w-0 rounded-lg border border-gray-500/35 bg-white px-3 text-sm text-primary outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgb(var(--color-shadow)_/_0.08)]";
 
 const num = (value: string) => Math.max(0, parseInt(value, 10) || 0);
 
@@ -170,9 +170,9 @@ export const RecordAttendanceDialog = ({
       className="max-w-[672px] overflow-hidden"
     >
       <div className="flex min-h-0 flex-1 flex-col">
-        <div className="flex flex-col gap-1 border-b border-[#E5E7EB] px-6 py-5">
+        <div className="flex flex-col gap-1 border-b border-gray-200 px-6 py-5">
           <h2 className="text-xl font-semibold leading-7 text-primary">{title}</h2>
-          <p className="text-sm text-[#4B5563]">
+          <p className="text-sm text-gray-600">
             Enter headcounts for members. Visitors are added from visitor registrations.
           </p>
         </div>
@@ -188,7 +188,7 @@ export const RecordAttendanceDialog = ({
                   setError("");
                 }}
                 disabled={Boolean(editing)}
-                className="h-10 w-full rounded-lg border border-[rgba(107,114,128,0.35)] bg-white px-3 text-sm text-primary disabled:bg-[#F9FAFB]"
+                className="h-10 w-full rounded-lg border border-gray-500/35 bg-white px-3 text-sm text-primary disabled:bg-gray-50"
               >
                 {selectOptions.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -203,9 +203,9 @@ export const RecordAttendanceDialog = ({
                 type="text"
                 readOnly
                 value={date ? `${fmtDate(date)}${occ?.time ? ` · ${t12(occ.time)}` : ""}` : "Select a service first"}
-                className="h-10 w-full rounded-lg border border-[rgba(107,114,128,0.35)] bg-[#F9FAFB] px-3 text-sm text-[#4B5563]"
+                className="h-10 w-full rounded-lg border border-gray-500/35 bg-gray-50 px-3 text-sm text-gray-600"
               />
-              <span className="text-xs text-[#6B7280]">Filled from the selected service.</span>
+              <span className="text-xs text-gray-500">Filled from the selected service.</span>
             </label>
           </div>
 
@@ -217,7 +217,7 @@ export const RecordAttendanceDialog = ({
               <span className="text-right">Total</span>
             </div>
             {ROWS.map(([label, male, female]) => (
-              <div key={label} className={`${GRID} border-b border-[#E5E7EB]`}>
+              <div key={label} className={`${GRID} border-b border-gray-200`}>
                 <span className="text-sm font-medium text-primary">{label}</span>
                 {[male, female].map((key) => (
                   <input
@@ -240,9 +240,9 @@ export const RecordAttendanceDialog = ({
                 </span>
               </div>
             ))}
-            <div className={`${GRID} border-b border-[#E5E7EB] bg-[#F8F9FC]`}>
+            <div className={`${GRID} border-b border-gray-200 bg-inputBackground`}>
               <span className="text-sm font-medium text-primary">Visitors</span>
-              <span className="col-span-2 text-xs text-[#6B7280]">
+              <span className="col-span-2 text-xs text-gray-500">
                 {editingTotals
                   ? `From visitor registrations, including ${editingTotals.cl} visiting clergy`
                   : occ
@@ -253,9 +253,9 @@ export const RecordAttendanceDialog = ({
                 {editingTotals ? nf(visitors) : "—"}
               </span>
             </div>
-            <div className={`${GRID} bg-[#F8F9FC]`}>
+            <div className={`${GRID} bg-inputBackground`}>
               <span className="text-sm font-semibold text-primary">Total attendance</span>
-              <span className="col-span-2 text-xs text-[#6B7280]">
+              <span className="col-span-2 text-xs text-gray-500">
                 {usual ? `Usual for this service: ~${nf(usual)}` : ""}
               </span>
               <span className="text-right text-base font-semibold text-primary">{nf(total)}</span>
@@ -265,7 +265,7 @@ export const RecordAttendanceDialog = ({
           {usual > 0 && members > 0 && Math.abs(deviation) > 35 && (
             <p
               role="status"
-              className="rounded-lg border border-[#FDE68A] bg-[#FFFBEB] px-4 py-3 text-sm text-[#B45309]"
+              className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700"
             >
               This is {Math.round(Math.abs(deviation))}% {deviation < 0 ? "below" : "above"} the usual ~
               {nf(usual)} for this service. Check the figures before saving.
@@ -274,14 +274,14 @@ export const RecordAttendanceDialog = ({
           {error && (
             <p
               role="alert"
-              className="rounded-lg border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 text-sm text-[#B91C1C]"
+              className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
             >
               {error}
             </p>
           )}
         </div>
 
-        <div className="flex flex-wrap justify-end gap-3 border-t border-[#E5E7EB] px-6 py-4">
+        <div className="flex flex-wrap justify-end gap-3 border-t border-gray-200 px-6 py-4">
           <UiButton tone="secondary" onClick={onClose} disabled={saving}>
             Cancel
           </UiButton>

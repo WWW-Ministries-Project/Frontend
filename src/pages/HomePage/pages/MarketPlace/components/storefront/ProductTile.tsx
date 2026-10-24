@@ -25,7 +25,7 @@ export function ProductTile({
   hex,
   imageUrl,
   alt,
-  swatchClassName = "w-[44%] shadow-[0_14px_28px_rgba(8,13,45,0.18)]",
+  swatchClassName = "w-[44%] shadow-[0_14px_28px_rgb(var(--color-shadow)_/_0.18)]",
   className,
   label,
   labelClassName,

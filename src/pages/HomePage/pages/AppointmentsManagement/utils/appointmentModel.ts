@@ -504,7 +504,7 @@ export const statusSub = (
   return { text: booking.date ? fmtD(booking.date) : "", tone: "muted" };
 };
 
-export const SUB_TONE_CLASS = { muted: "text-[#6B7280]", warning: "text-[#B45309]", danger: "text-[#B91C1C]" };
+export const SUB_TONE_CLASS = { muted: "text-gray-500", warning: "text-amber-700", danger: "text-red-700" };
 
 export const pillOf = (booking: ApptBooking, sla: number, now: Date): { label: string; tone: PillTone } => {
   if (isOverdue(booking, sla, now)) return { label: "Reply overdue", tone: "danger" };
@@ -529,10 +529,10 @@ export const historyOf = (booking: ApptBooking): AppointmentHistoryEntry[] => {
 
 export const HISTORY_DOT: Record<AppointmentHistoryTone, string> = {
   neutral: "bg-[#374151]",
-  info: "bg-[#1D4ED8]",
-  success: "bg-[#15803D]",
-  warning: "bg-[#B45309]",
-  danger: "bg-[#B91C1C]",
+  info: "bg-blue-600",
+  success: "bg-success",
+  warning: "bg-warning",
+  danger: "bg-error",
 };
 
 /** "Today", "Tomorrow", "Yesterday" or "Wednesday 21 Oct". */

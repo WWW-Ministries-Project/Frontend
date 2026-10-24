@@ -217,15 +217,15 @@ export const AppointmentDrawer = ({
       <dl className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,180px),1fr))] gap-4">
         {facts.map((fact) => (
           <div key={fact.l} className="flex flex-col gap-0.5">
-            <dt className="text-xs text-[#6B7280]">{fact.l}</dt>
+            <dt className="text-xs text-gray-500">{fact.l}</dt>
             <dd className="m-0 text-sm font-medium text-primary">{fact.v}</dd>
           </div>
         ))}
       </dl>
       {booking.note && (
         <div className="flex flex-col gap-1">
-          <span className="text-xs text-[#6B7280]">Note from {firstName(booking.requester)}</span>
-          <p className="rounded-lg bg-[#F8F9FC] px-4 py-3 text-sm text-[#374151]">{booking.note}</p>
+          <span className="text-xs text-gray-500">Note from {firstName(booking.requester)}</span>
+          <p className="rounded-lg bg-inputBackground px-4 py-3 text-sm text-gray-700">{booking.note}</p>
         </div>
       )}
       <div className="flex flex-col gap-2">
@@ -239,7 +239,7 @@ export const AppointmentDrawer = ({
                 <span className={`mt-[5px] h-2.5 w-2.5 flex-shrink-0 rounded-full ${HISTORY_DOT[entry.tone ?? "neutral"]}`} />
                 <div>
                   <p className="text-sm text-primary">{entry.text}</p>
-                  <p className="text-xs text-[#6B7280]">{fmtT(entry.at)}</p>
+                  <p className="text-xs text-gray-500">{fmtT(entry.at)}</p>
                 </div>
               </li>
             ))}
@@ -254,7 +254,7 @@ export const AppointmentDrawer = ({
               options={[{ value: "", label: "Choose a person" }, ...reassignOptions]}
             />
           </Field>
-          <p className="text-xs text-[#6B7280]">
+          <p className="text-xs text-gray-500">
             Their {sla} h reply clock starts now. {firstName(booking.requester)} is told who they’ll meet instead.
           </p>
         </div>

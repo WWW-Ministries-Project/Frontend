@@ -340,7 +340,7 @@ const RideFindPage = () => {
                 btnSecondary,
                 "min-h-[44px]",
                 alertOn &&
-                  "border-green-200 bg-green-50 text-green-700 hover:bg-green-50 dark:border-green-400/30 dark:bg-green-400/15 dark:text-green-300"
+                  "border-green-200 bg-green-50 text-green-700 hover:bg-green-50"
               )}
             >
               {alertOn ? "We'll notify you" : "Notify me when one does"}
@@ -422,7 +422,7 @@ const RideFindPage = () => {
                     on
                       ? "text-white/80"
                       : hasRides
-                        ? "text-green-700 dark:text-green-300"
+                        ? "text-green-700"
                         : "text-mainGray"
                   )}
                 >

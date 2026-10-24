@@ -29,11 +29,11 @@ export type PillTone =
   | "primary";
 
 const PILL_TONES: Record<PillTone, string> = {
-  success: "border-[#BBF7D0] bg-[#F0FDF4] text-[#15803D]",
-  warning: "border-[#FDE68A] bg-[#FFFBEB] text-[#B45309]",
-  danger: "border-[#FECACA] bg-[#FEF2F2] text-[#B91C1C]",
-  info: "border-[#BFDBFE] bg-[#EFF6FF] text-[#1D4ED8]",
-  neutral: "border-[#E5E7EB] bg-[#F3F4F6] text-[#374151]",
+  success: "border-green-200 bg-green-50 text-green-700",
+  warning: "border-amber-200 bg-amber-50 text-amber-700",
+  danger: "border-red-200 bg-red-50 text-red-700",
+  info: "border-blue-200 bg-blue-50 text-blue-700",
+  neutral: "border-gray-200 bg-gray-100 text-gray-700",
   primary: "border-primary/15 bg-primary/5 text-primary",
 };
 
@@ -83,7 +83,7 @@ export const PageHeading = ({
     <div className="flex min-w-0 flex-col gap-1">
       <h1 className="text-2xl font-semibold leading-8 text-primary">{title}</h1>
       {subtitle && (
-        <p className="text-base leading-6 text-[#4B5563]">{subtitle}</p>
+        <p className="text-base leading-6 text-gray-600">{subtitle}</p>
       )}
     </div>
     {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
@@ -102,7 +102,7 @@ export const SectionHeading = ({
   <div className="flex flex-wrap items-center justify-between gap-3">
     <div className="flex min-w-0 flex-col gap-1">
       <h2 className="text-base font-semibold text-primary">{title}</h2>
-      {description && <p className="text-sm text-[#4B5563]">{description}</p>}
+      {description && <p className="text-sm text-gray-600">{description}</p>}
     </div>
     {children && (
       <div className="flex flex-[1_1_320px] flex-wrap items-center justify-end gap-3">
@@ -121,8 +121,8 @@ type ButtonTone = "primary" | "secondary" | "danger" | "ghost";
 const BUTTON_TONES: Record<ButtonTone, string> = {
   primary: "border-primary bg-primary text-white hover:bg-primary/90",
   secondary: "border-primary/30 bg-white text-primary hover:bg-primary/5",
-  danger: "border-[#FECACA] bg-white text-[#B91C1C] hover:bg-[#FEF2F2]",
-  ghost: "border-transparent bg-transparent text-[#4B5563] hover:text-primary",
+  danger: "border-red-200 bg-white text-red-700 hover:bg-red-50",
+  ghost: "border-transparent bg-transparent text-gray-600 hover:text-primary",
 };
 
 export const UiButton = ({
@@ -245,7 +245,7 @@ export const PillTabs = <K extends string>({
             <span
               className={cn(
                 "rounded-full px-2 text-xs font-semibold",
-                on ? "bg-[#F3F4F6]" : "bg-white/70"
+                on ? "bg-gray-100" : "bg-white/70"
               )}
             >
               {tab.count}
@@ -320,15 +320,15 @@ export const SearchInput = ({
       onChange={(event) => onChange(event.target.value)}
       placeholder={placeholder}
       aria-label={ariaLabel}
-      className="h-10 min-w-0 flex-1 rounded-r-lg border border-l-0 border-[rgba(107,114,128,0.35)] bg-white px-3 text-sm text-primary outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(8,13,45,0.08)]"
+      className="h-10 min-w-0 flex-1 rounded-r-lg border border-l-0 border-gray-500/35 bg-white px-3 text-sm text-primary outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgb(var(--color-shadow)_/_0.08)]"
     />
   </div>
 );
 
 const controlClass = (hasError?: boolean) =>
   cn(
-    "w-full rounded-lg border bg-white px-3 text-sm text-primary outline-none transition-shadow focus:border-primary focus:shadow-[0_0_0_4px_rgba(8,13,45,0.08)] disabled:cursor-not-allowed disabled:bg-[#F8F9FC] disabled:opacity-60",
-    hasError ? "border-[#B91C1C]" : "border-[rgba(107,114,128,0.35)]"
+    "w-full rounded-lg border bg-white px-3 text-sm text-primary outline-none transition-shadow focus:border-primary focus:shadow-[0_0_0_4px_rgb(var(--color-shadow)_/_0.08)] disabled:cursor-not-allowed disabled:bg-inputBackground disabled:opacity-60",
+    hasError ? "border-red-700" : "border-gray-500/35"
   );
 
 export interface SelectOption {
@@ -351,7 +351,7 @@ export const Field = ({
     <span className="text-sm text-primary">{label}</span>
     {children}
     {error && (
-      <span role="alert" className="text-xs text-[#B91C1C]">
+      <span role="alert" className="text-xs text-red-700">
         {error}
       </span>
     )}
@@ -413,11 +413,11 @@ export const FilterPanel = ({
   resetDisabled?: boolean;
   children: ReactNode;
 }) => (
-  <div className="flex flex-col gap-4 rounded-2xl border border-lightGray bg-[#FAFBFC] p-4">
+  <div className="flex flex-col gap-4 rounded-2xl border border-lightGray bg-inputBackground p-4">
     <div className="flex flex-wrap items-end justify-between gap-3">
       <div className="flex flex-col gap-1">
         <h2 className="text-base font-semibold text-primary">{title}</h2>
-        <p className="text-sm text-[#4B5563]">{helper}</p>
+        <p className="text-sm text-gray-600">{helper}</p>
       </div>
       <button
         type="button"
@@ -444,9 +444,9 @@ export const KpiCard = ({
   sub?: ReactNode;
 }) => (
   <div className="flex flex-col gap-1 rounded-xl border border-lightGray bg-white px-5 py-4 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
-    <p className="text-sm text-[#4B5563]">{label}</p>
+    <p className="text-sm text-gray-600">{label}</p>
     <p className="text-2xl font-semibold leading-8 text-primary">{value}</p>
-    {sub ? <p className="text-xs text-[#6B7280]">{sub}</p> : null}
+    {sub ? <p className="text-xs text-gray-500">{sub}</p> : null}
   </div>
 );
 
@@ -475,7 +475,7 @@ export const SectionEmpty = ({
         </p>
       )}
       <h2 className="text-lg font-semibold text-primary">{title}</h2>
-      {text && <p className="text-sm text-[#4B5563]">{text}</p>}
+      {text && <p className="text-sm text-gray-600">{text}</p>}
     </div>
     {action}
   </section>
@@ -490,8 +490,8 @@ export const BulkBar = ({
   actions: { label: string; onClick: () => void; danger?: boolean; disabled?: boolean }[];
   onClear: () => void;
 }) => (
-  <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#BFDBFE] bg-[#EFF6FF] px-4 py-3">
-    <span className="text-sm font-semibold text-[#1D4ED8]">{label}</span>
+  <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3">
+    <span className="text-sm font-semibold text-blue-700">{label}</span>
     <div className="flex flex-wrap gap-2">
       {actions.map((action) => (
         <button
@@ -500,9 +500,9 @@ export const BulkBar = ({
           onClick={action.onClick}
           disabled={action.disabled}
           className={cn(
-            "min-h-9 rounded-lg border bg-white px-3 py-1.5 text-sm font-medium transition-colors hover:bg-[#F3F4F6] disabled:cursor-not-allowed disabled:opacity-60",
+            "min-h-9 rounded-lg border bg-white px-3 py-1.5 text-sm font-medium transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60",
             action.danger
-              ? "border-[#FECACA] text-[#B91C1C]"
+              ? "border-red-200 text-red-700"
               : "border-primary/30 text-primary"
           )}
         >
@@ -512,7 +512,7 @@ export const BulkBar = ({
       <button
         type="button"
         onClick={onClear}
-        className="min-h-9 bg-transparent px-3 py-1.5 text-sm font-medium text-[#4B5563] hover:text-primary"
+        className="min-h-9 bg-transparent px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-primary"
       >
         Clear selection
       </button>
@@ -570,7 +570,7 @@ export const ActionMenu = ({
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen((prev) => !prev)}
-        className="inline-flex h-9 w-9 items-center justify-center rounded-[10px] border border-lightGray bg-white transition-colors hover:bg-[#F8F9FC]"
+        className="inline-flex h-9 w-9 items-center justify-center rounded-[10px] border border-lightGray bg-white transition-colors hover:bg-inputBackground"
       >
         <img src={EllipsisIcon} alt="" />
       </button>
@@ -578,7 +578,7 @@ export const ActionMenu = ({
         <div
           role="menu"
           style={{ width }}
-          className="absolute right-0 top-full z-50 mt-2 rounded-md border border-[#E5E7EB] bg-white py-1 shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-4px_rgba(0,0,0,0.1)]"
+          className="absolute right-0 top-full z-50 mt-2 rounded-md border border-gray-200 bg-white py-1 shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-4px_rgba(0,0,0,0.1)]"
         >
           {visible.map((item) => (
             <button
@@ -590,8 +590,8 @@ export const ActionMenu = ({
                 item.onClick();
               }}
               className={cn(
-                "block w-full px-4 py-3 text-left text-sm transition-colors hover:bg-[#F3F4F6]",
-                item.danger ? "text-[#B91C1C]" : "text-primary"
+                "block w-full px-4 py-3 text-left text-sm transition-colors hover:bg-gray-100",
+                item.danger ? "text-red-700" : "text-primary"
               )}
             >
               {item.label}
@@ -629,7 +629,7 @@ export const CellText = ({
     <p className={cn("overflow-hidden text-ellipsis", strong ? "font-semibold" : "font-normal")}>
       {main === null || main === undefined || main === "" ? "—" : main}
     </p>
-    {sub ? <p className="text-xs text-[#6B7280]">{sub}</p> : null}
+    {sub ? <p className="text-xs text-gray-500">{sub}</p> : null}
   </div>
 );
 
@@ -672,7 +672,7 @@ export const GridTable = <T,>({
     .join(" ");
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-lightGray bg-white shadow-[0_8px_24px_rgba(8,13,45,0.08)]">
+    <div className="overflow-x-auto rounded-lg border border-lightGray bg-white shadow-[0_8px_24px_rgb(var(--color-shadow)_/_0.08)]">
       <div style={{ minWidth }}>
         <div
           className="grid items-center gap-3 bg-lightGray px-6 py-4 text-sm font-semibold text-primary"
@@ -695,7 +695,7 @@ export const GridTable = <T,>({
         {loading && rows.length === 0 ? (
           <div className="space-y-2 p-4">
             {Array.from({ length: 4 }).map((_, index) => (
-              <div key={index} className="h-12 animate-pulse rounded-lg bg-[#F3F4F6]" />
+              <div key={index} className="h-12 animate-pulse rounded-lg bg-gray-100" />
             ))}
           </div>
         ) : (
@@ -789,14 +789,14 @@ export const DialogShell = ({
     title={title}
     description={typeof subtitle === "string" ? subtitle : title}
     className={cn(
-      "p-6 shadow-[0_10px_28px_rgba(8,13,45,0.2)]",
+      "p-6 shadow-[0_10px_28px_rgb(var(--color-shadow)_/_0.2)]",
       wide ? "max-w-[672px]" : "max-w-[520px]"
     )}
   >
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
         <h2 className="text-xl font-semibold leading-7 text-primary">{title}</h2>
-        {subtitle && <p className="text-sm text-[#4B5563]">{subtitle}</p>}
+        {subtitle && <p className="text-sm text-gray-600">{subtitle}</p>}
       </div>
       {children}
       <div className="flex justify-end gap-2">
@@ -810,7 +810,7 @@ export const DialogShell = ({
           className={cn(
             "inline-flex min-h-10 items-center justify-center rounded-lg px-5 py-2 text-sm font-medium text-white transition-colors disabled:cursor-not-allowed disabled:opacity-60",
             ctaTone === "danger"
-              ? "bg-[#B91C1C] hover:bg-[#B91C1C]/90"
+              ? "bg-error hover:bg-error/90"
               : "bg-primary hover:bg-primary/90"
           )}
         >

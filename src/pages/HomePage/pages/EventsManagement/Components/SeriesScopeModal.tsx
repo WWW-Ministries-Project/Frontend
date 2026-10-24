@@ -55,7 +55,7 @@ const SeriesScopeModal: React.FC<SeriesScopeModalProps> = ({
               onClick={() => setSelected(option.value)}
               className={cn(
                 "min-h-12 rounded-lg border bg-white px-4 py-3 text-left text-sm text-primary transition-colors",
-                on ? "border-primary font-semibold shadow-[0_0_0_1px_#080D2D]" : "border-lightGray hover:bg-[#F8F9FC]"
+                on ? "border-primary font-semibold shadow-[0_0_0_1px_#080D2D]" : "border-lightGray hover:bg-inputBackground"
               )}
             >
               {option.label}

@@ -23,8 +23,8 @@ import type { Person } from "./useApprovals";
 
 const selectClass = (bad?: boolean) =>
   cn(
-    "h-10 w-full rounded-lg border bg-white px-3 text-sm font-normal text-primary outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgba(8,13,45,0.08)]",
-    bad ? "border-[#B91C1C]" : "border-[rgba(107,114,128,0.35)]"
+    "h-10 w-full rounded-lg border bg-white px-3 text-sm font-normal text-primary outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgb(var(--color-shadow)_/_0.08)]",
+    bad ? "border-red-700" : "border-gray-500/35"
   );
 
 const IconButton = ({
@@ -48,8 +48,8 @@ const IconButton = ({
     className={cn(
       "flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border bg-white disabled:cursor-not-allowed disabled:opacity-40",
       danger
-        ? "border-[#FECACA] text-lg text-[#B91C1C] enabled:hover:bg-[#FEF2F2]"
-        : "border-lightGray text-base text-primary enabled:hover:bg-[#F3F4F6]"
+        ? "border-red-200 text-lg text-red-700 enabled:hover:bg-red-50"
+        : "border-lightGray text-base text-primary enabled:hover:bg-gray-100"
     )}
   >
     {children}
@@ -93,7 +93,7 @@ const ApproverPicker = ({
         onChange={(type) => type !== step.type && onChange({ type, value: null })}
       />
       {step.type === "HEAD_OF_DEPARTMENT" ? (
-        <p className="text-xs text-[#4B5563]">{hodNote(wfKey)}</p>
+        <p className="text-xs text-gray-600">{hodNote(wfKey)}</p>
       ) : (
         <select
           aria-label={isPos ? "Position" : "Person"}
@@ -193,9 +193,9 @@ const WorkflowDrawer = ({
       description={WF[wfKey].description}
       header={
         <>
-          <span className="text-xs text-[#6B7280]">Edit workflow</span>
+          <span className="text-xs text-gray-500">Edit workflow</span>
           <p className="text-xl font-semibold leading-7 text-primary">{WF[wfKey].title}</p>
-          <p className="text-sm text-[#4B5563]">{WF[wfKey].description}</p>
+          <p className="text-sm text-gray-600">{WF[wfKey].description}</p>
         </>
       }
       footer={
@@ -212,7 +212,7 @@ const WorkflowDrawer = ({
       {tried && errors.length > 0 && (
         <div
           role="alert"
-          className="flex flex-col gap-1 rounded-lg border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 text-sm text-[#B91C1C]"
+          className="flex flex-col gap-1 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
         >
           <p className="font-semibold">Fix these before saving</p>
           {errors.map((e) => (
@@ -267,7 +267,7 @@ const WorkflowDrawer = ({
           <div
             className={cn(
               "flex flex-col gap-3 rounded-xl border p-4",
-              tried && stepIsOpen(draft.finance) ? "border-[#B91C1C]" : "border-lightGray"
+              tried && stepIsOpen(draft.finance) ? "border-red-700" : "border-lightGray"
             )}
           >
             <div className="flex items-center gap-3">
@@ -298,7 +298,7 @@ const WorkflowDrawer = ({
             return (
               <div
                 key={i}
-                className={cn("flex flex-col gap-3 rounded-xl border p-4", bad ? "border-[#B91C1C]" : "border-lightGray")}
+                className={cn("flex flex-col gap-3 rounded-xl border p-4", bad ? "border-red-700" : "border-lightGray")}
               >
                 <div className="flex items-center gap-3">
                   <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-white">

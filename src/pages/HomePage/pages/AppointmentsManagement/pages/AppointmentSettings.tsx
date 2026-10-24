@@ -314,10 +314,10 @@ const AppointmentSettings = () => {
 
       {tab === "reasons" && (
         <section className="overflow-hidden rounded-xl border border-lightGray bg-white">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E5E7EB] px-5 py-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 px-5 py-4">
             <div>
               <h2 className="text-base font-semibold text-primary">Booking reasons</h2>
-              <p className="text-sm text-[#4B5563]">Members pick one on step 1 of booking. Order here is the order they see.</p>
+              <p className="text-sm text-gray-600">Members pick one on step 1 of booking. Order here is the order they see.</p>
             </div>
             {isAdmin && (
               <UiButton
@@ -335,7 +335,7 @@ const AppointmentSettings = () => {
           {reasons.map((reason, index) => (
             <div
               key={reason.id}
-              className="flex flex-wrap items-center gap-3 border-b border-[#E5E7EB] px-5 py-3 last:border-b-0"
+              className="flex flex-wrap items-center gap-3 border-b border-gray-200 px-5 py-3 last:border-b-0"
               style={{ opacity: reason.is_active ? 1 : 0.6 }}
             >
               {isAdmin && (
@@ -359,9 +359,9 @@ const AppointmentSettings = () => {
               )}
               <div className="min-w-0 flex-[1_1_220px]">
                 <p className="text-sm font-semibold text-primary">{reason.label}</p>
-                {reason.description && <p className="text-sm text-[#6B7280]">{reason.description}</p>}
+                {reason.description && <p className="text-sm text-gray-500">{reason.description}</p>}
               </div>
-              <span className="text-xs text-[#6B7280]">{plural(usesOf(reason), "booking")}</span>
+              <span className="text-xs text-gray-500">{plural(usesOf(reason), "booking")}</span>
               {isAdmin && (
                 <>
                   <ToggleSwitch
@@ -379,7 +379,7 @@ const AppointmentSettings = () => {
                     >
                       Edit
                     </UiButton>
-                    <UiButton size="sm" tone="ghost" className="text-[#B91C1C] hover:text-[#B91C1C]" onClick={() => remove(reason)}>
+                    <UiButton size="sm" tone="ghost" className="text-red-700 hover:text-red-700" onClick={() => remove(reason)}>
                       Delete
                     </UiButton>
                   </div>
@@ -388,7 +388,7 @@ const AppointmentSettings = () => {
             </div>
           ))}
           {!reasons.length && (
-            <p className="px-5 py-6 text-sm text-[#6B7280]">
+            <p className="px-5 py-6 text-sm text-gray-500">
               {reasonsQuery.data ? "No reasons yet. Members will only see “Something else”." : "Loading reasons…"}
             </p>
           )}
@@ -400,11 +400,11 @@ const AppointmentSettings = () => {
           {RULES.map((rule) => (
             <div
               key={rule.key}
-              className="flex flex-wrap items-center gap-x-6 gap-y-2 border-b border-[#E5E7EB] pb-4"
+              className="flex flex-wrap items-center gap-x-6 gap-y-2 border-b border-gray-200 pb-4"
             >
               <div className="min-w-0 flex-[1_1_300px]">
                 <p className="text-sm font-semibold text-primary">{rule.label}</p>
-                <p className="text-sm text-[#6B7280]">{rule.help}</p>
+                <p className="text-sm text-gray-500">{rule.help}</p>
               </div>
               <SelectInput
                 aria-label={rule.label}
@@ -421,7 +421,7 @@ const AppointmentSettings = () => {
             </div>
           ))}
           <div className="flex flex-wrap items-center justify-end gap-3">
-            <span className="flex-1 text-xs text-[#6B7280]">Changes apply to new requests.</span>
+            <span className="flex-1 text-xs text-gray-500">Changes apply to new requests.</span>
             {dirty && (
               <>
                 <UiButton tone="ghost" className="text-primary" onClick={() => setDraft({})} disabled={busy}>
@@ -439,26 +439,26 @@ const AppointmentSettings = () => {
       {tab === "notif" && (
         <div className="flex flex-wrap items-start gap-6">
           <section className="min-w-0 flex-[1_1_560px] overflow-hidden rounded-xl border border-lightGray bg-white">
-            <div className="border-b border-[#E5E7EB] px-5 py-4">
+            <div className="border-b border-gray-200 px-5 py-4">
               <h2 className="text-base font-semibold text-primary">Who hears about what</h2>
-              <p className="text-sm text-[#4B5563]">Pick channels for each event. Select a row to preview it.</p>
+              <p className="text-sm text-gray-600">Pick channels for each event. Select a row to preview it.</p>
             </div>
             {NOTIFICATION_EVENTS.map((event) => (
               <div
                 key={event.key}
                 onClick={() => setSelected(event.key)}
-                className={`flex cursor-pointer flex-col gap-3 border-b border-[#E5E7EB] px-5 py-4 last:border-b-0 ${
-                  selected === event.key ? "bg-[#F8F9FC]" : "bg-white"
+                className={`flex cursor-pointer flex-col gap-3 border-b border-gray-200 px-5 py-4 last:border-b-0 ${
+                  selected === event.key ? "bg-inputBackground" : "bg-white"
                 }`}
               >
                 <div>
                   <p className="text-sm font-semibold text-primary">{event.label}</p>
-                  <p className="text-xs text-[#6B7280]">{event.when}</p>
+                  <p className="text-xs text-gray-500">{event.when}</p>
                 </div>
                 <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,150px),1fr))] gap-3">
                   {NOTIFICATION_AUDIENCES.map((who) => (
                     <div key={who.key} className="flex flex-col gap-1.5">
-                      <span className="text-xs font-semibold text-[#6B7280]">{who.label}</span>
+                      <span className="text-xs font-semibold text-gray-500">{who.label}</span>
                       <div className="flex flex-wrap gap-1" onClick={(e) => e.stopPropagation()}>
                         {CHANNELS.map((channel) => {
                           const on = matrix[event.key][who.key].includes(channel.key);
@@ -484,23 +484,23 @@ const AppointmentSettings = () => {
 
           <aside className="flex w-full min-w-0 flex-[1_1_320px] flex-col gap-3 rounded-xl border border-lightGray bg-white p-5 xl:sticky xl:top-4 xl:max-w-[400px]">
             <h2 className="text-base font-semibold text-primary">What {pv.who} sees</h2>
-            <p className="text-xs text-[#6B7280]">
+            <p className="text-xs text-gray-500">
               {NOTIFICATION_EVENTS.find((e) => e.key === selected)?.label}
               {nowChannels ? ` · ${nowChannels}` : " · nobody is notified"}
             </p>
-            <div className="flex flex-col gap-3 rounded-2xl bg-[#F3F5FA] p-4">
-              <p className="text-xs font-semibold text-[#6B7280]">PUSH · LOCK SCREEN</p>
+            <div className="flex flex-col gap-3 rounded-2xl bg-background p-4">
+              <p className="text-xs font-semibold text-gray-500">PUSH · LOCK SCREEN</p>
               <div className="flex gap-3 rounded-xl bg-white p-3 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
                 <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary text-xs font-semibold text-white">
                   W
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold text-primary">{pv.title}</p>
-                  <p className="text-sm text-[#4B5563]">{pv.body}</p>
+                  <p className="text-sm text-gray-600">{pv.body}</p>
                   {pv.acts.length > 0 && (
                     <div className="mt-2 flex gap-2">
                       {pv.acts.map((a) => (
-                        <span key={a} className="flex-1 rounded-lg bg-[#F3F4F6] px-2 py-1.5 text-center text-xs font-semibold text-primary">
+                        <span key={a} className="flex-1 rounded-lg bg-gray-100 px-2 py-1.5 text-center text-xs font-semibold text-primary">
                           {a}
                         </span>
                       ))}
@@ -508,12 +508,12 @@ const AppointmentSettings = () => {
                   )}
                 </div>
               </div>
-              <p className="text-xs font-semibold text-[#6B7280]">SMS</p>
-              <p className="max-w-[95%] self-start rounded-2xl rounded-bl border border-[#E5E7EB] bg-white px-3 py-2 text-sm text-primary">
+              <p className="text-xs font-semibold text-gray-500">SMS</p>
+              <p className="max-w-[95%] self-start rounded-2xl rounded-bl border border-gray-200 bg-white px-3 py-2 text-sm text-primary">
                 {pv.sms}
               </p>
             </div>
-            <p className="text-xs text-[#6B7280]">
+            <p className="text-xs text-gray-500">
               Push buttons work from the lock screen. Every SMS links to the request so they can reply without opening the app first.
             </p>
           </aside>

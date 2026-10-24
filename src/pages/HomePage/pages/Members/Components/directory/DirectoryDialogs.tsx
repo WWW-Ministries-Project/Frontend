@@ -104,7 +104,7 @@ const StatusDialog = ({
               key={option.value}
               className={cn(
                 "flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors",
-                on ? "border-primary bg-primary/[0.04]" : "border-lightGray hover:bg-[#F8F9FC]"
+                on ? "border-primary bg-primary/[0.04]" : "border-lightGray hover:bg-inputBackground"
               )}
             >
               <input
@@ -117,7 +117,7 @@ const StatusDialog = ({
               />
               <span className="flex flex-col gap-0.5">
                 <span className="text-sm font-semibold text-primary">{option.label}</span>
-                <span className="text-xs text-[#4B5563]">{option.description}</span>
+                <span className="text-xs text-gray-600">{option.description}</span>
               </span>
             </label>
           );

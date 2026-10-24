@@ -619,12 +619,12 @@ const RequisitionManager = ({ section }: { section: Section }) => {
 
       {firstEmpty ? (
         <div className="flex flex-col items-center gap-3 rounded-xl border border-lightGray bg-white px-6 py-12 text-center">
-          <div className="flex h-36 w-36 items-center justify-center rounded-3xl bg-[#F8F9FC]">
+          <div className="flex h-36 w-36 items-center justify-center rounded-3xl bg-inputBackground">
             <img src={EmptyStateImage} alt="" className="w-24" />
           </div>
           <Pill>NO REQUISITIONS YET</Pill>
           <h2 className="text-2xl font-semibold leading-8 text-primary">You haven’t raised a requisition</h2>
-          <p className="max-w-[440px] text-base text-[#4B5563]">
+          <p className="max-w-[440px] text-base text-gray-600">
             When your department needs something bought, raise it here. You’ll see who has it at every step until Finance signs off.
           </p>
           <UiButton tone="primary" onClick={openNew}>
@@ -640,16 +640,16 @@ const RequisitionManager = ({ section }: { section: Section }) => {
           </div>
 
           {overview.attention.length > 0 && (
-            <section className="overflow-hidden rounded-xl border border-[#FDE68A] bg-white">
-              <div className="flex flex-col gap-1 border-b border-[#FDE68A] bg-[#FFFBEB] px-5 py-4">
+            <section className="overflow-hidden rounded-xl border border-amber-200 bg-white">
+              <div className="flex flex-col gap-1 border-b border-amber-200 bg-amber-50 px-5 py-4">
                 <h2 className="text-base font-semibold text-primary">Needs your attention</h2>
-                <p className="text-sm text-[#374151]">{overview.attentionNote}</p>
+                <p className="text-sm text-gray-700">{overview.attentionNote}</p>
               </div>
               {overview.attention.map((item) => (
-                <div key={item.key} className="flex flex-wrap items-center gap-3 border-b border-[#E5E7EB] px-5 py-4 last:border-b-0">
+                <div key={item.key} className="flex flex-wrap items-center gap-3 border-b border-gray-200 px-5 py-4 last:border-b-0">
                   <div className="flex min-w-0 flex-[1_1_280px] flex-col gap-0.5">
                     <p className="text-sm font-semibold text-primary">{item.title}</p>
-                    <p className="text-sm text-[#4B5563]">{item.text}</p>
+                    <p className="text-sm text-gray-600">{item.text}</p>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {item.actions.map((action) => (
@@ -665,7 +665,7 @@ const RequisitionManager = ({ section }: { section: Section }) => {
             <section className="flex flex-col gap-4 rounded-xl border border-lightGray bg-white p-5 sm:p-6">
               <div className="flex flex-col gap-1">
                 <h2 className="text-base font-semibold text-primary">Where approvals are waiting</h2>
-                <p className="text-sm text-[#4B5563]">
+                <p className="text-sm text-gray-600">
                   Every requisition goes {pipeline.map((p) => p.label).join(" → ")}. Pick a step to list what’s waiting there.
                 </p>
               </div>
@@ -683,7 +683,7 @@ const RequisitionManager = ({ section }: { section: Section }) => {
                       }}
                       className={cn(
                         "flex flex-col gap-2 rounded-lg border p-4 text-left text-sm text-primary transition-colors",
-                        on ? "border-primary bg-[#F8F9FC]" : "border-lightGray bg-white hover:bg-[#F8F9FC]"
+                        on ? "border-primary bg-inputBackground" : "border-lightGray bg-white hover:bg-inputBackground"
                       )}
                     >
                       <span className="flex items-center gap-2">
@@ -692,12 +692,12 @@ const RequisitionManager = ({ section }: { section: Section }) => {
                       </span>
                       <span className="flex flex-wrap items-baseline gap-2">
                         <span className="text-2xl font-semibold leading-8">{p.count}</span>
-                        <span className="text-[#4B5563]">waiting · {money(p.value, currency)}</span>
+                        <span className="text-gray-600">waiting · {money(p.value, currency)}</span>
                       </span>
-                      <span className={cn("text-xs", p.oldest > replyDays ? "text-[#B91C1C]" : "text-[#6B7280]")}>
+                      <span className={cn("text-xs", p.oldest > replyDays ? "text-red-700" : "text-gray-500")}>
                         {p.count ? `Oldest: ${dur(p.oldest)}` : "Nothing waiting"}
                       </span>
-                      <span className="text-xs text-[#6B7280]">{p.who.length ? p.who.join(", ") : "No one waiting"}</span>
+                      <span className="text-xs text-gray-500">{p.who.length ? p.who.join(", ") : "No one waiting"}</span>
                     </button>
                   );
                 })}
@@ -709,7 +709,7 @@ const RequisitionManager = ({ section }: { section: Section }) => {
             <section className="flex flex-col gap-3">
               <div className="flex flex-col gap-1">
                 <h2 className="text-base font-semibold text-primary">Waiting for your approval</h2>
-                <p className="text-sm text-[#4B5563]">
+                <p className="text-sm text-gray-600">
                   Oldest first. Items requested recently by anyone are flagged so you can check before approving.
                 </p>
               </div>
@@ -725,14 +725,14 @@ const RequisitionManager = ({ section }: { section: Section }) => {
                         key={r.id}
                         className={cn(
                           "flex flex-col gap-3 rounded-xl border bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.05)]",
-                          days > replyDays ? "border-[#FECACA]" : "border-lightGray"
+                          days > replyDays ? "border-red-200" : "border-lightGray"
                         )}
                       >
                         <div className="flex items-start gap-3">
                           <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                            <span className="text-xs text-[#6B7280]">{r.generated_id}</span>
+                            <span className="text-xs text-gray-500">{r.generated_id}</span>
                             <p className="text-base font-semibold leading-6 text-primary">{titleOf(r)}</p>
-                            <p className="text-sm text-[#4B5563]">
+                            <p className="text-sm text-gray-600">
                               {r.requester.name} · {r.department.name}
                               {r.event ? ` · ${r.event.name}` : ""}
                             </p>
@@ -740,11 +740,11 @@ const RequisitionManager = ({ section }: { section: Section }) => {
                           <span className="whitespace-nowrap text-sm font-semibold text-primary">{money(r.total_amount, r.currency)}</span>
                         </div>
                         <div className="flex flex-col gap-1">
-                          <span className={cn("text-xs font-semibold", days > replyDays ? "text-[#B91C1C]" : days >= replyDays - 1 ? "text-[#B45309]" : "text-[#4B5563]")}>
+                          <span className={cn("text-xs font-semibold", days > replyDays ? "text-red-700" : days >= replyDays - 1 ? "text-amber-700" : "text-gray-600")}>
                             Waiting {dur(days)}
                             {days > replyDays ? " · over reply time" : ""}
                           </span>
-                          <span className="text-xs text-[#6B7280]">
+                          <span className="text-xs text-gray-500">
                             {prev?.acted_at ? `Approved by ${prev.approver.name} on ${fmtD(prev.acted_at)}` : `Submitted ${fmtD(r.submitted_at)}`}
                           </span>
                         </div>
@@ -768,7 +768,7 @@ const RequisitionManager = ({ section }: { section: Section }) => {
                   })}
                 </div>
               ) : (
-                <p className="rounded-xl border border-dashed border-lightGray bg-white p-6 text-center text-sm text-[#4B5563]">
+                <p className="rounded-xl border border-dashed border-lightGray bg-white p-6 text-center text-sm text-gray-600">
                   Nothing is waiting for you. You’ll be notified when a requisition reaches your step.
                 </p>
               )}
@@ -779,7 +779,7 @@ const RequisitionManager = ({ section }: { section: Section }) => {
             <section className="flex flex-col gap-3">
               <div className="flex flex-col gap-1">
                 <h2 className="text-base font-semibold text-primary">Where your requests are</h2>
-                <p className="text-sm text-[#4B5563]">Who has each one now, and how long it’s been with them.</p>
+                <p className="text-sm text-gray-600">Who has each one now, and how long it’s been with them.</p>
               </div>
               <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,340px),1fr))] gap-4">
                 {tracked.map((r) => {
@@ -790,17 +790,17 @@ const RequisitionManager = ({ section }: { section: Section }) => {
                       key={r.id}
                       type="button"
                       onClick={() => openRow(r)}
-                      className="flex flex-col gap-4 rounded-xl border border-lightGray bg-white p-5 text-left text-sm text-primary transition-shadow hover:shadow-[0_8px_24px_rgba(8,13,45,0.08)]"
+                      className="flex flex-col gap-4 rounded-xl border border-lightGray bg-white p-5 text-left text-sm text-primary transition-shadow hover:shadow-[0_8px_24px_rgb(var(--color-shadow)_/_0.08)]"
                     >
                       <div className="flex w-full items-start gap-3">
                         <div className="min-w-0 flex-1">
-                          <span className="text-xs text-[#6B7280]">{r.generated_id}</span>
+                          <span className="text-xs text-gray-500">{r.generated_id}</span>
                           <p className="font-semibold">{titleOf(r)}</p>
                         </div>
                         <span className="whitespace-nowrap font-semibold">{money(r.total_amount, r.currency)}</span>
                       </div>
                       {r.steps.length > 0 && <StepperH row={r} />}
-                      <p className={cn("text-xs font-semibold", days > replyDays ? "text-[#B91C1C]" : days >= replyDays - 1 ? "text-[#B45309]" : "text-[#15803D]")}>
+                      <p className={cn("text-xs font-semibold", days > replyDays ? "text-red-700" : days >= replyDays - 1 ? "text-amber-700" : "text-green-700")}>
                         {step ? `With ${step.approver.name} (${step.label}) · ${dur(days)}` : `In approval · ${dur(days)}`}
                       </p>
                     </button>
@@ -825,7 +825,7 @@ const RequisitionManager = ({ section }: { section: Section }) => {
                         <span
                           className={cn(
                             "rounded-full px-2 text-xs font-semibold",
-                            t.warn ? "bg-[#B91C1C] text-white" : t.key === activeTab.key ? "bg-primary text-white" : "bg-[#E5E7EB] text-[#374151]"
+                            t.warn ? "bg-error text-white" : t.key === activeTab.key ? "bg-primary text-white" : "bg-gray-200 text-gray-700"
                           )}
                         >
                           {t.list.length}
@@ -846,7 +846,7 @@ const RequisitionManager = ({ section }: { section: Section }) => {
                 className="max-w-[360px] flex-[1_1_240px]"
               />
             </div>
-            <p className="text-sm text-[#4B5563]">
+            <p className="text-sm text-gray-600">
               {plural(list.length, "requisition")} · {money(sumOf(list), currency)}
               {isFiltered ? " · filtered" : ""}
             </p>
@@ -878,7 +878,7 @@ const RequisitionManager = ({ section }: { section: Section }) => {
                     render: (r) => (
                       <div className="min-w-0">
                         <p className="truncate font-medium">{titleOf(r)}</p>
-                        <p className="truncate text-xs text-[#6B7280]">
+                        <p className="truncate text-xs text-gray-500">
                           {r.department.name}
                           {r.event ? ` · ${r.event.name}` : ""}
                         </p>
@@ -909,14 +909,14 @@ const RequisitionManager = ({ section }: { section: Section }) => {
                     >
                       <div className="flex w-full items-start gap-3">
                         <div className="min-w-0 flex-1">
-                          <p className="text-xs text-[#6B7280]">
+                          <p className="text-xs text-gray-500">
                             {r.generated_id} · {r.submitted_at ? fmtD(r.submitted_at) : `Created ${fmtD(r.created_at)}`}
                           </p>
                           <p className="font-semibold">{titleOf(r)}</p>
                         </div>
                         <Pill tone={pill.tone}>{pill.label}</Pill>
                       </div>
-                      <p className="text-[#4B5563]">
+                      <p className="text-gray-600">
                         {mine ? `Needed by ${fmtDay(r.needed_by)}` : r.requester.name} · {r.department.name}
                       </p>
                       <div className="flex w-full flex-wrap items-baseline justify-between gap-3">
@@ -935,7 +935,7 @@ const RequisitionManager = ({ section }: { section: Section }) => {
               </UiButton>
             )}
             {loaded && !list.length && (
-              <p className="rounded-xl border border-dashed border-lightGray bg-white p-6 text-center text-sm text-[#4B5563]">{noneText}</p>
+              <p className="rounded-xl border border-dashed border-lightGray bg-white p-6 text-center text-sm text-gray-600">{noneText}</p>
             )}
           </div>
         </>

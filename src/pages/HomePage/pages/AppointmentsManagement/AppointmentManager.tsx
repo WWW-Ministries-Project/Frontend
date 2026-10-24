@@ -331,21 +331,21 @@ const AppointmentManager = () => {
       </div>
 
       {attention.length > 0 && (
-        <section className="overflow-hidden rounded-xl border border-[#FDE68A] bg-white">
-          <div className="flex flex-col gap-1 border-b border-[#FDE68A] bg-[#FFFBEB] px-5 py-4">
+        <section className="overflow-hidden rounded-xl border border-amber-200 bg-white">
+          <div className="flex flex-col gap-1 border-b border-amber-200 bg-amber-50 px-5 py-4">
             <h2 className="text-base font-semibold text-primary">Needs your attention</h2>
-            <p className="text-sm text-[#374151]">
+            <p className="text-sm text-gray-700">
               Requests nobody has answered within {sla} hours come here, and you’re alerted by push and email.
             </p>
           </div>
           {attention.map((item) => (
             <div
               key={item.key}
-              className="flex flex-wrap items-center gap-3 border-b border-[#E5E7EB] px-5 py-4 last:border-b-0"
+              className="flex flex-wrap items-center gap-3 border-b border-gray-200 px-5 py-4 last:border-b-0"
             >
               <div className="flex min-w-0 flex-[1_1_280px] flex-col gap-0.5">
                 <p className="text-sm font-semibold text-primary">{item.title}</p>
-                <p className="text-sm text-[#4B5563]">{item.text}</p>
+                <p className="text-sm text-gray-600">{item.text}</p>
               </div>
               <div className="flex w-full flex-wrap gap-2 sm:w-auto">
                 {item.actions.map((action) => (
@@ -381,7 +381,7 @@ const AppointmentManager = () => {
         />
       </div>
 
-      <p className="text-sm text-[#4B5563]">
+      <p className="text-sm text-gray-600">
         {plural(list.length, "appointment")}
         {desc && list.length > PAGE_LIMIT ? `, showing the latest ${PAGE_LIMIT}` : ""}. Select one to see its history and act on it.
       </p>
@@ -390,7 +390,7 @@ const AppointmentManager = () => {
         <div key={group.day} className="flex flex-col gap-3">
           <h2 className="flex items-baseline gap-2 text-base font-semibold text-primary">
             {dayLabel(group.day, now)}
-            <span className="text-sm font-normal text-[#6B7280]">{plural(group.items.length, "appointment")}</span>
+            <span className="text-sm font-normal text-gray-500">{plural(group.items.length, "appointment")}</span>
           </h2>
           {wide ? (
             <GridTable
@@ -427,7 +427,7 @@ const AppointmentManager = () => {
                   key: "reason",
                   header: "Reason",
                   width: "minmax(160px,1.1fr)",
-                  render: (b) => <p className="text-[#4B5563]">{b.reason}</p>,
+                  render: (b) => <p className="text-gray-600">{b.reason}</p>,
                 },
                 {
                   key: "status",
@@ -449,13 +449,13 @@ const AppointmentManager = () => {
                   <div className="flex w-full items-start gap-3">
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-semibold">{b.requester}</p>
-                      <p className="text-xs text-[#6B7280]">
+                      <p className="text-xs text-gray-500">
                         {t12(slotOf(b).start)} · {b.reason}
                       </p>
                     </div>
                     <Pill tone={pillOf(b, sla, now).tone}>{pillOf(b, sla, now).label}</Pill>
                   </div>
-                  <p className="text-sm text-[#4B5563]">With {personOf(b).name}</p>
+                  <p className="text-sm text-gray-600">With {personOf(b).name}</p>
                   {subLine(b)}
                 </button>
               ))}

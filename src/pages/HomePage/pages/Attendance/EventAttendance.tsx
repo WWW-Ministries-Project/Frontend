@@ -329,7 +329,7 @@ export default function EventAttendance() {
         />
 
         {departmentScoped && (
-          <p className="rounded-lg border border-[#BFDBFE] bg-[#EFF6FF] px-4 py-3 text-sm text-[#1D4ED8]">
+          <p className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
             Department access is active. You only see check-ins for members of the departments you are
             assigned to or lead.
           </p>
@@ -384,7 +384,7 @@ export default function EventAttendance() {
         )}
 
         {error && (
-          <p className="rounded-lg border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 text-sm text-[#B91C1C]">
+          <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
             {error.message || "Unable to load check-ins."}
           </p>
         )}
@@ -402,7 +402,7 @@ export default function EventAttendance() {
             label="Awaiting confirmation"
             value={nf(bioRows.length)}
             sub={bioRows.length ? "Biometric only, not yet official" : "All check-ins are official"}
-            color={bioRows.length ? "#B45309" : "#15803D"}
+            color={bioRows.length ? "rgb(var(--color-amber-700))" : "rgb(var(--color-green-700))"}
           />
         </StatGrid>
 
@@ -486,7 +486,7 @@ export default function EventAttendance() {
           </div>
         )}
 
-        <p className="text-sm text-[#4B5563]">
+        <p className="text-sm text-gray-600">
           Showing {nf(list.length)} check-in{list.length === 1 ? "" : "s"} across{" "}
           {plural(groups.length, groupBy === "event" ? "event" : "date")}.
         </p>

@@ -16,7 +16,7 @@ export const MemberFormStepper = ({
   return (
     <nav
       aria-label="Member registration progress"
-      className="overflow-x-auto rounded-xl border border-[#D8DAE5] bg-white p-3"
+      className="overflow-x-auto rounded-xl border border-lightGray bg-white p-3"
     >
       <ol className="m-0 flex list-none gap-2 p-0">
         {steps.map((step, index) => {
@@ -30,8 +30,8 @@ export const MemberFormStepper = ({
                 aria-current={isCurrent ? "step" : undefined}
                 aria-label={`${step.title}. ${step.description}`}
                 className={cn(
-                  "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors hover:bg-[rgba(216,218,229,0.3)]",
-                  isCurrent ? "bg-[rgba(216,218,229,0.3)]" : "bg-transparent"
+                  "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors hover:bg-lightGray/30",
+                  isCurrent ? "bg-lightGray/30" : "bg-transparent"
                 )}
               >
                 <span
@@ -40,14 +40,14 @@ export const MemberFormStepper = ({
                     "flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border text-sm font-semibold",
                     isCurrent || isDone
                       ? "border-primary bg-primary text-white"
-                      : "border-[#D8DAE5] bg-white text-[#4B5563]"
+                      : "border-lightGray bg-white text-gray-600"
                   )}
                 >
                   {isDone ? "✓" : index + 1}
                 </span>
                 <span className="flex min-w-0 flex-col">
                   <span className="text-sm font-semibold text-primary">{step.title}</span>
-                  <span className="text-xs text-[#6B7280]">{step.description}</span>
+                  <span className="text-xs text-gray-500">{step.description}</span>
                 </span>
               </button>
             </li>

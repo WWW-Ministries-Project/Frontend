@@ -257,11 +257,11 @@ export const AttendanceAnalytics = () => {
         />
 
         <div className="flex flex-col gap-1">
-          <h2 className="text-xl font-bold leading-7 text-[#1F2937]">{title}</h2>
-          <p className="text-sm text-[#4B5563]">
+          <h2 className="text-xl font-bold leading-7 text-gray-800">{title}</h2>
+          <p className="text-sm text-gray-600">
             {description} · {result.base}
           </p>
-          <p className="text-xs text-[#6B7280]">{note}</p>
+          <p className="text-xs text-gray-500">{note}</p>
         </div>
 
         <StatGrid>

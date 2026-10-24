@@ -75,7 +75,7 @@ const ModuleRow = ({
   const exclTitle = module.key === "Members" ? "Hide these people’s profiles" : "Hide these people’s appointments";
 
   return (
-    <div className="flex flex-col gap-3 border-t border-[#E5E7EB] px-4 py-4 tablet:px-6">
+    <div className="flex flex-col gap-3 border-t border-gray-200 px-4 py-4 tablet:px-6">
       <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
         <div className="flex min-w-0 flex-[1_1_240px] flex-col gap-0.5">
           <div className="flex flex-wrap items-center gap-2">
@@ -86,7 +86,7 @@ const ModuleRow = ({
               </Pill>
             )}
           </div>
-          <p className="text-xs text-[#6B7280]">{module.description}</p>
+          <p className="text-xs text-gray-500">{module.description}</p>
         </div>
         <Segmented<Level>
           ariaLabel={`${module.label} access`}
@@ -109,7 +109,7 @@ const ModuleRow = ({
         />
       </div>
       {module.extra === "scope" && has && (
-        <label className="flex cursor-pointer items-start gap-3 rounded-lg bg-[#F8F9FC] px-4 py-3">
+        <label className="flex cursor-pointer items-start gap-3 rounded-lg bg-inputBackground px-4 py-3">
           <input
             type="checkbox"
             checked={!!draft.scopes[module.key]}
@@ -124,17 +124,17 @@ const ModuleRow = ({
           />
           <span className="flex flex-col gap-0.5">
             <span className="text-sm font-medium text-primary">Only their own departments</span>
-            <span className="text-xs text-[#6B7280]">
+            <span className="text-xs text-gray-500">
               They see and act on the departments they belong to, not the whole church.
             </span>
           </span>
         </label>
       )}
       {module.extra === "excl" && has && (
-        <div className="flex flex-col gap-2 rounded-lg bg-[#F8F9FC] px-4 py-3">
+        <div className="flex flex-col gap-2 rounded-lg bg-inputBackground px-4 py-3">
           <div className="flex flex-col gap-0.5">
             <p className="text-sm font-medium text-primary">{exclTitle}</p>
-            <p className="text-xs text-[#6B7280]">
+            <p className="text-xs text-gray-500">
               For pastors and counsellors whose details should stay private from this role.
             </p>
           </div>
@@ -167,7 +167,7 @@ const ModuleRow = ({
           <Pill tone="warning" className="px-2 py-0">
             Grant on purpose
           </Pill>
-          <span className="text-xs text-[#4B5563]">{module.why} Templates and “Set all” never switch it on.</span>
+          <span className="text-xs text-gray-600">{module.why} Templates and “Set all” never switch it on.</span>
         </div>
       )}
     </div>
@@ -187,7 +187,7 @@ const Skeleton = () => (
     </div>
     <div className="flex flex-col gap-4 bg-white px-[var(--app-page-padding-inline)] py-6">
       {Array.from({ length: 3 }, (_, i) => (
-        <div key={i} className="h-40 rounded-xl border border-lightGray bg-[#F8F9FC]" />
+        <div key={i} className="h-40 rounded-xl border border-lightGray bg-inputBackground" />
       ))}
     </div>
   </div>
@@ -388,16 +388,16 @@ const RoleDetail = () => {
           ]}
         />
       </div>
-      <p className="text-xs text-[#4B5563]">
+      <p className="text-xs text-gray-600">
         <strong className="font-semibold">View</strong> see records · <strong className="font-semibold">Manage</strong>{" "}
         create and edit · <strong className="font-semibold">Full</strong> also delete and change module settings
       </p>
       {groups.map(({ group, all, on, rows }) => (
         <section key={group} className="overflow-hidden rounded-xl border border-lightGray">
-          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 bg-[#F8F9FC] px-4 py-3 tablet:px-6">
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 bg-inputBackground px-4 py-3 tablet:px-6">
             <div className="flex flex-col">
               <h2 className="text-base font-semibold text-primary">{group}</h2>
-              <p className="text-xs text-[#6B7280]">
+              <p className="text-xs text-gray-500">
                 {on} of {all.length} with access
               </p>
             </div>
@@ -414,7 +414,7 @@ const RoleDetail = () => {
                     });
                   });
                 }}
-                className="h-10 cursor-pointer rounded-lg border border-[rgba(107,114,128,0.35)] bg-white px-3 text-sm text-primary"
+                className="h-10 cursor-pointer rounded-lg border border-gray-500/35 bg-white px-3 text-sm text-primary"
               >
                 <option value="">Set all to…</option>
                 {LEVELS.map((lv) => (
@@ -439,7 +439,7 @@ const RoleDetail = () => {
           ))}
         </section>
       ))}
-      {!groups.length && <p className="text-sm text-[#6B7280]">No modules match.</p>}
+      {!groups.length && <p className="text-sm text-gray-500">No modules match.</p>}
     </>
   );
 
@@ -451,7 +451,7 @@ const RoleDetail = () => {
           <h2 className="text-base font-semibold text-primary">
             {plural(nP, "person has", "people have")} this role{scope.isAll ? " across branches" : ` in ${scope.scopeName}`}
           </h2>
-          <p className="text-sm text-[#4B5563]">
+          <p className="text-sm text-gray-600">
             Each person has one role per branch. Adding someone here sets their role in the branch you choose.
           </p>
         </div>
@@ -468,7 +468,7 @@ const RoleDetail = () => {
             return (
               <div
                 key={`${g.user_id}-${g.branch_id}`}
-                className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-[#E5E7EB] px-4 py-3 last:border-b-0 hover:bg-lightGray/20"
+                className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-gray-200 px-4 py-3 last:border-b-0 hover:bg-lightGray/20"
               >
                 <Avatar name={g.name} size={36} />
                 <div className="flex min-w-0 flex-[1_1_200px] flex-col">
@@ -476,7 +476,7 @@ const RoleDetail = () => {
                     {g.name}
                     {me ? " (you)" : ""}
                   </span>
-                  <span className="truncate text-xs text-[#6B7280]">
+                  <span className="truncate text-xs text-gray-500">
                     {g.email ? `${g.email} · ` : ""}
                     {g.branch_name}
                   </span>
@@ -488,7 +488,7 @@ const RoleDetail = () => {
                   <UiButton
                     tone="ghost"
                     size="sm"
-                    className="min-h-10 text-[#B91C1C] hover:bg-[#FEF2F2] hover:text-[#B91C1C]"
+                    className="min-h-10 text-red-700 hover:bg-red-50 hover:text-red-700"
                     onClick={() => removePerson(g)}
                   >
                     Remove
@@ -501,7 +501,7 @@ const RoleDetail = () => {
       ) : (
         <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-lightGray px-4 py-8 text-center">
           <p className="text-base font-semibold text-primary">No one has this role yet</p>
-          <p className="text-sm text-[#4B5563]">Add people and they get these permissions right away.</p>
+          <p className="text-sm text-gray-600">Add people and they get these permissions right away.</p>
         </div>
       )}
     </>

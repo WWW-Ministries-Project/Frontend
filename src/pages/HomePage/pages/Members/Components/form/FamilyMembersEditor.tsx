@@ -84,13 +84,13 @@ export const FamilyMembersEditor = ({ disabled }: { disabled?: boolean }) => {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-1">
-        <h2 className="text-xl font-bold leading-7 text-[#1F2937]">Family Information</h2>
-        <p className="text-sm text-[#4B5563]">
+        <h2 className="text-xl font-bold leading-7 text-gray-800">Family Information</h2>
+        <p className="text-sm text-gray-600">
           Link family members who already belong to the church, or enter their details.
         </p>
       </div>
       {listError && (
-        <p role="alert" className="text-xs text-[#B91C1C]">
+        <p role="alert" className="text-xs text-red-700">
           {listError}
         </p>
       )}
@@ -110,7 +110,7 @@ export const FamilyMembersEditor = ({ disabled }: { disabled?: boolean }) => {
               return (
                 <div
                   key={index}
-                  className="flex flex-col gap-3 rounded-lg border border-[#E5E7EB] p-4"
+                  className="flex flex-col gap-3 rounded-lg border border-gray-200 p-4"
                 >
                   <div className="flex items-center justify-between gap-2">
                     <h3 className="text-base font-semibold text-primary">
@@ -120,7 +120,7 @@ export const FamilyMembersEditor = ({ disabled }: { disabled?: boolean }) => {
                       type="button"
                       onClick={() => remove(index)}
                       disabled={disabled || onlyOne}
-                      className="text-sm text-[#B91C1C] disabled:cursor-not-allowed disabled:opacity-60"
+                      className="text-sm text-red-700 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       Remove
                     </button>

@@ -29,12 +29,12 @@ export const CATEGORIES: { key: AssetCategoryKey; label: string }[] = [
 export const categoryLabel = (key: string) => CATEGORIES.find((c) => c.key === key)?.label ?? "Other";
 
 export const STATUS: Record<AssetStatus, { label: string; tone: PillTone; color: string }> = {
-  ASSIGNED: { label: "Assigned", tone: "success", color: "#15803D" },
-  UNASSIGNED: { label: "In store", tone: "neutral", color: "#9CA3AF" },
+  ASSIGNED: { label: "Assigned", tone: "success", color: "rgb(var(--color-green-700))" },
+  UNASSIGNED: { label: "In store", tone: "neutral", color: "rgb(var(--color-gray-400))" },
   NEEDS_REPAIR: { label: "Needs repair", tone: "warning", color: "#D97706" },
-  OUT_OF_REPAIRS: { label: "Under repair", tone: "info", color: "#1D4ED8" },
+  OUT_OF_REPAIRS: { label: "Under repair", tone: "info", color: "rgb(var(--color-blue-700))" },
   NOT_FIXABLE: { label: "Beyond repair", tone: "danger", color: "#7F1D1D" },
-  LOST_OR_STOLEN: { label: "Lost or stolen", tone: "danger", color: "#B91C1C" },
+  LOST_OR_STOLEN: { label: "Lost or stolen", tone: "danger", color: "rgb(var(--color-red-700))" },
 };
 export const STATUS_ORDER: AssetStatus[] = [
   "ASSIGNED",
@@ -112,21 +112,21 @@ export const subOf = (asset: AssetRow, today: string, staleDays: number): { text
   const d = daysSince(asset.status_since, today);
   switch (asset.status) {
     case "ASSIGNED":
-      return { text: `Since ${fmtD(asset.date_assigned || asset.status_since)}`, color: "#6B7280" };
+      return { text: `Since ${fmtD(asset.date_assigned || asset.status_since)}`, color: "rgb(var(--color-gray-500))" };
     case "UNASSIGNED":
-      return { text: `In store for ${ago(asset.status_since, today)}`, color: d > 90 ? "#B45309" : "#6B7280" };
+      return { text: `In store for ${ago(asset.status_since, today)}`, color: d > 90 ? "rgb(var(--color-amber-700))" : "rgb(var(--color-gray-500))" };
     case "NEEDS_REPAIR": {
       const r = asset.repair_requisition;
-      if (!r) return { text: "No repair requisition yet", color: "#B45309" };
+      if (!r) return { text: "No repair requisition yet", color: "rgb(var(--color-amber-700))" };
       return {
         text: `${r.generated_id} · ${REQ_STATUS[r.status].label.toLowerCase()}`,
-        color: r.status === "REJECTED" ? "#B91C1C" : r.status === "APPROVED" ? "#15803D" : "#6B7280",
+        color: r.status === "REJECTED" ? "rgb(var(--color-red-700))" : r.status === "APPROVED" ? "rgb(var(--color-green-700))" : "rgb(var(--color-gray-500))",
       };
     }
     case "OUT_OF_REPAIRS":
-      return { text: `For ${ago(asset.status_since, today)}`, color: d > staleDays ? "#B91C1C" : "#B45309" };
+      return { text: `For ${ago(asset.status_since, today)}`, color: d > staleDays ? "rgb(var(--color-red-700))" : "rgb(var(--color-amber-700))" };
     default:
-      return { text: `Since ${fmtD(asset.status_since)}`, color: "#6B7280" };
+      return { text: `Since ${fmtD(asset.status_since)}`, color: "rgb(var(--color-gray-500))" };
   }
 };
 
@@ -188,10 +188,10 @@ export const differenceCount = (stats: CheckStats) =>
 export const dueInfo = (check: StockCheck, today: string) => {
   const left = Math.round(-daysSince(check.due_date, today));
   return left < 0
-    ? { text: `Overdue by ${-left} days (due ${fmtD(check.due_date)})`, color: "#B91C1C", overdue: true, left }
+    ? { text: `Overdue by ${-left} days (due ${fmtD(check.due_date)})`, color: "rgb(var(--color-red-700))", overdue: true, left }
     : {
         text: `Due ${fmtD(check.due_date)} · ${left} ${left === 1 ? "day" : "days"} left`,
-        color: left <= 3 ? "#B45309" : "#4B5563",
+        color: left <= 3 ? "rgb(var(--color-amber-700))" : "rgb(var(--color-gray-600))",
         overdue: false,
         left,
       };

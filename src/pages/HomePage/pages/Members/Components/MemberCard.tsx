@@ -70,7 +70,7 @@ export const MemberCard = ({
   return (
     <div
       className={cn(
-        "relative flex flex-col gap-4 rounded-2xl border bg-white p-4 shadow-[0_8px_24px_rgba(8,13,45,0.08)] transition-shadow hover:shadow-[0_10px_28px_rgba(8,13,45,0.2)]",
+        "relative flex flex-col gap-4 rounded-2xl border bg-white p-4 shadow-[0_8px_24px_rgb(var(--color-shadow)_/_0.08)] transition-shadow hover:shadow-[0_10px_28px_rgb(var(--color-shadow)_/_0.2)]",
         selected ? "border-primary" : "border-lightGray"
       )}
     >
@@ -96,8 +96,8 @@ export const MemberCard = ({
           >
             {member.name}
           </button>
-          <p className="text-sm text-[#4B5563]">{member.member_id || "Member ID pending"}</p>
-          <p className="text-xs text-[#6B7280]">
+          <p className="text-sm text-gray-600">{member.member_id || "Member ID pending"}</p>
+          <p className="text-xs text-gray-500">
             {departments.length ? departments.join(", ") : "No department"}
           </p>
         </div>
