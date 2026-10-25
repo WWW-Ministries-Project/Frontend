@@ -1,3 +1,4 @@
+import { useBackNavigation } from "@/CustomHooks/useBackNavigation";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useOutletContext, useParams } from "react-router-dom";
 
@@ -67,6 +68,7 @@ const fetchDetails = api.fetch.fetchDepartmentDetails as unknown as (
 
 export const DepartmentDetails = () => {
   const navigate = useNavigate();
+  const back = useBackNavigation(departmentsListPath);
   const { id } = useParams();
   const { refetchDepartments } = useOutletContext<MembershipOutletContext>();
   const { canManage, getScope } = useAccessControl();
@@ -298,10 +300,10 @@ export const DepartmentDetails = () => {
       <div className="flex flex-col gap-4 bg-primary px-[var(--app-page-padding-inline)] pt-5 text-white">
         <button
           type="button"
-          onClick={() => navigate(departmentsListPath)}
+          onClick={back.goBack}
           className="self-start bg-transparent p-0 text-sm text-white/80 transition-colors hover:text-white"
         >
-          ← Back to departments
+          ← Back to {back.label}
         </button>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex min-w-0 max-w-[760px] flex-col gap-2">

@@ -1,3 +1,4 @@
+import { useBackNavigation } from "@/CustomHooks/useBackNavigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
@@ -138,6 +139,7 @@ const FinanceRecord = () => {
   const isNew = !id || id === "create";
   const [params] = useSearchParams();
   const navigate = useNavigate();
+  const back = useBackNavigation("/home/finance");
   const width = useViewportWidth();
   const phone = width < 640;
   const wideRail = width >= 1100;
@@ -478,7 +480,7 @@ const FinanceRecord = () => {
     return (
       <PageOutline>
         <div className="flex flex-col gap-5">
-          <BackLink label="Finance Management" onClick={() => navigate("/home/finance")} />
+          <BackLink label={back.label} onClick={back.goBack} />
           <EmptyNote>{recRes.error ? "Couldn’t load this record. Refresh to try again." : "Record not found."}</EmptyNote>
         </div>
       </PageOutline>
@@ -488,7 +490,7 @@ const FinanceRecord = () => {
     return (
       <PageOutline>
         <div className="flex flex-col gap-5">
-          <BackLink label="Finance Management" onClick={() => navigate("/home/finance")} />
+          <BackLink label={back.label} onClick={back.goBack} />
           <EmptyNote>{cfgFailed ? "Couldn’t load finance configuration. Refresh to try again." : "Loading finance configuration…"}</EmptyNote>
         </div>
       </PageOutline>
@@ -639,7 +641,7 @@ const FinanceRecord = () => {
   return (
     <PageOutline>
       <div className="flex flex-col gap-5">
-        <BackLink label="Finance Management" onClick={() => navigate("/home/finance")} />
+        <BackLink label={back.label} onClick={back.goBack} />
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex min-w-0 flex-col gap-1.5">
             <div className="flex flex-wrap items-center gap-2">

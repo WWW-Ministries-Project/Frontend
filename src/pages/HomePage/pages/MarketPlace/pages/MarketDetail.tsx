@@ -1,3 +1,4 @@
+import { useBackNavigation } from "@/CustomHooks/useBackNavigation";
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
@@ -27,6 +28,7 @@ type InnerTab = "Products" | "Orders";
 
 export function MarketDetails() {
   const navigate = useNavigate();
+  const back = useBackNavigation("/home/market-place/markets");
   const [params] = useSearchParams();
   const { id: encodedId } = useParams();
   const id = decodeQuery(String(encodedId));
@@ -73,9 +75,9 @@ export function MarketDetails() {
         <button
           type="button"
           className={backLink}
-          onClick={() => navigate("/home/market-place/markets")}
+          onClick={back.goBack}
         >
-          ← Back to markets
+          ← Back to {back.label}
         </button>
 
         <div

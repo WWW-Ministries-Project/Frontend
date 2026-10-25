@@ -1,3 +1,4 @@
+import { useBackNavigation } from "@/CustomHooks/useBackNavigation";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
@@ -37,6 +38,7 @@ const PledgeDetail = () => {
   const { id } = useParams();
   const [params, setParams] = useSearchParams();
   const navigate = useNavigate();
+  const back = useBackNavigation("/home/finance/pledges");
   const today = useToday();
   const { canManageCurrentRoute: canManage } = useRouteAccess();
 
@@ -80,7 +82,7 @@ const PledgeDetail = () => {
     return (
       <PageOutline>
         <div className="flex flex-col gap-5">
-          <BackLink label="Pledges" onClick={() => navigate("/home/finance/pledges")} />
+          <BackLink label={back.label} onClick={back.goBack} />
           <EmptyNote>{res.error ? "Couldn’t load this pledge. Refresh to try again." : "Pledge not found."}</EmptyNote>
         </div>
       </PageOutline>
@@ -196,7 +198,7 @@ const PledgeDetail = () => {
   return (
     <PageOutline>
       <div className="flex flex-col gap-5">
-        <BackLink label="Pledges" onClick={() => navigate("/home/finance/pledges")} />
+        <BackLink label={back.label} onClick={back.goBack} />
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex min-w-0 flex-col gap-1.5">
             <div className="flex flex-wrap items-center gap-2">

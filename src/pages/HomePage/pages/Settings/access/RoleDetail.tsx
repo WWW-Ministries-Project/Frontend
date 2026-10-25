@@ -1,3 +1,4 @@
+import { useBackNavigation } from "@/CustomHooks/useBackNavigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
@@ -278,6 +279,7 @@ const Skeleton = () => (
 const RoleDetail = () => {
   const { roleId } = useParams();
   const navigate = useNavigate();
+  const back = useBackNavigation(ACCESS_BASE);
   const [params, setParams] = useSearchParams();
   const tabParam = params.get("tab");
   const tab: Tab = tabParam === "people" || tabParam === "ws" ? tabParam : "perm";
@@ -371,7 +373,7 @@ const RoleDetail = () => {
         <SectionEmpty
           title="Role not found"
           text="It may have been deleted, or the link is wrong."
-          action={<UiButton onClick={() => navigate(ACCESS_BASE)}>Back to access rights</UiButton>}
+          action={<UiButton onClick={back.goBack}>Back to {back.label}</UiButton>}
         />
       </div>
     );
@@ -632,10 +634,10 @@ const RoleDetail = () => {
       <div className="flex flex-col gap-4 bg-primary px-[var(--app-page-padding-inline)] pt-5 text-white">
         <button
           type="button"
-          onClick={() => guard(() => navigate(ACCESS_BASE))}
+          onClick={() => guard(back.goBack)}
           className="self-start bg-transparent p-0 text-sm text-white/80 transition-colors hover:text-white"
         >
-          ← Access rights
+          ← {back.label}
         </button>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex min-w-0 flex-[1_1_320px] flex-col gap-1">

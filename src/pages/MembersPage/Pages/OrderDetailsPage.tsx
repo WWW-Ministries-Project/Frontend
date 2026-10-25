@@ -1,3 +1,4 @@
+import { useBackNavigation } from "@/CustomHooks/useBackNavigation";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -41,6 +42,7 @@ export function OrderDetailsPage() {
   const { id } = useParams();
   const orderId = decodeQuery(id || "");
   const navigate = useNavigate();
+  const back = useBackNavigation(relativePath.member.orders);
   const [busy, setBusy] = useState(false);
   const { pickupLocation } = useDeliveryConfig();
 
@@ -113,10 +115,10 @@ export function OrderDetailsPage() {
     <div className="flex w-full flex-col gap-5 text-primary">
       <button
         type="button"
-        onClick={() => navigate(relativePath.member.orders)}
+        onClick={back.goBack}
         className="self-start text-sm text-primaryGray hover:text-primary"
       >
-        ← My orders
+        ← {back.label}
       </button>
 
       <div className="flex flex-wrap items-center justify-between gap-3">

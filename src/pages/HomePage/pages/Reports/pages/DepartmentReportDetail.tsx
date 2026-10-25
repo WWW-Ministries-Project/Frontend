@@ -1,3 +1,4 @@
+import { useBackNavigation } from "@/CustomHooks/useBackNavigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
@@ -243,18 +244,17 @@ const DepartmentReportDetail = () => {
   };
 
   /* ---------------------------------- view ---------------------------------- */
-  const backLabel = from === "exec" ? "Executive summary" : "Department reports";
-  const back = () => {
-    if (from === "exec") return navigate("/home/reports/executive-summary");
-    // Department attendance reports only list under a monthly period, so return to one.
-    if (deptAttendance) {
-      const next = new URLSearchParams({ period_type: "MONTHLY" });
-      const periodKey = report?.period.key || controls.periodKey;
-      if (periodKey) next.set("period_key", periodKey);
-      return navigate(`/home/reports/department?${next.toString()}`);
-    }
-    navigate("/home/reports/department");
-  };
+  // Opened without history (shared link): return to the list it belongs to.
+  // Department attendance reports only list under a monthly period.
+  const fallbackPath = (() => {
+    if (from === "exec") return "/home/reports/executive-summary";
+    if (!deptAttendance) return "/home/reports/department";
+    const next = new URLSearchParams({ period_type: "MONTHLY" });
+    const periodKey = report?.period.key || controls.periodKey;
+    if (periodKey) next.set("period_key", periodKey);
+    return `/home/reports/department?${next.toString()}`;
+  })();
+  const { goBack: back, label: backLabel } = useBackNavigation(fallbackPath);
 
   if (!report) {
     return (

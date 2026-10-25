@@ -1,3 +1,4 @@
+import { useBackNavigation } from "@/CustomHooks/useBackNavigation";
 import { pictureInstance as axiosPic } from "@/axiosInstance";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
@@ -99,9 +100,10 @@ export function ManageMember() {
     }
   }, [afterSubmitPath, data, id, member?.data?.id, navigate, outletContext, updatedData]);
 
-  const handleCancel = () => {
-    navigate(-1);
-  };
+  const back = useBackNavigation(
+    isEditMode && id ? `/home/members/${encodeQuery(id)}` : afterSubmitPath || "/home/membership"
+  );
+  const handleCancel = back.goBack;
 
   async function handleSubmit(values: IMembersForm) {
     const { activeBranchId } = useBranchStore.getState();
@@ -180,11 +182,7 @@ export function ManageMember() {
     ? [memberRecord.first_name, memberRecord.last_name].filter(Boolean).join(" ")
     : "";
   const title = isEditMode ? (memberName ? `Edit ${memberName}` : "Edit member") : "Add member";
-  const backLabel = isEditMode
-    ? "Back to profile"
-    : afterSubmitPath
-    ? "Back to membership management"
-    : "Back to members";
+  const backLabel = `Back to ${back.label}`;
   const crumbs = [
     { label: "Home", link: "/home" },
     { label: "Members", link: "/home/members" },

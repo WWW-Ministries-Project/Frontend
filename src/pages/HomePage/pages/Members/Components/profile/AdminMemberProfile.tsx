@@ -1,3 +1,4 @@
+import { useBackNavigation } from "@/CustomHooks/useBackNavigation";
 import { useMemo, useState } from "react";
 import { Outlet, useNavigate, useParams, useSearchParams } from "react-router-dom";
 
@@ -81,7 +82,7 @@ export const AdminMemberProfile = () => {
     setSearchParams(params, { replace: true });
   };
 
-  const backToDirectory = () => navigate(DIRECTORY_PATH);
+  const back = useBackNavigation(DIRECTORY_PATH);
 
   if (!member) {
     const failed = !userId || (!loading && (Boolean(error) || Boolean(data)));
@@ -90,10 +91,10 @@ export const AdminMemberProfile = () => {
         <div className="flex flex-col gap-4 bg-primary px-4 pb-6 pt-5 text-white sm:px-6">
           <button
             type="button"
-            onClick={backToDirectory}
+            onClick={back.goBack}
             className="self-start bg-transparent p-0 text-sm text-white/90 transition-colors hover:text-white"
           >
-            ← Back to members
+            ← Back to {back.label}
           </button>
           <h1 className="text-2xl font-semibold leading-8">
             {failed ? "Member profile" : "Loading member…"}
@@ -261,7 +262,8 @@ export const AdminMemberProfile = () => {
           status.label,
           member.is_user ? "Ministry worker" : "Church member",
         ].filter(Boolean)}
-        onBack={backToDirectory}
+        onBack={back.goBack}
+        backLabel={back.label}
         onEdit={canManageMembers ? editProfile : undefined}
         menuItems={menuItems}
         tab={tab}

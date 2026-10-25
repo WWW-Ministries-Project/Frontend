@@ -1,3 +1,4 @@
+import { useBackNavigation } from "@/CustomHooks/useBackNavigation";
 import { useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
@@ -143,16 +144,17 @@ const EventReportDetails = () => {
   const goTo = (o: { event_id: string; event_date: string }) => {
     const params = new URLSearchParams({ eventDate: o.event_date });
     if (eventName) params.set("eventName", eventName);
-    navigate(`/home/reports/event-reports/${o.event_id}?${params.toString()}`);
+    // Another date of the same event: swap in place so Back still leaves the report.
+    navigate(`/home/reports/event-reports/${o.event_id}?${params.toString()}`, { replace: true });
     setTab("overview");
   };
-  const back = () => navigate("/home/reports/event-reports");
+  const { goBack: back, label: backLabel } = useBackNavigation("/home/reports/event-reports");
 
   if (!report) {
     return (
       <section className="flex flex-col gap-6 p-4 sm:p-6">
         <button type="button" onClick={back} className="self-start bg-transparent p-0 text-sm text-gray-600 hover:text-primary">
-          ← Event reports
+          ← {backLabel}
         </button>
         {loading || (!error && id) ? (
           <SkeletonGrid count={6} min={200} height={120} />
@@ -363,7 +365,7 @@ const EventReportDetails = () => {
   return (
     <section className="flex min-h-full flex-1 flex-col">
       <ReportBand
-        backLabel="Event reports"
+        backLabel={backLabel}
         onBack={back}
         eyebrow={`Event report · ${EVENT_TYPE_LABEL[type]}`}
         title={eventName}

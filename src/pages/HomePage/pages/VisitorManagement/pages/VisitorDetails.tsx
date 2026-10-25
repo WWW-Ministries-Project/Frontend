@@ -1,3 +1,4 @@
+import { useBackNavigation } from "@/CustomHooks/useBackNavigation";
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -56,6 +57,7 @@ const byDateDesc = <T extends { date: string }>(rows: T[]) =>
 export const VisitorDetails = () => {
   const { visitorId = "" } = useParams();
   const navigate = useNavigate();
+  const back = useBackNavigation(visitorsPath);
   const { canManage } = useAccessControl();
   const canManageVisitors = canManage("Visitors");
   const [tab, setTab] = useState<Tab>("visits");
@@ -97,10 +99,10 @@ export const VisitorDetails = () => {
         <div className="flex flex-col gap-4 bg-primary px-4 pb-6 pt-5 text-white sm:px-6">
           <button
             type="button"
-            onClick={() => navigate(visitorsPath)}
+            onClick={back.goBack}
             className="self-start bg-transparent p-0 text-sm text-white/80 transition-colors hover:text-white"
           >
-            ← Back to visitors
+            ← Back to {back.label}
           </button>
           {loading || !error ? (
             <div className="h-[72px] w-72 animate-pulse rounded-xl bg-white/10" />
@@ -260,10 +262,10 @@ export const VisitorDetails = () => {
       <div className="flex flex-col gap-4 bg-primary px-4 pt-5 text-white sm:px-6">
         <button
           type="button"
-          onClick={() => navigate(visitorsPath)}
+          onClick={back.goBack}
           className="self-start bg-transparent p-0 text-sm text-white/80 transition-colors hover:text-white"
         >
-          ← Back to visitors
+          ← Back to {back.label}
         </button>
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex min-w-0 flex-wrap items-center gap-4">

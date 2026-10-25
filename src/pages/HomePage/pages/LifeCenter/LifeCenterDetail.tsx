@@ -1,3 +1,4 @@
+import { useBackNavigation } from "@/CustomHooks/useBackNavigation";
 import { ReactNode, Suspense, lazy, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -119,6 +120,7 @@ export const LifeCenterDetailView = ({
 }) => {
   const embedded = !!section;
   const navigate = useNavigate();
+  const back = useBackNavigation(LC_BASE);
   const today = useToday();
   const year = today.slice(0, 4);
   const y0 = `${year}-01-01`;
@@ -734,10 +736,10 @@ export const LifeCenterDetailView = ({
         {!leaderView && (
           <button
             type="button"
-            onClick={() => navigate(LC_BASE)}
+            onClick={back.goBack}
             className="self-start bg-transparent p-0 text-sm text-white/80 transition-colors hover:text-white"
           >
-            ← Life centers
+            ← {back.label}
           </button>
         )}
         <div className="flex flex-wrap items-start justify-between gap-4">
