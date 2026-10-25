@@ -2,6 +2,7 @@ import { ReactNode, useEffect, useMemo, useState } from "react";
 
 import { BranchSelectField } from "@/components/BranchSelectField";
 import { useFetch } from "@/CustomHooks/useFetch";
+import { useVisitorAccess } from "@/pages/HomePage/pages/VisitorManagement/utils/useVisitorAccess";
 import { showNotification } from "@/pages/HomePage/utils";
 import { useActiveMemberOptions } from "@/pages/HomePage/pages/MembershipManagement/components/departments/useActiveMemberOptions";
 import { errorText } from "@/pages/HomePage/pages/MembershipManagement/components/manager/managerHelpers";
@@ -195,6 +196,7 @@ export const VisitorFormDialog = ({
   const clergy = values.isClergy === "yes";
   const members = useActiveMemberOptions(open);
   const events = useEventOptions(open && !editing, values.date);
+  const canAssignResponsible = useVisitorAccess().can("assign_responsible", visitor);
 
   const assigned = visitor ? responsibleMemberIds(visitor).map(String) : [];
   const respOptions: SelectOption[] = [
@@ -370,9 +372,11 @@ export const VisitorFormDialog = ({
         <Field label="Happy to be contacted?">
           <SelectInput options={YES_NO} value={values.consent} onChange={set("consent")} />
         </Field>
-        <Field label="Responsible person">
-          <SelectInput options={respOptions} value={values.resp} onChange={set("resp")} />
-        </Field>
+        {canAssignResponsible && (
+          <Field label="Responsible person">
+            <SelectInput options={respOptions} value={values.resp} onChange={set("resp")} />
+          </Field>
+        )}
         <Field label="Are they clergy?">
           <SelectInput options={YES_NO} value={values.isClergy} onChange={set("isClergy")} />
         </Field>

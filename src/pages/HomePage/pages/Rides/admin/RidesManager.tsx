@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
 import { api } from "@/utils/api/apiCalls";
@@ -20,11 +21,12 @@ import { RideReportsPanel } from "./RideReportsPanel";
 
 type RidesTab = "rides" | "reports" | "blocks" | "places";
 
-const TABS: { param: RidesTab; label: string }[] = [
-  { param: "rides", label: "Rides" },
-  { param: "reports", label: "Safety reports" },
-  { param: "blocks", label: "Blocks" },
-  { param: "places", label: "Places" },
+/** Each tab and the Rides actions that open it (any of them). */
+const TABS: { param: RidesTab; label: string; actions: string[] }[] = [
+  { param: "rides", label: "Rides", actions: ["Rides.view_overview"] },
+  { param: "reports", label: "Safety reports", actions: ["Rides.resolve_safety_reports"] },
+  { param: "blocks", label: "Blocks", actions: ["Rides.lift_block", "Rides.resolve_safety_reports"] },
+  { param: "places", label: "Places", actions: ["Rides.manage_pickup_points"] },
 ];
 
 /** Same id scheme TabSelection uses for `tab-…` / `panel-…`. */
@@ -35,10 +37,19 @@ const tabDomId = (label: string) =>
     .replace(/^-+|-+$/g, "");
 
 /** `?tab=` values, including the old separate pickup-points / areas tabs. */
-const readTab = (value: string | null): { tab: RidesTab; places: PlacesView } => {
-  if (value === "pickup-points") return { tab: "places", places: "points" };
-  if (value === "areas") return { tab: "places", places: "areas" };
-  const tab = TABS.find((entry) => entry.param === value)?.param ?? "rides";
+const readTab = (
+  value: string | null,
+  tabs: typeof TABS = TABS
+): { tab: RidesTab; places: PlacesView } => {
+  const fallback = tabs[0]?.param ?? "rides";
+  const allowed = (tab: RidesTab) => tabs.some((entry) => entry.param === tab);
+  if (value === "pickup-points" || value === "areas") {
+    return {
+      tab: allowed("places") ? "places" : fallback,
+      places: value === "areas" ? "areas" : "points",
+    };
+  }
+  const tab = tabs.find((entry) => entry.param === value)?.param ?? fallback;
   return { tab, places: "areas" };
 };
 
@@ -48,9 +59,20 @@ const readTab = (value: string | null): { tab: RidesTab; places: PlacesView } =>
  * blocks, and the areas and landmarks members choose from.
  */
 const RidesManager = () => {
+  const { hasAction } = useAccessControl();
+  // Tabs and controls follow the same Rides actions the API checks.
+  const tabs = useMemo(
+    () => TABS.filter((tab) => tab.actions.some((action) => hasAction(action))),
+    [hasAction]
+  );
+  const canViewOverview = hasAction("Rides.view_overview");
+  const canExportRoster = hasAction("Rides.export_roster");
+  const canCancelRides = hasAction("Rides.cancel_any_offer");
+  const canLiftBlocks = hasAction("Rides.lift_block");
+  const canSeeReports = hasAction("Rides.resolve_safety_reports");
   const [searchParams, setSearchParams] = useSearchParams();
-  const initial = readTab(searchParams.get("tab"));
-  const activeTab = readTab(searchParams.get("tab")).tab;
+  const initial = readTab(searchParams.get("tab"), tabs);
+  const activeTab = readTab(searchParams.get("tab"), tabs).tab;
   const [placesView, setPlacesView] = useState<PlacesView>(initial.places);
 
   const [serviceDate, setServiceDate] = useState("");
@@ -61,6 +83,10 @@ const RidesManager = () => {
   const requestRef = useRef(0);
 
   const load = useCallback(async () => {
+    if (!canViewOverview) {
+      setLoading(false);
+      return;
+    }
     const requestId = ++requestRef.current;
     setLoading(true);
     setFailed(false);
@@ -79,7 +105,7 @@ const RidesManager = () => {
     } finally {
       if (requestId === requestRef.current) setLoading(false);
     }
-  }, [serviceDate]);
+  }, [serviceDate, canViewOverview]);
 
   useEffect(() => {
     load();
@@ -105,7 +131,7 @@ const RidesManager = () => {
       ? `${tab.label} (${openReports})`
       : tab.label;
   };
-  const labels = TABS.map((tab) => labelFor(tab.param));
+  const labels = tabs.map((tab) => labelFor(tab.param));
   const activeLabel = labelFor(activeTab);
 
   const dates = overview?.service_dates?.length
@@ -174,6 +200,7 @@ const RidesManager = () => {
             and the places members choose from.
           </p>
         </div>
+        {canViewOverview ? (
         <div className="flex w-full flex-wrap gap-2 tablet:w-auto">
           <select
             aria-label="Service date"
@@ -189,15 +216,18 @@ const RidesManager = () => {
               </option>
             ))}
           </select>
-          <button
-            type="button"
-            onClick={exportCsv}
-            disabled={!overview || !overview.offers.length}
-            className={btnSecondary}
-          >
-            Export CSV
-          </button>
+          {canExportRoster ? (
+            <button
+              type="button"
+              onClick={exportCsv}
+              disabled={!overview || !overview.offers.length}
+              className={btnSecondary}
+            >
+              Export CSV
+            </button>
+          ) : null}
         </div>
+        ) : null}
       </div>
 
       <div className="mb-4">
@@ -206,7 +236,7 @@ const RidesManager = () => {
           selectedTab={activeLabel}
           onTabSelect={(label) => {
             const index = labels.indexOf(label);
-            if (index >= 0) selectTab(TABS[index].param);
+            if (index >= 0) selectTab(tabs[index].param);
           }}
         />
       </div>
@@ -222,7 +252,8 @@ const RidesManager = () => {
             loading={loading}
             failed={failed}
             onRetry={load}
-            onShowReports={() => selectTab("reports")}
+            onShowReports={canSeeReports ? () => selectTab("reports") : undefined}
+            canCancel={canCancelRides}
           />
         ) : activeTab === "reports" ? (
           <RideReportsPanel
@@ -230,7 +261,7 @@ const RidesManager = () => {
             onOpenReports={handleOpenReports}
           />
         ) : activeTab === "blocks" ? (
-          <RideBlocksPanel />
+          <RideBlocksPanel canLift={canLiftBlocks} />
         ) : (
           <RidePlacesPanel view={placesView} onViewChange={setPlacesView} />
         )}

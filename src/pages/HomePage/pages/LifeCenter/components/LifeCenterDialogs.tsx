@@ -57,6 +57,7 @@ export interface LifeCenterFormValue {
 export const LifeCenterFormDialog = ({
   open,
   existing,
+  canAssignLeader = true,
   takenNames,
   onClose,
   onSaved,
@@ -64,6 +65,8 @@ export const LifeCenterFormDialog = ({
   open: boolean;
   /** Edit when set, create otherwise. */
   existing?: LifeCenterFormValue | null;
+  /** Life Center › Assign leaders; without it the leader can't be changed. */
+  canAssignLeader?: boolean;
   takenNames: string[];
   onClose: () => void;
   onSaved: (id: string | number | null) => void;
@@ -95,7 +98,7 @@ export const LifeCenterFormDialog = ({
     errors.name = "Another life center already uses this name.";
   if (!v.location.trim()) errors.location = "Add where it meets.";
   if (!v.days.length) errors.days = "Pick at least one meeting day.";
-  if (!existing && !v.leader) errors.leader = "Choose who leads it.";
+  if (!existing && !v.leader && canAssignLeader) errors.leader = "Choose who leads it.";
   const shown = tried ? errors : {};
 
   const leaderOptions = existing
@@ -175,6 +178,7 @@ export const LifeCenterFormDialog = ({
           <SelectInput
             value={v.leader}
             onChange={(e) => setV({ ...v, leader: e.target.value })}
+            disabled={!canAssignLeader}
             hasError={!!shown.leader}
             options={[
               { value: "", label: existing ? (leaderOptions.length ? "No leader yet" : "Add members first") : "Choose a member" },
@@ -816,11 +820,14 @@ export const MemberDialog = ({
 export const RolesDialog = ({
   open,
   roles,
+  canDelete = true,
   onClose,
   onChanged,
 }: {
   open: boolean;
   roles: LifeCenterRole[];
+  /** Life Center › Manage roles (Full). */
+  canDelete?: boolean;
   onClose: () => void;
   onChanged: () => void;
 }) => {
@@ -889,7 +896,7 @@ export const RolesDialog = ({
             </div>
             {isLockedRole(role.name) ? (
               <span className="text-xs text-gray-500">Built in</span>
-            ) : (
+            ) : !canDelete ? null : (
               <UiButton tone="danger" size="sm" onClick={() => remove(role)}>
                 Delete
               </UiButton>

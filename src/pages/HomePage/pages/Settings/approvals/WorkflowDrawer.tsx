@@ -2,6 +2,7 @@ import type { ApproverType } from "@/pages/HomePage/pages/Requisitions/types/app
 import { FieldHint } from "@/pages/HomePage/pages/ChurchCommunication/ui/commUi";
 import { UiButton } from "@/pages/HomePage/pages/MembershipManagement/components/membershipUi";
 import { PeopleChips, Segmented, SettingsDrawer, SubHeading } from "@/pages/HomePage/pages/Settings/Components/settingsUi";
+import { useUserStore } from "@/store/userStore";
 import { cn } from "@/utils/cn";
 import { useState } from "react";
 
@@ -155,6 +156,9 @@ const WorkflowDrawer = ({
   const isFin = wfKey === "FIN";
   // Finance notifications must also be able to view Financials (the backend checks).
   const notifyPool = isFin ? financeOptions : activeMembers;
+  // Nobody names themselves finance approver: they would approve the records they post.
+  const meId = Number(useUserStore((state) => state.id) ?? 0);
+  const approverOptions = financeOptions.filter((p) => p.id !== meId);
 
   const chips = (ids: number[], pool: Person[]) => ({
     people: ids.map((id) => ({ id, name: personName(id) })),
@@ -248,13 +252,13 @@ const WorkflowDrawer = ({
             className={selectClass(tried && !draft.approver)}
           >
             <option value="">Choose a person…</option>
-            {withCurrent(financeOptions, draft.approver, personName).map((o) => (
+            {withCurrent(approverOptions, draft.approver, personName).map((o) => (
               <option key={o.id} value={o.id}>
                 {o.name}
               </option>
             ))}
           </select>
-          <FieldHint>Only people whose role can at least view Financials are listed.</FieldHint>
+          <FieldHint>Only people whose role can at least view Financials are listed. You can’t pick yourself.</FieldHint>
         </label>
       )}
 

@@ -324,6 +324,10 @@ export interface ScheduleSubmitContext {
   initial: EventsFormValues;
   /** Reminder rows the occurrence had when the form opened. */
   reminderRows?: EventReminderRow[];
+  /** Events › Manage online links; when false an edit leaves links alone. */
+  canEditLinks?: boolean;
+  /** Events › Send reminders; when false an edit leaves reminders alone. */
+  canEditReminders?: boolean;
 }
 
 const sameSet = (a: number[], b: number[]) =>
@@ -397,15 +401,17 @@ export const useScheduleEventSubmit = () => {
         // Links and reminders are per occurrence and go through their own
         // endpoints so update-event never carries them.
         const followUps: string[] = [];
-        try {
-          await api.put.updateEventOnlineLinks({ links }, { id });
-        } catch {
-          followUps.push("online links");
+        if (context.canEditLinks !== false) {
+          try {
+            await api.put.updateEventOnlineLinks({ links }, { id });
+          } catch {
+            followUps.push("online links");
+          }
         }
         const nextReminders = (values.reminders ?? []).map(Number);
         const pending = (context.reminderRows ?? []).filter((row) => row.status === "PENDING");
         const previous = pending.map((row) => Number(row.offset_minutes));
-        if (!sameSet(nextReminders, previous)) {
+        if (context.canEditReminders !== false && !sameSet(nextReminders, previous)) {
           try {
             if (nextReminders.length) {
               await api.post.saveEventReminders({ event_id: Number(id), reminders: nextReminders });

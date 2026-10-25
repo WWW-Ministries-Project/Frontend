@@ -4,7 +4,7 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 import { BranchSelectField } from "@/components/BranchSelectField";
 import { notify } from "@/components/feedback";
-import { useRouteAccess } from "@/context/RouteAccessContext";
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { api } from "@/utils/api/apiCalls";
 import type { FinanceData, FinanceSaveAction, FinancialRecord } from "@/utils/api/finance/interface";
@@ -36,6 +36,7 @@ import {
   dayOf,
   downloadCsv,
   fmtD,
+  isOwnRecord,
   money,
   num,
   rangeTxt,
@@ -144,12 +145,19 @@ const FinanceRecord = () => {
   const phone = width < 640;
   const wideRail = width >= 1100;
   const today = useToday();
-  const { canManageCurrentRoute: canManage } = useRouteAccess();
+  const { hasAction } = useAccessControl();
+  const canDraft = hasAction("Financials.create_draft");
+  const canSubmit = hasAction("Financials.submit");
+  const canPrepare = canDraft || canSubmit;
+  const canEditApproved = hasAction("Financials.edit_approved");
   const allBranches = useIsAllBranches();
   const writeBranchId = useWriteBranchId();
 
   const { config, approval, loaded: cfgLoaded, failed: cfgFailed } = useFinanceConfig();
-  const { isApprover, approverName, me, notifyNames } = useApprover(approval);
+  const { isApprover: isConfiguredApprover, approverName, me, myId, notifyNames } = useApprover(approval);
+  // Approving needs Financials.approve and being the configured approver, and
+  // never applies to a record the user prepared or submitted.
+  const canApprove = isConfiguredApprover && hasAction("Financials.approve");
   const { nameOf } = useMemberNames();
   const { records, reload: reloadList } = useFinanceRecords();
 
@@ -170,8 +178,12 @@ const FinanceRecord = () => {
   const [returnTried, setReturnTried] = useState(false);
   const started = useRef(false);
 
+  const isApprover = canApprove && !!rec && !isOwnRecord(rec, myId);
+  // The API's isEditable already covers the approver and Financials.edit_approved.
   const canEditRec = (r: typeof rec) =>
-    canManage && !!r && r.isEditable && (r.status === "DRAFT" || isApprover);
+    !!r && r.isEditable && (canPrepare || (canApprove && r.status === "PENDING_APPROVAL"));
+  // Saving a submitted record the approver didn't prepare approves it as well.
+  const approvesOnSave = isApprover && rec?.status === "PENDING_APPROVAL";
 
   /* ------------------------------- start edit ------------------------------ */
 
@@ -311,7 +323,7 @@ const FinanceRecord = () => {
       const title = `${payload.metaData?.week} · ${rangeTxt(dayOf(payload.metaData?.from), dayOf(payload.metaData?.to))}`;
       notify.success(
         nextStatus === "APPROVED"
-          ? { title: "Record approved", message: "Locked. Only the finance approver can edit it now." }
+          ? { title: "Record approved", message: `${title} is locked for changes now.` }
           : nextStatus === "PENDING_APPROVAL"
             ? { title: "Submitted for approval", message: `${approverName || "The finance approver"} has been notified.` }
             : { title: "Draft saved", message: title }
@@ -510,7 +522,9 @@ const FinanceRecord = () => {
         tone: "warning" as const,
         text: isApprover
           ? `Submitted by ${nameOf(rawRec?.submittedByUserId) || rec.updatedBy}. Check the figures, then approve or return it with a note.`
-          : `Waiting for ${approverName || "the finance approver"} to approve. You can’t edit it until it’s approved or returned.`,
+          : canApprove
+            ? "You prepared or submitted this record, so you can’t approve it. Someone else has to be the finance approver to review it."
+            : `Waiting for ${approverName || "the finance approver"} to approve. You can’t edit it until it’s approved or returned.`,
       };
     if (rec.status === "DRAFT" && rawRec?.returnNote)
       return {
@@ -520,7 +534,7 @@ const FinanceRecord = () => {
     if (!editing && rec.status === "APPROVED")
       return {
         tone: "success" as const,
-        text: `Approved. ${isApprover ? "You can still edit it as the finance approver." : `Locked. Only ${approverName || "the finance approver"} can make changes.`}`,
+        text: `Approved. ${canEditApproved ? "You can still edit it because your role can change approved records." : "Locked for changes."}`,
       };
     return null;
   })();
@@ -606,16 +620,20 @@ const FinanceRecord = () => {
 
   const topButtons = !editing && rec && (
     <div className="flex flex-wrap gap-2">
-      <UiButton onClick={exportCsv}>Export CSV</UiButton>
-      <ActionMenu
-        ariaLabel="More downloads"
-        items={[
-          { label: "Download PDF", onClick: () => void download("pdf") },
-          { label: "Download Word", onClick: () => void download("docx") },
-          { label: "Download spreadsheet", onClick: () => void download("xlsx") },
-        ]}
-      />
-      {canManage && rec.status === "DRAFT" && (
+      {hasAction("Financials.export") && (
+        <>
+          <UiButton onClick={exportCsv}>Export CSV</UiButton>
+          <ActionMenu
+            ariaLabel="More downloads"
+            items={[
+              { label: "Download PDF", onClick: () => void download("pdf") },
+              { label: "Download Word", onClick: () => void download("docx") },
+              { label: "Download spreadsheet", onClick: () => void download("xlsx") },
+            ]}
+          />
+        </>
+      )}
+      {hasAction("Financials.delete") && rec.status === "DRAFT" && (
         <UiButton tone="danger" onClick={del}>
           Delete
         </UiButton>
@@ -925,17 +943,21 @@ const FinanceRecord = () => {
               </UiButton>
             ) : (
               <>
-                <UiButton className={cn("min-h-11", fl)} disabled={busy} onClick={() => void save("SAVE_DRAFT")}>
-                  Save draft
-                </UiButton>
-                <UiButton
-                  tone="primary"
-                  className={cn("min-h-11", phone ? "basis-full" : "")}
-                  disabled={busy}
-                  onClick={() => void save("SAVE_AND_APPROVE")}
-                >
-                  {busy ? "Saving…" : isApprover ? "Save and approve" : "Submit for approval"}
-                </UiButton>
+                {(canDraft || isConfiguredApprover) && (
+                  <UiButton className={cn("min-h-11", fl)} disabled={busy} onClick={() => void save("SAVE_DRAFT")}>
+                    Save draft
+                  </UiButton>
+                )}
+                {(canSubmit || isConfiguredApprover) && (
+                  <UiButton
+                    tone="primary"
+                    className={cn("min-h-11", phone ? "basis-full" : "")}
+                    disabled={busy}
+                    onClick={() => void save("SAVE_AND_APPROVE")}
+                  >
+                    {busy ? "Saving…" : approvesOnSave ? "Save and approve" : "Submit for approval"}
+                  </UiButton>
+                )}
               </>
             )}
           </div>

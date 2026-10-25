@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { describeError, notify } from "@/components/feedback";
+import { useUserStore } from "@/store/userStore";
 import { api } from "@/utils/api/apiCalls";
 
 import PageOutline from "../../../Components/PageOutline";
@@ -36,7 +37,15 @@ type DialogState =
 
 const ManageAvailability = () => {
   const data = useAppointmentsData();
-  const { staff, bookings, now, isAdmin } = data;
+  const { staff, bookings, now, access } = data;
+  const myName = useUserStore((state) => state.name);
+  // Your own schedule needs manage_own_availability (View); anyone else's
+  // needs manage_others_availability (Manage).
+  const canEdit = (personId: string) =>
+    access.isMine(personId) ? access.can("manage_own_availability") : access.forOthers("manage_others_availability", personId);
+  const canAddOthers = access.forOthers("manage_others_availability");
+  const canSetOwn =
+    !!access.myId && access.can("manage_own_availability") && !staff.some((person) => access.isMine(person.id));
   const [dialog, setDialog] = useState<DialogState | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
 
@@ -117,11 +126,21 @@ const ManageAvailability = () => {
         title="Availability"
         subtitle="When each pastor and counsellor can be booked."
         actions={
-          isAdmin && (
-            <UiButton tone="primary" onClick={() => setDialog({ kind: "add" })}>
-              Add person
-            </UiButton>
-          )
+          <>
+            {canSetOwn && data.staffLoaded && (
+              <UiButton
+                tone={canAddOthers ? "secondary" : "primary"}
+                onClick={() => setDialog({ kind: "schedule", person: { id: String(access.myId), name: myName || "You" } })}
+              >
+                Set my hours
+              </UiButton>
+            )}
+            {canAddOthers && (
+              <UiButton tone="primary" onClick={() => setDialog({ kind: "add" })}>
+                Add person
+              </UiButton>
+            )}
+          </>
         }
       />
 
@@ -227,7 +246,7 @@ const ManageAvailability = () => {
                       <span className="flex-1">
                         {fmtD(off.from)} – {fmtD(off.to)} · {off.note}
                       </span>
-                      {isAdmin && (
+                      {canEdit(person.id) && (
                         <button
                           type="button"
                           disabled={busy}
@@ -242,7 +261,7 @@ const ManageAvailability = () => {
                 </div>
               )}
 
-              {isAdmin && (
+              {canEdit(person.id) && (
                 <div className="flex flex-wrap gap-2">
                   <UiButton className="flex-auto sm:flex-none" onClick={() => setDialog({ kind: "schedule", person })}>
                     Edit schedule
@@ -268,7 +287,7 @@ const ManageAvailability = () => {
       {!staff.length && (
         <ListEmpty>
           {data.staffLoaded
-            ? isAdmin
+            ? canAddOthers
               ? "Nobody can be booked yet. Add a pastor or counsellor and set their hours."
               : "Nobody can be booked yet."
             : "Loading schedules…"}

@@ -104,12 +104,13 @@ export const useCheckIns = (
 };
 
 /**
- * Early / late thresholds from Settings → Attendance. The endpoint needs
- * settings access, so other users fall back to the 15 minute defaults.
+ * Early / late thresholds from Settings → Attendance. The endpoint is open to
+ * attendance and settings viewers; anyone else falls back to the 15 minute
+ * defaults.
  */
 export const useTimingRules = (): TimingRules => {
   const { canView } = useAccessControl();
-  const allowed = canView("Settings");
+  const allowed = canView("Church_Attendance") || canView("Settings");
   const { data } = useFetch(api.fetch.fetchAttendanceTimingConfig, undefined, !allowed, {
     silent: true,
   });

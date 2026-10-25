@@ -11,6 +11,7 @@ import type {
 import { cn } from "@/utils/cn";
 import { useState } from "react";
 import { runAction } from "../runAction";
+import { useSomAccess } from "../../utils/useSomAccess";
 import { fmtDate } from "../somUtils";
 import { Btn, EmptyBlock, Panel, Pill, type Tone } from "../ui";
 
@@ -99,6 +100,8 @@ export const CohortAnnouncements = ({
   classes: SomClass[];
   canManage: boolean;
 }) => {
+  const { canUseChannel } = useSomAccess();
+  const channels = CHANNELS.filter((c) => canUseChannel(c.key));
   const { data, loading, refetch } = useFetch(
     api.fetch.fetchCohortAnnouncements,
     { cohortId: String(cohortId) },
@@ -263,7 +266,7 @@ export const CohortAnnouncements = ({
           <fieldset className="flex flex-col gap-1.5">
             <legend className="mb-1.5 text-sm font-medium text-primary">Channels</legend>
             <div className="flex flex-wrap gap-1.5">
-              {CHANNELS.map((c) => {
+              {channels.map((c) => {
                 const on = form.channels[c.key];
                 return (
                   <button

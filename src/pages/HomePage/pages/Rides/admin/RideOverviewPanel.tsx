@@ -143,7 +143,8 @@ const RideCard = ({
   onCancel,
 }: {
   offer: AdminRideOffer;
-  onCancel: () => void;
+  /** Absent when the role can't cancel other members' rides. */
+  onCancel?: () => void;
 }) => {
   const cancelled = offer.status === "CANCELLED";
   const taken = Math.max(0, offer.seats_total - offer.seats_left);
@@ -242,7 +243,7 @@ const RideCard = ({
         </p>
       ) : null}
 
-      {!cancelled ? (
+      {!cancelled && onCancel ? (
         <div className="flex justify-end border-t border-gray-200 pt-3">
           <button type="button" onClick={onCancel} className={btnDangerGhost}>
             Cancel ride
@@ -301,7 +302,10 @@ interface RideOverviewPanelProps {
   loading: boolean;
   failed: boolean;
   onRetry: () => void;
-  onShowReports: () => void;
+  /** Absent when the role can't see safety reports. */
+  onShowReports?: () => void;
+  /** Rides › Cancel any ride. */
+  canCancel: boolean;
 }
 
 /** Every ride for one date, grouped by church event, with everyone on it —
@@ -312,6 +316,7 @@ export const RideOverviewPanel = ({
   failed,
   onRetry,
   onShowReports,
+  canCancel,
 }: RideOverviewPanelProps) => {
   const [filter, setFilter] = useState<RideFilter>("all");
   const [eventFilter, setEventFilter] = useState("all");
@@ -468,7 +473,7 @@ export const RideOverviewPanel = ({
                 <RideCard
                   key={offer.id}
                   offer={offer}
-                  onCancel={() => setCancelTarget(offer)}
+                  onCancel={canCancel ? () => setCancelTarget(offer) : undefined}
                 />
               ))}
             </ul>

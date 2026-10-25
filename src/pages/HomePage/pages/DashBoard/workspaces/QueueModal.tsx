@@ -21,6 +21,7 @@ import {
   missingInput,
   type QueueAction,
 } from "./queueActions";
+import { useQueueAccess } from "./useQueueAccess";
 import { ghs, nf } from "./wsFormat";
 
 const STEP_MARK = {
@@ -65,6 +66,7 @@ export const QueueModal = ({
   const [values, setValues] = useState(EMPTY);
   const [problem, setProblem] = useState<string | null>(null);
   const memberOptions = useActiveMemberOptions(item?.kind === "visitor");
+  const access = useQueueAccess();
 
   useEffect(() => {
     setValues(EMPTY);
@@ -73,14 +75,14 @@ export const QueueModal = ({
 
   useEffect(() => {
     if (!item || !focusAction) return;
-    const action = actionsFor(item).find((a) => a.key === focusAction);
+    const action = actionsFor(item, access).find((a) => a.key === focusAction);
     if (action?.input === "note" || action?.input === "followup") {
       window.setTimeout(() => focusNote(), 50);
     }
-  }, [item, focusAction]);
+  }, [item, focusAction, access]);
 
   if (!item) return null;
-  const actions = actionsFor(item);
+  const actions = actionsFor(item, access);
   const negative = actions.find((a) => a.input === "note");
   const needsNote = !!negative || actions.some((a) => a.input === "followup");
   const needsPerson = actions.some((a) => a.input === "assignee");

@@ -22,6 +22,7 @@ import { relativePath } from "@/utils/const";
 
 import { QueueModal } from "./QueueModal";
 import { actionsFor, PATHS, type ActionValues, type QueueAction } from "./queueActions";
+import { useQueueAccess } from "./useQueueAccess";
 import { SlotHeading, WidgetFrame } from "./WidgetFrame";
 import { WORKSPACE_WIDGETS } from "./widgets";
 import { downloadSheets, fileSafe, type ExportSheet } from "./wsExport";
@@ -71,6 +72,7 @@ const columnFor = (widget: WidgetDef, cols: number) => {
 
 export const WorkspaceView = ({ ws }: { ws: WorkspaceKey }) => {
   const navigate = useNavigate();
+  const queueAccess = useQueueAccess();
   const activeBranchId = useBranchStore((state) => state.activeBranchId);
   const userId = useUserStore((state) => state.id);
   const userName = useUserStore((state) => state.name);
@@ -168,7 +170,7 @@ export const WorkspaceView = ({ ws }: { ws: WorkspaceKey }) => {
       isDone: (item) => done.has(item.id),
       openItem: (widgetId, item, actionKey) => setModal({ widgetId, itemId: item.id, focus: actionKey }),
       runAction: (widgetId, item, actionKey) => {
-        const action = actionsFor(item).find((a) => a.key === actionKey);
+        const action = actionsFor(item, queueAccess).find((a) => a.key === actionKey);
         if (action) void runAction(widgetId, item, action, { note: "", assignee: null, followType: "" });
       },
       busyItem,
@@ -176,7 +178,7 @@ export const WorkspaceView = ({ ws }: { ws: WorkspaceKey }) => {
       setAttEvent,
       refetch: reload,
     }),
-    [ws, data?.range, allBranches, userId, department, navigate, tabs, done, runAction, busyItem, attEvent, reload]
+    [ws, data?.range, allBranches, userId, department, navigate, tabs, done, runAction, busyItem, attEvent, reload, queueAccess]
   );
 
   const jump = (widgetId: string, tab?: string) => {

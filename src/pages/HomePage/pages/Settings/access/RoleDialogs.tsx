@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { notify } from "@/components/feedback";
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { api } from "@/utils/api/apiCalls";
 import type { AssignableUser } from "@/utils/api/settings/accessLevelAssignmentInterfaces";
 import type { Branch } from "@/utils/api/settings/branchInterfaces";
@@ -17,10 +18,13 @@ import {
 import { Avatar } from "../Components/settingsUi";
 import type { AccessRight } from "../utils/settingsInterfaces";
 import {
+  clampToCeiling,
   draftFromAccessRight,
+  LEVEL_RANK,
   plural,
   presetDraft,
   STARTS,
+  type Level,
   type StartKey,
 } from "../utils/settingsModel";
 import { createRole, isNameTaken, roleIn, updateRole } from "./useAccessRights";
@@ -71,6 +75,7 @@ export const NewRoleDialog = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
+  const { getAccessLevel } = useAccessControl();
   const copySource = roles.find((r) => String(r.id) === copy);
   const workspaces: WorkspaceKey[] =
     ws ?? (from === "copy" ? (copySource ? workspacesOf(copySource) : []) : WORKSPACES_FROM_START[from]);
@@ -81,7 +86,11 @@ export const NewRoleDialog = ({
     if (isNameTaken(roles, trimmed)) return setErr({ field: "name", text: "A role with this name already exists." });
     const source = roles.find((r) => String(r.id) === copy);
     if (from === "copy" && !source) return setErr({ text: "Choose the role to copy." });
-    const draft = from === "copy" ? draftFromAccessRight(source) : presetDraft(from);
+    // A new role can't carry more than the person creating it has.
+    const draft = clampToCeiling(
+      from === "copy" ? draftFromAccessRight(source) : presetDraft(from),
+      (key) => LEVEL_RANK[(getAccessLevel(key) as Level | undefined) ?? "No_Access"] ?? 0
+    );
     const description = desc.trim() || (from === "copy" ? source?.description || "" : "");
     setBusy(true);
     try {

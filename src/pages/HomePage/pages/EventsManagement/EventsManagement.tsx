@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
 import { notify } from "@/components/feedback";
-import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { useFetch } from "@/CustomHooks/useFetch";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import { confirmAction } from "@/pages/HomePage/utils/helperFunctions";
@@ -13,6 +12,7 @@ import EventDetailDrawer from "./Components/EventDetailDrawer";
 import { Dot, EmptyBox, PageHeading, Pill, type PillTone, SearchInput, Segmented, UiButton } from "./Components/eventsUi";
 import ScheduleEventEditor, { type ScheduleEditorMode } from "./Components/ScheduleEventEditor";
 import SeriesScopeModal, { type SeriesScope } from "./Components/SeriesScopeModal";
+import { useEventsAccess } from "./utils/useEventsAccess";
 import {
   addDays,
   attendanceFor,
@@ -66,8 +66,8 @@ type RowEvent = ScheduledEvent & { status: ReturnType<typeof statusOf> };
 const EventsManagement = () => {
   const [params, setParams] = useSearchParams();
   const today = todayKey();
-  const { canManage } = useAccessControl();
-  const canManageEvents = canManage("Events");
+  const access = useEventsAccess();
+  const canManageEvents = access.create;
   const { departments, positions } = useSettingsStore((state) => ({
     departments: state.departments,
     positions: state.positions,
@@ -560,7 +560,8 @@ const EventsManagement = () => {
           event={openEvent}
           siblings={monthEvents}
           attendance={attendanceFor(openEvent, headcounts)}
-          canManage={canManageEvents}
+          canEdit={access.edit}
+          canDelete={access.delete}
           onClose={() => setOpenId(null)}
           onEdit={(event) => {
             setOpenId(null);

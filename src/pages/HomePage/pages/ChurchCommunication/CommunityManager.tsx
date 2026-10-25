@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { notify } from "@/components/feedback";
-import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { confirmAction } from "@/pages/HomePage/utils/helperFunctions";
 import { api } from "@/utils/api/apiCalls";
@@ -18,6 +17,7 @@ import PageOutline from "../../Components/PageOutline";
 import { communityBodyToPlainText } from "../Community/utils/communityBody";
 import { POST_TYPES, REPORT_REASON_LABEL } from "../Community/utils/communityConstants";
 import { audienceLabels } from "../Community/utils/communityHelpers";
+import { useCommunityMe } from "../Community/hooks/useCommunityMe";
 import {
   Field,
   KpiCard,
@@ -103,8 +103,12 @@ const useDebounced = <T,>(value: T, delay = 300) => {
 };
 
 const CommunityManager = () => {
-  const { hasPermission } = useAccessControl();
-  const canManage = hasPermission("manage_community");
+  // The API resolves the role's Community actions for the active branch
+  // (including the audit-log rule for roles saved before actions existed).
+  const { me } = useCommunityMe();
+  const { moderate: canModerate, pinImportant: canPin, postChurchWide: canPostMessage } = me.actions;
+  const canPostToDepartment = me.actions.postAnyDepartment;
+  const canViewAuditLog = me.actions.viewAuditLog;
   const wide = useViewportWidth() >= WIDE_TABLE_MIN;
 
   const [tab, setTab] = useState<Tab>("posts");
@@ -126,7 +130,30 @@ const CommunityManager = () => {
   const stats = useFetch(api.fetch.fetchCommunityAdminStats, undefined, false, { silent: true });
   const posts = useFetch(api.fetch.fetchCommunityAdminPosts, postsQuery, false, { silent: true });
   const reports = useFetch(api.fetch.fetchCommunityModerationReports, { status: reportTab }, false, { silent: true });
-  const audit = useFetch(api.fetch.fetchCommunityAuditLog, AUDIT_QUERY, false, { silent: true });
+  const [auditRows, setAuditRows] = useState<CommunityAuditLogEntry[]>([]);
+  const [auditLoading, setAuditLoading] = useState(false);
+  // Loaded only once /community/me says the role may read it, and again
+  // whenever that answer is refreshed (e.g. after a branch switch).
+  const loadAudit = useCallback(async () => {
+    if (!canViewAuditLog) {
+      setAuditRows([]);
+      return;
+    }
+    setAuditLoading(true);
+    try {
+      const response = await api.fetch.fetchCommunityAuditLog(AUDIT_QUERY);
+      setAuditRows(response.data ?? []);
+    } catch {
+      // ApiErrorHandler already raised a toast.
+    } finally {
+      setAuditLoading(false);
+    }
+    // `me` changes on every refresh, so the log follows the active branch.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canViewAuditLog, me]);
+  useEffect(() => {
+    loadAudit();
+  }, [loadAudit]);
   useEffect(() => setTake(PAGE_SIZE), [debouncedQ, type, status]);
 
   const postRows: CommunityAdminPost[] = posts.data?.data ?? [];
@@ -135,11 +162,10 @@ const CommunityManager = () => {
     () => [...(reports.data?.data ?? [])].sort((a, b) => b.reports.length - a.reports.length),
     [reports.data]
   );
-  const auditRows: CommunityAuditLogEntry[] = audit.data?.data ?? [];
   const s = stats.data?.data;
 
   const refreshAll = async () => {
-    await Promise.all([posts.refetch(), reports.refetch(), stats.refetch(), audit.refetch()]);
+    await Promise.all([posts.refetch(), reports.refetch(), stats.refetch(), loadAudit()]);
   };
 
   /* --------------------------------- actions --------------------------------- */
@@ -152,7 +178,7 @@ const CommunityManager = () => {
         action === "remove"
           ? {
               title: "Post removed",
-              message: `${post.realAuthor.name} can no longer see it in the feed.`,
+              message: `Members can no longer see it in the feed.`,
               undo: async () => {
                 await api.post.moderateCommunityContent("posts", post.id, "restore");
                 await refreshAll();
@@ -205,7 +231,7 @@ const CommunityManager = () => {
   const [saving, setSaving] = useState(false);
 
   const openMessage = () => {
-    setDraft({ body: "", audience: "church", departmentId: "", pin: true, notifyMembers: true, comments: true });
+    setDraft({ body: "", audience: "church", departmentId: "", pin: canPin, notifyMembers: canPin, comments: true });
     setTried(false);
     setErrors([]);
     if (!departments.length) {
@@ -256,21 +282,21 @@ const CommunityManager = () => {
   /* ---------------------------------- render ---------------------------------- */
 
   const postActions = (post: CommunityAdminPost, size: "sm" | "md" = "sm") => {
-    if (!canManage) return null;
+    if (!canModerate && !canPin) return null;
     const removed = post.status === "REMOVED";
     return (
       <>
-        {removed && (
+        {removed && canModerate && (
           <UiButton size={size} onClick={() => moderatePost(post, "restore")}>
             Restore
           </UiButton>
         )}
-        {!removed && post.type === "MESSAGE" && (
+        {!removed && post.type === "MESSAGE" && canPin && (
           <UiButton size={size} onClick={() => togglePin(post)}>
             {post.isPinned ? "Unpin" : "Pin"}
           </UiButton>
         )}
-        {!removed && (
+        {!removed && canModerate && (
           <UiButton size={size} tone="danger" onClick={() => moderatePost(post, "remove")}>
             Remove
           </UiButton>
@@ -279,8 +305,14 @@ const CommunityManager = () => {
     );
   };
 
+  // realAuthor of an anonymous post is "Anonymous" unless the role may see
+  // anonymous authors.
   const authorOf = (post: CommunityAdminPost) =>
-    post.isAnonymous ? `${post.realAuthor.name} (anonymous)` : post.realAuthor.name;
+    post.isAnonymous
+      ? post.realAuthor.id === null
+        ? "Anonymous"
+        : `${post.realAuthor.name} (anonymous)`
+      : post.realAuthor.name;
   const engagementOf = (post: CommunityAdminPost) =>
     `${plural(totalReactions(post), "reaction")} · ${plural(post.commentCount, "comment")}`;
 
@@ -293,7 +325,7 @@ const CommunityManager = () => {
         title="Community"
         subtitle="Prayer requests, testimonies and discussions from members, plus messages from the church."
         actions={
-          canManage ? (
+          canPostMessage ? (
             <UiButton tone="primary" onClick={openMessage}>
               New church message
             </UiButton>
@@ -332,7 +364,7 @@ const CommunityManager = () => {
         tabs={[
           { key: "posts", label: "Posts" },
           { key: "reported", label: "Reported", count: pendingCount || null },
-          { key: "audit", label: "Audit log" },
+          ...(canViewAuditLog ? [{ key: "audit" as const, label: "Audit log" }] : []),
         ]}
         value={tab}
         onChange={setTab}
@@ -515,7 +547,7 @@ const CommunityManager = () => {
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
                       <p className="text-sm font-semibold text-primary">
                         {item.author.name}
-                        {item.isAnonymous ? " (posted anonymously)" : ""}
+                        {item.isAnonymous && item.author.id !== null ? " (posted anonymously)" : ""}
                       </p>
                       <span className="text-xs text-gray-500">
                         {kind} · {item.audienceLabel}
@@ -538,7 +570,7 @@ const CommunityManager = () => {
                         {item.warned ? " · author warned" : ""}
                       </span>
                     </div>
-                    {canManage && (
+                    {canModerate && (
                       <div className="flex flex-wrap justify-end gap-2">
                         {item.status === "PENDING" ? (
                           <>
@@ -574,7 +606,8 @@ const CommunityManager = () => {
       )}
 
       {tab === "audit" &&
-        (audit.loading && auditRows.length === 0 ? (
+        canViewAuditLog &&
+        (auditLoading && auditRows.length === 0 ? (
           <div className="h-40 animate-pulse rounded-xl bg-gray-100" />
         ) : auditRows.length === 0 ? (
           <ListEmpty>No moderation actions yet.</ListEmpty>
@@ -619,15 +652,17 @@ const CommunityManager = () => {
               {draft.body.length} / {MAX_MESSAGE}
             </FieldHint>
           </Field>
-          <ChoiceButtons
-            label="Who sees it"
-            value={draft.audience}
-            onChange={(value) => setDraft({ ...draft, audience: value })}
-            options={[
-              { value: "church", label: "Whole church" },
-              { value: "dept", label: "One department" },
-            ]}
-          />
+          {canPostToDepartment && (
+            <ChoiceButtons
+              label="Who sees it"
+              value={draft.audience}
+              onChange={(value) => setDraft({ ...draft, audience: value })}
+              options={[
+                { value: "church", label: "Whole church" },
+                { value: "dept", label: "One department" },
+              ]}
+            />
+          )}
           {draft.audience === "dept" && (
             <Field label="Department *">
               <SelectInput
@@ -641,24 +676,30 @@ const CommunityManager = () => {
               />
             </Field>
           )}
-          <CheckCard
-            checked={draft.pin}
-            onChange={(value) => setDraft({ ...draft, pin: value })}
-            label="Pin to the top of the feed"
-            help="Stays above member posts until you unpin it."
-          />
-          <CheckCard
-            checked={draft.notifyMembers}
-            onChange={(value) => setDraft({ ...draft, notifyMembers: value })}
-            label="Send a push notification"
-            help="Members get an alert on their phone. Use for time-sensitive messages."
-          />
-          <CheckCard
-            checked={draft.comments}
-            onChange={(value) => setDraft({ ...draft, comments: value })}
-            label="Allow comments"
-            help="Members can reply under the message."
-          />
+          {canPin && (
+            <>
+              <CheckCard
+                checked={draft.pin}
+                onChange={(value) => setDraft({ ...draft, pin: value })}
+                label="Pin to the top of the feed"
+                help="Stays above member posts until you unpin it."
+              />
+              <CheckCard
+                checked={draft.notifyMembers}
+                onChange={(value) => setDraft({ ...draft, notifyMembers: value })}
+                label="Send a push notification"
+                help="Members get an alert on their phone. Use for time-sensitive messages."
+              />
+            </>
+          )}
+          {canModerate && (
+            <CheckCard
+              checked={draft.comments}
+              onChange={(value) => setDraft({ ...draft, comments: value })}
+              label="Allow comments"
+              help="Members can reply under the message."
+            />
+          )}
         </CommDialog>
       )}
     </PageOutline>

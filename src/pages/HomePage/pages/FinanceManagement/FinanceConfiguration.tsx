@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { notify } from "@/components/feedback";
-import { useRouteAccess } from "@/context/RouteAccessContext";
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
+import { normalizePermissionPayload, type PermissionMap } from "@/utils/accessControl";
 import { cn } from "@/utils/cn";
 
 import PageOutline from "../../Components/PageOutline";
@@ -10,7 +11,7 @@ import { errorText } from "../ChurchCommunication/ui/commUtils";
 import { Field, PageHeading, PillTabs, TextInput, UiButton } from "../MembershipManagement/components/membershipUi";
 import { EmptyNote, Hint, ToneNote } from "./Components/financeUi";
 import { AUTO_TAG, asPercent, autoKind, num } from "./utils/financeModel";
-import { type ConfigKind, type DraftLine, useFinanceConfig, useMemberNames } from "./utils/useFinanceData";
+import { type ConfigKind, type DraftLine, useApprover, useFinanceConfig, useMemberNames } from "./utils/useFinanceData";
 
 type Tab = ConfigKind | "approval";
 
@@ -47,11 +48,23 @@ const HAS_PCT: Record<ConfigKind, boolean> = { receipts: false, payments: false,
 type Drafts = Record<ConfigKind, DraftLine[]>;
 
 const FinanceConfiguration = () => {
-  const { canManageCurrentRoute: canManage } = useRouteAccess();
+  const { hasAction, canManage: canManageDomain, accessPermissions } = useAccessControl();
   const { config, approval, loaded, failed, saveLines, saveApproval } = useFinanceConfig();
   const { options: memberOptions, nameOf } = useMemberNames();
+  const { myId } = useApprover(approval);
+
+  // Finance configuration moved from Settings to Financials.configure; roles
+  // saved before actions existed keep the old rules (Settings for the lines,
+  // Financials manage for the tithe rate). Who approves is on-purpose only.
+  const legacyRole = normalizePermissionPayload(accessPermissions as PermissionMap).Actions === undefined;
+  const canConfigure = hasAction("Financials.configure");
+  const canEditLines = canConfigure || (legacyRole && canManageDomain("Settings"));
+  const canEditRate = canConfigure || (legacyRole && canManageDomain("Financials"));
+  const canEditApproval = hasAction("Financials.configure_approvals");
+  const canSaveAny = canEditLines || canEditRate || canEditApproval;
 
   const [tab, setTab] = useState<Tab>("receipts");
+  const canManage = tab === "approval" ? canEditApproval : canEditLines;
   const [drafts, setDrafts] = useState<Drafts | null>(null);
   const [rate, setRate] = useState<string | null>(null);
   const [approver, setApprover] = useState<string | null>(null);
@@ -273,10 +286,14 @@ const FinanceConfiguration = () => {
                     setApprover(v ? v.id : "");
                     if (v) setNotifyIds(curNotify.filter((x) => x !== v.id));
                   }}
+                  exclude={curApprover === String(myId) ? [] : [String(myId)]}
                   placeholder="Search for the finance approver"
                 />
               </Field>
-              <Hint>Records they create are approved straight away. Everyone else’s go to them. They need access to Financials.</Hint>
+              <Hint>
+                Every submitted record goes to them, except ones they prepared or submitted, which they can’t approve. They need access to
+                Financials. You can’t choose yourself.
+              </Hint>
               <div className="flex flex-col gap-2">
                 <span className="text-sm text-primary">Also notify when a record is approved</span>
                 <div className="flex flex-wrap gap-2">
@@ -325,7 +342,7 @@ const FinanceConfiguration = () => {
                       min={0}
                       max={100}
                       value={curRate}
-                      disabled={!canManage}
+                      disabled={!canEditRate}
                       hasError={tried && rateDirty && (num(curRate) < 0 || num(curRate) > 100)}
                       onWheel={(e) => e.currentTarget.blur()}
                       onChange={(e) => setRate(e.target.value)}
@@ -343,12 +360,12 @@ const FinanceConfiguration = () => {
             <p className="flex-[1_1_220px] text-xs text-gray-500">
               Changes apply to new weekly records. Existing records keep the lines and percentages they were created with.
             </p>
-            {canManage && dirty && (
+            {canSaveAny && dirty && (
               <UiButton onClick={discard} disabled={busy}>
                 Discard
               </UiButton>
             )}
-            {canManage && (
+            {canSaveAny && (
               <UiButton tone="primary" onClick={() => void save()} disabled={!dirty || busy}>
                 {busy ? "Saving…" : "Save changes"}
               </UiButton>

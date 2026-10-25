@@ -132,7 +132,9 @@ const preview = (event: AppointmentNotificationEvent, sla: number) =>
 
 const AppointmentSettings = () => {
   const data = useAppointmentsData();
-  const { settings, isAdmin, bookings } = data;
+  const { settings, bookings } = data;
+  // Booking rules, notifications and reasons: Appointments › configure (Full).
+  const isAdmin = data.access.canConfigure;
   const [tab, setTab] = useState<Tab>("reasons");
 
   /* -------------------------------- reasons ------------------------------- */

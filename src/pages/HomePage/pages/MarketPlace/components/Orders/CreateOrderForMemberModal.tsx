@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { SelectField } from "@/pages/HomePage/Components/reusable/SelectField";
 import { notify } from "@/components/feedback";
@@ -147,7 +148,9 @@ export function CreateOrderForMemberModal({ marketId, onClose, onCreated }: IPro
 
   const [method, setMethod] = useState<FulfilmentMethod>("pickup");
   const [address, setAddress] = useState("");
-  const [paid, setPaid] = useState(true);
+  // Recording an order as already paid is marking it paid (an on-purpose action).
+  const canMarkPaid = useAccessControl().hasAction("Marketplace.mark_paid");
+  const [paid, setPaid] = useState(canMarkPaid);
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -546,7 +549,7 @@ export function CreateOrderForMemberModal({ marketId, onClose, onCreated }: IPro
           title="Already paid"
           sub="Paid in person · cash or transfer"
           onPick={() => setPaid(true)}
-          disabled={locked}
+          disabled={locked || !canMarkPaid}
         />
         <RadioCard
           on={!paid}

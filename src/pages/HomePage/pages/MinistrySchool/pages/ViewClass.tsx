@@ -10,6 +10,7 @@ import { AllStudents, Student, StudentListQuery } from "../Components/AllStudent
 import { IStudentForm, StudentForm } from "../Components/StudentForm";
 import { useViewPage } from "../customHooks/useViewPage";
 import { createLmsActionTracker } from "../utils/lmsGuardrails";
+import { useSomAccess } from "../utils/useSomAccess";
 
 const DEFAULT_QUERY: StudentListQuery = {
   search: "",
@@ -43,6 +44,7 @@ export function ViewClass() {
   const parsedClassId = Number(classId);
   const [query, setQuery] = useState<StudentListQuery>(DEFAULT_QUERY);
   const [bulkLoading, setBulkLoading] = useState(false);
+  const som = useSomAccess();
 
   const courseQuery = useMemo(
     () => ({
@@ -268,6 +270,8 @@ export function ViewClass() {
           }))
         }
         onBulkAction={handleBulkAction}
+        canEnroll={som.can("enroll_others")}
+        canEditStatus={som.can("edit_progress")}
       />
       <Modal
         open={isModalOpen}

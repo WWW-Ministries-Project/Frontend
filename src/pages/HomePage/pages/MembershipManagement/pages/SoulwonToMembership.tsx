@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
+
 import {
   CellText,
   GridColumn,
@@ -38,6 +40,10 @@ const capitalize = (value?: string | null) =>
 
 export const SoulwonToMembership = () => {
   const navigate = useNavigate();
+  const { hasAction } = useAccessControl();
+  // Converting adds a member, so it also needs Members › Add members.
+  const canConvert =
+    hasAction("Membership_Management.convert_soul") && hasAction("Members.create");
   const { souls, soulsLoading, soulsError } = useManagerData();
   const [query, setQuery] = useState("");
 
@@ -127,11 +133,15 @@ export const SoulwonToMembership = () => {
             getRowId={(record) => `${record.lifeCenterId}-${record.id}`}
             loading={soulsLoading}
             actionsWidth="180px"
-            renderActions={(record) => (
-              <UiButton tone="primary" size="sm" onClick={() => convert(record)}>
-                Convert to member
-              </UiButton>
-            )}
+            renderActions={
+              canConvert
+                ? (record) => (
+                    <UiButton tone="primary" size="sm" onClick={() => convert(record)}>
+                      Convert to member
+                    </UiButton>
+                  )
+                : undefined
+            }
           />
           <ShowMoreRows remaining={remaining} onClick={showMore} />
         </>

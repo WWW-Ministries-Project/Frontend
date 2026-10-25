@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
+
 import {
   CellText,
   GridColumn,
@@ -34,6 +36,11 @@ const visitorName = (visitor: VisitorType) =>
 
 export const VisitorToMembership = () => {
   const navigate = useNavigate();
+  const { hasAction } = useAccessControl();
+  // Converting adds a member, so it also needs Members › Add members.
+  const canConvert =
+    (hasAction("Membership_Management.convert_visitor") || hasAction("Visitors.convert_to_member")) &&
+    hasAction("Members.create");
   const { visitors, visitorsLoading } = useManagerData();
   const [query, setQuery] = useState("");
 
@@ -120,11 +127,15 @@ export const VisitorToMembership = () => {
             getRowId={(visitor) => String(visitor.id)}
             loading={visitorsLoading}
             actionsWidth="180px"
-            renderActions={(visitor) => (
-              <UiButton tone="primary" size="sm" onClick={() => convert(visitor)}>
-                Convert to member
-              </UiButton>
-            )}
+            renderActions={
+              canConvert
+                ? (visitor) => (
+                    <UiButton tone="primary" size="sm" onClick={() => convert(visitor)}>
+                      Convert to member
+                    </UiButton>
+                  )
+                : undefined
+            }
           />
           <ShowMoreRows remaining={remaining} onClick={showMore} />
         </>

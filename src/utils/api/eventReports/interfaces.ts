@@ -126,6 +126,8 @@ export type EventReportDetail = {
     can_return: boolean;
     can_resubmit: boolean;
     can_comment: boolean;
+    /** Reports.event_export; missing from older API versions. */
+    can_export?: boolean;
   };
 };
 

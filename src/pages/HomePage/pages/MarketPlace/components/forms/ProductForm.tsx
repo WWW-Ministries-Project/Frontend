@@ -25,6 +25,8 @@ interface IProps {
   onDelete?: () => void;
   /** Error from the API or image upload, shown in the form's error line. */
   serverError?: string;
+  /** Whether the role may publish (Marketplace.publish_product); otherwise products stay drafts. */
+  canPublish?: boolean;
 }
 
 const card = "flex flex-col gap-3.5 rounded-xl border border-lightGray bg-white p-5";
@@ -140,6 +142,7 @@ export function ProductForm({
   onBack,
   onDelete,
   serverError,
+  canPublish = true,
 }: IProps) {
   const initial: IProduct = useMemo(
     () =>
@@ -246,7 +249,12 @@ export function ProductForm({
                   <label className={labelCls}>
                     Status
                     <Field as="select" name="status" className={cn(selectCls, "w-full")}>
-                      <option value="published">Published</option>
+                      <option
+                        value="published"
+                        disabled={!canPublish && initialData?.status !== "published"}
+                      >
+                        Published
+                      </option>
                       <option value="draft">Draft</option>
                     </Field>
                   </label>

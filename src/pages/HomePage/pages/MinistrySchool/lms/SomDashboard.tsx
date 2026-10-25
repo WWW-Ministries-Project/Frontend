@@ -1,4 +1,4 @@
-import { useRouteAccess } from "@/context/RouteAccessContext";
+import { useSomAccess } from "../utils/useSomAccess";
 import { useFetch } from "@/CustomHooks/useFetch";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import { api } from "@/utils";
@@ -38,14 +38,16 @@ export const SomDashboard = () => {
   }, [cohorts, enrollments]);
 
   // Manage-only endpoints: view-only users never call them.
-  const { canManageCurrentRoute } = useRouteAccess();
+  const access = useSomAccess();
+  const canDecide = access.canAll("decide_applications");
+  const canSeeSessions = access.can("take_attendance");
   const dayKey = new Date().toDateString(); // re-query when the day changes in a long-lived tab
   const sessionQuery = useMemo(() => {
     const from = new Date(dayKey);
     return { from: from.toISOString(), to: new Date(from.getTime() + 14 * 86_400_000).toISOString() };
   }, [dayKey]);
-  const { data: sessionData } = useFetch(api.fetch.fetchLmsSessions, sessionQuery, !canManageCurrentRoute);
-  const { data: pendingData } = useFetch(api.fetch.fetchLmsApplications, { status: "PENDING" }, !canManageCurrentRoute);
+  const { data: sessionData } = useFetch(api.fetch.fetchLmsSessions, sessionQuery, !canSeeSessions);
+  const { data: pendingData } = useFetch(api.fetch.fetchLmsApplications, { status: "PENDING" }, !canDecide);
   const nextSessions = (sessionData?.data ?? []).filter((x) => !x.cancelled).slice(0, 4);
   const pendingCount = pendingData?.data?.length ?? 0;
 
@@ -111,7 +113,7 @@ export const SomDashboard = () => {
             }
             to={somPaths.instructors}
           />
-          {canManageCurrentRoute && (
+          {canDecide && (
             <Kpi
               label="Awaiting review"
               value={pendingCount}
@@ -184,7 +186,7 @@ export const SomDashboard = () => {
               )}
             </Panel>
 
-            {canManageCurrentRoute && (
+            {canSeeSessions && (
               <Panel title="Next sessions" action={<Btn variant="ghost" to={somPaths.cohorts}>All cohorts</Btn>}>
                 {nextSessions.length === 0 ? (
                   <p className="px-4 py-5 text-sm text-primaryGray">No sessions in the next two weeks.</p>

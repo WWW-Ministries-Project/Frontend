@@ -2,7 +2,6 @@ import { ReactNode, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { notify } from "@/components/feedback";
-import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { api } from "@/utils/api/apiCalls";
 import type { LeaderReminderReason } from "@/utils/api/lifeCenter/interfaces";
 
@@ -44,6 +43,7 @@ import {
   useToday,
 } from "./utils/lcModel";
 import { Center, useLifeCenterOverview } from "./utils/useLifeCenterOverview";
+import { useLifeCenterAccess } from "./utils/useLifeCenterAccess";
 
 type Metric = "meetings" | "attendance" | "offering";
 type Sort = "held" | "rate" | "avg" | "off" | "last";
@@ -178,8 +178,9 @@ export const LifeCenterAnalyticsView = ({
   const navigate = useNavigate();
   const today = useToday();
   const thisYear = Number(today.slice(0, 4));
-  const { canManage } = useAccessControl();
-  const manage = canManage("Life Center") && !fixedCenterId;
+  // A fixed center is the member portal's own center: its leadership team.
+  const can = useLifeCenterAccess(Boolean(fixedCenterId));
+  const canRemind = can.remindLeader && !fixedCenterId;
 
   const [year, setYear] = useState(String(thisYear));
   const [month, setMonth] = useState("all");
@@ -550,9 +551,11 @@ export const LifeCenterAnalyticsView = ({
           options={[{ value: "", label: "All life centers" }, ...allCenters.map((c) => ({ value: String(c.id), label: c.name }))]}
         />
       )}
-      <UiButton onClick={exportCsv} disabled={!cs.length}>
-        Export CSV
-      </UiButton>
+      {can.exportData && (
+        <UiButton onClick={exportCsv} disabled={!cs.length}>
+          Export CSV
+        </UiButton>
+      )}
     </>
   );
 
@@ -735,7 +738,7 @@ export const LifeCenterAnalyticsView = ({
                 <p className="text-sm text-gray-600">{a.text}</p>
               </div>
               <div className="flex flex-wrap gap-2">
-                {manage && a.r.c.leader && (
+                {canRemind && a.r.c.leader && (
                   <UiButton size="sm" onClick={() => remind(a.r.c, a.reason)} disabled={reminded[a.r.c.id]}>
                     {reminded[a.r.c.id] ? "Reminder sent" : `Remind ${firstWord(a.r.c.leader)}`}
                   </UiButton>

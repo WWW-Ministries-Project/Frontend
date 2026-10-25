@@ -65,8 +65,11 @@ export const AdminMemberProfile = () => {
   const userId = id ? decodeQuery(id) : "";
   const [searchParams, setSearchParams] = useSearchParams();
   const tab = parseProfileTab(searchParams.get("tab"));
-  const { canManage } = useAccessControl();
-  const canManageMembers = canManage("Members");
+  const { hasAction } = useAccessControl();
+  const canEdit = hasAction("Members.edit");
+  const canChangeStatus = hasAction("Members.change_status");
+  const canConfirm = canChangeStatus || hasAction("Membership_Management.confirm_member");
+  const canDelete = hasAction("Members.delete");
   const branches = useBranchStore((state) => state.branches);
   const [dialog, setDialog] = useState<DirectoryDialog>(null);
   const [busy, setBusy] = useState(false);
@@ -214,25 +217,25 @@ export const AdminMemberProfile = () => {
 
   const directoryMember = toDirectoryMember(member);
   const menuItems: ActionMenuItem[] = [
-    { label: "Edit details", hidden: !canManageMembers, onClick: editProfile },
+    { label: "Edit details", hidden: !canEdit, onClick: editProfile },
     {
       label: "Confirm membership",
-      hidden: !canManageMembers || nextStage !== "CONFIRMED",
+      hidden: !canConfirm || nextStage !== "CONFIRMED",
       onClick: advance,
     },
     {
       label: "Mark as functional member",
-      hidden: !canManageMembers || nextStage !== "MEMBER",
+      hidden: !canConfirm || nextStage !== "MEMBER",
       onClick: advance,
     },
     {
       label: "Change status…",
-      hidden: !canManageMembers,
+      hidden: !canConfirm,
       onClick: () => setDialog({ kind: "status", members: [directoryMember] }),
     },
     {
       label: inactive ? "Reactivate" : "Mark inactive",
-      hidden: !canManageMembers,
+      hidden: !canChangeStatus,
       onClick: () =>
         run(
           () => setMembersActive([memberId], inactive),
@@ -242,7 +245,7 @@ export const AdminMemberProfile = () => {
     {
       label: "Delete member",
       danger: true,
-      hidden: !canManageMembers,
+      hidden: !canDelete,
       onClick: () => setDialog({ kind: "delete", members: [directoryMember] }),
     },
   ];
@@ -264,7 +267,7 @@ export const AdminMemberProfile = () => {
         ].filter(Boolean)}
         onBack={back.goBack}
         backLabel={back.label}
-        onEdit={canManageMembers ? editProfile : undefined}
+        onEdit={canEdit ? editProfile : undefined}
         menuItems={menuItems}
         tab={tab}
         onTabChange={setTab}
@@ -277,7 +280,7 @@ export const AdminMemberProfile = () => {
             member={member}
             branchName={branchName}
             departments={departments}
-            canManage={canManageMembers}
+            canManage={canEdit}
             onAssignDepartment={() =>
               setDialog({ kind: "assign", members: [directoryMember] })
             }
@@ -290,7 +293,7 @@ export const AdminMemberProfile = () => {
           <MembershipJourneyCard
             member={member}
             steps={journeyOf(member)}
-            nextLabel={canManageMembers && !inactive ? nextLabel : undefined}
+            nextLabel={canConfirm && !inactive ? nextLabel : undefined}
             onAdvance={advance}
             busy={busy}
           />

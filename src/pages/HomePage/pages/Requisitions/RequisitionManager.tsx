@@ -98,7 +98,7 @@ const RequisitionManager = ({ section }: { section: Section }) => {
   const wide = width >= WIDE_TABLE_MIN;
 
   const data = useRequisitionsData(section);
-  const { me, now, rows, isManager, isApprover, replyDays, lookbackDays, loaded, reload } = data;
+  const { me, now, rows, isManager, isApprover, can, replyDays, lookbackDays, loaded, reload } = data;
   const mine = section === "mine";
   const role: "requester" | "admin" | "approver" = mine ? "requester" : isManager ? "admin" : "approver";
 
@@ -240,18 +240,41 @@ const RequisitionManager = ({ section }: { section: Section }) => {
     }
   };
 
-  const onDelete = (row: Row) =>
-    confirmAction({
-      title: "Delete this draft?",
-      points: [`${row.generated_id} · ${titleOf(row)} will be removed.`, "No one else has seen it, so no one is notified."],
-      confirmLabel: "Delete draft",
-      cancelLabel: "Keep draft",
+  const onDelete = (row: Row) => {
+    const draft = row.status === "DRAFT" && row.requester.id === me;
+    return confirmAction({
+      title: draft ? "Delete this draft?" : `Delete ${row.generated_id}?`,
+      points: draft
+        ? [`${row.generated_id} · ${titleOf(row)} will be removed.`, "No one else has seen it, so no one is notified."]
+        : [
+            `${row.generated_id} · ${titleOf(row)} from ${row.requester.name} will be removed with its items, attachments and approvals.`,
+            "This can’t be undone. Approved requisitions can’t be deleted.",
+          ],
+      confirmLabel: draft ? "Delete draft" : "Delete requisition",
+      cancelLabel: draft ? "Keep draft" : "Keep it",
       tone: "danger",
       onConfirm: async () => {
         await data.remove(row.id);
         setDrawerId(null);
         await refresh();
-        notify.success({ title: "Draft deleted", message: `${row.generated_id} · ${titleOf(row)}` });
+        notify.success({ title: draft ? "Draft deleted" : "Requisition deleted", message: `${row.generated_id} · ${titleOf(row)}` });
+      },
+    });
+  };
+
+  const onMarkDisbursed = (row: Row) =>
+    confirmAction({
+      title: `Mark ${row.generated_id} disbursed?`,
+      points: [
+        `Records that ${money(row.total_amount, row.currency)} for ${titleOf(row)} has been paid out or handed over.`,
+        `${row.requester.name} is notified, and your name and the time are kept in its history.`,
+      ],
+      confirmLabel: "Mark disbursed",
+      cancelLabel: "Not yet",
+      onConfirm: async () => {
+        await data.markDisbursed(row.id);
+        await refresh();
+        notify.success({ title: "Marked disbursed", message: `${row.generated_id} · ${firstName(row.requester.name)} has been notified.` });
       },
     });
 
@@ -453,7 +476,9 @@ const RequisitionManager = ({ section }: { section: Section }) => {
             r.last_reminder_at ? ` · Reminder sent ${fmtDT(r.last_reminder_at)}` : ""
           }`,
           actions: [
-            { label: r.last_reminder_at ? "Remind again" : "Send reminder", onClick: () => void onRemind(r) },
+            ...(can.sendReminders
+              ? [{ label: r.last_reminder_at ? "Remind again" : "Send reminder", onClick: () => void onRemind(r) }]
+              : []),
             { label: "View", onClick: () => openRow(r) },
           ],
         });
@@ -558,12 +583,17 @@ const RequisitionManager = ({ section }: { section: Section }) => {
         actions={
           <>
             <FilterToggleButton open={showFilters} count={filterCount} onClick={() => setShowFilters((v) => !v)} />
-            <UiButton onClick={exportCsv} disabled={!list.length}>
-              Export CSV
-            </UiButton>
-            <UiButton tone="primary" onClick={openNew}>
-              New requisition
-            </UiButton>
+            {/* My own list is always exportable; everyone else's needs Requisition.export. */}
+            {(mine || can.export) && (
+              <UiButton onClick={exportCsv} disabled={!list.length}>
+                Export CSV
+              </UiButton>
+            )}
+            {can.raise && (
+              <UiButton tone="primary" onClick={openNew}>
+                New requisition
+              </UiButton>
+            )}
           </>
         }
       />
@@ -627,9 +657,11 @@ const RequisitionManager = ({ section }: { section: Section }) => {
           <p className="max-w-[440px] text-base text-gray-600">
             When your department needs something bought, raise it here. You’ll see who has it at every step until Finance signs off.
           </p>
-          <UiButton tone="primary" onClick={openNew}>
-            New requisition
-          </UiButton>
+          {can.raise && (
+            <UiButton tone="primary" onClick={openNew}>
+              New requisition
+            </UiButton>
+          )}
         </div>
       ) : (
         <>
@@ -954,6 +986,7 @@ const RequisitionManager = ({ section }: { section: Section }) => {
           onRevise: openRevise,
           onDelete,
           onRemind: (row) => void onRemind(row),
+          onMarkDisbursed,
         }}
       />
 

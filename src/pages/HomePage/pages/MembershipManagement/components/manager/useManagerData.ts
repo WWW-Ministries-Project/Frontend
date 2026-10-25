@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useOutletContext } from "react-router-dom";
 
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { buildBranchQuery, useBranchStore } from "@/store/useBranchStore";
 import { api } from "@/utils/api/apiCalls";
@@ -48,6 +49,16 @@ export interface ManagerData {
   joinsLoading: boolean;
   refetchJoins: () => Promise<unknown>;
 
+  /**
+   * Which tabs the caller may open. Visitors and souls won are only loaded
+   * with Visitors / Life centers view; the guest queue with View pipelines.
+   */
+  access: {
+    visitors: boolean;
+    souls: boolean;
+    guests: boolean;
+  };
+
   counts: {
     confirm: number | null;
     visitors: number | null;
@@ -59,16 +70,35 @@ export interface ManagerData {
 
 export const useManagerDataSource = (): ManagerData => {
   const activeBranchId = useBranchStore((state) => state.activeBranchId);
+  const { canView, hasAction } = useAccessControl();
+  const access = useMemo(
+    () => ({
+      visitors: canView("Visitors"),
+      souls: canView("Life Center"),
+      guests: hasAction("Membership_Management.view_pipelines"),
+    }),
+    [canView, hasAction]
+  );
 
   const membersFetch = useFetch(api.fetch.fetchAllMembers, MEMBERS_QUERY, false, SILENT);
-  const visitorsFetch = useFetch(api.fetch.fetchAllVisitors, VISITORS_QUERY, false, SILENT);
-  const soulsFetch = useFetch(api.fetch.fetchSoulsWon, undefined, false, SILENT);
+  const visitorsFetch = useFetch(
+    api.fetch.fetchAllVisitors,
+    VISITORS_QUERY,
+    !access.visitors,
+    SILENT
+  );
+  const soulsFetch = useFetch(api.fetch.fetchSoulsWon, undefined, !access.souls, SILENT);
 
   const guestQuery = useMemo(
     () => ({ ...(buildBranchQuery(activeBranchId) ?? {}), status: "PENDING", take: "500" }),
     [activeBranchId]
   );
-  const guestsFetch = useFetch(api.fetch.fetchMembershipRequests, guestQuery, false, SILENT);
+  const guestsFetch = useFetch(
+    api.fetch.fetchMembershipRequests,
+    guestQuery,
+    !access.guests,
+    SILENT
+  );
 
   // `ALL` is not a known status, so the list endpoint returns every request.
   const joinQuery = useMemo(
@@ -145,6 +175,7 @@ export const useManagerDataSource = (): ManagerData => {
   );
 
   return {
+    access,
     members,
     membersLoading: membersFetch.loading,
     refetchMembers: () => membersFetch.refetch(),

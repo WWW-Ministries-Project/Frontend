@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { notify } from "@/components/feedback";
-import { useRouteAccess } from "@/context/RouteAccessContext";
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { api } from "@/utils/api/apiCalls";
 import { cn } from "@/utils/cn";
 
@@ -16,6 +16,7 @@ import {
   type WeekRecord,
   downloadCsv,
   fmtD,
+  isOwnRecord,
   money,
   moneyS,
   recordTitle,
@@ -40,10 +41,14 @@ const TrashIcon = () => (
 const FinanceManager = () => {
   const navigate = useNavigate();
   const today = useToday();
-  const { canManageCurrentRoute: canManage } = useRouteAccess();
+  const { hasAction } = useAccessControl();
+  const canPrepare = hasAction("Financials.create_draft") || hasAction("Financials.submit");
+  const canDelete = hasAction("Financials.delete");
+  const canExport = hasAction("Financials.export");
   const { records, loading, error, reload } = useFinanceRecords();
   const { config, approval, loaded: cfgLoaded } = useFinanceConfig();
-  const { isApprover, approverName } = useApprover(approval);
+  const { isApprover: isConfiguredApprover, approverName, myId } = useApprover(approval);
+  const isApprover = isConfiguredApprover && hasAction("Financials.approve");
   const { nameOf } = useMemberNames();
 
   const nowYear = Number(today.slice(0, 4));
@@ -52,7 +57,9 @@ const FinanceManager = () => {
   const [status, setStatus] = useState("");
   const [open, setOpen] = useState<Record<string, boolean>>({});
 
-  const canEdit = (r: WeekRecord) => canManage && (r.status === "DRAFT" || isApprover) && r.isEditable;
+  // The API's isEditable already covers the approver and Financials.edit_approved.
+  const canEdit = (r: WeekRecord) =>
+    r.isEditable && (canPrepare || (isApprover && r.status === "PENDING_APPROVAL"));
   const openRec = (r: WeekRecord, edit?: boolean) => navigate(`/home/finance/${r.id}${edit ? "?edit=1" : ""}`);
   const newRecord = (from?: string) => navigate(`/home/finance/create${from ? `?from=${from}` : ""}`);
 
@@ -95,7 +102,7 @@ const FinanceManager = () => {
     const receipts = items.reduce((a, r) => a + r.totals.R, 0);
     const balance = items.reduce((a, r) => a + r.totals.fin, 0);
     const missing =
-      status || !canManage ? [] : weeksIn(yr, m).filter((w) => w.from <= today && !recordFroms.has(w.from));
+      status || !canPrepare ? [] : weeksIn(yr, m).filter((w) => w.from <= today && !recordFroms.has(w.from));
     return { m, key, items, isOpen, receipts, balance, missing };
   });
 
@@ -109,7 +116,9 @@ const FinanceManager = () => {
 
   const attention: AttentionItem[] = [];
   if (isApprover) {
-    pending.forEach((r) =>
+    pending
+      .filter((r) => !isOwnRecord(r, myId))
+      .forEach((r) =>
       attention.push({
         key: `p-${r.id}`,
         pill: { label: "Approve", tone: "warning" },
@@ -119,7 +128,7 @@ const FinanceManager = () => {
       })
     );
   }
-  if (canManage) {
+  if (canPrepare) {
     records
       .filter((r) => r.status === "DRAFT")
       .forEach((r) => {
@@ -212,10 +221,12 @@ const FinanceManager = () => {
                   ...Object.entries(RECORD_STATUS).map(([value, s]) => ({ value, label: s.label })),
                 ]}
               />
-              <UiButton onClick={exportCsv} disabled={!list.length}>
-                Export CSV
-              </UiButton>
-              {canManage && (
+              {canExport && (
+                <UiButton onClick={exportCsv} disabled={!list.length}>
+                  Export CSV
+                </UiButton>
+              )}
+              {canPrepare && (
                 <UiButton tone="primary" onClick={() => newRecord()}>
                   New weekly record
                 </UiButton>
@@ -293,7 +304,7 @@ const FinanceManager = () => {
                             <EditIcon />
                           </button>
                         )}
-                        {canManage && r.status === "DRAFT" && (
+                        {canDelete && r.status === "DRAFT" && (
                           <button
                             type="button"
                             aria-label="Delete draft"

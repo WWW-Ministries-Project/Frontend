@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
-import { useAuth } from "@/context/AuthWrapper";
 import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import {
@@ -19,7 +18,6 @@ import {
   UiButton,
 } from "@/pages/HomePage/pages/MembershipManagement/components/membershipUi";
 import { notify } from "@/components/feedback";
-import { resolveScope } from "@/utils";
 
 import { CountTabs, GroupSection, StatGrid, StatTile } from "./Components/attendanceUi";
 import { ImportCheckInsDialog } from "./Components/ImportCheckInsDialog";
@@ -71,10 +69,12 @@ interface Row {
 const defaultFilters = () => ({ month: todayKey().slice(0, 7), eventId: "", dept: "", arr: "" as ArrivalKey | "" });
 
 export default function EventAttendance() {
-  const { user } = useAuth();
-  const { canManage } = useAccessControl();
-  const canManageAttendance = canManage("Church_Attendance");
-  const departmentScoped = resolveScope(user.access_permissions, "Church_Attendance") === "assigned_departments";
+  const { hasAction, scopeFor } = useAccessControl();
+  const canImport = hasAction("Church_Attendance.import_biometric");
+  const canRecordOfficial = canImport && hasAction("Church_Attendance.record_official");
+  const canExport = hasAction("Church_Attendance.export");
+  const scope = scopeFor("Church_Attendance");
+  const departmentScoped = scope === "department" || scope === "department_member";
   const [searchParams, setSearchParams] = useSearchParams();
   const linkedQuery = searchParams.get("q");
 
@@ -313,13 +313,15 @@ export default function EventAttendance() {
           actions={
             <>
               <FilterToggleButton open={showFilters} count={filterCount} onClick={() => setShowFilters((open) => !open)} />
-              <UiButton
-                disabled={!list.length}
-                onClick={exportAll}
-              >
-                Export CSV
-              </UiButton>
-              {canManageAttendance && (
+              {canExport && (
+                <UiButton
+                  disabled={!list.length}
+                  onClick={exportAll}
+                >
+                  Export CSV
+                </UiButton>
+              )}
+              {canImport && (
                 <UiButton tone="primary" onClick={() => setImportOpen(true)}>
                   Import check-ins
                 </UiButton>
@@ -330,8 +332,8 @@ export default function EventAttendance() {
 
         {departmentScoped && (
           <p className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
-            Department access is active. You only see check-ins for members of the departments you are
-            assigned to or lead.
+            Department access is active. You see check-ins for members of your departments, and only their
+            check-ins are recorded as official attendance.
           </p>
         )}
 
@@ -455,7 +457,7 @@ export default function EventAttendance() {
           >
             <span className="text-sm font-semibold">{plural(selected.length, "check-in")} selected</span>
             <div className="ml-auto flex flex-wrap gap-2">
-              {canManageAttendance && (
+              {canRecordOfficial && (
                 <button
                   type="button"
                   disabled={recordJobs.busy}
@@ -465,16 +467,18 @@ export default function EventAttendance() {
                   {recordJobs.busy ? "Recording…" : "Record as official"}
                 </button>
               )}
-              <button
-                type="button"
-                onClick={() => {
-                  const chosen = new Set(selected);
-                  exportRows(list.filter((row) => chosen.has(row.checkIn.id)), "event-attendance-selected.csv");
-                }}
-                className="min-h-9 rounded-lg border border-white/50 bg-transparent px-3 py-1.5 text-sm font-medium text-white"
-              >
-                Export selected
-              </button>
+              {canExport && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const chosen = new Set(selected);
+                    exportRows(list.filter((row) => chosen.has(row.checkIn.id)), "event-attendance-selected.csv");
+                  }}
+                  className="min-h-9 rounded-lg border border-white/50 bg-transparent px-3 py-1.5 text-sm font-medium text-white"
+                >
+                  Export selected
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => setSelected([])}
@@ -554,7 +558,9 @@ export default function EventAttendance() {
         open={importOpen}
         onClose={() => setImportOpen(false)}
         onImported={() => refetch()}
-        canManage={canManageAttendance}
+        canImport={canImport}
+        canRecordOfficial={canRecordOfficial}
+        departmentScoped={departmentScoped}
       />
     </PageOutline>
   );

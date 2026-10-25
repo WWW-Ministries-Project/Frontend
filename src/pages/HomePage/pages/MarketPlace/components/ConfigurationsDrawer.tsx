@@ -10,7 +10,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { Button } from "@/components";
-import { useRouteAccess } from "@/context/RouteAccessContext";
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import type { IProductType } from "@/utils/api/marketPlace/interface";
 import { usePost } from "@/CustomHooks/usePost";
@@ -35,7 +35,9 @@ export const ConfigurationsDrawer = ({
   types,
   refetch,
 }: IProps) => {
-  const { canManageCurrentRoute } = useRouteAccess();
+  const { hasAction } = useAccessControl();
+  const canManageCatalog = hasAction("Marketplace.manage_catalog");
+  const canDelete = hasAction("Marketplace.delete");
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>(TABS[0]);
   const [editItem, setEditItem] = useState<IProductType | null>(null);
   const [count, setCount] = useState(0);
@@ -239,7 +241,7 @@ export const ConfigurationsDrawer = ({
                 isAddingNewTCategory ||
                 isUpdatingProductCategory
               }
-              isReadOnly={!canManageCurrentRoute}
+              isReadOnly={!canManageCatalog}
             />
 
             <ul className="flex flex-col gap-2">
@@ -249,7 +251,8 @@ export const ConfigurationsDrawer = ({
                   item={item}
                   onEdit={() => setEditItem(item)}
                   onDelete={() => handleDelete(item.id, item.name)}
-                  canManageActions={canManageCurrentRoute}
+                  canManageActions={canManageCatalog}
+                  canDelete={canDelete}
                 />
               ))}
               {list.length === 0 && (
@@ -272,35 +275,41 @@ const ItemCard = ({
   onEdit,
   onDelete,
   canManageActions,
+  canDelete,
 }: {
   item: IProductType;
   onEdit: () => void;
   onDelete: () => void;
   canManageActions?: boolean;
+  canDelete?: boolean;
 }) => (
   <li className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 px-4 py-3 text-sm">
     <div className="flex min-w-0 items-center gap-3">
       <Square3Stack3DIcon className="size-5 shrink-0 text-primaryGray" />
       <p className="truncate">{item.name}</p>
     </div>
-    {canManageActions && (
+    {(canManageActions || canDelete) && (
       <div className="flex gap-1">
-        <button
-          type="button"
-          aria-label={`Edit ${item.name}`}
-          onClick={onEdit}
-          className="flex size-8 items-center justify-center rounded-lg text-primaryGray hover:bg-gray-100 hover:text-primary"
-        >
-          <PencilSquareIcon className="size-[18px]" />
-        </button>
-        <button
-          type="button"
-          aria-label={`Delete ${item.name}`}
-          onClick={onDelete}
-          className="flex size-8 items-center justify-center rounded-lg text-red-600 hover:bg-red-50"
-        >
-          <TrashIcon className="size-[18px]" />
-        </button>
+        {canManageActions && (
+          <button
+            type="button"
+            aria-label={`Edit ${item.name}`}
+            onClick={onEdit}
+            className="flex size-8 items-center justify-center rounded-lg text-primaryGray hover:bg-gray-100 hover:text-primary"
+          >
+            <PencilSquareIcon className="size-[18px]" />
+          </button>
+        )}
+        {canDelete && (
+          <button
+            type="button"
+            aria-label={`Delete ${item.name}`}
+            onClick={onDelete}
+            className="flex size-8 items-center justify-center rounded-lg text-red-600 hover:bg-red-50"
+          >
+            <TrashIcon className="size-[18px]" />
+          </button>
+        )}
       </div>
     )}
   </li>

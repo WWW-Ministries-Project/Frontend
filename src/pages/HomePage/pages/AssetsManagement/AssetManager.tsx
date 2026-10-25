@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import { notify } from "@/components/feedback";
 import { useAuth } from "@/context/AuthWrapper";
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import type { AssetRow, AssetStatus } from "@/utils/api/assets/interfaces";
 import { cn } from "@/utils/cn";
 
@@ -100,7 +101,24 @@ const AssetManager = () => {
 
   const data = useAssetsData();
   const { assets, departments, viewer, staleDays } = data;
-  const canManage = viewer.can_manage;
+  const { hasAction } = useAccessControl();
+  // What the role may do (Asset actions); a department-scoped role only in its departments.
+  const can = {
+    create: hasAction("Asset.create"),
+    edit: hasAction("Asset.edit"),
+    assign: hasAction("Asset.assign"),
+    changeStatus: hasAction("Asset.change_status"),
+    raise: hasAction("Asset.raise_requisition") && hasAction("Requisition.raise"),
+    clearRepair: hasAction("Asset.clear_repair"),
+    writeOff: hasAction("Asset.write_off"),
+    remove: viewer.can_delete && hasAction("Asset.delete"),
+    export: hasAction("Asset.export"),
+  };
+  const scopeIds = viewer.manage_department_ids;
+  const inScope = (a: AssetRow) => scopeIds == null || (!!a.department && scopeIds.includes(a.department.id));
+  const canMove = can.assign || can.changeStatus;
+  const canChangeAny = can.edit || canMove || can.raise || can.clearRepair || can.writeOff || can.remove;
+  const canBulk = can.raise || canMove || can.export;
   const stock = useStockChecks();
   const active = stock.checks.find((c) => c.status === "open") ?? null;
 
@@ -260,7 +278,7 @@ const AssetManager = () => {
   /* ------------------------------- attention ------------------------------ */
 
   const attention = useMemo<Attention[]>(() => {
-    if (!canManage) return [];
+    if (!canChangeAny) return [];
     const out: Attention[] = [];
     if (active) {
       const st = checkStats(active);
@@ -280,7 +298,7 @@ const AssetManager = () => {
     }
     const nr = assets.filter((a) => a.status === "NEEDS_REPAIR");
     const noReq = nr.filter((a) => !a.repair_requisition);
-    if (noReq.length) {
+    if (noReq.length && can.raise) {
       out.push({
         key: "noReq",
         kind: "noReq",
@@ -296,7 +314,7 @@ const AssetManager = () => {
         ],
       });
     }
-    nr.filter((a) => a.repair_requisition?.status === "APPROVED").forEach((a) =>
+    nr.filter((a) => can.changeStatus && inScope(a) && a.repair_requisition?.status === "APPROVED").forEach((a) =>
       out.push({
         key: `appr-${a.id}`,
         kind: "approved",
@@ -309,7 +327,7 @@ const AssetManager = () => {
         ],
       })
     );
-    nr.filter((a) => a.repair_requisition?.status === "REJECTED").forEach((a) =>
+    nr.filter((a) => inScope(a) && a.repair_requisition?.status === "REJECTED").forEach((a) =>
       out.push({
         key: `rej-${a.id}`,
         kind: "rejected",
@@ -317,13 +335,13 @@ const AssetManager = () => {
         title: `${a.name} · ${a.repair_requisition!.generated_id} rejected`,
         text: "Raise a new requisition with changes, or decide it’s beyond repair.",
         actions: [
-          { label: "Raise again", onClick: () => void raiseAgain(a) },
-          { label: "Beyond repair", onClick: () => openStatus([a.id], "NOT_FIXABLE") },
+          ...(can.clearRepair && can.raise ? [{ label: "Raise again", onClick: () => void raiseAgain(a) }] : []),
+          ...(can.changeStatus ? [{ label: "Beyond repair", onClick: () => openStatus([a.id], "NOT_FIXABLE") }] : []),
         ],
       })
     );
     cnt("LOST_OR_STOLEN")
-      .filter((a) => !a.lost_confirmed_at)
+      .filter((a) => !a.lost_confirmed_at && inScope(a))
       .sort((x, y) => dayOf(y.status_since).localeCompare(dayOf(x.status_since)))
       .forEach((a) =>
         out.push({
@@ -333,14 +351,14 @@ const AssetManager = () => {
           title: `${a.name} · ${a.code}`,
           text: `${a.department ? `${a.department.name} · ` : ""}reported ${fmtD(a.status_since)} (${ago(a.status_since, today)} ago).${a.status_note ? ` ${a.status_note}` : ""} Worth ${money(a.price)}.`,
           actions: [
-            { label: "Mark found", onClick: () => openStatus([a.id], a.department ? "ASSIGNED" : "UNASSIGNED") },
-            { label: "Confirm as lost", onClick: () => confirmLost(a) },
+            ...(canMove ? [{ label: "Mark found", onClick: () => openStatus([a.id], a.department ? "ASSIGNED" : "UNASSIGNED") }] : []),
+            ...(can.writeOff ? [{ label: "Confirm as lost", onClick: () => confirmLost(a) }] : []),
             { label: "View", onClick: () => setDrawerId(a.id) },
           ],
         })
       );
     cnt("OUT_OF_REPAIRS")
-      .filter((a) => daysSince(a.status_since, today) > staleDays)
+      .filter((a) => canMove && inScope(a) && daysSince(a.status_since, today) > staleDays)
       .sort((x, y) => dayOf(x.status_since).localeCompare(dayOf(y.status_since)))
       .forEach((a) =>
         out.push({
@@ -356,7 +374,7 @@ const AssetManager = () => {
         })
       );
     cnt("UNASSIGNED")
-      .filter((a) => daysSince(a.status_since, today) > 90)
+      .filter((a) => can.assign && scopeIds == null && daysSince(a.status_since, today) > 90)
       .sort((x, y) => y.price - x.price)
       .forEach((a) =>
         out.push({
@@ -373,7 +391,7 @@ const AssetManager = () => {
       );
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [assets, active, canManage, today, staleDays]);
+  }, [assets, active, canChangeAny, today, staleDays]);
 
   const attentionNote = (() => {
     const n = (kind: Attention["kind"]) => attention.filter((a) => a.kind === kind).length;
@@ -433,17 +451,19 @@ const AssetManager = () => {
   };
 
   const drawerButtons = (a: AssetRow): CommDialogButton[] => {
-    if (!canManage) return [];
     const b: CommDialogButton[] = [];
-    if (viewer.can_delete) b.push({ label: "Delete", onClick: () => remove(a), tone: "danger" });
-    b.push({ label: "Edit", onClick: () => setDialog({ kind: "form", asset: a }) });
-    if (a.status === "ASSIGNED") b.push({ label: "Reassign", onClick: () => openStatus([a.id], "ASSIGNED") });
     const r = a.repair_requisition;
-    if (a.status === "NEEDS_REPAIR" && !r) b.push({ label: "Raise repair requisition", onClick: () => openRepair([a.id]), tone: "primary" });
+    if (!canChangeAny || !inScope(a)) {
+      return r ? [{ label: "Open requisition", onClick: () => navigate(`/home/requests/${window.btoa(String(r.id))}`) }] : [];
+    }
+    if (can.remove) b.push({ label: "Delete", onClick: () => remove(a), tone: "danger" });
+    if (can.edit) b.push({ label: "Edit", onClick: () => setDialog({ kind: "form", asset: a }) });
+    if (a.status === "ASSIGNED" && can.assign) b.push({ label: "Reassign", onClick: () => openStatus([a.id], "ASSIGNED") });
+    if (a.status === "NEEDS_REPAIR" && !r && can.raise) b.push({ label: "Raise repair requisition", onClick: () => openRepair([a.id]), tone: "primary" });
     if (r) b.push({ label: "Open requisition", onClick: () => navigate(`/home/requests/${window.btoa(String(r.id))}`) });
-    if (a.status === "NEEDS_REPAIR" && r?.status === "APPROVED") b.push({ label: "Mark under repair", onClick: () => openStatus([a.id], "OUT_OF_REPAIRS"), tone: "primary" });
-    if (a.status === "LOST_OR_STOLEN" && !a.lost_confirmed_at) b.push({ label: "Confirm as lost", onClick: () => confirmLost(a) });
-    b.push({
+    if (a.status === "NEEDS_REPAIR" && r?.status === "APPROVED" && can.changeStatus) b.push({ label: "Mark under repair", onClick: () => openStatus([a.id], "OUT_OF_REPAIRS"), tone: "primary" });
+    if (a.status === "LOST_OR_STOLEN" && !a.lost_confirmed_at && can.writeOff) b.push({ label: "Confirm as lost", onClick: () => confirmLost(a) });
+    if (a.status === "UNASSIGNED" ? can.assign : canMove) b.push({
       label: a.status === "UNASSIGNED" ? "Assign" : "Change status",
       onClick: () => openStatus([a.id], a.status === "UNASSIGNED" ? "ASSIGNED" : null),
       tone: "primary",
@@ -464,10 +484,12 @@ const AssetManager = () => {
         actions={
           <>
             <FilterToggleButton open={showFilters} count={filterCount} onClick={() => setShowFilters((v) => !v)} />
-            <UiButton onClick={() => exportRows(list, `assets-${tab === "all" ? "all" : STATUS[tab].label.toLowerCase().replace(/ /g, "-")}`)}>
-              Export CSV
-            </UiButton>
-            {canManage && (
+            {can.export && (
+              <UiButton onClick={() => exportRows(list, `assets-${tab === "all" ? "all" : STATUS[tab].label.toLowerCase().replace(/ /g, "-")}`)}>
+                Export CSV
+              </UiButton>
+            )}
+            {can.create && (
               <UiButton tone="primary" onClick={() => setDialog({ kind: "form", asset: null })}>
                 Add asset
               </UiButton>
@@ -601,14 +623,14 @@ const AssetManager = () => {
           </div>
         </div>
 
-        {canManage && selectedRows.length > 0 && (
+        {canBulk && selectedRows.length > 0 && (
           <div role="region" aria-label="Bulk actions" className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg bg-primary px-4 py-3 text-white">
             <span className="flex-[1_1_120px] text-sm font-semibold">{selectedRows.length} selected</span>
             {[
-              { label: "Raise repair requisition", onClick: () => openRepair(selectedRows.map((a) => a.id)) },
-              { label: "Assign to department", onClick: () => openStatus(selectedRows.map((a) => a.id), "ASSIGNED") },
-              { label: "Change status", onClick: () => openStatus(selectedRows.map((a) => a.id), "UNASSIGNED") },
-              { label: "Export selected", onClick: () => exportRows(selectedRows, "assets-selected") },
+              ...(can.raise ? [{ label: "Raise repair requisition", onClick: () => openRepair(selectedRows.map((a) => a.id)) }] : []),
+              ...(can.assign ? [{ label: "Assign to department", onClick: () => openStatus(selectedRows.map((a) => a.id), "ASSIGNED") }] : []),
+              ...(canMove ? [{ label: "Change status", onClick: () => openStatus(selectedRows.map((a) => a.id), "UNASSIGNED") }] : []),
+              ...(can.export ? [{ label: "Export selected", onClick: () => exportRows(selectedRows, "assets-selected") }] : []),
               { label: "Clear", onClick: () => setSelected([]) },
             ].map((b) => (
               <button
@@ -633,7 +655,7 @@ const AssetManager = () => {
             getRowId={(a) => String(a.id)}
             loading={!data.loaded}
             minWidth="1100px"
-            selectable={canManage}
+            selectable={canBulk}
             selectedIds={selected.map(String)}
             onToggleRow={(id) => toggle(Number(id))}
             onToggleAll={toggleAll}
@@ -718,7 +740,7 @@ const AssetManager = () => {
                       </div>
                     </div>
                   </button>
-                  {canManage && (
+                  {canBulk && (
                     <label className="absolute left-2 top-2 flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-lightGray bg-white">
                       <input
                         type="checkbox"
@@ -746,7 +768,7 @@ const AssetManager = () => {
               ? "Nothing matches these filters. Try clearing the search or resetting filters."
               : tab === "LOST_OR_STOLEN"
                 ? "Nothing is recorded as lost or stolen."
-                : canManage
+                : can.create
                   ? "No assets here yet. Add the first one to start the register."
                   : "No assets here yet."}
           </p>

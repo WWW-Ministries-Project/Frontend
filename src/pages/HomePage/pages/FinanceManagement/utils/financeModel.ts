@@ -306,6 +306,11 @@ const monthIndex = (name: unknown, fallbackDay: string) => {
   return d ? d.getMonth() : new Date().getMonth();
 };
 
+/** A record the user prepared or submitted. The API never lets them approve it. */
+export const isOwnRecord = (r: WeekRecord, userId: number) =>
+  Boolean(userId) &&
+  (Number(r.raw.createdByUserId) === userId || Number(r.raw.submittedByUserId) === userId);
+
 export const toWeekRecord = (raw: FinancialRecord): WeekRecord => {
   const data = (raw.payload || {}) as FinanceData;
   const meta = (data.metaData || {}) as NonNullable<FinanceData["metaData"]>;

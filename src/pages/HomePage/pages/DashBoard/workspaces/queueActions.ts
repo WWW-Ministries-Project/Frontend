@@ -36,7 +36,25 @@ export interface QueueAction {
   /** Toast title when it fails ("Couldn't …"). */
   failTitle: string;
   run?: (item: QueueItem, values: ActionValues) => Promise<unknown>;
+  /** Whether the caller's role allows it: the same action key the module checks. */
+  allowed?: (access: QueueAccess) => boolean;
 }
+
+/** Role checks for queue actions (see useQueueAccess). */
+export interface QueueAccess {
+  hasAction: (qualified: string) => boolean;
+  /** The role switched "Domain.action" off on purpose. */
+  switchedOff: (qualified: string) => boolean;
+  canSignOffDeptReports: () => boolean;
+}
+
+/*
+ * Requisition steps and department heads come from relationships (approval
+ * chain, department head), not the level, so the role can only switch those
+ * actions off; the server lists only items the caller can act on.
+ */
+const notSwitchedOff = (key: string) => (access: QueueAccess) => !access.switchedOff(key);
+const needs = (key: string) => (access: QueueAccess) => access.hasAction(key);
 
 export const KIND_META: Record<QueueKind, { eyebrow: string; tab: string }> = {
   requisition: { eyebrow: "REQUISITION", tab: "Requisitions" },
@@ -107,6 +125,7 @@ const approveRequisition: QueueAction = {
   tone: "primary",
   doneTitle: "Requisition approved",
   failTitle: "Couldn't approve the requisition",
+  allowed: notSwitchedOff("Requisition.approve"),
   run: (item) => api.post.requisitionApprovalAction({ requisition_id: Number(item.ref_id), action: "APPROVE" }),
 };
 
@@ -117,13 +136,19 @@ const rejectRequisition: QueueAction = {
   input: "note",
   doneTitle: "Requisition rejected",
   failTitle: "Couldn't reject the requisition",
+  allowed: notSwitchedOff("Requisition.approve"),
   run: (item, { note }) =>
     api.post.requisitionApprovalAction({ requisition_id: Number(item.ref_id), action: "REJECT", comment: note.trim() }),
 };
 
 const reportSelector = (item: QueueItem) => item.selector as unknown as DeptReportSelector;
 
-export const actionsFor = (item: QueueItem): QueueAction[] => {
+export const actionsFor = (item: QueueItem, access: QueueAccess): QueueAction[] =>
+  allActionsFor(item).filter((action) => !action.allowed || action.allowed(access));
+
+const signOff = (access: QueueAccess) => access.canSignOffDeptReports();
+
+const allActionsFor = (item: QueueItem): QueueAction[] => {
   switch (item.kind) {
     case "requisition":
       return [approveRequisition, rejectRequisition];
@@ -138,6 +163,7 @@ export const actionsFor = (item: QueueItem): QueueAction[] => {
           tone: "primary",
           doneTitle: "Report approved",
           failTitle: "Couldn't approve the report",
+          allowed: signOff,
           run: (it) => api.post.approveDepartmentReport(reportSelector(it)),
         },
         {
@@ -147,6 +173,7 @@ export const actionsFor = (item: QueueItem): QueueAction[] => {
           input: "note",
           doneTitle: "Report returned",
           failTitle: "Couldn't return the report",
+          allowed: signOff,
           run: (it, { note }) => api.post.returnDepartmentReport({ ...reportSelector(it), note: note.trim() }),
         },
       ];
@@ -177,6 +204,7 @@ export const actionsFor = (item: QueueItem): QueueAction[] => {
           tone: "primary",
           doneTitle: "Join request approved",
           failTitle: "Couldn't approve the join request",
+          allowed: notSwitchedOff("Membership_Management.decide_join_request"),
           run: (it) => api.put.approveJoinRequest({ id: Number(it.ref_id) }),
         },
         {
@@ -186,6 +214,7 @@ export const actionsFor = (item: QueueItem): QueueAction[] => {
           input: "note",
           doneTitle: "Join request declined",
           failTitle: "Couldn't decline the join request",
+          allowed: notSwitchedOff("Membership_Management.decide_join_request"),
           run: (it, { note }) => api.put.declineJoinRequest({ id: Number(it.ref_id), decline_reason: note.trim() }),
         },
       ];
@@ -198,6 +227,7 @@ export const actionsFor = (item: QueueItem): QueueAction[] => {
           input: "assignee",
           doneTitle: "Visitor assigned",
           failTitle: "Couldn't assign the visitor",
+          allowed: needs("Visitors.assign_responsible"),
           run: async (it, { assignee }) => {
             const res = await api.fetch.fetchVisitorById({ id: String(it.ref_id) });
             const visitor = res.data as unknown as VisitorType;
@@ -215,6 +245,7 @@ export const actionsFor = (item: QueueItem): QueueAction[] => {
           tone: "primary",
           doneTitle: "Weekly record approved",
           failTitle: "Couldn't approve the weekly record",
+          allowed: needs("Financials.approve"),
           run: (it) => api.post.approveFinancial(String(it.ref_id)),
         },
         {
@@ -224,6 +255,7 @@ export const actionsFor = (item: QueueItem): QueueAction[] => {
           input: "note",
           doneTitle: "Weekly record returned",
           failTitle: "Couldn't return the weekly record",
+          allowed: needs("Financials.approve"),
           run: (it, { note }) => api.post.returnFinancial(String(it.ref_id), note.trim()),
         },
       ];
@@ -235,6 +267,7 @@ export const actionsFor = (item: QueueItem): QueueAction[] => {
           tone: "primary",
           doneTitle: "Sermon published",
           failTitle: "Couldn't publish the sermon",
+          allowed: needs("Sermons.publish"),
           run: (it) => api.post.publishSermon(Number(it.ref_id)),
         },
       ];
@@ -247,6 +280,7 @@ export const actionsFor = (item: QueueItem): QueueAction[] => {
           input: "followup",
           doneTitle: "Follow-up recorded",
           failTitle: "Couldn't record the follow-up",
+          allowed: needs("Visitors.record_follow_up"),
           run: (it, { note, followType, userId }) =>
             saveFollowUp(it.ref_id, {
               date: new Date().toISOString().slice(0, 10),

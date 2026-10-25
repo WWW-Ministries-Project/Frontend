@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { notify } from "@/components/feedback";
 import { UiButton } from "@/pages/HomePage/pages/MembershipManagement/components/membershipUi";
 import { confirmAction } from "@/pages/HomePage/utils/helperFunctions";
@@ -13,7 +14,11 @@ import { Card, LoadFailed, RowsSkeleton, SectionTitle } from "../generalUi";
 
 type OutletContext = { refetchPositions?: () => unknown } | undefined;
 
-export const PositionsSection = ({ canEdit, canDelete }: { canEdit: boolean; canDelete: boolean }) => {
+export const PositionsSection = () => {
+  const { hasAction } = useAccessControl();
+  const canCreate = hasAction("Positions.create");
+  const canEdit = hasAction("Positions.edit");
+  const canDelete = hasAction("Positions.delete");
   const outlet = useOutletContext<OutletContext>();
   const branches = useBranchStore((state) => state.branches);
   const activeBranchId = useBranchStore((state) => state.activeBranchId);
@@ -69,7 +74,7 @@ export const PositionsSection = ({ canEdit, canDelete }: { canEdit: boolean; can
         title="Positions"
         text="Titles people hold. Approval steps and eligibility rules can point to them."
         action={
-          canEdit ? (
+          canCreate ? (
             <UiButton tone="primary" onClick={() => setDialog({ position: null })}>
               New position
             </UiButton>
@@ -82,7 +87,7 @@ export const PositionsSection = ({ canEdit, canDelete }: { canEdit: boolean; can
         <LoadFailed what="positions" onRetry={() => void load()} />
       ) : !positions.length ? (
         <p className="rounded-xl border border-dashed border-lightGray bg-white p-6 text-center text-sm text-gray-600">
-          No positions yet.{canEdit ? " Add the titles people hold, like Head Usher or Choir Director." : ""}
+          No positions yet.{canCreate ? " Add the titles people hold, like Head Usher or Choir Director." : ""}
         </p>
       ) : (
         <Card>

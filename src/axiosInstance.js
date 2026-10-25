@@ -25,6 +25,7 @@ const PERMISSION_DENIAL_MARKERS = [
 const PUBLIC_AUTH_PATHS = [
   "/user/login",
   "/user/register",
+  "/user/public-register",
   "/user/forgot-password",
   "/user/reset-password",
 ];
@@ -209,6 +210,10 @@ const applyResponseInterceptor = (client) => {
           // The active branch is no longer one of the user's branches; the
           // branch sync falls back to one that is instead of a full block.
           dispatchAppEvent("app:branch-forbidden", { statusCode, message });
+        } else if (error?.response?.data?.code === "GRANT_CEILING") {
+          // Giving more access than you hold, or editing your own: the
+          // request is refused but the page is still yours, so the error
+          // toast is enough.
         } else if (!skipAccessDenied && hasActiveSession) {
           dispatchAppEvent("app:access-denied", {
             statusCode,

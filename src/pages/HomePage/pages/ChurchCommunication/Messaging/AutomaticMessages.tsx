@@ -31,12 +31,16 @@ const STATS_QUERY = { days: 30 };
 const BIRTHDAYS_QUERY = { days: 7 };
 
 export const AutomaticMessages = ({
-  canManage,
+  canEdit,
+  canToggle,
   settings,
   storeMissing,
   onOpenSettings,
 }: {
-  canManage: boolean;
+  /** Messaging.edit_templates: change text, channels and settings. */
+  canEdit: boolean;
+  /** Messaging.toggle_automatic: switch a message on or off. */
+  canToggle: boolean;
   settings?: MessagingSettings;
   storeMissing: boolean;
   onOpenSettings: () => void;
@@ -54,7 +58,7 @@ export const AutomaticMessages = ({
         <InlineAlert
           tone="warning"
           title="App download link is incomplete"
-          action={canManage ? { label: "Open settings", onClick: onOpenSettings } : undefined}
+          action={canEdit ? { label: "Open settings", onClick: onOpenSettings } : undefined}
         >
           {!settings.play_store_url ? "Android" : "iPhone"} visitors get a broken app link in the “Visitor added” message
           until the {!settings.play_store_url ? "Play Store" : "App Store"} link is added.
@@ -75,7 +79,8 @@ export const AutomaticMessages = ({
               <TemplateCard
                 key={`${key}-${template.updatedAt}`}
                 template={template}
-                canManage={canManage}
+                canEdit={canEdit}
+                canToggle={canToggle}
                 stats={stats.data?.data as TemplateStats | undefined}
                 settings={settings}
                 birthdaysThisWeek={birthdaysThisWeek}
@@ -93,14 +98,16 @@ const sameChannels = (a: MessageChannels, b: MessageChannels) => a.sms === b.sms
 
 const TemplateCard = ({
   template,
-  canManage,
+  canEdit,
+  canToggle,
   stats,
   settings,
   birthdaysThisWeek,
   onSaved,
 }: {
   template: MessageTemplate;
-  canManage: boolean;
+  canEdit: boolean;
+  canToggle: boolean;
   stats?: TemplateStats;
   settings?: MessagingSettings;
   birthdaysThisWeek: number | null;
@@ -205,7 +212,7 @@ const TemplateCard = ({
           </h3>
           <p className="text-sm text-gray-600">{meta.description}</p>
         </div>
-        <ToggleSwitch on={enabled} onChange={setEnabled} label={`Send ${meta.title} messages`} disabled={!canManage} />
+        <ToggleSwitch on={enabled} onChange={setEnabled} label={`Send ${meta.title} messages`} disabled={!canToggle} />
       </div>
       <p className={`text-xs ${enabled ? "text-gray-500" : "text-amber-700"}`}>{status}</p>
 
@@ -217,7 +224,7 @@ const TemplateCard = ({
               key={channel.key}
               on={channels[channel.key] && !blocked}
               onClick={() => {
-                if (!canManage || blocked) return;
+                if (!canEdit || blocked) return;
                 setChannels({ ...channels, [channel.key]: !channels[channel.key] });
               }}
             >
@@ -233,7 +240,7 @@ const TemplateCard = ({
 
       {channels.email && (
         <Field label="Email subject">
-          <TextInput value={subject} maxLength={150} disabled={!canManage} onChange={(event) => setSubject(event.target.value)} />
+          <TextInput value={subject} maxLength={150} disabled={!canEdit} onChange={(event) => setSubject(event.target.value)} />
         </Field>
       )}
 
@@ -241,16 +248,16 @@ const TemplateCard = ({
         <TextArea
           rows={4}
           value={body}
-          disabled={!canManage}
+          disabled={!canEdit}
           hasError={unknown.length > 0}
           onChange={(event) => setBody(event.target.value)}
         />
       </Field>
-      <PlaceholderChips chips={canManage ? chips : []} onAdd={(token) => setBody(appendToken(body, token))} counter={counter} />
+      <PlaceholderChips chips={canEdit ? chips : []} onAdd={(token) => setBody(appendToken(body, token))} counter={counter} />
       {isVisitor && (
         <CheckCard
           checked={includeAppLink}
-          onChange={(value) => canManage && setIncludeAppLink(value)}
+          onChange={(value) => canEdit && setIncludeAppLink(value)}
           label="Add the app download links"
           help="Appends the App Store and Play Store links from Messaging settings."
         />
@@ -265,7 +272,7 @@ const TemplateCard = ({
         <span className="flex-[1_1_160px] text-xs text-gray-500">
           {dirty ? "Unsaved changes" : `Last edited ${formatDay(template.updatedAt)}`}
         </span>
-        {dirty && canManage && (
+        {dirty && (canEdit || canToggle) && (
           <>
             <UiButton tone="ghost" className="text-primary hover:bg-primary/5" onClick={reset} disabled={saving}>
               Discard

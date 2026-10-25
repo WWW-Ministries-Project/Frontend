@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { useFetch } from "@/CustomHooks/useFetch";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import { encodeQuery } from "@/pages/HomePage/utils";
@@ -68,19 +69,28 @@ export const MembershipAnalytics = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [activeSection, setActiveSection] = useState<AnalyticsSectionKey>("growth");
 
+  // Visitor and souls-won figures only load for roles that may see those
+  // modules; otherwise they count as zero.
+  const { canView, hasAction } = useAccessControl();
+  const canSeeVisitors = canView("Visitors");
+  const canSeeSouls = canView("Life Center");
+  const canSeePipelines = hasAction("Membership_Management.view_pipelines");
+
   const {
     data: membersResponse,
     loading: membersLoading,
     error: membersError,
   } = useFetch(api.fetch.fetchAllMembers, { take: 5000 });
-  const { data: visitorsResponse } = useFetch(api.fetch.fetchAllVisitors, {
-    limit: 5000,
-  });
+  const { data: visitorsResponse } = useFetch(
+    api.fetch.fetchAllVisitors,
+    { limit: 5000 },
+    !canSeeVisitors
+  );
   const {
     data: soulsWonResponse,
     loading: soulsWonLoading,
     error: soulsWonError,
-  } = useFetch(api.fetch.fetchSoulsWon);
+  } = useFetch(api.fetch.fetchSoulsWon, undefined, !canSeeSouls);
 
   const joinRequestQuery = useMemo(
     () => ({ ...(buildBranchQuery(activeBranchId) ?? {}), status: "PENDING" }),
@@ -88,7 +98,8 @@ export const MembershipAnalytics = () => {
   );
   const { data: joinRequestsResponse } = useFetch(
     api.fetch.fetchJoinRequests,
-    joinRequestQuery
+    joinRequestQuery,
+    !canSeePipelines
   );
 
   const members = useMemo(() => {

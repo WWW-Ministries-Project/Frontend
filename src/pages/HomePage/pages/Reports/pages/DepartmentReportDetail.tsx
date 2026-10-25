@@ -1,3 +1,4 @@
+import { ReportsRouteAccess } from "../components/ReportsRouteAccess";
 import { useBackNavigation } from "@/CustomHooks/useBackNavigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
@@ -652,4 +653,10 @@ const DepartmentReportDetail = () => {
   );
 };
 
-export default DepartmentReportDetail;
+const DepartmentReportDetailPage = () => (
+  <ReportsRouteAccess>
+    <DepartmentReportDetail />
+  </ReportsRouteAccess>
+);
+
+export default DepartmentReportDetailPage;

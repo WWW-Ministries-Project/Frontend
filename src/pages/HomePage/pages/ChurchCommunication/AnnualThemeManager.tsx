@@ -70,8 +70,11 @@ const toDraft = (theme: AnnualTheme | null, nextYear: string, yearTaken: boolean
       };
 
 const AnnualThemeManager = () => {
-  const { hasPermission } = useAccessControl();
-  const canManage = hasPermission("manage_theme");
+  const { hasAction, canAdmin } = useAccessControl();
+  const canManage = hasAction("Theme.edit");
+  // Making a theme current is Theme › Publish; deleting needs Full.
+  const canPublish = hasAction("Theme.publish");
+  const canDelete = canAdmin("Theme");
   const phone = useViewportWidth() < PHONE_MAX;
   const { data, loading, refetch } = useFetch(api.fetch.fetchAnnualTheme);
   const { handleUpload } = usePictureUpload();
@@ -304,20 +307,20 @@ const AnnualThemeManager = () => {
                     <UiButton size="sm" onClick={() => openDialog(theme)}>
                       Edit
                     </UiButton>
-                    {!theme.isActive && (
-                      <>
-                        <UiButton size="sm" tone="ghost" className="text-primary hover:bg-primary/5" onClick={() => makeCurrent(theme)}>
-                          Make current
-                        </UiButton>
-                        <UiButton
-                          size="sm"
-                          tone="ghost"
-                          className="text-red-700 hover:bg-red-50 hover:text-red-700"
-                          onClick={() => deleteTheme(theme)}
-                        >
-                          Delete
-                        </UiButton>
-                      </>
+                    {!theme.isActive && canPublish && (
+                      <UiButton size="sm" tone="ghost" className="text-primary hover:bg-primary/5" onClick={() => makeCurrent(theme)}>
+                        Make current
+                      </UiButton>
+                    )}
+                    {!theme.isActive && canDelete && (
+                      <UiButton
+                        size="sm"
+                        tone="ghost"
+                        className="text-red-700 hover:bg-red-50 hover:text-red-700"
+                        onClick={() => deleteTheme(theme)}
+                      >
+                        Delete
+                      </UiButton>
                     )}
                   </div>
                 )}
@@ -403,18 +406,20 @@ const AnnualThemeManager = () => {
             <FullRow>
               <ThemeImageCropper initialImageUrl={draft.imageUrl ?? undefined} onCroppedImageChange={onCropped} />
             </FullRow>
-            <FullRow>
-              <CheckCard
-                checked={draft.isActive}
-                onChange={(value) => setField("isActive", value)}
-                label="Make this the current theme"
-                help={
-                  otherCurrent
-                    ? `Replaces “${otherCurrent.title}” in the app straight away.`
-                    : "Shows in the app straight away."
-                }
-              />
-            </FullRow>
+            {canPublish && (
+              <FullRow>
+                <CheckCard
+                  checked={draft.isActive}
+                  onChange={(value) => setField("isActive", value)}
+                  label="Make this the current theme"
+                  help={
+                    otherCurrent
+                      ? `Replaces “${otherCurrent.title}” in the app straight away.`
+                      : "Shows in the app straight away."
+                  }
+                />
+              </FullRow>
+            )}
           </FieldGrid>
         </CommDialog>
       )}

@@ -1,4 +1,3 @@
-import { useRouteAccess } from "@/context/RouteAccessContext";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import SkeletonLoader from "@/pages/HomePage/Components/reusable/SkeletonLoader";
 import { COHORT_STATUS } from "@/utils/api/ministrySchool/interfaces";
@@ -8,21 +7,27 @@ import { useSomData } from "./somDataContext";
 import { audienceLabel, isAssessmentUnit, somPaths } from "./somUtils";
 import { Btn, EmptyBlock, PageHeader, Panel, Pill, SimpleTable, type Column, LoadError } from "./ui";
 import { useProgramEditor } from "./useProgramEditor";
+import { useSomAccess } from "../utils/useSomAccess";
 
 export const ProgramsPage = () => {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
-  const { canManageCurrentRoute } = useRouteAccess();
+  const som = useSomAccess();
+  // New programs need curriculum design for the whole school; instructors
+  // with curriculum editing on a program may edit that one (the API checks).
+  const canCreate = som.can("design_curriculum") && som.canAll("design_curriculum");
+  const canEdit = som.can("design_curriculum");
+  const canDelete = som.canDelete;
   const { loading, programs, cohorts, refetch, error } = useSomData();
   const editor = useProgramEditor({ allPrograms: programs, onSaved: refetch, onDeleted: refetch });
 
   useEffect(() => {
-    if (params.get("new") === "1" && canManageCurrentRoute) {
+    if (params.get("new") === "1" && canCreate) {
       editor.openCreate();
       params.delete("new");
       setParams(params, { replace: true });
     }
-  }, [params, setParams, editor, canManageCurrentRoute]);
+  }, [params, setParams, editor, canCreate]);
 
   const rows = useMemo(
     () =>
@@ -79,7 +84,7 @@ export const ProgramsPage = () => {
     { key: "who", header: "Who can join", render: (r) => <span className="text-primaryGray">{audienceLabel(r.program)}</span> },
     { key: "cohorts", header: "Cohorts", className: "text-right", render: (r) => r.cohortCount },
     { key: "learners", header: "Learners", className: "text-right", render: (r) => r.learners },
-    ...(canManageCurrentRoute
+    ...(canEdit || canDelete
       ? [
           {
             key: "actions",
@@ -87,17 +92,21 @@ export const ProgramsPage = () => {
             className: "text-right",
             render: (r: Row) => (
               <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
-                <Btn size="sm" variant="secondary" onClick={() => editor.openEdit(r.program)}>
-                  Edit
-                </Btn>
-                <Btn
-                  size="sm"
-                  variant="secondary"
-                  className="text-red-700"
-                  onClick={() => editor.confirmDelete(r.program)}
-                >
-                  Delete
-                </Btn>
+                {canEdit && (
+                  <Btn size="sm" variant="secondary" onClick={() => editor.openEdit(r.program)}>
+                    Edit
+                  </Btn>
+                )}
+                {canDelete && (
+                  <Btn
+                    size="sm"
+                    variant="secondary"
+                    className="text-red-700"
+                    onClick={() => editor.confirmDelete(r.program)}
+                  >
+                    Delete
+                  </Btn>
+                )}
               </div>
             ),
           },
@@ -113,7 +122,7 @@ export const ProgramsPage = () => {
           title="Programs"
           subtitle="Design the curriculum and enrollment rules once. Every cohort inherits them."
           actions={
-            canManageCurrentRoute && (
+            canCreate && (
               <Btn variant="primary" onClick={editor.openCreate}>
                 + New program
               </Btn>
@@ -134,7 +143,7 @@ export const ProgramsPage = () => {
                 <EmptyBlock
                   msg="No programs yet. Create one to start building its curriculum."
                   action={
-                    canManageCurrentRoute && (
+                    canCreate && (
                       <Btn variant="primary" onClick={editor.openCreate}>
                         + New program
                       </Btn>

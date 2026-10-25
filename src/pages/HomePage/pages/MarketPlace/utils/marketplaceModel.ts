@@ -218,6 +218,9 @@ export interface MarketOrder {
   deliveryFee?: number;
   /** Gateway used, when the API exposes it ("hubtel" | "paystack"). */
   paymentType?: string;
+  /** Staff member who marked the order paid by hand, and when. */
+  markedPaidByName?: string;
+  markedPaidAt?: string;
 }
 
 /** Fields the order endpoints may add over time; read defensively. */
@@ -226,6 +229,8 @@ type OrderExtras = {
   delivery_address?: string | null;
   delivery_fee?: number | string | null;
   payment_type?: string | null;
+  marked_paid_by_name?: string | null;
+  marked_paid_at?: string | null;
   product_name?: string;
   market_name?: string;
 };
@@ -373,6 +378,8 @@ export const fromOrderDetail = (detail: IOrderDetail): MarketOrder => {
     deliveryAddress: x.delivery_address || undefined,
     deliveryFee: fee,
     paymentType: x.payment_type || undefined,
+    markedPaidByName: x.marked_paid_by_name || undefined,
+    markedPaidAt: x.marked_paid_at || undefined,
   };
 };
 

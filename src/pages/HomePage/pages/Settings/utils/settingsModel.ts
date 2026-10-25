@@ -6,6 +6,20 @@ import {
   type PermissionValue,
   type ScopesMap,
 } from "@/utils/accessControl";
+import {
+  actionAllowed,
+  actionDefault,
+  defaultScope,
+  findAction,
+  isScopeValue,
+  legacyExplicitActions,
+  normalizeActionOverrides,
+  PERMISSION_CATALOG,
+  type ActionOverrides,
+  type CatalogAction,
+  type LevelRank,
+  type ScopeValue,
+} from "@/utils/permissionCatalog";
 
 import { NAV_GROUPS, type NavGroup } from "@/routes/sideNavGroups";
 
@@ -24,46 +38,51 @@ export interface SettingsModule {
   label: string;
   description: string;
   group: ModuleGroup;
-  /** `excl`: can hide people's records; `scope`: can limit to own departments; `explicit`: never switched on by templates or "Set all". */
-  extra?: "excl" | "scope" | "explicit";
-  /** Why an explicit module needs a deliberate grant. */
+  /**
+   * `excl`: can hide people's records; `explicit`: never switched on by
+   * templates or "Set all"; `new`: a module that didn't exist before;
+   * `retire`: kept only so stored levels still read, and being removed.
+   */
+  extra?: "excl" | "explicit" | "new" | "retire";
+  /** Why the module is explicit, new or being retired. */
   why?: string;
 }
 
 // Grouped and ordered like the icon rail (`SIDE_NAV_GROUPS`).
 export const MODULES: SettingsModule[] = [
-  { key: "Reports", label: "Reports", description: "Executive summary and department reports", group: "Overview" },
+  { key: "Reports", label: "Reports", description: "Event, department and church-wide reports, and the executive summary", group: "Overview" },
   { key: "Members", label: "Members", description: "Church family profiles and member management", group: "People", extra: "excl" },
   { key: "Membership_Management", label: "Membership management", description: "Membership pipelines, conversions and department join requests", group: "People" },
-  { key: "Departments", label: "Departments and ministries", description: "Department and ministry structures, heads and setup", group: "People", extra: "scope" },
-  { key: "Visitors", label: "Visitors", description: "Visitor records, follow-up and engagement tracking", group: "People" },
-  { key: "Life Center", label: "Life centers", description: "Life center administration and souls-won data", group: "People" },
-  { key: "Church_Attendance", label: "Church attendance", description: "Attendance sessions and records", group: "People", extra: "scope" },
-  { key: "Events", label: "Events", description: "Event planning and participation records", group: "Engagement" },
-  { key: "Theme", label: "Theme", description: "Communication themes and annual planning content", group: "Engagement" },
-  { key: "Community", label: "Community", description: "Members’ feed, church messages and moderation of reported posts", group: "Engagement", extra: "explicit", why: "Viewing reveals the real authors of anonymous posts." },
-  { key: "Sermons", label: "Sermons", description: "Sermon series and video links", group: "Engagement" },
-  { key: "Promotions", label: "Promotions", description: "Banners on the mobile app home screen", group: "Engagement" },
-  { key: "Messaging", label: "Messaging", description: "Welcome, birthday and church-wide SMS, email and in-app messages", group: "Engagement", extra: "explicit", why: "Bulk SMS costs money." },
-  { key: "Appointments", label: "Appointments", description: "Bookings, availability and counselling schedules", group: "Engagement", extra: "excl" },
-  { key: "Program", label: "Programs", description: "Program setup and enrolment administration", group: "Engagement" },
-  { key: "School_of_ministry", label: "School of Ministry", description: "Curriculum, cohorts and learning workflows", group: "Engagement" },
-  { key: "Financials", label: "Financials", description: "Financial setup and records", group: "Operations" },
+  { key: "Visitors", label: "Visitors", description: "Visitor records, follow-up and prayer requests", group: "People" },
+  { key: "Life Center", label: "Life centers", description: "Life center administration, meetings and souls won", group: "People" },
+  { key: "Church_Attendance", label: "Attendance", description: "Church and event attendance, biometric devices and timing rules", group: "People" },
+  { key: "Rides", label: "Ride to church", description: "Ride offers, safety reports, blocks and pickup points", group: "People", extra: "new", why: "New module. Until now this borrowed Membership management." },
+  { key: "Departments", label: "Departments and ministries", description: "Department and ministry structures, heads and members", group: "People" },
+  { key: "Events", label: "Events", description: "Event planning, registrations and check-in", group: "Ministry & engagement" },
+  { key: "Appointments", label: "Appointments", description: "Bookings, availability and counselling schedules", group: "Ministry & engagement", extra: "excl" },
+  { key: "School_of_ministry", label: "School of Ministry", description: "Curriculum, cohorts, grading and certificates", group: "Ministry & engagement" },
+  { key: "Theme", label: "Theme", description: "Communication themes and annual planning content", group: "Ministry & engagement" },
+  { key: "Community", label: "Community", description: "Members’ feed, church messages and moderation of reported posts", group: "Ministry & engagement" },
+  { key: "Sermons", label: "Sermons", description: "Sermon series and video links", group: "Ministry & engagement" },
+  { key: "Promotions", label: "Promotions", description: "Banners on the mobile app home screen", group: "Ministry & engagement" },
+  { key: "Messaging", label: "Messaging", description: "Welcome, birthday and church-wide SMS, email and in-app messages", group: "Ministry & engagement", extra: "explicit", why: "Bulk SMS costs money." },
+  { key: "Program", label: "Programs", description: "Old program setup", group: "Ministry & engagement", extra: "retire", why: "Nothing checks this any more. Its access moves to Theme, Marketplace and School of Ministry." },
+  { key: "Financials", label: "Financials", description: "Weekly finance records, approvals and finance setup", group: "Operations" },
   { key: "Giving", label: "Giving options", description: "Giving options and the accounts payments go to", group: "Operations" },
   { key: "Pledges", label: "Pledges", description: "Pledge campaigns, pledgers and redemptions", group: "Operations" },
-  { key: "Requisition", label: "Requisition", description: "Staff requests and approvals", group: "Operations" },
-  { key: "Asset", label: "Assets", description: "Inventory, assignment and lifecycle management", group: "Operations" },
-  { key: "Marketplace", label: "Marketplace", description: "Products, orders and market operations", group: "Operations" },
-  { key: "Positions", label: "Positions", description: "Roles and role hierarchy definitions", group: "Administration" },
-  { key: "Access_rights", label: "Access rights", description: "Roles and who has them", group: "Administration" },
-  { key: "Settings", label: "Settings", description: "Branches, positions, approvals and platform settings", group: "Administration" },
+  { key: "Requisition", label: "Requisition", description: "Requests, approvals and disbursement", group: "Operations" },
+  { key: "Asset", label: "Assets", description: "Inventory, assignment, repairs and stock checks", group: "Operations" },
+  { key: "Marketplace", label: "Marketplace", description: "Markets, products and orders", group: "Operations" },
+  { key: "Access_rights", label: "Access rights and users", description: "Roles, who has them, and user accounts", group: "Administration" },
+  { key: "Positions", label: "Positions", description: "Positions and their hierarchy", group: "Administration" },
+  { key: "Settings", label: "Settings", description: "Branches, general configuration and logs", group: "Administration" },
   { key: "AI", label: "AI", description: "Assistant workflows, AI credentials and usage", group: "Administration" },
 ];
 
 export const MODULE_GROUPS: ModuleGroup[] = NAV_GROUPS;
 
-/** Admin areas the "Team manager" start can only view. */
-const MANAGER_VIEW_ONLY = new Set(["Reports", "Financials", "Giving", "Pledges", "Access_rights", "Settings", "AI"]);
+/** Modules the "Team manager" start only views: finance and administration. */
+const MANAGER_VIEW_ONLY = new Set(["Financials", "Giving", "Pledges"]);
 
 export type Level = Extract<PermissionValue, "No_Access" | "Can_View" | "Can_Manage" | "Super_Admin">;
 
@@ -74,7 +93,7 @@ export const LEVELS: { value: Level; label: string }[] = [
   { value: "Super_Admin", label: "Full" },
 ];
 
-export const LEVEL_RANK: Record<Level, number> = { No_Access: 0, Can_View: 1, Can_Manage: 2, Super_Admin: 3 };
+export const LEVEL_RANK: Record<Level, LevelRank> = { No_Access: 0, Can_View: 1, Can_Manage: 2, Super_Admin: 3 };
 
 /** Dot colour per level (index = rank). */
 export const LEVEL_DOT = ["rgb(var(--color-white))", "rgb(var(--color-primary) / 0.2)", "rgb(var(--color-primary) / 0.55)", "rgb(var(--color-primary))"];
@@ -86,27 +105,74 @@ export const levelLabel = (level: Level) => LEVELS[LEVEL_RANK[level]].label;
 /** What a role can do, as edited on the role page. */
 export interface RoleDraft {
   perms: Record<string, Level>;
-  /** Module keys limited to the person's own departments. */
-  scopes: Record<string, true>;
+  /** Module key → whose records the role sees, when not the level's default. */
+  scopes: Record<string, ScopeValue>;
+  /** Module key → actions switched on or off against the level's defaults. */
+  actions: ActionOverrides;
   /** Module key → user ids whose records are hidden from this role. */
   excl: Record<string, number[]>;
 }
+
+export const rankOf = (draft: Pick<RoleDraft, "perms">, key: string): LevelRank =>
+  LEVEL_RANK[draft.perms[key] || "No_Access"];
+
+/** Whose records the role sees in a module: the override, else the level's default. */
+export const scopeOf = (draft: Pick<RoleDraft, "perms" | "scopes">, key: string): ScopeValue =>
+  draft.scopes[key] || defaultScope(rankOf(draft, key), key);
+
+export const actionOn = (draft: Pick<RoleDraft, "perms" | "actions">, key: string, action: CatalogAction) =>
+  actionAllowed(rankOf(draft, key), draft.actions, key, action);
+
+/** Whether the role has `Domain.action` (e.g. "Requisition.raise"). */
+export const hasAction = (draft: Pick<RoleDraft, "perms" | "actions">, qualified: string) => {
+  const { domain, action } = findAction(qualified);
+  return !!action && actionOn(draft, domain, action);
+};
+
+/** "Members › Add members" for a `Domain.action` key. */
+export const requirementLabel = (qualified: string) => {
+  const { domain, action } = findAction(qualified);
+  const module = MODULES.find((m) => m.key === domain);
+  return `${module?.label ?? domain} › ${action?.label ?? qualified}`;
+};
+
+/** How many actions differ from what the levels give, across modules with access. */
+export const customActionCount = (draft: RoleDraft) => {
+  let count = 0;
+  Object.entries(draft.actions).forEach(([key, overrides]) => {
+    const rank = rankOf(draft, key);
+    const entry = PERMISSION_CATALOG[key];
+    if (!rank || !entry) return;
+    entry.actions.forEach((a) => {
+      const value = overrides[a.key];
+      if (value !== undefined && value !== actionDefault(rank, a)) count += 1;
+    });
+  });
+  return count;
+};
 
 export type StartKey = "view" | "manager" | "hod" | "admin" | "blank" | "copy";
 
 export const STARTS: { key: StartKey; label: string; description: string }[] = [
   { key: "view", label: "Read-only", description: "Can see every module, change nothing" },
-  { key: "manager", label: "Team manager", description: "Runs day-to-day work; admin areas view-only" },
-  { key: "hod", label: "Head of department", description: "Only their own departments and attendance" },
-  { key: "admin", label: "Platform admin", description: "Everything except Community and Messaging" },
+  { key: "manager", label: "Team manager", description: "Runs day-to-day work; finance and admin view-only" },
+  {
+    key: "hod",
+    label: "Head of department",
+    description: "Members, requisitions, assets, attendance and reports for departments they lead",
+  },
+  { key: "admin", label: "Platform admin", description: "Everything except Messaging and on-purpose actions" },
   { key: "blank", label: "Start empty", description: "No access; switch on what they need" },
   { key: "copy", label: "Copy a role", description: "Start from one you already have" },
 ];
 
+/** What the Head of department start limits to the departments they lead. */
+const HOD_SCOPED = ["Members", "Departments", "Church_Attendance", "Requisition", "Asset", "Reports"];
+
 export const presetDraft = (start: Exclude<StartKey, "copy">): RoleDraft => {
   const perms: Record<string, Level> = {};
   MODULES.forEach((module) => {
-    if (module.extra === "explicit") {
+    if (module.extra === "explicit" || module.extra === "retire") {
       perms[module.key] = "No_Access";
       return;
     }
@@ -114,23 +180,37 @@ export const presetDraft = (start: Exclude<StartKey, "copy">): RoleDraft => {
       blank: "No_Access",
       view: "Can_View",
       admin: "Super_Admin",
-      manager: MANAGER_VIEW_ONLY.has(module.key) ? "Can_View" : "Can_Manage",
+      manager:
+        module.group === "Administration" || MANAGER_VIEW_ONLY.has(module.key) ? "Can_View" : "Can_Manage",
       hod: "No_Access",
     }[start] as Level;
   });
-  if (start === "hod") {
-    Object.assign(perms, {
-      Members: "Can_View",
-      Departments: "Can_Manage",
-      Positions: "Can_View",
-      Church_Attendance: "Can_View",
-    });
-  }
+  if (start !== "hod") return { perms, scopes: {}, actions: {}, excl: {} };
+
+  Object.assign(perms, {
+    Members: "Can_View",
+    Departments: "Can_Manage",
+    Positions: "Can_View",
+    Church_Attendance: "Can_View",
+    Requisition: "Can_View",
+    Asset: "Can_View",
+    Reports: "Can_View",
+  });
   return {
     perms,
-    scopes: start === "hod" ? { Departments: true, Church_Attendance: true } : {},
+    scopes: Object.fromEntries(HOD_SCOPED.map((key) => [key, "department" as ScopeValue])),
+    actions: { Reports: { dept_prepare: true }, Church_Attendance: { record: true } },
     excl: {},
   };
+};
+
+/** Lowers every level to at most what `ceiling` holds ("you can only give what you have"). */
+export const clampToCeiling = (draft: RoleDraft, ceiling: (key: string) => LevelRank): RoleDraft => {
+  const perms: Record<string, Level> = {};
+  Object.entries(draft.perms).forEach(([key, level]) => {
+    perms[key] = LEVELS[Math.min(LEVEL_RANK[level], ceiling(key))].value;
+  });
+  return { ...draft, perms };
 };
 
 const isLevel = (value: unknown): value is Level =>
@@ -147,31 +227,53 @@ export const draftFromAccessRight = (role: Pick<AccessRight, "permissions"> | nu
     const value = resolvePermission(normalized, module.key);
     perms[module.key] = isLevel(value) ? value : "No_Access";
   });
-  const scopes: Record<string, true> = {};
+  const scopes: Record<string, ScopeValue> = {};
   Object.entries((normalized.Scopes || {}) as ScopesMap).forEach(([key, mode]) => {
-    if (mode === "assigned_departments") scopes[key] = true;
+    // Roles saved before the scope picker stored "assigned_departments".
+    const value = mode === "assigned_departments" ? "department" : mode;
+    if (isScopeValue(value) && value !== defaultScope(LEVEL_RANK[perms[key] || "No_Access"], key)) {
+      scopes[key] = value;
+    }
   });
+  const legacy = normalized.Actions === undefined;
+  const actions = legacy
+    ? legacyExplicitActions((key) => LEVEL_RANK[perms[key] || "No_Access"])
+    : normalizeActionOverrides(normalized.Actions);
+  // Roles saved before scopes existed see the whole branch; keep that
+  // explicit where the level now defaults to something narrower.
+  if (legacy) {
+    MODULES.forEach(({ key }) => {
+      if (!scopes[key] && defaultScope(LEVEL_RANK[perms[key] || "No_Access"], key) !== "branch") {
+        scopes[key] = "branch";
+      }
+    });
+  }
   const excl: Record<string, number[]> = {};
   Object.entries((normalized.Exclusions || {}) as ExclusionsMap).forEach(([key, ids]) => {
     if (ids.length) excl[key] = [...ids];
   });
-  return { perms, scopes, excl };
+  return { perms, scopes, actions, excl };
 };
 
 /** The `permissions` object the access-level endpoints expect. */
 export const permissionsPayload = (draft: RoleDraft): Record<string, unknown> => {
-  const scopes: ScopesMap = {};
-  Object.keys(draft.scopes).forEach((key) => {
-    if (draft.scopes[key] && draft.perms[key] !== "No_Access") scopes[key] = "assigned_departments";
+  const has = (key: string) => (draft.perms[key] || "No_Access") !== "No_Access";
+  const scopes: Record<string, ScopeValue> = {};
+  Object.entries(draft.scopes).forEach(([key, value]) => {
+    if (has(key)) scopes[key] = value;
+  });
+  const actions: ActionOverrides = {};
+  Object.entries(draft.actions).forEach(([key, overrides]) => {
+    if (has(key) && Object.keys(overrides).length) actions[key] = { ...overrides };
   });
   const exclusions: ExclusionsMap = {};
   Object.entries(draft.excl).forEach(([key, ids]) => {
-    if (ids.length && draft.perms[key] !== "No_Access") exclusions[key] = ids;
+    if (ids.length && has(key)) exclusions[key] = ids;
   });
-  return { ...draft.perms, Exclusions: exclusions, Scopes: scopes };
+  return { ...draft.perms, Exclusions: exclusions, Scopes: scopes, Actions: actions };
 };
 
-/** Module keys whose level, scope or hidden people differ between two drafts. */
+/** Module keys whose level, scope, actions or hidden people differ between two drafts. */
 export const changedModules = (a: RoleDraft, b: RoleDraft): Set<string> => {
   const out = new Set<string>();
   MODULES.forEach(({ key }) => {
@@ -179,7 +281,8 @@ export const changedModules = (a: RoleDraft, b: RoleDraft): Set<string> => {
     const eb = [...(b.excl[key] || [])].sort().join();
     if (
       (a.perms[key] || "No_Access") !== (b.perms[key] || "No_Access") ||
-      !!a.scopes[key] !== !!b.scopes[key] ||
+      scopeOf(a, key) !== scopeOf(b, key) ||
+      JSON.stringify(a.actions[key] || {}) !== JSON.stringify(b.actions[key] || {}) ||
       ea !== eb
     ) {
       out.add(key);
@@ -200,8 +303,10 @@ export const levelMix = (draft: RoleDraft): [number, number, number, number] => 
 export const cloneDraft = (draft: RoleDraft): RoleDraft => ({
   perms: { ...draft.perms },
   scopes: { ...draft.scopes },
+  actions: Object.fromEntries(Object.entries(draft.actions).map(([key, map]) => [key, { ...map }])),
   excl: Object.fromEntries(Object.entries(draft.excl).map(([key, ids]) => [key, [...ids]])),
 });
+
 
 /* -------------------------------------------------------------------------- */
 /*                                  Formatting                                */

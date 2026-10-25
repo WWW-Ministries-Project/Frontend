@@ -2,7 +2,7 @@ import { useBackNavigation } from "@/CustomHooks/useBackNavigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
-import { useRouteAccess } from "@/context/RouteAccessContext";
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { usePictureUpload } from "@/CustomHooks/usePictureUpload";
@@ -30,7 +30,9 @@ export function AddProduct() {
   const back = useBackNavigation("/home/market-place");
   const location = useLocation();
   const { from, fromLabel } = (location.state as LocationState | null) || {};
-  const { canAdminCurrentRoute } = useRouteAccess();
+  const { hasAction } = useAccessControl();
+  const canDelete = hasAction("Marketplace.delete");
+  const canPublish = hasAction("Marketplace.publish_product");
 
   const routeMarketId = decodeQuery(String(marketId || ""));
   const decodedProductId = decodeQuery(String(productId || ""));
@@ -225,7 +227,8 @@ export function AddProduct() {
         markets={markets}
         backLabel={backLabel}
         onBack={back.hasHistory ? back.goBack : () => goBack()}
-        onDelete={isEdit && canAdminCurrentRoute ? handleDelete : undefined}
+        onDelete={isEdit && canDelete ? handleDelete : undefined}
+        canPublish={canPublish}
         serverError={uploadError || apiError}
       />
     </PageOutline>

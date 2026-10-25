@@ -1,4 +1,4 @@
-import { useRouteAccess } from "@/context/RouteAccessContext";
+import { useSomAccess } from "../../utils/useSomAccess";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import { cn } from "@/utils/cn";
 import { useSearchParams } from "react-router-dom";
@@ -10,7 +10,8 @@ const TABS = ["Question bank", "Rubrics"] as const;
 
 /** Shared assessment content reused across programs. */
 export const AssessmentLibraryPage = () => {
-  const { canManageCurrentRoute } = useRouteAccess();
+  // The bank and rubrics are shared by every program: whole-school designers only.
+  const canManageLibrary = useSomAccess().canAll("design_curriculum");
   const [params, setParams] = useSearchParams();
   const tab = params.get("tab") === "Rubrics" ? "Rubrics" : "Question bank";
 
@@ -38,12 +39,12 @@ export const AssessmentLibraryPage = () => {
             </button>
           ))}
         </div>
-        {!canManageCurrentRoute ? (
+        {!canManageLibrary ? (
           <EmptyBlock msg="The assessment library is available to instructors and School of Ministry managers." />
         ) : tab === "Question bank" ? (
-          <QuestionBank canManage={canManageCurrentRoute} />
+          <QuestionBank canManage={canManageLibrary} />
         ) : (
-          <Rubrics canManage={canManageCurrentRoute} />
+          <Rubrics canManage={canManageLibrary} />
         )}
       </div>
     </PageOutline>

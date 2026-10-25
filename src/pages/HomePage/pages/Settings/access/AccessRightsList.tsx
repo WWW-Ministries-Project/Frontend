@@ -13,7 +13,10 @@ import {
 } from "../../MembershipManagement/components/membershipUi";
 import { Avatar, LevelDot } from "../Components/settingsUi";
 import type { AccessRight } from "../utils/settingsInterfaces";
+import { scopeLabel } from "@/utils/permissionCatalog";
+
 import {
+  customActionCount,
   draftFromAccessRight,
   formatDay,
   LEVEL_DOT,
@@ -33,7 +36,12 @@ const RoleCard = ({ role, scope, onOpen }: { role: AccessRight; scope: ReturnTyp
   const people = uniquePeople(grantsInScope(role, scope.activeBranchId));
   const n = people.length;
   const tags: string[] = [];
-  if (Object.keys(draft.scopes).some((k) => draft.scopes[k] && draft.perms[k] !== "No_Access")) tags.push("Own departments only");
+  Object.entries(draft.scopes).forEach(([key, value]) => {
+    const tag = scopeLabel(key, value);
+    if (draft.perms[key] !== "No_Access" && !tags.includes(tag)) tags.push(tag);
+  });
+  const custom = customActionCount(draft);
+  if (custom) tags.push(plural(custom, "custom action"));
   const hidden = Object.entries(draft.excl).reduce(
     (sum, [key, ids]) => sum + (draft.perms[key] !== "No_Access" ? ids.length : 0),
     0

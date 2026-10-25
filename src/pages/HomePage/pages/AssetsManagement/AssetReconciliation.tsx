@@ -2,6 +2,7 @@ import { ReactNode, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
 import { notify } from "@/components/feedback";
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import type { AssetDepartment, CountResult, StockCheck, StockCheckItem } from "@/utils/api/assets/interfaces";
 import { cn } from "@/utils/cn";
 
@@ -118,6 +119,14 @@ const AssetReconciliation = () => {
   const register = useAssetsData();
   const departments = register.departments;
   const admin = stock.viewer.is_admin;
+  const { hasAction } = useAccessControl();
+  // Each stock-check step is its own Asset action on the role.
+  const may = {
+    run: hasAction("Asset.stock_check"),
+    reconcile: hasAction("Asset.reconcile"),
+    recount: hasAction("Asset.request_recount"),
+    export: hasAction("Asset.export"),
+  };
   const myKeys = stock.viewer.department_keys;
 
   const checkId = Number(params.get("check")) || null;
@@ -203,7 +212,7 @@ const AssetReconciliation = () => {
           title="Reconciliation"
           subtitle="Count what is physically there, match it to the register, and fix the differences."
           actions={
-            admin && !active ? (
+            admin && may.run && !active ? (
               <UiButton tone="primary" onClick={() => setStartOpen(true)}>
                 Start stock check
               </UiButton>
@@ -351,9 +360,11 @@ const AssetReconciliation = () => {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <UiButton tone="danger" onClick={() => cancelCheck(c)}>
-              Cancel check
-            </UiButton>
+            {may.run && (
+              <UiButton tone="danger" onClick={() => cancelCheck(c)}>
+                Cancel check
+              </UiButton>
+            )}
             <UiButton onClick={() => go({ view: "review", check: c.id })}>Review differences</UiButton>
             <UiButton tone="primary" onClick={() => go({ view: "count", check: c.id, filter: "todo" })}>
               Continue counting
@@ -412,7 +423,7 @@ const AssetReconciliation = () => {
                     >
                       {mineK && !d.submitted_at ? "Count" : "Open list"}
                     </UiButton>
-                    {!d.submitted_at && !mineK && d.counter && (
+                    {may.run && !d.submitted_at && !mineK && d.counter && (
                       <UiButton size="sm" className="flex-auto" disabled={busy} onClick={() => void remind(c, [d.key])}>
                         {d.reminded_at ? "Remind again" : "Send reminder"}
                       </UiButton>
@@ -865,7 +876,7 @@ const AssetReconciliation = () => {
             </p>
             <p className="text-xs text-gray-500">{detail}</p>
           </div>
-          {closed ? (
+          {closed || !may.reconcile ? (
             <span className="text-sm text-gray-700">{item.fix ? FIX_TEXT[item.fix] : "—"}</span>
           ) : (
             <Options
@@ -873,7 +884,7 @@ const AssetReconciliation = () => {
               options={FIX_OPTIONS[kind]}
               onPick={(fix) => setFix({ asset_id: item.asset_id, fix })}
               extra={
-                kind === "missing" ? (
+                kind === "missing" && may.recount ? (
                   <button
                     type="button"
                     disabled={busy}
@@ -938,7 +949,7 @@ const AssetReconciliation = () => {
                 {x.note ? ` · ${x.note}` : ""} · {x.recorded_by_name || "—"}
               </p>
             </div>
-            {closed ? (
+            {closed || !may.reconcile ? (
               <span className="text-sm text-gray-700">{FIX_TEXT[x.fix]}</span>
             ) : (
               <Options current={x.fix} options={FIX_OPTIONS.extra} onPick={(fix) => setFix({ extra_id: x.id, fix })} />
@@ -1023,7 +1034,7 @@ const AssetReconciliation = () => {
               ? `${c.scope_label} · ${fmtD(c.started_at)} to ${fmtD(c.closed_at)} · closed by ${c.closed_by?.name || c.created_by?.name || "—"}`
               : `${c.name} · ${st.done} of ${st.expected} counted. Choose what happens to each difference, then close the check.`
           }
-          actions={closed ? <UiButton onClick={exportReport}>Export report CSV</UiButton> : undefined}
+          actions={closed && may.export ? <UiButton onClick={exportReport}>Export report CSV</UiButton> : undefined}
         />
         <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,180px),1fr))] gap-4">
           <KpiTile label="Expected" value={st.expected} sub="Assets on the register in scope" />
@@ -1047,9 +1058,11 @@ const AssetReconciliation = () => {
             </div>
             <div className="flex flex-wrap gap-2">
               <UiButton onClick={() => go({ view: "count", check: c.id, filter: "todo" })}>Keep counting</UiButton>
-              <UiButton tone="danger" onClick={markRest}>
-                Record {todoN} as not found
-              </UiButton>
+              {may.reconcile && (
+                <UiButton tone="danger" onClick={markRest}>
+                  Record {todoN} as not found
+                </UiButton>
+              )}
             </div>
           </div>
         )}
@@ -1061,9 +1074,11 @@ const AssetReconciliation = () => {
               </p>
               <p className="text-sm text-gray-700">You can still close, but their counts haven’t been signed off.</p>
             </div>
-            <UiButton disabled={busy} onClick={() => void remind(c)}>
-              Remind them
-            </UiButton>
+            {may.run && (
+              <UiButton disabled={busy} onClick={() => void remind(c)}>
+                Remind them
+              </UiButton>
+            )}
           </div>
         )}
 
@@ -1095,9 +1110,11 @@ const AssetReconciliation = () => {
                 ))}
               </ul>
             </div>
-            <UiButton tone="primary" className="min-h-11 px-6" onClick={close}>
-              Close stock check
-            </UiButton>
+            {may.run && (
+              <UiButton tone="primary" className="min-h-11 px-6" onClick={close}>
+                Close stock check
+              </UiButton>
+            )}
           </section>
         )}
       </>

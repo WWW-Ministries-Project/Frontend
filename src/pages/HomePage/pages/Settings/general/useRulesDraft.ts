@@ -57,7 +57,14 @@ const LOADING: Status = {
  * affects its section. Requisition timing loads only for people who can view
  * Requisition, so others don't get an access-denied toast.
  */
-export const useRulesDraft = ({ withRequisition }: { withRequisition: boolean }) => {
+export const useRulesDraft = ({
+  withRequisition,
+  withLogs = true,
+}: {
+  withRequisition: boolean;
+  /** False without Settings.view_logs: the failure alert recipient isn't loaded. */
+  withLogs?: boolean;
+}) => {
   const [saved, setSaved] = useState<Saved>({});
   const [drafts, setDrafts] = useState<Saved>({});
   const [status, setStatus] = useState<Status>(LOADING);
@@ -135,9 +142,11 @@ export const useRulesDraft = ({ withRequisition }: { withRequisition: boolean })
 
   useEffect(() => {
     PART_ORDER.forEach((part) => {
-      if (part !== "req" || withRequisition) void load(part);
+      if (part === "req" && !withRequisition) return;
+      if (part === "logTo" && !withLogs) return;
+      void load(part);
     });
-  }, [load, withRequisition]);
+  }, [load, withRequisition, withLogs]);
 
   const value = useCallback(
     <P extends RulesPart>(part: P): RulesValues[P] | undefined =>

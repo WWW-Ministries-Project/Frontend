@@ -10,6 +10,7 @@ import type {
   MessageAudience,
   MessageChannels,
 } from "@/utils/api/messaging/interfaces";
+import type { MessagingAccess } from "@/utils/api/messaging/messagingAccess";
 import type { DepartmentType } from "@/utils/api/settings/departmentInterfaces";
 
 import PageOutline from "../../../Components/PageOutline";
@@ -40,6 +41,12 @@ const MIN_LEAD_MS = 5 * 60 * 1000;
 const MAX_LEAD_MS = 90 * 24 * 60 * 60 * 1000;
 const nf = (value: number) => value.toLocaleString("en-US");
 
+const CHANNEL_ACTION: Record<ChannelKey, "send_sms" | "send_email" | "send_in_app"> = {
+  sms: "send_sms",
+  email: "send_email",
+  inApp: "send_in_app",
+};
+
 const pad = (value: number) => String(value).padStart(2, "0");
 const toLocalInput = (date: Date) =>
   `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
@@ -67,8 +74,11 @@ export const MessageCompose = ({
   timezone,
   onClose,
   onSent,
+  access,
 }: {
   seed: ComposeSeed;
+  /** The role's Messaging actions and audience scope (GET /messaging/access). */
+  access: MessagingAccess;
   timezone: string;
   onClose: () => void;
   onSent: () => Promise<void>;
@@ -77,13 +87,21 @@ export const MessageCompose = ({
   const phone = vw < PHONE_MAX;
   const sideBySide = vw >= 1100;
 
-  const [scope, setScope] = useState<AudienceScope>("CHURCH");
+  // A department-scoped role messages only the departments it leads.
+  const scopedDepartments = access.departmentIds;
+  const canChurch = scopedDepartments === null;
+  const canVisitors = access.actions.include_visitors;
+  const canChannel = (key: ChannelKey) => access.actions[CHANNEL_ACTION[key]];
+  const [scope, setScope] = useState<AudienceScope>(canChurch ? "CHURCH" : "DEPARTMENTS");
   const [includeGuests, setIncludeGuests] = useState(false);
   const [includeVisitors, setIncludeVisitors] = useState(false);
   const [departmentIds, setDepartmentIds] = useState<number[]>([]);
   const [people, setPeople] = useState<CommunityPerson[]>([]);
   const [peopleQuery, setPeopleQuery] = useState("");
-  const [channels, setChannels] = useState<MessageChannels>(seed.channels ?? { ...NO_CHANNELS, inApp: true });
+  const [channels, setChannels] = useState<MessageChannels>(() => {
+    const start = seed.channels ?? { ...NO_CHANNELS, inApp: true };
+    return { sms: start.sms && canChannel("sms"), email: start.email && canChannel("email"), inApp: start.inApp && canChannel("inApp") };
+  });
   const [title, setTitle] = useState(seed.title ?? "");
   const [subject, setSubject] = useState(seed.emailSubject ?? "");
   const [body, setBody] = useState(seed.body ?? "");
@@ -102,8 +120,20 @@ export const MessageCompose = ({
     let cancelled = false;
     api.fetch
       .fetchDepartments()
-      .then((response) => !cancelled && setDepartments(response.data ?? []))
+      .then(
+        (response) =>
+          !cancelled &&
+          setDepartments(
+            (response.data ?? []).filter((department) => !scopedDepartments || scopedDepartments.includes(department.id))
+          )
+      )
       .catch(() => undefined);
+    // Whole-church counts only for roles that may message the whole church.
+    if (!canChurch) {
+      return () => {
+        cancelled = true;
+      };
+    }
     const church = (guests: boolean, visitors: boolean): MessageAudience => ({
       scope: "CHURCH",
       departmentIds: [],
@@ -114,7 +144,7 @@ export const MessageCompose = ({
     Promise.all([
       api.post.countMessageAudience({ audience: church(false, false) }),
       api.post.countMessageAudience({ audience: church(true, false) }),
-      api.post.countMessageAudience({ audience: church(false, true) }),
+      canVisitors ? api.post.countMessageAudience({ audience: church(false, true) }) : null,
     ])
       .then(([base, guests, visitors]) => {
         if (cancelled) return;
@@ -122,13 +152,15 @@ export const MessageCompose = ({
         setBaseCounts({
           members,
           guests: Math.max(0, (guests.data?.people ?? 0) - members),
-          visitors: Math.max(0, (visitors.data?.people ?? 0) - members),
+          visitors: Math.max(0, (visitors?.data?.people ?? 0) - members),
         });
       })
       .catch(() => undefined);
     return () => {
       cancelled = true;
     };
+    // The role's access is fixed while composing.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const audience: MessageAudience = useMemo(
@@ -137,9 +169,9 @@ export const MessageCompose = ({
       departmentIds: scope === "DEPARTMENTS" ? departmentIds : [],
       userIds: scope === "PEOPLE" ? people.map((person) => person.id) : [],
       includeGuests: scope === "CHURCH" && includeGuests,
-      includeVisitors: scope === "CHURCH" && includeVisitors,
+      includeVisitors: scope === "CHURCH" && canVisitors && includeVisitors,
     }),
-    [scope, departmentIds, people, includeGuests, includeVisitors]
+    [scope, departmentIds, people, includeGuests, includeVisitors, canVisitors]
   );
   const audienceOk = scope === "CHURCH" || (scope === "DEPARTMENTS" ? departmentIds.length > 0 : people.length > 0);
   const debouncedAudience = useDebounced(audience);
@@ -289,8 +321,8 @@ export const MessageCompose = ({
               ariaLabel="Audience"
               className="self-start"
               tabs={[
-                { key: "CHURCH", label: "Whole church" },
-                { key: "DEPARTMENTS", label: "Departments" },
+                ...(canChurch ? [{ key: "CHURCH" as const, label: "Whole church" }] : []),
+                { key: "DEPARTMENTS", label: scopedDepartments ? "Departments you lead" : "Departments" },
                 { key: "PEOPLE", label: "Specific people" },
               ]}
               value={scope}
@@ -303,10 +335,12 @@ export const MessageCompose = ({
                   <input type="checkbox" checked={includeGuests} onChange={(event) => setIncludeGuests(event.target.checked)} className="h-4 w-4 accent-primary" />
                   <span>Include guests{baseCounts ? ` (${nf(baseCounts.guests)})` : ""}</span>
                 </label>
-                <label className="flex min-h-8 cursor-pointer items-center gap-2">
-                  <input type="checkbox" checked={includeVisitors} onChange={(event) => setIncludeVisitors(event.target.checked)} className="h-4 w-4 accent-primary" />
-                  <span>Include visitors who agreed to be contacted{baseCounts ? ` (${nf(baseCounts.visitors)})` : ""}</span>
-                </label>
+                {canVisitors && (
+                  <label className="flex min-h-8 cursor-pointer items-center gap-2">
+                    <input type="checkbox" checked={includeVisitors} onChange={(event) => setIncludeVisitors(event.target.checked)} className="h-4 w-4 accent-primary" />
+                    <span>Include visitors who agreed to be contacted{baseCounts ? ` (${nf(baseCounts.visitors)})` : ""}</span>
+                  </label>
+                )}
               </div>
             )}
             {scope === "DEPARTMENTS" && (
@@ -390,14 +424,17 @@ export const MessageCompose = ({
             <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,160px),1fr))] gap-2">
               {CHANNELS.map((channel) => {
                 const on = channels[channel.key];
+                const allowed = canChannel(channel.key);
                 return (
                   <button
                     key={channel.key}
                     type="button"
                     role="checkbox"
                     aria-checked={on}
+                    disabled={!allowed}
+                    title={allowed ? undefined : "Your role can't send this channel"}
                     onClick={() => setChannels({ ...channels, [channel.key]: !on })}
-                    className={`flex flex-col gap-0.5 rounded-lg border px-4 py-3 text-left text-primary ${on ? "border-primary bg-primary/5" : "border-lightGray bg-white"}`}
+                    className={`flex flex-col gap-0.5 rounded-lg border px-4 py-3 text-left text-primary disabled:cursor-not-allowed disabled:opacity-50 ${on ? "border-primary bg-primary/5" : "border-lightGray bg-white"}`}
                   >
                     <span className="flex items-center gap-2 text-sm font-semibold">
                       <span
@@ -407,7 +444,7 @@ export const MessageCompose = ({
                       </span>
                       {channel.label}
                     </span>
-                    <span className="text-xs text-gray-500">{reachLabel(channel.key)}</span>
+                    <span className="text-xs text-gray-500">{allowed ? reachLabel(channel.key) : "Not allowed for your role"}</span>
                   </button>
                 );
               })}
@@ -449,42 +486,44 @@ export const MessageCompose = ({
             </div>
           </Card>
 
-          <Card title="4. When">
-            <PillTabs
-              ariaLabel="When to send"
-              className="self-start"
-              tabs={[
-                { key: "now", label: "Send now" },
-                { key: "later", label: "Schedule" },
-              ]}
-              value={when}
-              onChange={(value) => {
-                setWhen(value);
-                if (value === "later" && !at) {
-                  const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
-                  tomorrow.setHours(9, 0, 0, 0);
-                  setAt(toLocalInput(tomorrow));
-                }
-              }}
-            />
-            {when === "later" && (
-              <Field label="Date and time" className="max-w-[320px]">
-                <TextInput
-                  type="datetime-local"
-                  value={at}
-                  onChange={(event) => setAt(event.target.value)}
-                  min={toLocalInput(new Date(now + MIN_LEAD_MS))}
-                  max={toLocalInput(new Date(now + MAX_LEAD_MS))}
-                  hasError={!atOk}
-                />
-                <FieldHint tone={atOk ? "muted" : "error"}>
-                  {atOk
-                    ? `Church time (${timezone}). Between 5 minutes and 90 days from now.`
-                    : "Pick a time between 5 minutes and 90 days from now."}
-                </FieldHint>
-              </Field>
-            )}
-          </Card>
+          {access.actions.schedule && (
+            <Card title="4. When">
+              <PillTabs
+                ariaLabel="When to send"
+                className="self-start"
+                tabs={[
+                  { key: "now", label: "Send now" },
+                  { key: "later", label: "Schedule" },
+                ]}
+                value={when}
+                onChange={(value) => {
+                  setWhen(value);
+                  if (value === "later" && !at) {
+                    const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+                    tomorrow.setHours(9, 0, 0, 0);
+                    setAt(toLocalInput(tomorrow));
+                  }
+                }}
+              />
+              {when === "later" && (
+                <Field label="Date and time" className="max-w-[320px]">
+                  <TextInput
+                    type="datetime-local"
+                    value={at}
+                    onChange={(event) => setAt(event.target.value)}
+                    min={toLocalInput(new Date(now + MIN_LEAD_MS))}
+                    max={toLocalInput(new Date(now + MAX_LEAD_MS))}
+                    hasError={!atOk}
+                  />
+                  <FieldHint tone={atOk ? "muted" : "error"}>
+                    {atOk
+                      ? `Church time (${timezone}). Between 5 minutes and 90 days from now.`
+                      : "Pick a time between 5 minutes and 90 days from now."}
+                  </FieldHint>
+                </Field>
+              )}
+            </Card>
+          )}
         </div>
 
         <aside

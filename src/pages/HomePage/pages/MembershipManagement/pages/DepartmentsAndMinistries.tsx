@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 
-import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { useFetch } from "@/CustomHooks/useFetch";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import { DepartmentCard } from "@/pages/HomePage/pages/MembershipManagement/components/departments/DepartmentCard";
 import { DepartmentDeleteDialog } from "@/pages/HomePage/pages/MembershipManagement/components/departments/DepartmentDeleteDialog";
 import { DepartmentFormDialog } from "@/pages/HomePage/pages/MembershipManagement/components/departments/DepartmentFormDialog";
 import { setDepartmentStatus } from "@/pages/HomePage/pages/MembershipManagement/components/departments/departmentMutations";
+import { useDepartmentAccess } from "@/pages/HomePage/pages/MembershipManagement/components/departments/useDepartmentAccess";
 import {
   apiErrorMessage,
   departmentsListPath,
@@ -37,16 +37,18 @@ const matchesTab = (department: DepartmentRecord, tab: StatusTab) =>
 
 export const DepartmentsAndMinistries = () => {
   const navigate = useNavigate();
-  const { canAdmin, canManage, getScope } = useAccessControl();
-  const canManageDepartments = canManage("Departments");
-  const canDeleteDepartments = canAdmin("Departments");
-  const isHodScopedAccess = getScope("Departments") === "assigned_departments";
-  // The join-request list is open to membership managers and department heads.
-  const canSeeJoinRequests = canManage("Membership_Management") || isHodScopedAccess;
+  const access = useDepartmentAccess();
+  const isHodScopedAccess = access.scoped;
   const { refetchDepartments } = useOutletContext<MembershipOutletContext>();
   const departments = useSettingsStore(
     (state) => state.departments
   ) as DepartmentRecord[];
+  // Join requests are decided by membership managers and by each department's head.
+  const canDecideFor = (department: DepartmentRecord) =>
+    access.canDecideAny ||
+    (access.userId !== null &&
+      (department.department_head_info?.id ?? department.department_head) === access.userId);
+  const canSeeJoinRequests = access.canDecideAny || departments.some(canDecideFor);
   const departmentTotal = useSettingsStore((state) => state.departmentTotal);
   const { activeBranchId } = useBranchStore();
 
@@ -127,7 +129,7 @@ export const DepartmentsAndMinistries = () => {
   const menuFor = (department: DepartmentRecord) => [
     {
       label: "Edit department",
-      hidden: !canManageDepartments,
+      hidden: !access.canEdit,
       onClick: () => {
         setEditing(department);
         setFormOpen(true);
@@ -136,13 +138,13 @@ export const DepartmentsAndMinistries = () => {
     {
       label:
         (department.status ?? "OPEN") === "OPEN" ? "Close department" : "Reopen department",
-      hidden: !canManageDepartments,
+      hidden: !access.canEdit,
       onClick: () => void toggleStatus(department),
     },
     {
       label: "Delete department",
       danger: true,
-      hidden: !canManageDepartments || !canDeleteDepartments,
+      hidden: !access.canDelete,
       onClick: () => setDeleting(department),
     },
   ];
@@ -167,7 +169,7 @@ export const DepartmentsAndMinistries = () => {
               : "Create departments, assign heads and see who serves where."
           }
           actions={
-            canManageDepartments && !isHodScopedAccess ? (
+            access.canCreate ? (
               <UiButton
                 tone="primary"
                 onClick={() => {
@@ -199,7 +201,7 @@ export const DepartmentsAndMinistries = () => {
                 key={department.id}
                 department={department}
                 pendingRequests={
-                  canSeeJoinRequests ? pendingByDepartment.get(department.id) ?? 0 : null
+                  canDecideFor(department) ? pendingByDepartment.get(department.id) ?? 0 : null
                 }
                 menuItems={menuFor(department)}
                 onOpen={() => openDepartment(department)}

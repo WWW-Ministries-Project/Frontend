@@ -52,6 +52,8 @@ export interface AssetOverviewResponse {
     can_manage: boolean;
     can_delete: boolean;
     department_ids: number[];
+    /** Departments a department-scoped role may change; null (or absent) = every department. */
+    manage_department_ids?: number[] | null;
   };
   repair_stale_days: number;
   categories: { key: AssetCategoryKey; label: string }[];

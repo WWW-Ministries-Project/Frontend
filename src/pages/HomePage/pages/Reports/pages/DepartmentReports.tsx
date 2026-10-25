@@ -1,3 +1,4 @@
+import { ReportsRouteAccess } from "../components/ReportsRouteAccess";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -228,4 +229,10 @@ const DepartmentReports = () => {
   );
 };
 
-export default DepartmentReports;
+const DepartmentReportsPage = () => (
+  <ReportsRouteAccess>
+    <DepartmentReports />
+  </ReportsRouteAccess>
+);
+
+export default DepartmentReportsPage;

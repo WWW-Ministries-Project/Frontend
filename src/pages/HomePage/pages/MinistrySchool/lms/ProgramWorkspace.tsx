@@ -1,4 +1,3 @@
-import { useRouteAccess } from "@/context/RouteAccessContext";
 import { useFetch } from "@/CustomHooks/useFetch";
 import SkeletonLoader from "@/pages/HomePage/Components/reusable/SkeletonLoader";
 import { api } from "@/utils";
@@ -31,6 +30,7 @@ import {
 } from "./ui";
 import { useCohortEditors } from "./useCohortEditors";
 import { useProgramEditor } from "./useProgramEditor";
+import { useSomAccess } from "../utils/useSomAccess";
 
 const TABS = [
   "Overview",
@@ -50,7 +50,9 @@ export const ProgramWorkspace = () => {
   const programId = Number(id);
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
-  const { canManageCurrentRoute } = useRouteAccess();
+  const access = useSomAccess();
+  const canDesign = access.can("design_curriculum");
+  const canManageCohorts = access.can("manage_cohorts");
   const som = useSomData();
   const { data, loading, refetch } = useFetch(api.fetch.fetchProgramById, { id: String(id) });
 
@@ -115,14 +117,18 @@ export const ProgramWorkspace = () => {
           `${summary?.total_enrolled_members ?? 0} learners`,
         ]}
         actions={
-          canManageCurrentRoute && (
+          (canDesign || canManageCohorts) && (
             <>
-              <Btn variant="onDark" onClick={() => full && programEditor.openEdit(full)}>
-                Edit
-              </Btn>
-              <Btn variant="onDarkSolid" onClick={() => cohortEditors.newCohort(programId)}>
-                + New cohort
-              </Btn>
+              {canDesign && (
+                <Btn variant="onDark" onClick={() => full && programEditor.openEdit(full)}>
+                  Edit
+                </Btn>
+              )}
+              {canManageCohorts && (
+                <Btn variant="onDarkSolid" onClick={() => cohortEditors.newCohort(programId)}>
+                  + New cohort
+                </Btn>
+              )}
             </>
           )
         }
@@ -137,7 +143,7 @@ export const ProgramWorkspace = () => {
           <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,380px),1fr))] gap-4">
             <Panel
               title="About this program"
-              action={canManageCurrentRoute && full && <Btn size="sm" onClick={() => programEditor.openEdit(full)}>Edit</Btn>}
+              action={canDesign && full && <Btn size="sm" onClick={() => programEditor.openEdit(full)}>Edit</Btn>}
               bodyClassName="flex flex-col gap-4 p-4 text-sm"
             >
               <Field label="Title">{title}</Field>
@@ -175,19 +181,19 @@ export const ProgramWorkspace = () => {
           <ModuleBoard
             programId={programId}
             detailTopics={topics}
-            canManage={canManageCurrentRoute}
+            canManage={canDesign}
             onChanged={refreshAll}
           />
         )}
 
         {tab === "Grading & completion" && (
-          <GradingModelPanel programId={programId} canManage={canManageCurrentRoute} />
+          <GradingModelPanel programId={programId} canManage={canDesign} />
         )}
 
         {tab === "Assessments" && (
           <ProgramAssessments
             topics={topics}
-            canManage={canManageCurrentRoute}
+            canManage={canDesign}
             onChanged={refreshAll}
             onOpenCurriculum={() => setTab("Curriculum")}
           />
@@ -197,7 +203,7 @@ export const ProgramWorkspace = () => {
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between gap-3">
               <h3 className="text-[15px] font-semibold text-primary">Cohorts of this program</h3>
-              {canManageCurrentRoute && (
+              {canManageCohorts && (
                 <Btn variant="primary" size="sm" onClick={() => cohortEditors.newCohort(programId)}>
                   + New cohort
                 </Btn>
@@ -212,7 +218,8 @@ export const ProgramWorkspace = () => {
                 cohort={c}
                 label={c.timing.label}
                 learners={c.learnerCount}
-                canManage={canManageCurrentRoute}
+                canManage={canManageCohorts}
+                canDelete={access.canDelete}
                 onOpen={() => navigate(somPaths.cohort(c.id))}
                 onEdit={() => cohortEditors.editCohort(c)}
                 onDelete={() => cohortEditors.deleteCohort(c)}
@@ -224,11 +231,15 @@ export const ProgramWorkspace = () => {
         )}
 
         {tab === "Instructors" && (
-          <ProgramInstructorsPanel programId={programId} canManage={canManageCurrentRoute} />
+          <ProgramInstructorsPanel
+            programId={programId}
+            canManage={access.can("manage_instructors")}
+            canView={access.viewsAll || access.instructor}
+          />
         )}
 
         {tab === "Certificate" && (
-          <ProgramCertificates programId={programId} canIssue={canManageCurrentRoute} />
+          <ProgramCertificates programId={programId} canIssue={access.can("issue_certificates")} />
         )}
       </div>
 
@@ -257,6 +268,7 @@ export const CohortCard = ({
   label,
   learners,
   canManage,
+  canDelete = canManage,
   onOpen,
   onEdit,
   onDelete,
@@ -267,6 +279,8 @@ export const CohortCard = ({
   label: string;
   learners: number;
   canManage: boolean;
+  /** Deleting needs Full on School of Ministry. */
+  canDelete?: boolean;
   onOpen: () => void;
   onEdit: () => void;
   onDelete: () => void;
@@ -289,9 +303,9 @@ export const CohortCard = ({
           <>
             <Btn size="sm" onClick={onAddClass}>+ Class</Btn>
             <Btn size="sm" onClick={onEdit}>Edit</Btn>
-            <Btn size="sm" className="text-red-700" onClick={onDelete}>Delete</Btn>
           </>
         )}
+        {canDelete && <Btn size="sm" className="text-red-700" onClick={onDelete}>Delete</Btn>}
         <Btn size="sm" variant="primary" onClick={onOpen}>Open cohort</Btn>
       </div>
     }

@@ -6,7 +6,7 @@
 export type NavGroup =
   | "Overview"
   | "People"
-  | "Engagement"
+  | "Ministry & engagement"
   | "Operations"
   | "Administration";
 
@@ -18,7 +18,7 @@ export const SIDE_NAV_GROUPS: { group: NavGroup; tabs: string[] }[] = [
     tabs: ["Membership", "Visitors", "Life Centers", "Attendance", "Ride to church"],
   },
   {
-    group: "Engagement",
+    group: "Ministry & engagement",
     tabs: ["Events", "Communication", "Appointments", "School of Ministry"],
   },
   {

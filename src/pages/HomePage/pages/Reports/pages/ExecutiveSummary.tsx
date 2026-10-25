@@ -1,3 +1,4 @@
+import { ReportsRouteAccess } from "../components/ReportsRouteAccess";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -394,4 +395,10 @@ const ExecutiveSummary = () => {
   );
 };
 
-export default ExecutiveSummary;
+const ExecutiveSummaryPage = () => (
+  <ReportsRouteAccess>
+    <ExecutiveSummary />
+  </ReportsRouteAccess>
+);
+
+export default ExecutiveSummaryPage;

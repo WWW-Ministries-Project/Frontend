@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 
 import EmptyStateImage from "@/assets/emptyState.svg";
 import { notify } from "@/components/feedback";
-import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { confirmAction } from "@/pages/HomePage/utils/helperFunctions";
 import { api } from "@/utils/api/apiCalls";
 import { cn } from "@/utils/cn";
@@ -38,6 +37,7 @@ import {
   useToday,
 } from "./utils/lcModel";
 import { Center, recentAverage, useLifeCenterOverview } from "./utils/useLifeCenterOverview";
+import { useLifeCenterAccess } from "./utils/useLifeCenterAccess";
 
 
 type Filters = { day: string; status: string };
@@ -48,9 +48,7 @@ const LifeCenterList = () => {
   const year = today.slice(0, 4);
   const y0 = `${year}-01-01`;
   const mo0 = `${today.slice(0, 7)}-01`;
-  const { canManage, canAdmin } = useAccessControl();
-  const manage = canManage("Life Center");
-  const admin = canAdmin("Life Center");
+  const can = useLifeCenterAccess();
 
   const { centers, meetings, souls, roles, loaded, refetch } = useLifeCenterOverview(y0, today);
 
@@ -178,11 +176,13 @@ const LifeCenterList = () => {
         actions={
           <>
             <FilterToggleButton open={showF} count={fCount} onClick={() => setShowF(!showF)} />
-            {manage && <UiButton onClick={() => setRolesOpen(true)}>Manage roles</UiButton>}
-            <UiButton onClick={exportCsv} disabled={!list.length}>
-              Export CSV
-            </UiButton>
-            {manage && (
+            {can.editRoles && <UiButton onClick={() => setRolesOpen(true)}>Manage roles</UiButton>}
+            {can.exportData && (
+              <UiButton onClick={exportCsv} disabled={!list.length}>
+                Export CSV
+              </UiButton>
+            )}
+            {can.createCenters && (
               <UiButton tone="primary" onClick={() => setForm({ open: true, existing: null })}>
                 New life center
               </UiButton>
@@ -276,7 +276,7 @@ const LifeCenterList = () => {
           <p className="max-w-[440px] text-base text-gray-600">
             Add where it meets, which days, and who leads it. Leaders can then record meetings and souls won.
           </p>
-          {manage && (
+          {can.createCenters && (
             <UiButton tone="primary" onClick={() => setForm({ open: true, existing: null })}>
               New life center
             </UiButton>
@@ -311,9 +311,9 @@ const LifeCenterList = () => {
                     ariaLabel={`More actions for ${r.c.name}`}
                     width={180}
                     items={[
-                      { label: "Edit details", onClick: () => openEdit(r.c), hidden: !manage },
-                      { label: "Record meeting", onClick: () => setRecordFor(r.c.id) },
-                      { label: "Delete", onClick: () => remove(r.c), danger: true, hidden: !admin },
+                      { label: "Edit details", onClick: () => openEdit(r.c), hidden: !can.editCenters },
+                      { label: "Record meeting", onClick: () => setRecordFor(r.c.id), hidden: !can.recordMeeting },
+                      { label: "Delete", onClick: () => remove(r.c), danger: true, hidden: !can.remove },
                     ]}
                   />
                 </div>
@@ -366,6 +366,7 @@ const LifeCenterList = () => {
       <LifeCenterFormDialog
         open={form.open}
         existing={form.existing}
+        canAssignLeader={can.assignLeader}
         takenNames={centers.map((c) => c.name)}
         onClose={() => setForm({ open: false, existing: null })}
         onSaved={(id) => {
@@ -384,7 +385,7 @@ const LifeCenterList = () => {
           refetch();
         }}
       />
-      <RolesDialog open={rolesOpen} roles={roles} onClose={() => setRolesOpen(false)} onChanged={() => refetch()} />
+      <RolesDialog open={rolesOpen} roles={roles} canDelete={can.deleteRoles} onClose={() => setRolesOpen(false)} onChanged={() => refetch()} />
     </PageOutline>
   );
 };

@@ -22,6 +22,7 @@ import {
   typeColor,
   typeLabel,
 } from "../utils/eventsModel";
+import { useEventsAccess } from "../utils/useEventsAccess";
 import { Dot, Drawer, Pill, type PillTone, UiButton } from "./eventsUi";
 
 const STATUS_PILL: Record<string, [string, PillTone]> = {
@@ -36,13 +37,14 @@ interface Props {
   event: ScheduledEvent;
   siblings: ScheduledEvent[];
   attendance: number | null;
-  canManage: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
   onClose: () => void;
   onEdit: (event: ScheduledEvent) => void;
   onDelete: (event: ScheduledEvent) => void;
 }
 
-const EventDetailDrawer = ({ event, siblings, attendance, canManage, onClose, onEdit, onDelete }: Props) => {
+const EventDetailDrawer = ({ event, siblings, attendance, canEdit, canDelete, onClose, onEdit, onDelete }: Props) => {
   const [detail, setDetail] = useState<EventRecord | null>(null);
   const [reminders, setReminders] = useState<EventReminderRow[] | null>(null);
   const { departments, positions } = useSettingsStore((state) => ({
@@ -74,6 +76,7 @@ const EventDetailDrawer = ({ event, siblings, attendance, canManage, onClose, on
   }, [event.id]);
 
   const raw = detail ?? event.raw;
+  const canExport = useEventsAccess().exportRegistrants;
   const status = statusOf(event);
   const [pillText, pillTone] = STATUS_PILL[status];
   const when = `${event.multiDay ? `${fmtLongDay(event.date)} – ${fmtLongDay(event.endDate)}` : fmtLongDay(event.date)}${
@@ -158,7 +161,7 @@ const EventDetailDrawer = ({ event, siblings, attendance, canManage, onClose, on
       header={header}
       footer={
         <>
-          {canManage && (
+          {canDelete && (
             <UiButton tone="ghost" className="mr-auto text-red-700 hover:bg-red-50 hover:text-red-700" onClick={() => onDelete(event)}>
               Delete
             </UiButton>
@@ -169,7 +172,7 @@ const EventDetailDrawer = ({ event, siblings, attendance, canManage, onClose, on
           >
             Full details
           </Link>
-          {canManage && (
+          {canEdit && (
             <UiButton tone="primary" onClick={() => onEdit(event)}>
               Edit
             </UiButton>
@@ -239,9 +242,11 @@ const EventDetailDrawer = ({ event, siblings, attendance, canManage, onClose, on
                   Copy link
                 </UiButton>
               )}
-              <UiButton size="sm" onClick={exportRegistrants} disabled={!registrants.length}>
-                Export
-              </UiButton>
+              {canExport && (
+                <UiButton size="sm" onClick={exportRegistrants} disabled={!registrants.length}>
+                  Export
+                </UiButton>
+              )}
             </div>
           </div>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,110px),1fr))] gap-3">
@@ -272,7 +277,7 @@ const EventDetailDrawer = ({ event, siblings, attendance, canManage, onClose, on
               ))}
               {registrants.length > SHOWN_REGISTRANTS && (
                 <p className="border-t border-gray-200 px-3 py-2 text-xs text-gray-500">
-                  + {registrants.length - SHOWN_REGISTRANTS} more in the export
+                  + {registrants.length - SHOWN_REGISTRANTS} more{canExport ? " in the export" : ""}
                 </p>
               )}
             </div>

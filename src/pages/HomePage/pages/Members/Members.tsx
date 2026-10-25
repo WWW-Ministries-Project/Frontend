@@ -73,8 +73,14 @@ export function Members() {
   const task = location.state?.task;
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { canManage, isExcluded } = useAccessControl();
-  const canManageMembers = canManage("Members");
+  const { hasAction, isExcluded } = useAccessControl();
+  const canCreate = hasAction("Members.create");
+  const canEdit = hasAction("Members.edit");
+  const canChangeStatus = hasAction("Members.change_status");
+  const canConfirm = canChangeStatus || hasAction("Membership_Management.confirm_member");
+  const canDelete = hasAction("Members.delete");
+  const canExport = hasAction("Members.export");
+  const canSelect = canEdit || canChangeStatus || canConfirm || canDelete || canExport;
   const activeBranchId = useBranchStore((state) => state.activeBranchId);
   const departments = useSettingsStore((state) => state.departments);
   const store = useStore();
@@ -283,7 +289,7 @@ export function Members() {
       { label: "View profile", hidden: restricted, onClick: () => viewProfile(member) },
       {
         label: "Edit details",
-        hidden: restricted || !canManageMembers,
+        hidden: restricted || !canEdit,
         onClick: () =>
           navigate(
             `/home/${relativePath.home.members.manage}?member_id=${encodeQuery(member.id)}`
@@ -291,7 +297,7 @@ export function Members() {
       },
       {
         label: "Confirm membership",
-        hidden: !canManageMembers || !isUnconfirmed(member),
+        hidden: !canConfirm || !isUnconfirmed(member),
         onClick: () =>
           runAction(
             () => advanceMembers([member.id], "CONFIRMED"),
@@ -300,7 +306,7 @@ export function Members() {
       },
       {
         label: "Mark as functional member",
-        hidden: !canManageMembers || member.status !== "CONFIRMED",
+        hidden: !canConfirm || member.status !== "CONFIRMED",
         onClick: () =>
           runAction(
             () => advanceMembers([member.id], "MEMBER"),
@@ -309,12 +315,12 @@ export function Members() {
       },
       {
         label: "Change status…",
-        hidden: !canManageMembers,
+        hidden: !canConfirm,
         onClick: () => setDialog({ kind: "status", members: [member] }),
       },
       {
         label: inactive ? "Reactivate" : "Mark inactive",
-        hidden: !canManageMembers,
+        hidden: !canChangeStatus,
         onClick: () =>
           runAction(
             () => setMembersActive([member.id], inactive),
@@ -324,7 +330,7 @@ export function Members() {
       {
         label: "Delete member",
         danger: true,
-        hidden: !canManageMembers,
+        hidden: !canDelete,
         onClick: () => setDialog({ kind: "delete", members: [member] }),
       },
     ];
@@ -356,6 +362,7 @@ export function Members() {
   const bulkActions = [
     {
       label: "Confirm membership",
+      hidden: !canConfirm,
       onClick: () => {
         const ids = selectedMembers.filter(isUnconfirmed).map((member) => member.id);
         if (ids.length === 0) {
@@ -374,19 +381,23 @@ export function Members() {
     },
     {
       label: "Change status…",
+      hidden: !canConfirm,
       onClick: () => setDialog({ kind: "status", members: selectedMembers }),
     },
     {
       label: "Assign department",
+      hidden: !canEdit,
       onClick: () => setDialog({ kind: "assign", members: selectedMembers }),
     },
     {
       label: "Export selected",
+      hidden: !canExport,
       onClick: () =>
         exportMembersToExcel(selectedMembers.map(toExportRow), "Selected members.xlsx"),
     },
     {
       label: "Mark inactive",
+      hidden: !canChangeStatus,
       onClick: () =>
         runAction(
           () => setMembersActive(selectedMembers.map((member) => member.id), false),
@@ -396,9 +407,10 @@ export function Members() {
     {
       label: "Delete",
       danger: true,
+      hidden: !canDelete,
       onClick: () => setDialog({ kind: "delete", members: selectedMembers }),
     },
-  ];
+  ].filter((action) => !action.hidden);
 
   /* -------------------------------- Export -------------------------------- */
   const exportDisabled = Boolean(impossibleView) || total === 0;
@@ -472,15 +484,17 @@ export function Members() {
                 count={filterCount}
                 onClick={() => setShowFilter((open) => !open)}
               />
-              <UiButton
-                tone="secondary"
-                onClick={exportView}
-                disabled={exportDisabled}
-                title={exportDisabled ? "No members match these filters." : undefined}
-              >
-                Export to Excel
-              </UiButton>
-              {canManageMembers && (
+              {canExport && (
+                <UiButton
+                  tone="secondary"
+                  onClick={exportView}
+                  disabled={exportDisabled}
+                  title={exportDisabled ? "No members match these filters." : undefined}
+                >
+                  Export to Excel
+                </UiButton>
+              )}
+              {canCreate && (
                 <UiButton
                   tone="primary"
                   onClick={() => navigate(`/home/${relativePath.home.members.manage}`)}
@@ -546,7 +560,7 @@ export function Members() {
             />
           </div>
 
-          {canManageMembers && selected.size > 0 && (
+          {canSelect && selected.size > 0 && (
             <BulkBar
               label={`${countText(selected.size)} selected`}
               actions={bulkActions}
@@ -558,7 +572,7 @@ export function Members() {
             <p className="text-sm text-gray-600">
               {initialLoading ? "Loading members…" : countLabel}
             </p>
-            {canManageMembers && rows.length > 0 && (
+            {canSelect && rows.length > 0 && (
               <button
                 type="button"
                 onClick={togglePage}
@@ -584,7 +598,7 @@ export function Members() {
             <MembersTable
               rows={rows}
               loading={membersLoading}
-              selectable={canManageMembers}
+              selectable={canSelect}
               selectedIds={selectedIds}
               onToggleRow={(id) => {
                 const member = rows.find((row) => String(row.id) === id);
@@ -611,7 +625,7 @@ export function Members() {
                         key={member.id}
                         member={member}
                         restricted={restricted}
-                        selectable={canManageMembers}
+                        selectable={canSelect}
                         selected={selected.has(String(member.id))}
                         onToggleSelect={() => toggleMember(member)}
                         onView={restricted ? undefined : () => viewProfile(member)}

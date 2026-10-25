@@ -51,7 +51,13 @@ export const AdminOrderDetail = () => {
   const { orderId } = useParams();
   const id = decodeQuery(String(orderId || ""));
   const location = useLocation();
-  const { canAdmin, canManage } = useAccessControl();
+  const { hasAction } = useAccessControl();
+  const canEditOrder =
+    hasAction("Marketplace.edit_order_items") ||
+    hasAction("Marketplace.mark_paid") ||
+    hasAction("Marketplace.fulfil_order");
+  const canDeleteOrder = hasAction("Marketplace.delete");
+  const canReconcile = hasAction("Marketplace.reconcile_payments");
   const nav = (location.state || {}) as { from?: string; backLabel?: string };
 
   const query = useMemo(() => ({ id }), [id]);
@@ -108,7 +114,13 @@ export const AdminOrderDetail = () => {
   const next = nextOrderAction(order);
   const gw = paymentGateway(order);
   const canCancel =
-    canManage("Marketplace") && order.delivery !== "cancelled" && order.delivery !== "delivered";
+    hasAction("Marketplace.cancel_any_order") &&
+    order.delivery !== "cancelled" &&
+    order.delivery !== "delivered";
+  // "Mark as paid" is its own on-purpose action; the fulfilment steps are another.
+  const canRunNext =
+    !!next &&
+    hasAction(next.patch.payment_status ? "Marketplace.mark_paid" : "Marketplace.fulfil_order");
   const showSteps = order.delivery !== "cancelled" && order.payment !== "failed";
   const steps = orderSteps(order);
   const subtotal = order.subtotal ?? order.lines.reduce((a, l) => a + l.lineTotal, 0);
@@ -122,6 +134,7 @@ export const AdminOrderDetail = () => {
     .toUpperCase();
   const pickupLocation = deliveryRes?.data?.pickup_location || PICKUP_LOCATION;
   const canCheckPayment =
+    canReconcile &&
     order.payment === "pending" &&
     order.delivery !== "cancelled" &&
     !isManualOrder(order) &&
@@ -208,7 +221,7 @@ export const AdminOrderDetail = () => {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            {canManage("Marketplace") && (
+            {canEditOrder && (
               <button
                 type="button"
                 className={btnSecondary}
@@ -218,7 +231,7 @@ export const AdminOrderDetail = () => {
                 Edit
               </button>
             )}
-            {canAdmin("Marketplace") && (
+            {canDeleteOrder && (
               <button
                 type="button"
                 className={btnDanger}
@@ -236,7 +249,7 @@ export const AdminOrderDetail = () => {
                 Cancel order
               </button>
             )}
-            {next && canManage("Marketplace") && (
+            {next && canRunNext && (
               <button
                 type="button"
                 className={btnPrimary}
@@ -365,6 +378,14 @@ export const AdminOrderDetail = () => {
               <p className="text-sm text-gray-600">{gw.channel}</p>
               {order.reference && (
                 <p className="break-all text-sm text-gray-500">Ref {order.reference}</p>
+              )}
+              {order.markedPaidAt && (
+                <p className="text-sm text-gray-500">
+                  Marked paid
+                  {order.markedPaidByName ? ` by ${order.markedPaidByName}` : ""} on{" "}
+                  {formatDate(order.markedPaidAt)}
+                  {formatTime(order.markedPaidAt) ? ` at ${formatTime(order.markedPaidAt)}` : ""}
+                </p>
               )}
               {canCheckPayment && (
                 <button

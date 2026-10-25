@@ -313,7 +313,7 @@ export const BookDialog = ({ data, onClose, onBooked }: { data: AppointmentsData
             hasError={errors.length > 0 && !attendeeId}
             options={[
               { value: "", label: "Choose a person" },
-              ...data.staff.filter((s) => !s.paused).map((s) => ({ value: s.id, label: s.role ? `${s.name} · ${s.role}` : s.name })),
+              ...data.staff.filter((s) => !s.paused && !data.access.hidden(s.id)).map((s) => ({ value: s.id, label: s.role ? `${s.name} · ${s.role}` : s.name })),
             ]}
           />
         </Field>
@@ -657,7 +657,14 @@ export const AddPersonDialog = ({
   const membersOptions = useStore((state) => state.membersOptions);
   const [member, setMember] = useState<{ id: string; name: string } | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
-  const exclude = useMemo(() => data.staff.map((s) => s.id), [data.staff]);
+  // People with a schedule already, and people hidden from this role.
+  const exclude = useMemo(
+    () => [
+      ...data.staff.map((s) => s.id),
+      ...membersOptions.filter((m) => data.access.hidden(m.value)).map((m) => String(m.value)),
+    ],
+    [data.staff, data.access, membersOptions]
+  );
 
   return (
     <CommDialog

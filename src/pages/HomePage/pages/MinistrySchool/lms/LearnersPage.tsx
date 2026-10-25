@@ -3,7 +3,7 @@ import SkeletonLoader from "@/pages/HomePage/Components/reusable/SkeletonLoader"
 import { cn } from "@/utils/cn";
 import { useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useRouteAccess } from "@/context/RouteAccessContext";
+import { useSomAccess } from "../utils/useSomAccess";
 import { ReviewQueue } from "./people/ReviewQueue";
 import { useSomData, type EnrollmentRow } from "./somDataContext";
 import { ATTENTION_RULE, fmtDate, needsAttention, somPaths } from "./somUtils";
@@ -28,7 +28,7 @@ export const LearnersPage = () => {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const { loading, programs, enrollments, error, refetch } = useSomData();
-  const { canManageCurrentRoute } = useRouteAccess();
+  const canDecide = useSomAccess().canAll("decide_applications");
   const [search, setSearch] = useState("");
 
   const filterParam = params.get("filter") as FilterKey | null;
@@ -69,7 +69,7 @@ export const LearnersPage = () => {
           subtitle="Eligible applicants are enrolled automatically. Review the ones the rules held back."
         />
 
-        <ReviewQueue canManage={canManageCurrentRoute} programFilter={programFilter || undefined} onDecided={refetch} />
+        <ReviewQueue canManage={canDecide} programFilter={programFilter || undefined} onDecided={refetch} />
 
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex flex-wrap gap-1.5">

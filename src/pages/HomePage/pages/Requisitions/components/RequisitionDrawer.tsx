@@ -13,6 +13,7 @@ import {
   canAct,
   dur,
   fileNameOf,
+  isDisbursed,
   firstName,
   fmtD,
   fmtDT,
@@ -54,6 +55,7 @@ export interface DrawerIntents {
   onRevise: (detail: RequisitionOverviewDetail) => void;
   onDelete: (row: Row) => void;
   onRemind: (row: Row) => void;
+  onMarkDisbursed: (row: Row) => void;
 }
 
 export const RequisitionDrawer = ({
@@ -71,7 +73,7 @@ export const RequisitionDrawer = ({
   onClose: () => void;
 }) => {
   const phone = useViewportWidth() < 640;
-  const { me, now, replyDays, lookbackDays, isManager, loadDetail, comment } = data;
+  const { me, now, replyDays, lookbackDays, isManageRole, can, loadDetail, comment } = data;
   const [detail, setDetail] = useState<RequisitionOverviewDetail | null>(null);
   const [similar, setSimilar] = useState<SimilarGroup[]>([]);
   const [draft, setDraft] = useState("");
@@ -86,7 +88,11 @@ export const RequisitionDrawer = ({
         const next = await loadDetail(id);
         if (wanted.current !== id) return;
         setDetail(next);
-        if (next && next.status === "PENDING" && (canAct(next, me) || isManager)) {
+        if (
+          next &&
+          next.status === "PENDING" &&
+          (canAct(next, me) || isManageRole || (can.overrideStep && next.requester.id !== me))
+        ) {
           const response = await api.fetch
             .fetchRequisitionPreApprovalSimilarItems({ requisition_id: id })
             .catch(() => null);
@@ -100,7 +106,7 @@ export const RequisitionDrawer = ({
         onClose();
       }
     },
-    [loadDetail, me, isManager, onClose]
+    [loadDetail, me, isManageRole, can.overrideStep, onClose]
   );
 
   useEffect(() => {
@@ -131,6 +137,8 @@ export const RequisitionDrawer = ({
 
   const mine = row.requester.id === me;
   const act = canAct(row, me);
+  // Deciding the current step for its approver (Requisition.override_step).
+  const override = !act && !mine && row.status === "PENDING" && !!pendingStep(row) && can.overrideStep;
   const step = pendingStep(row);
   const waited = waitDays(row, now);
   const rejected = rejectedStep(row);
@@ -158,6 +166,11 @@ export const RequisitionDrawer = ({
       }`,
       tone: "warning",
     };
+  else if (row.status === "APPROVED" && isDisbursed(row))
+    alert = {
+      text: `Disbursed on ${fmtD(row.disbursed?.at ?? null)}${row.disbursed?.by ? ` by ${row.disbursed.by.name}` : ""}.`,
+      tone: "success",
+    };
   else if (row.status === "APPROVED")
     alert = { text: `Fully approved on ${fmtD(row.decided_at)}. Finance has been notified to release funds.`, tone: "success" };
 
@@ -180,8 +193,21 @@ export const RequisitionDrawer = ({
       { label: "Approve", tone: "primary", onClick: () => intents.onApprove(row, similar) }
     );
   }
-  if (isManager && step && !act) {
+  if (override && step) {
+    buttons.push(
+      { label: `Reject for ${firstName(step.approver.name)}`, tone: "danger", onClick: () => intents.onReject(row) },
+      { label: `Approve for ${firstName(step.approver.name)}`, tone: "primary", onClick: () => intents.onApprove(row, similar) }
+    );
+  }
+  if (can.sendReminders && step && !act) {
     buttons.push({ label: `Send reminder to ${firstName(step.approver.name)}`, onClick: () => intents.onRemind(row) });
+  }
+  if (row.status === "APPROVED" && !isDisbursed(row) && !mine && can.markDisbursed) {
+    buttons.push({ label: "Mark disbursed", tone: "primary", onClick: () => intents.onMarkDisbursed(row) });
+  }
+  // Anyone's requisition (not their own draft, handled above), until it's approved.
+  if (!mine && can.delete && (row.status === "PENDING" || row.status === "REJECTED")) {
+    buttons.unshift({ label: "Delete", tone: "danger", onClick: () => intents.onDelete(row) });
   }
   if (!buttons.length) buttons.push({ label: "Close", onClick: onClose });
 

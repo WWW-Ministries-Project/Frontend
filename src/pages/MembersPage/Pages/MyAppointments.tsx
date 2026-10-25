@@ -11,6 +11,7 @@ import {
 } from "@/utils/api/appointment/interfaces";
 import AllAppointmentsLayout from "@/pages/HomePage/pages/AppointmentsManagement/Layout/AllAppointmentsLayout";
 import { useAuth } from "@/context/AuthWrapper";
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { useDelete } from "@/CustomHooks/useDelete";
 import { showDeleteDialog, showNotification } from "@/pages/HomePage/utils";
@@ -36,6 +37,7 @@ const isAppointmentConfirmed = (appointment: Appointment): boolean => {
 
 const MyAppointments = () => {
   const { user } = useAuth();
+  const { canManage, hasAction } = useAccessControl();
   const membersOptions = useStore((state) => state.membersOptions);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -226,6 +228,11 @@ const MyAppointments = () => {
     showNotification(deleteError.message || "Unable to delete appointment", "error");
   }, [deleteError]);
 
+  // Editing and deleting a booking use the staff endpoints: Appointments
+  // Manage and Full (delete). Members without them don't see the buttons.
+  const canEditBookings = canManage("Appointments");
+  const canDeleteBookings = hasAction("Appointments.delete");
+
   const handleBookAppointment = () => {
     setSelectedAppointment(undefined);
     setIsModalOpen(true);
@@ -343,7 +350,7 @@ const MyAppointments = () => {
         ) : (
           <AllAppointmentsLayout
             Appointments={groupedAppointments}
-            onEdit={(appointment) => {
+            onEdit={canEditBookings ? (appointment) => {
               if (isAppointmentConfirmed(appointment)) {
                 showNotification(
                   "Confirmed appointments cannot be edited.",
@@ -353,8 +360,8 @@ const MyAppointments = () => {
               }
               setSelectedAppointment(appointment);
               setIsModalOpen(true);
-            }}
-            onDelete={handleDelete}
+            } : undefined}
+            onDelete={canDeleteBookings ? handleDelete : undefined}
             isEditDisabled={isAppointmentConfirmed}
             isDeleteDisabled={isAppointmentConfirmed}
           />

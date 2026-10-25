@@ -27,7 +27,7 @@ Workspace keys, in display order:
 | `Reports` admin | `prelate` |
 | `Settings` manage, or `Members` manage | `admin` |
 | `Financials` manage | `finance` |
-| `Departments` manage with scope `assigned_departments` | `hod` |
+| `Departments` manage with scope `department` (or `department_member`, or the older `assigned_departments`) | `hod` |
 | nothing above matched | `generic` |
 
 An explicit empty array `[]` is allowed and means "Home only".

@@ -142,7 +142,8 @@ export const Segmented = <K extends string>({
   stretch,
   role = "radiogroup",
 }: {
-  options: { value: K; label: ReactNode }[];
+  /** `disabled` + `title` on an option lock just that choice (e.g. above your own access). */
+  options: { value: K; label: ReactNode; disabled?: boolean; title?: string }[];
   value: K;
   onChange: (value: K) => void;
   ariaLabel: string;
@@ -165,11 +166,13 @@ export const Segmented = <K extends string>({
           role={role === "tablist" ? "tab" : "radio"}
           aria-checked={role === "tablist" ? undefined : on}
           aria-selected={role === "tablist" ? on : undefined}
-          disabled={disabled}
+          disabled={disabled || option.disabled}
+          title={option.title}
           onClick={() => onChange(option.value)}
           className={cn(
             "inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-sm text-primary transition-colors disabled:cursor-default",
             stretch && "flex-auto",
+            option.disabled && !disabled && "opacity-60",
             on
               ? "bg-white font-semibold shadow-[0_1px_2px_rgba(0,0,0,0.05)]"
               : "bg-transparent font-normal enabled:hover:bg-white/70"

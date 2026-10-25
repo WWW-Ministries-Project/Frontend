@@ -47,6 +47,7 @@ import {
   UiButton,
 } from "./eventsUi";
 import SeriesScopeModal, { type SeriesScope } from "./SeriesScopeModal";
+import { useEventsAccess } from "../utils/useEventsAccess";
 
 /* -------------------------------------------------------------------------- */
 /*                                   Types                                    */
@@ -116,6 +117,7 @@ const ScheduleEventEditor = ({ mode, onClose, onSaved, frame = "drawer" }: Props
     [catalogueData]
   );
   const { submit, saving } = useScheduleEventSubmit();
+  const access = useEventsAccess();
 
   const editId = mode.kind === "edit" ? mode.id : null;
   const [loaded, setLoaded] = useState<{ values: EventsFormValues; reminders: EventReminderRow[] } | null>(null);
@@ -174,7 +176,10 @@ const ScheduleEventEditor = ({ mode, onClose, onSaved, frame = "drawer" }: Props
 
   const updating = Boolean(editId);
   const seriesId = updating ? (loaded?.values.recurrence_series_id as string | null) ?? null : null;
-  const presetScope = mode.kind === "edit" ? mode.scope ?? null : null;
+  // A deep-linked "later dates"/"every date" needs Events › Manage series;
+  // without it the date-scope question offers "Only this date".
+  const presetScope =
+    mode.kind === "edit" && mode.scope && (mode.scope === "this" || access.manageSeries) ? mode.scope : null;
 
   const runSubmit = async (values: EventsFormValues, scope: SeriesScope | null) => {
     if (!initialValues) return;
@@ -186,6 +191,8 @@ const ScheduleEventEditor = ({ mode, onClose, onSaved, frame = "drawer" }: Props
       file,
       initial: initialValues,
       reminderRows: loaded?.reminders,
+      canEditLinks: access.manageOnlineLinks,
+      canEditReminders: access.sendReminders,
     });
     if (ok) {
       setScopeFor(null);
@@ -293,6 +300,7 @@ const ScheduleEventEditor = ({ mode, onClose, onSaved, frame = "drawer" }: Props
               action="edit"
               eventName={String(scopeFor.event_name || "")}
               loading={saving}
+              allowSeries={access.manageSeries}
               onCancel={() => setScopeFor(null)}
               onConfirm={(scope) => void runSubmit(scopeFor, scope)}
             />
@@ -336,6 +344,11 @@ const ScheduleFields = ({
     positions: state.positions,
   }));
   const [adding, setAdding] = useState<{ name: string; type: string; busy: boolean } | null>(null);
+  const access = useEventsAccess();
+  // Links and reminders on an existing date go through their own endpoints
+  // (Events › Manage online links / Send reminders).
+  const linksLocked = updating && !access.manageOnlineLinks;
+  const remindersLocked = updating && !access.sendReminders;
 
   const set = (key: string, value: unknown) => void setFieldValue(key, value, submitCount > 0);
   const multi = values.day_event === "multi";
@@ -502,7 +515,7 @@ const ScheduleFields = ({
                 .slice()
                 .sort((a, b) => String(a.event_name).localeCompare(String(b.event_name)))
                 .map((item) => ({ value: String(item.id), label: `${item.event_name} · ${typeLabel(item.event_type)}` })),
-              { value: NEW_EVENT, label: "+ Add a new event" },
+              ...(access.manageTypes ? [{ value: NEW_EVENT, label: "+ Add a new event" }] : []),
             ]}
           />
         </Field>
@@ -719,10 +732,18 @@ const ScheduleFields = ({
               Members get a Join button in the app.{seriesEdit ? " Links change for this date only." : ""}
             </span>
           </span>
-          <Switch label="Also online" on={Boolean(values.online)} onChange={(on) => set("online", on)} />
+          <Switch
+            label="Also online"
+            on={Boolean(values.online)}
+            onChange={(on) => set("online", on)}
+            disabled={linksLocked}
+          />
         </div>
         {values.online && (
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,220px),1fr))] gap-3">
+          <fieldset
+            disabled={linksLocked}
+            className="m-0 grid min-w-0 grid-cols-[repeat(auto-fit,minmax(min(100%,220px),1fr))] gap-3 border-0 p-0"
+          >
             {ONLINE_PLATFORMS.map((platform) => {
               const value = String(values[platform.field] ?? "");
               const warning = onlineLinkWarning(platform, value);
@@ -744,8 +765,9 @@ const ScheduleFields = ({
                 </Field>
               );
             })}
-          </div>
+          </fieldset>
         )}
+        {linksLocked && <span className="text-xs text-gray-500">Your role can’t change online links.</span>}
       </FormSection>
 
       {/* Who it's for */}
@@ -885,7 +907,8 @@ const ScheduleFields = ({
         title="Reminders"
         hint={`Sent to the audience and registrants.${seriesEdit ? " Changes apply to this date only." : ""}`}
       >
-        <div role="group" aria-label="Reminders" className="flex flex-wrap gap-2">
+        {remindersLocked && <span className="text-xs text-gray-500">Your role can’t change reminders.</span>}
+        <fieldset disabled={remindersLocked} aria-label="Reminders" className="m-0 flex min-w-0 flex-wrap gap-2 border-0 p-0">
           {REMINDER_OFFSET_OPTIONS.slice()
             .reverse()
             .map((option) => (
@@ -904,7 +927,7 @@ const ScheduleFields = ({
                 {option.value === 0 ? "At start" : option.label}
               </ToggleChip>
             ))}
-        </div>
+        </fieldset>
       </FormSection>
 
       {/* More details */}

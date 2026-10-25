@@ -1,6 +1,7 @@
 import { ReactNode, useMemo, useState } from "react";
 
 import { notify } from "@/components/feedback";
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import type { AssetRow } from "@/utils/api/assets/interfaces";
 
 import PageOutline from "../../Components/PageOutline";
@@ -85,6 +86,7 @@ const HBar = ({ label, value, width, color, sub }: { label: string; value: React
 const AssetAnalytics = () => {
   const today = useToday();
   const { assets, departments, loaded } = useAssetsData();
+  const canExport = useAccessControl().hasAction("Asset.export");
   const thisYear = Number(today.slice(0, 4));
 
   const [by, setBy] = useState<By>("all");
@@ -320,7 +322,7 @@ const AssetAnalytics = () => {
               onChange={(e) => setDept(e.target.value)}
               options={[{ value: "", label: "All departments" }, { value: "_store", label: "Not assigned" }, ...departments.map((d) => ({ value: String(d.id), label: d.name }))]}
             />
-            <UiButton onClick={exportCsv}>Export CSV</UiButton>
+            {canExport && <UiButton onClick={exportCsv}>Export CSV</UiButton>}
           </>
         }
       />

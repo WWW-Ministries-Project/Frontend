@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import { notify } from "@/components/feedback";
 import { useAccessControl } from "@/CustomHooks/useAccessControl";
+import { useUserStore } from "@/store/userStore";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { confirmAction, decodeQuery } from "@/pages/HomePage/utils/helperFunctions";
 import { api } from "@/utils/api/apiCalls";
@@ -56,6 +57,7 @@ import {
   toDays,
   useToday,
 } from "./utils/lcModel";
+import { useLifeCenterAccess } from "./utils/useLifeCenterAccess";
 
 const LifeCenterAnalyticsView = lazy(() =>
   import("./LifeCenterAnalytics").then((m) => ({ default: m.LifeCenterAnalyticsView }))
@@ -124,21 +126,23 @@ export const LifeCenterDetailView = ({
   const today = useToday();
   const year = today.slice(0, 4);
   const y0 = `${year}-01-01`;
-  const { canManage, canAdmin } = useAccessControl();
-  const manage = canManage("Life Center");
-  const admin = canAdmin("Life Center");
-  const canConvert = canManage("Members");
-  // Leaders can record for their own center even without the Life Center permission.
-  const canRecord = manage || !!leaderView;
+  const { hasAction } = useAccessControl();
+  const myId = useUserStore((state) => state.id);
+  // Turning a soul into a member needs both conversion and Members › Add.
+  const canConvert = hasAction("Membership_Management.convert_soul") && hasAction("Members.create");
 
   const detailQuery = useMemo(() => ({ id }), [id]);
   const meetingsQuery = useMemo(() => ({ lifeCenterId: id, page: "1", take: "500" }), [id]);
   const detailFetch = useFetch(api.fetch.fetchLifeCenterById, detailQuery);
   const meetingsFetch = useFetch(api.fetch.fetchMeetings, meetingsQuery);
-  const rolesFetch = useFetch(api.fetch.fetchLifCenterRoles, undefined, !manage);
 
   const c = detailFetch.data?.data;
   const members = useMemo(() => c?.members ?? [], [c]);
+  // The center's leadership team (its member rows) gets the leader tools, as the API does.
+  const leadsCenter = members.some((m) => String(m.userId) === String(myId));
+  const can = useLifeCenterAccess(leadsCenter);
+  const canRecord = can.recordMeeting;
+  const rolesFetch = useFetch(api.fetch.fetchLifCenterRoles, undefined, !can.assignMembers);
   const souls = useMemo(
     () => [...(c?.soulsWon ?? [])].sort((a, b) => dayKey(b.date_won).localeCompare(dayKey(a.date_won))),
     [c]
@@ -365,9 +369,11 @@ export const LifeCenterDetailView = ({
     sub: `${ms.length} recorded · ${msY.length} of ${exp} scheduled meetings held this year`,
     actions: (
       <>
-        <UiButton onClick={exportMeetings} disabled={!ms.length}>
-          Export CSV
-        </UiButton>
+        {can.exportData && (
+          <UiButton onClick={exportMeetings} disabled={!ms.length}>
+            Export CSV
+          </UiButton>
+        )}
         {canRecord && (
           <UiButton tone="primary" onClick={record}>
             Record meeting
@@ -475,10 +481,12 @@ export const LifeCenterDetailView = ({
     sub: `${souls.length} recorded · ${followUp} still to follow up`,
     actions: (
       <>
-        <UiButton onClick={exportSouls} disabled={!sl.length}>
-          Export CSV
-        </UiButton>
-        {canRecord && (
+        {can.exportData && (
+          <UiButton onClick={exportSouls} disabled={!sl.length}>
+            Export CSV
+          </UiButton>
+        )}
+        {can.recordSouls && (
           <UiButton tone="primary" onClick={() => setSoulOpen(true)} disabled={!members.length}>
             Add soul won
           </UiButton>
@@ -582,9 +590,12 @@ export const LifeCenterDetailView = ({
         detailFetch.refetch();
       },
     });
-  const roleOptions = roles.map((r) => ({ value: String(r.id), label: r.name }));
+  // Making someone Leader needs Assign leaders as well.
+  const roleOptions = roles
+    .filter((r) => can.assignLeader || !isLeaderRole(r.name))
+    .map((r) => ({ value: String(r.id), label: r.name }));
   const roleControl = (m: LifeCenterMemberType, className?: string) =>
-    manage && roleOptions.length ? (
+    can.assignMembers && roleOptions.length && (can.assignLeader || !isLeader(m)) ? (
       <SelectInput
         aria-label={`Role for ${m.name}`}
         value={String(m.role.id)}
@@ -595,11 +606,11 @@ export const LifeCenterDetailView = ({
     ) : (
       <span className="text-sm text-primary">{m.role.name}</span>
     );
-  const canRemove = (m: LifeCenterMemberType) => admin && !isLeader(m);
+  const canRemove = (m: LifeCenterMemberType) => can.remove && !isLeader(m);
   const membersHead: Head = {
     title: "Members",
     sub: "Church members serving in this center. Roles are set in Manage roles.",
-    actions: manage ? (
+    actions: can.assignMembers ? (
       <UiButton tone="primary" onClick={() => setMemberOpen(true)}>
         Add member
       </UiButton>
@@ -699,7 +710,7 @@ export const LifeCenterDetailView = ({
       .join(" · "),
     actions: (
       <>
-        {manage && <UiButton onClick={() => setEditOpen(true)}>Edit details</UiButton>}
+        {can.editCenters && <UiButton onClick={() => setEditOpen(true)}>Edit details</UiButton>}
         {canRecord && (
           <UiButton tone="primary" onClick={record}>
             Record meeting
@@ -770,7 +781,7 @@ export const LifeCenterDetailView = ({
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            {manage && (
+            {can.editCenters && (
               <UiButton className="border-white/40 bg-transparent text-white hover:bg-white/10" onClick={() => setEditOpen(true)}>
                 Edit details
               </UiButton>
@@ -795,7 +806,7 @@ export const LifeCenterDetailView = ({
         meeting={drawer}
         centerName={c.name}
         canEdit={canRecord}
-        canDelete={admin}
+        canDelete={can.remove}
         onClose={() => setDrawer(null)}
         onEdit={(g) => {
           setDrawer(null);
@@ -833,6 +844,7 @@ export const LifeCenterDetailView = ({
       />
       <LifeCenterFormDialog
         open={editOpen}
+        canAssignLeader={can.assignLeader}
         existing={{
           id: c.id,
           name: c.name,
@@ -860,12 +872,12 @@ export const LifeCenterDetailView = ({
           detailFetch.refetch();
         }}
       />
-      {manage && (
+      {can.assignMembers && (
         <MemberDialog
           open={memberOpen}
           lifeCenterId={c.id}
           existingUserIds={members.map((m) => String(m.userId))}
-          roles={roles}
+          roles={roles.filter((r) => can.assignLeader || !isLeaderRole(r.name))}
           onClose={() => setMemberOpen(false)}
           onSaved={() => {
             setMemberOpen(false);

@@ -1,4 +1,4 @@
-import { normalizePermissionPayload, resolvePermission, type PermissionMap, type ScopesMap } from "@/utils/accessControl";
+import { isDepartmentScope, normalizePermissionPayload, resolvePermission, type PermissionMap, type ScopesMap } from "@/utils/accessControl";
 import type { AccessLevelWorkspaceKey } from "@/utils/api/settings/accessLevelWorkspaceInterfaces";
 
 import type { AccessRight } from "../utils/settingsInterfaces";
@@ -89,7 +89,7 @@ export const deriveWorkspaces = (role: Pick<AccessRight, "permissions"> | null |
   if (rank("Reports") >= 3) out.push("prelate");
   if (rank("Settings") >= 2 || rank("Members") >= 2) out.push("admin");
   if (rank("Financials") >= 2) out.push("finance");
-  if (rank("Departments") >= 2 && scopes.Departments === "assigned_departments") out.push("hod");
+  if (rank("Departments") >= 2 && isDepartmentScope(scopes.Departments)) out.push("hod");
   return out.length ? out : ["generic"];
 };
 
