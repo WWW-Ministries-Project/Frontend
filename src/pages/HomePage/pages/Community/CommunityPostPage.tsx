@@ -1,3 +1,4 @@
+import { useBackNavigation } from "@/CustomHooks/useBackNavigation";
 import {
   ArrowLeftIcon,
   PaperAirplaneIcon,
@@ -71,6 +72,7 @@ const CommunityPostDetail = () => {
   const [searchParams] = useSearchParams();
   const commentParam = searchParams.get("comment");
   const navigate = useNavigate();
+  const back = useBackNavigation(relativePath.member.community);
   const { me } = useCommunityMe();
 
   const [post, setPost] = useState<CommunityPost | null>(null);
@@ -266,8 +268,8 @@ const CommunityPostDetail = () => {
       <div className="mb-4 flex items-center gap-3">
         <button
           type="button"
-          onClick={backToFeed}
-          aria-label="Back to Community"
+          onClick={back.goBack}
+          aria-label={`Back to ${back.label}`}
           className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-lightGray bg-white text-primary hover:bg-lightGray/40"
         >
           <ArrowLeftIcon className="h-5 w-5" />

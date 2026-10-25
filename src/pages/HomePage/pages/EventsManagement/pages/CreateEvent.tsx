@@ -1,3 +1,4 @@
+import { useBackNavigation } from "@/CustomHooks/useBackNavigation";
 import { useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -11,6 +12,7 @@ import { EVENTS_PATHS, monthKeyOf } from "../utils/eventsModel";
  */
 const CreateEvent = () => {
   const navigate = useNavigate();
+  const back = useBackNavigation(EVENTS_PATHS.scheduled);
   const location = useLocation();
 
   const mode = useMemo<ScheduleEditorMode>(() => {
@@ -38,7 +40,7 @@ const CreateEvent = () => {
       <ScheduleEventEditor
         frame="page"
         mode={mode}
-        onClose={() => navigate(-1)}
+        onClose={back.goBack}
         onSaved={({ date }) =>
           navigate(date ? `${EVENTS_PATHS.scheduled}?month=${monthKeyOf(date)}` : EVENTS_PATHS.scheduled)
         }

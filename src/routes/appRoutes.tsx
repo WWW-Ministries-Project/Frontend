@@ -182,6 +182,9 @@ export interface AppRoute {
   isPrivate?: boolean;
   permissionNeeded?: PermissionRequirement;
   sideTab?: boolean;
+  /** Names this page in "Back to …" links on pages opened from it. Pages
+   *  without one fall back to their nearest `sideTab` ancestor's name. */
+  backLabel?: string;
   /** A pure redirect: never a navigation entry, so it does not count when
    *  deciding whether a parent has anything the user can open. */
   redirectOnly?: boolean;
@@ -375,6 +378,7 @@ export const routes: AppRoute[] = [
           {
             path: relativePath.home.membership.departments.details,
             name: "Department Details",
+            backLabel: "Department",
             element: <DepartmentDetails />,
             isPrivate: true,
             permissionNeeded: "view_departments",
@@ -401,6 +405,7 @@ export const routes: AppRoute[] = [
         ),
         isPrivate: true,
         name: "Profile Details",
+        backLabel: "Member profile",
         permissionNeeded: "view_members",
         children: [
           {
@@ -462,6 +467,7 @@ export const routes: AppRoute[] = [
         path: "visitors/visitor/:visitorId",
         name: "Visitors",
         element: <VisitorDetails />,
+        backLabel: "Visitor",
         isPrivate: true,
         permissionNeeded: "view_visitors",
       },
@@ -507,6 +513,7 @@ export const routes: AppRoute[] = [
           {
             path: "event-schedules",
             name: "Event Schedules",
+            backLabel: "Event schedules",
             element: <EventSchedulesByEvent />,
             isPrivate: true,
             permissionNeeded: "view_events",
@@ -546,6 +553,7 @@ export const routes: AppRoute[] = [
           {
             path: "department/:key",
             name: "Department Report",
+            backLabel: "Department report",
             element: <DepartmentReportDetail />,
             isPrivate: true,
             permissionNeeded: DEPARTMENT_REPORTS_ACCESS,
@@ -561,6 +569,7 @@ export const routes: AppRoute[] = [
           {
             path: "event-reports/:id",
             name: "Event Report Details",
+            backLabel: "Event report",
             element: <EventReportDetails />,
             isPrivate: true,
             permissionNeeded: "view_events",
@@ -578,6 +587,7 @@ export const routes: AppRoute[] = [
         path: "events/events/view-event",
         element: <ViewEvent />,
         name: " View Event",
+        backLabel: "Event",
         isPrivate: true,
         permissionNeeded: "view_events",
       },
@@ -778,6 +788,7 @@ export const routes: AppRoute[] = [
             // Notification deep links: /home/requests/{base64 id}.
             path: ":id",
             name: "Requisition Details",
+            backLabel: "Requisition",
             element: <RequisitionDeepLinkPage />,
             isPrivate: true,
           },
@@ -822,6 +833,7 @@ export const routes: AppRoute[] = [
         // Kept outside the Assets menu so it doesn't show for everyone.
         path: "assets/count",
         name: "Stock check",
+        backLabel: "Stock check",
         element: <Suspense fallback={null}><AssetCountPage /></Suspense>,
         isPrivate: true,
       },
@@ -850,6 +862,7 @@ export const routes: AppRoute[] = [
             path: "create",
             name: "New weekly record",
             element: <Suspense fallback={null}><FinanceRecord /></Suspense>,
+            backLabel: "Weekly record",
             isPrivate: true,
             permissionNeeded: "manage_financials",
           },
@@ -905,6 +918,7 @@ export const routes: AppRoute[] = [
             path: "pledges/:id",
             name: "Pledge Detail",
             element: <Suspense fallback={null}><PledgeDetail /></Suspense>,
+            backLabel: "Pledge",
             isPrivate: true,
             permissionNeeded: "view_pledges",
           },
@@ -912,6 +926,7 @@ export const routes: AppRoute[] = [
             path: "pledges/:id/edit",
             name: "Edit Pledge",
             element: <Suspense fallback={null}><PledgeDetail /></Suspense>,
+            backLabel: "Pledge",
             isPrivate: true,
             permissionNeeded: "manage_pledges",
           },
@@ -919,6 +934,7 @@ export const routes: AppRoute[] = [
             path: ":id",
             name: "Weekly record",
             element: <Suspense fallback={null}><FinanceRecord /></Suspense>,
+            backLabel: "Weekly record",
             isPrivate: true,
             permissionNeeded: "view_financials",
           },
@@ -943,6 +959,7 @@ export const routes: AppRoute[] = [
             path: relativePath.home.lifeCenter.detail,
             name: "Life Center",
             element: <Suspense fallback={null}><LifeCenterDetail /></Suspense>,
+            backLabel: "Life center",
             isPrivate: true,
             permissionNeeded: "view_life_center",
           },
@@ -1036,6 +1053,7 @@ export const routes: AppRoute[] = [
       {
         path: relativePath.home.marketPlace.orderDetails,
         name: "Order Details",
+        backLabel: "Order",
         element: (
           <Suspense fallback={null}>
             <AdminOrderDetail />
@@ -1047,6 +1065,7 @@ export const routes: AppRoute[] = [
       {
         path: relativePath.home.marketPlace.details,
         name: "Market Details",
+        backLabel: "Market",
         element: (
           <Suspense fallback={null}>
             <MarketDetails />
@@ -1296,6 +1315,7 @@ export const routes: AppRoute[] = [
             path: "access-rights/:roleId",
             name: "Role",
             element: <Suspense fallback={null}><RoleDetail /></Suspense>,
+            backLabel: "Access level",
             isPrivate: true,
             permissionNeeded: "view_access_rights",
           },
@@ -1464,12 +1484,14 @@ export const routes: AppRoute[] = [
       {
         path: relativePath.member.dashboard,
         name: "member_dashboard",
+        backLabel: "Home",
         element: <DashBoardPage />,
         isPrivate: false,
       },
       {
         path: relativePath.member.profile,
         name: "member_profile",
+        backLabel: "My profile",
         element: <ProfileDetails />,
         isPrivate: false,
         children: [
@@ -1484,6 +1506,7 @@ export const routes: AppRoute[] = [
       {
         path: relativePath.member.market,
         name: "Member Market",
+        backLabel: "Marketplace",
         element: (
           <Suspense fallback={null}>
             <Market />
@@ -1526,6 +1549,7 @@ export const routes: AppRoute[] = [
           {
             path: relativePath.member.orders,
             name: "Orders",
+            backLabel: "My orders",
             element: (
               <Suspense fallback={null}>
                 <MyOrders />
@@ -1536,6 +1560,7 @@ export const routes: AppRoute[] = [
           {
             path: relativePath.member.orderDetails,
             name: "Order Details",
+            backLabel: "Order",
             element: (
               <Suspense fallback={null}>
                 <OrderDetailsPage />
@@ -1560,12 +1585,14 @@ export const routes: AppRoute[] = [
         // Sections (meetings, souls-won, members, analytics) are picked from the header's More menu.
         path: `${relativePath.member.lifeCenter}/:section?`,
         name: "member_life_center",
+        backLabel: "My life center",
         element: <MyLifeCenter />,
         isPrivate: false,
       },
       {
         path: relativePath.member.giving,
         name: "member_giving",
+        backLabel: "Giving",
         element: <MemberGiving />,
         isPrivate: false,
       },
@@ -1581,6 +1608,7 @@ export const routes: AppRoute[] = [
       {
         path: relativePath.member.pledges,
         name: "member_pledges",
+        backLabel: "Pledges",
         element: <MemberPledges />,
         isPrivate: false,
       },
@@ -1594,60 +1622,70 @@ export const routes: AppRoute[] = [
       {
         path: relativePath.member.schoolOfMinistries.main,
         name: "member_school_of_ministries",
+        backLabel: "School of Ministry",
         element: <LearnerDashboard />,
         isPrivate: false,
       },
       {
         path: relativePath.member.schoolOfMinistries.allPrograms,
         name: "member_school_of_ministries",
+        backLabel: "School of Ministry",
         element: <AllPrograms />,
         isPrivate: false,
       },
       {
         path: relativePath.member.schoolOfMinistries.myEnrolledPrograms,
         name: "member_school_of_ministries",
+        backLabel: "School of Ministry",
         element: <MyPrograms />,
         isPrivate: false,
       },
       {
         path: relativePath.member.schoolOfMinistries.assignments,
         name: "member_school_of_ministries",
+        backLabel: "School of Ministry",
         element: <LearnerAssignments />,
         isPrivate: false,
       },
       {
         path: relativePath.member.schoolOfMinistries.assignmentDetails,
         name: "member_school_of_ministries",
+        backLabel: "School of Ministry",
         element: <LearnerSubmission />,
         isPrivate: false,
       },
       {
         path: relativePath.member.schoolOfMinistries.grades,
         name: "member_school_of_ministries",
+        backLabel: "School of Ministry",
         element: <LearnerGrades />,
         isPrivate: false,
       },
       {
         path: relativePath.member.schoolOfMinistries.schedule,
         name: "member_school_of_ministries",
+        backLabel: "School of Ministry",
         element: <LearnerSchedule />,
         isPrivate: false,
       },
       {
         path: relativePath.member.schoolOfMinistries.announcements,
         name: "member_school_of_ministries",
+        backLabel: "School of Ministry",
         element: <LearnerAnnouncements />,
         isPrivate: false,
       },
       {
         path: relativePath.member.schoolOfMinistries.programDetails,
         name: "member_school_of_ministries",
+        backLabel: "School of Ministry",
         element: <EnrolledProgram />,
         isPrivate: false,
       },
       {
         path: relativePath.member.schoolOfMinistries.instructorPortal,
         name: "member_school_of_ministries",
+        backLabel: "School of Ministry",
         element: <Instructor />,
         isPrivate: false,
         children: [
@@ -1680,24 +1718,28 @@ export const routes: AppRoute[] = [
       {
         path: relativePath.member.appointments,
         name: "member_appointments",
+        backLabel: "Appointments",
         element: <MyAppointments />,
         isPrivate: false,
       },
       {
         path: relativePath.member.notifications,
         name: "member_notifications",
+        backLabel: "Notifications",
         element: <NotificationCenterPage />,
         isPrivate: false,
       },
       {
         path: relativePath.member.community,
         name: "member_community",
+        backLabel: "Community",
         element: <CommunityLayout />,
         isPrivate: false,
         children: [
           {
             path: "",
             name: "member_community",
+            backLabel: "Community",
             element: <MemberCommunityPage />,
             isPrivate: false,
           },
@@ -1705,6 +1747,7 @@ export const routes: AppRoute[] = [
             path: relativePath.member.communityPost,
             name: "member_community",
             element: <CommunityPostPage />,
+            backLabel: "Post",
             isPrivate: false,
           },
         ],
@@ -1712,30 +1755,35 @@ export const routes: AppRoute[] = [
       {
         path: relativePath.member.rides,
         name: "member_rides",
+        backLabel: "Rides",
         element: <RidesLayout />,
         isPrivate: false,
         children: [
           {
             path: "",
             name: "member_rides",
+            backLabel: "Rides",
             element: <RidesHubPage />,
             isPrivate: false,
           },
           {
             path: relativePath.member.rideOffer,
             name: "member_rides",
+            backLabel: "Rides",
             element: <RideOfferPage />,
             isPrivate: false,
           },
           {
             path: relativePath.member.rideFind,
             name: "member_rides",
+            backLabel: "Rides",
             element: <RideFindPage />,
             isPrivate: false,
           },
           {
             path: relativePath.member.myRide,
             name: "member_rides",
+            backLabel: "Rides",
             element: <MyRidePage />,
             isPrivate: false,
           },
@@ -1746,6 +1794,7 @@ export const routes: AppRoute[] = [
         // still land in the right place.
         path: "/member/announcements/*",
         name: "member_community",
+        backLabel: "Community",
         element: <Navigate to={relativePath.member.community} replace />,
         isPrivate: false,
       },

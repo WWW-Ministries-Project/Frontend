@@ -1,10 +1,10 @@
+import { useBackNavigation } from "@/CustomHooks/useBackNavigation";
 import learning from "@/assets/banner/learning.svg";
 import { ReactNode } from "react";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
-import { useNavigate } from "react-router-dom";
 
 const BannerWrapper = ({children, imgSrc, isAdmin=false}: {children: ReactNode, imgSrc?: string, isAdmin?:boolean}) => {
-  const navigate = useNavigate();
+  const back = useBackNavigation("/member/dashboard");
 
   const fullBleedClass = "w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]";
 
@@ -50,7 +50,7 @@ const BannerWrapper = ({children, imgSrc, isAdmin=false}: {children: ReactNode, 
           >
             <div className="w-full mb-4 flex justify-start">
               <button
-                onClick={() => navigate(-1)}
+                onClick={back.goBack}
                 className="flex items-center gap-2 text-sm text-white/90 hover:text-white transition"
               >
                 <ArrowLeftIcon className="h-5 w-5" />

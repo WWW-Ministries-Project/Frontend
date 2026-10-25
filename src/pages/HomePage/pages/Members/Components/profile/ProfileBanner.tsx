@@ -81,6 +81,8 @@ export interface ProfileBannerProps {
   photo?: string | null;
   pills: string[];
   onBack: () => void;
+  /** Page `onBack` returns to. */
+  backLabel: string;
   onEdit?: () => void;
   menuItems: ActionMenuItem[];
   tab: ProfileTab;
@@ -96,6 +98,7 @@ export const ProfileBanner = ({
   photo,
   pills,
   onBack,
+  backLabel,
   onEdit,
   menuItems,
   tab,
@@ -121,7 +124,7 @@ export const ProfileBanner = ({
           className="flex items-center gap-2 self-start bg-transparent p-0 text-sm text-white/90 transition-colors hover:text-white"
         >
           <ArrowLeftIcon className="h-4 w-4" aria-hidden="true" />
-          <span>Back to members</span>
+          <span>Back to {backLabel}</span>
         </button>
 
         <div className="flex flex-wrap items-center justify-between gap-4">

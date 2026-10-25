@@ -1,5 +1,6 @@
+import { useBackNavigation } from "@/CustomHooks/useBackNavigation";
 import { useMemo, useState } from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 
 import HubtelLogo from "@/assets/hubtel-logo.jpg";
 import PaystackLogo from "@/assets/Paystack-logo.png";
@@ -49,7 +50,6 @@ const ORDERS_PATH = "/home/market-place/orders";
 export const AdminOrderDetail = () => {
   const { orderId } = useParams();
   const id = decodeQuery(String(orderId || ""));
-  const navigate = useNavigate();
   const location = useLocation();
   const { canAdmin, canManage } = useAccessControl();
   const nav = (location.state || {}) as { from?: string; backLabel?: string };
@@ -67,8 +67,11 @@ export const AdminOrderDetail = () => {
   const [checking, setChecking] = useState(false);
   const [editing, setEditing] = useState(false);
 
-  const goBack = () => navigate(nav.from || ORDERS_PATH);
-  const backLabel = nav.backLabel || "Back to orders";
+  // `backLabel` from the opening page names it better than the route table
+  // (e.g. the market), but only while that page is still the one behind us.
+  const back = useBackNavigation(ORDERS_PATH);
+  const goBack = back.goBack;
+  const backLabel = (back.hasHistory && nav.backLabel) || `Back to ${back.label}`;
 
   const update = async (patch: Omit<IUpdateOrderPayload, "id">, success: string) => {
     if (!order) return;
@@ -139,7 +142,7 @@ export const AdminOrderDetail = () => {
       try {
         await api.delete.deleteOrder({ id: orderKey });
         showNotification("Order deleted", "success");
-        navigate(nav.from || ORDERS_PATH);
+        goBack();
       } catch (err) {
         showNotification(errorMessage(err, "Unable to delete order"), "error");
       }

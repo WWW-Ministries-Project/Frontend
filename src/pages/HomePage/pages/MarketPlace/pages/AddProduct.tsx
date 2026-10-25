@@ -1,3 +1,4 @@
+import { useBackNavigation } from "@/CustomHooks/useBackNavigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
@@ -26,6 +27,7 @@ interface LocationState {
 export function AddProduct() {
   const { marketId, productId } = useParams();
   const navigate = useNavigate();
+  const back = useBackNavigation("/home/market-place");
   const location = useLocation();
   const { from, fromLabel } = (location.state as LocationState | null) || {};
   const { canAdminCurrentRoute } = useRouteAccess();
@@ -222,7 +224,7 @@ export function AddProduct() {
         categories={productCategories}
         markets={markets}
         backLabel={backLabel}
-        onBack={() => goBack()}
+        onBack={back.hasHistory ? back.goBack : () => goBack()}
         onDelete={isEdit && canAdminCurrentRoute ? handleDelete : undefined}
         serverError={uploadError || apiError}
       />
