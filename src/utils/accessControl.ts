@@ -1,3 +1,5 @@
+import type { NavGroup } from "@/routes/sideNavGroups";
+
 export type PermissionValue =
   | "No_Access"
   | "Can_View"
@@ -155,7 +157,7 @@ type DomainMeta = {
   key: PermissionDomain;
   label: string;
   description: string;
-  group: "People" | "Operations" | "Engagement" | "Administration";
+  group: NavGroup;
   required: boolean;
 };
 
@@ -186,7 +188,7 @@ export const ACCESS_LEVEL_DOMAINS: DomainMeta[] = [
     key: "Appointments",
     label: "Appointments",
     description: "Bookings, availability and counseling schedules",
-    group: "People",
+    group: "Engagement",
     required: false,
   },
   {
@@ -200,7 +202,7 @@ export const ACCESS_LEVEL_DOMAINS: DomainMeta[] = [
     key: "Positions",
     label: "Positions",
     description: "Roles and role hierarchy definitions",
-    group: "People",
+    group: "Administration",
     required: true,
   },
   {
@@ -242,7 +244,7 @@ export const ACCESS_LEVEL_DOMAINS: DomainMeta[] = [
     key: "Church_Attendance",
     label: "Church Attendance",
     description: "Attendance sessions and attendance records",
-    group: "Engagement",
+    group: "People",
     required: false,
   },
   {
@@ -285,7 +287,7 @@ export const ACCESS_LEVEL_DOMAINS: DomainMeta[] = [
     key: "Life Center",
     label: "Life Center",
     description: "Life center administration and soul winning data",
-    group: "Engagement",
+    group: "People",
     required: true,
   },
   {
@@ -299,21 +301,21 @@ export const ACCESS_LEVEL_DOMAINS: DomainMeta[] = [
     key: "Financials",
     label: "Financials",
     description: "Financial setup and record management",
-    group: "Administration",
+    group: "Operations",
     required: false,
   },
   {
     key: "Giving",
     label: "Giving Options",
     description: "Giving options and the accounts their payments are routed to",
-    group: "Administration",
+    group: "Operations",
     required: false,
   },
   {
     key: "Pledges",
     label: "Pledges",
     description: "Pledge campaigns, pledgers and redemptions",
-    group: "Administration",
+    group: "Operations",
     required: false,
   },
   {
@@ -327,7 +329,7 @@ export const ACCESS_LEVEL_DOMAINS: DomainMeta[] = [
     key: "Reports",
     label: "Reports",
     description: "Executive summary and department report sign-off (admin approves and returns)",
-    group: "Administration",
+    group: "Overview",
     required: false,
   },
   {

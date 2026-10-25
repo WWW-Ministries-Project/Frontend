@@ -1,63 +1,18 @@
-import type { AppRoute } from "@/routes/appRoutes";
-import { sideTabs } from "@/routes/appRoutes";
-import { filterRoutesByAccess } from "@/routes/routeAccess";
-import { useAuth } from "@/context/AuthWrapper";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { SidebarNavList } from "./SidebarNavList";
+import { useSideNavTabs } from "./useSideNavTabs";
 
 interface IProps {
   show: boolean;
   onClick?: () => void;
 }
 
-const HOME_ROUTE_BASE = "/home";
-
-const normalizePath = (path: string) => {
-  const trimmed = path.replace(/\/+$/, "");
-  if (!trimmed) return "/";
-  return trimmed.replace(/\/{2,}/g, "/");
-};
-
-const resolveHomePath = (path: string) => {
-  if (!path) return HOME_ROUTE_BASE;
-  if (path.startsWith("/")) return normalizePath(path);
-  return normalizePath(`${HOME_ROUTE_BASE}/${path}`);
-};
-
-const isPathActive = (pathname: string, path: string) => {
-  const normalizedPathname = normalizePath(pathname);
-  const normalizedPath = normalizePath(path);
-  return (
-    normalizedPathname === normalizedPath ||
-    normalizedPathname.startsWith(`${normalizedPath}/`)
-  );
-};
-
 export const MobileSideBar = ({ show, onClick }: IProps) => {
   const location = useLocation();
-  const { user } = useAuth();
+  const { groups, activeTabNames } = useSideNavTabs();
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
   const sidebarRef = useRef<HTMLDivElement | null>(null);
-  const items: AppRoute[] = useMemo(
-    () =>
-      filterRoutesByAccess(
-        sideTabs,
-        user.access_permissions,
-        user.permissions
-      ),
-    [user.access_permissions, user.permissions]
-  );
-  const activeTabNames = useMemo(() => {
-    const names: Record<string, boolean> = {};
-
-    items.forEach((item) => {
-      const resolvedPath = resolveHomePath(item.path);
-      names[item.name] = isPathActive(location.pathname, resolvedPath);
-    });
-
-    return names;
-  }, [items, location.pathname]);
 
   useEffect(() => {
     if (!show) setOpenMenus({});
@@ -110,7 +65,7 @@ export const MobileSideBar = ({ show, onClick }: IProps) => {
         {/* navigation links */}
         <div className="sidebar-scroll flex-1 min-h-0 overflow-y-auto overflow-x-hidden touch-pan-y">
           <SidebarNavList
-            items={items}
+            groups={groups}
             show={show}
             openMenus={openMenus}
             activeTabNames={activeTabNames}

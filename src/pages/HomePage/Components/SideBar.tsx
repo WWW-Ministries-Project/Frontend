@@ -1,6 +1,7 @@
 import LogoutIcon from "@/assets/sidebar/Logout";
 import {
   type FocusEvent,
+  Fragment,
   type MouseEvent,
   useCallback,
   useEffect,
@@ -16,9 +17,11 @@ import { sidebarIcons } from "../utils";
 import { resolveHomePath } from "../utils/navPaths";
 import { useSideNavTabs } from "./useSideNavTabs";
 
-// Keep in sync with the list's `pt-8`, `h-14` items and `gap-2`.
+// Keep in sync with the list's `pt-8`, `h-14` items, `gap-2` and the
+// divider's `h-px my-1`.
 const NAV_PADDING_TOP = 32;
 const NAV_ITEM_STRIDE = 56 + 8;
+const NAV_DIVIDER_STRIDE = 1 + 4 * 2 + 8;
 
 interface IProps {
   className?: string;
@@ -55,7 +58,7 @@ const RailTooltip = ({ label, top, left }: TooltipState) =>
 export const SideBar = ({ className }: IProps) => {
   const navigate = useNavigate();
   const { logout } = useAuth();
-  const { tabs, activeTabNames } = useSideNavTabs();
+  const { groups, tabs, activeTabNames } = useSideNavTabs();
   const [showBottomFade, setShowBottomFade] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
@@ -77,15 +80,27 @@ export const SideBar = ({ className }: IProps) => {
 
   const navTabs = useMemo(
     () =>
-      tabs.flatMap((item) => {
-        const IconComponent = sidebarIcons[item.name];
-        return IconComponent ? [{ item, IconComponent }] : [];
-      }),
-    [tabs]
+      groups
+        .map((group) =>
+          group.flatMap((item) => {
+            const IconComponent = sidebarIcons[item.name];
+            return IconComponent ? [{ item, IconComponent }] : [];
+          })
+        )
+        .filter((group) => group.length > 0)
+        .flatMap((group, groupIndex) =>
+          group.map((tab, indexInGroup) => ({
+            ...tab,
+            groupIndex,
+            startsGroup: groupIndex > 0 && indexInGroup === 0,
+          }))
+        ),
+    [groups]
   );
   const activeIndex = navTabs.findIndex(
     ({ item }) => activeTabNames[item.name]
   );
+  const activeDividers = activeIndex < 0 ? 0 : navTabs[activeIndex].groupIndex;
 
   const handleLogOut = () => {
     logout();
@@ -150,41 +165,51 @@ export const SideBar = ({ className }: IProps) => {
               aria-hidden="true"
               className="sidebar-tab-indicator"
               style={{
-                top: NAV_PADDING_TOP + Math.max(activeIndex, 0) * NAV_ITEM_STRIDE,
+                top:
+                  NAV_PADDING_TOP +
+                  Math.max(activeIndex, 0) * NAV_ITEM_STRIDE +
+                  activeDividers * NAV_DIVIDER_STRIDE,
                 opacity: activeIndex < 0 ? 0 : 1,
               }}
             />
-            {navTabs.map(({ item, IconComponent }, index) => {
+            {navTabs.map(({ item, IconComponent, startsGroup }, index) => {
               const isActive = index === activeIndex;
 
               return (
-                <NavLink
-                  key={`${item.name}-${item.path}`}
-                  to={resolveHomePath(item.path)}
-                  aria-label={item.name}
-                  {...tooltipHandlers(item.name)}
-                  aria-current={isActive ? "page" : undefined}
-                  className="group relative z-[3] flex h-14 w-full items-center justify-center text-primary"
-                >
-                  <span
-                    className={`flex h-11 w-11 items-center justify-center rounded-xl transition-[background-color,transform] motion-reduce:transition-none ${
-                      isActive
-                        ? "scale-[1.06]"
-                        : "scale-100 group-hover:bg-lightGray/40"
-                    }`}
-                    style={{
-                      transitionDuration: "200ms, 300ms",
-                      transitionTimingFunction:
-                        "ease, cubic-bezier(0.34, 1.4, 0.64, 1)",
-                    }}
-                  >
-                    <IconComponent
-                      className={`h-6 w-6 text-gray-600 transition-opacity duration-200 ${
-                        isActive ? "opacity-100" : "opacity-[0.72]"
-                      }`}
+                <Fragment key={`${item.name}-${item.path}`}>
+                  {startsGroup && (
+                    <div
+                      aria-hidden="true"
+                      className="mx-3.5 my-1 h-px flex-shrink-0 bg-lightGray"
                     />
-                  </span>
-                </NavLink>
+                  )}
+                  <NavLink
+                    to={resolveHomePath(item.path)}
+                    aria-label={item.name}
+                    {...tooltipHandlers(item.name)}
+                    aria-current={isActive ? "page" : undefined}
+                    className="group relative z-[3] flex h-14 w-full items-center justify-center text-primary"
+                  >
+                    <span
+                      className={`flex h-11 w-11 items-center justify-center rounded-xl transition-[background-color,transform] motion-reduce:transition-none ${
+                        isActive
+                          ? "scale-[1.06]"
+                          : "scale-100 group-hover:bg-lightGray/40"
+                      }`}
+                      style={{
+                        transitionDuration: "200ms, 300ms",
+                        transitionTimingFunction:
+                          "ease, cubic-bezier(0.34, 1.4, 0.64, 1)",
+                      }}
+                    >
+                      <IconComponent
+                        className={`h-6 w-6 text-gray-600 transition-opacity duration-200 ${
+                          isActive ? "opacity-100" : "opacity-[0.72]"
+                        }`}
+                      />
+                    </span>
+                  </NavLink>
+                </Fragment>
               );
             })}
           </div>

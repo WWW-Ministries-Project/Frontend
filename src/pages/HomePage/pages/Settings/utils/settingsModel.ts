@@ -7,6 +7,8 @@ import {
   type ScopesMap,
 } from "@/utils/accessControl";
 
+import { NAV_GROUPS, type NavGroup } from "@/routes/sideNavGroups";
+
 import type { AccessRight } from "./settingsInterfaces";
 
 /**
@@ -15,7 +17,7 @@ import type { AccessRight } from "./settingsInterfaces";
  * draft shape the role editor works on.
  */
 
-export type ModuleGroup = "People" | "Operations" | "Engagement" | "Administration";
+export type ModuleGroup = NavGroup;
 
 export interface SettingsModule {
   key: string;
@@ -28,35 +30,40 @@ export interface SettingsModule {
   why?: string;
 }
 
+// Grouped and ordered like the icon rail (`SIDE_NAV_GROUPS`).
 export const MODULES: SettingsModule[] = [
+  { key: "Reports", label: "Reports", description: "Executive summary and department reports", group: "Overview" },
   { key: "Members", label: "Members", description: "Church family profiles and member management", group: "People", extra: "excl" },
   { key: "Membership_Management", label: "Membership management", description: "Membership pipelines, conversions and department join requests", group: "People" },
-  { key: "Visitors", label: "Visitors", description: "Visitor records, follow-up and engagement tracking", group: "People" },
-  { key: "Appointments", label: "Appointments", description: "Bookings, availability and counselling schedules", group: "People", extra: "excl" },
   { key: "Departments", label: "Departments and ministries", description: "Department and ministry structures, heads and setup", group: "People", extra: "scope" },
-  { key: "Positions", label: "Positions", description: "Roles and role hierarchy definitions", group: "People" },
-  { key: "Asset", label: "Assets", description: "Inventory, assignment and lifecycle management", group: "Operations" },
-  { key: "Requisition", label: "Requisition", description: "Staff requests and approvals", group: "Operations" },
-  { key: "Marketplace", label: "Marketplace", description: "Products, orders and market operations", group: "Operations" },
-  { key: "Program", label: "Programs", description: "Program setup and enrolment administration", group: "Engagement" },
-  { key: "School_of_ministry", label: "School of Ministry", description: "Curriculum, cohorts and learning workflows", group: "Engagement" },
+  { key: "Visitors", label: "Visitors", description: "Visitor records, follow-up and engagement tracking", group: "People" },
+  { key: "Life Center", label: "Life centers", description: "Life center administration and souls-won data", group: "People" },
+  { key: "Church_Attendance", label: "Church attendance", description: "Attendance sessions and records", group: "People", extra: "scope" },
   { key: "Events", label: "Events", description: "Event planning and participation records", group: "Engagement" },
-  { key: "Church_Attendance", label: "Church attendance", description: "Attendance sessions and records", group: "Engagement", extra: "scope" },
-  { key: "Life Center", label: "Life centers", description: "Life center administration and souls-won data", group: "Engagement" },
   { key: "Theme", label: "Theme", description: "Communication themes and annual planning content", group: "Engagement" },
   { key: "Community", label: "Community", description: "Members’ feed, church messages and moderation of reported posts", group: "Engagement", extra: "explicit", why: "Viewing reveals the real authors of anonymous posts." },
   { key: "Sermons", label: "Sermons", description: "Sermon series and video links", group: "Engagement" },
   { key: "Promotions", label: "Promotions", description: "Banners on the mobile app home screen", group: "Engagement" },
   { key: "Messaging", label: "Messaging", description: "Welcome, birthday and church-wide SMS, email and in-app messages", group: "Engagement", extra: "explicit", why: "Bulk SMS costs money." },
-  { key: "Financials", label: "Financials", description: "Financial setup and records", group: "Administration" },
-  { key: "Giving", label: "Giving options", description: "Giving options and the accounts payments go to", group: "Administration" },
-  { key: "Pledges", label: "Pledges", description: "Pledge campaigns, pledgers and redemptions", group: "Administration" },
+  { key: "Appointments", label: "Appointments", description: "Bookings, availability and counselling schedules", group: "Engagement", extra: "excl" },
+  { key: "Program", label: "Programs", description: "Program setup and enrolment administration", group: "Engagement" },
+  { key: "School_of_ministry", label: "School of Ministry", description: "Curriculum, cohorts and learning workflows", group: "Engagement" },
+  { key: "Financials", label: "Financials", description: "Financial setup and records", group: "Operations" },
+  { key: "Giving", label: "Giving options", description: "Giving options and the accounts payments go to", group: "Operations" },
+  { key: "Pledges", label: "Pledges", description: "Pledge campaigns, pledgers and redemptions", group: "Operations" },
+  { key: "Requisition", label: "Requisition", description: "Staff requests and approvals", group: "Operations" },
+  { key: "Asset", label: "Assets", description: "Inventory, assignment and lifecycle management", group: "Operations" },
+  { key: "Marketplace", label: "Marketplace", description: "Products, orders and market operations", group: "Operations" },
+  { key: "Positions", label: "Positions", description: "Roles and role hierarchy definitions", group: "Administration" },
   { key: "Access_rights", label: "Access rights", description: "Roles and who has them", group: "Administration" },
   { key: "Settings", label: "Settings", description: "Branches, positions, approvals and platform settings", group: "Administration" },
   { key: "AI", label: "AI", description: "Assistant workflows, AI credentials and usage", group: "Administration" },
 ];
 
-export const MODULE_GROUPS: ModuleGroup[] = ["People", "Operations", "Engagement", "Administration"];
+export const MODULE_GROUPS: ModuleGroup[] = NAV_GROUPS;
+
+/** Admin areas the "Team manager" start can only view. */
+const MANAGER_VIEW_ONLY = new Set(["Reports", "Financials", "Giving", "Pledges", "Access_rights", "Settings", "AI"]);
 
 export type Level = Extract<PermissionValue, "No_Access" | "Can_View" | "Can_Manage" | "Super_Admin">;
 
@@ -107,7 +114,7 @@ export const presetDraft = (start: Exclude<StartKey, "copy">): RoleDraft => {
       blank: "No_Access",
       view: "Can_View",
       admin: "Super_Admin",
-      manager: module.group === "Administration" ? "Can_View" : "Can_Manage",
+      manager: MANAGER_VIEW_ONLY.has(module.key) ? "Can_View" : "Can_Manage",
       hod: "No_Access",
     }[start] as Level;
   });
