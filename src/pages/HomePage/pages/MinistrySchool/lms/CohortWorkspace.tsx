@@ -1,5 +1,4 @@
 import { Modal } from "@/components/Modal";
-import { useRouteAccess } from "@/context/RouteAccessContext";
 import { useFetch } from "@/CustomHooks/useFetch";
 import SkeletonLoader from "@/pages/HomePage/Components/reusable/SkeletonLoader";
 import { showNotification } from "@/pages/HomePage/utils";
@@ -36,6 +35,7 @@ import {
   WorkspaceHeader,
 } from "./ui";
 import { useCohortEditors } from "./useCohortEditors";
+import { useSomAccess } from "../utils/useSomAccess";
 
 const TABS = [
   "Classes",
@@ -54,7 +54,8 @@ export const CohortWorkspace = () => {
   const cohortId = Number(id);
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
-  const { canManageCurrentRoute } = useRouteAccess();
+  const access = useSomAccess();
+  const canManageCohorts = access.can("manage_cohorts");
   const som = useSomData();
   const editors = useCohortEditors({ onChanged: som.refetch });
 
@@ -102,7 +103,7 @@ export const CohortWorkspace = () => {
           `Applications close ${fmtDate(cohort.applicationDeadline)}`,
         ]}
         actions={
-          canManageCurrentRoute && (
+          canManageCohorts && (
             <>
               <Btn variant="onDark" onClick={() => editors.editCohort(cohort)}>
                 Edit cohort
@@ -130,7 +131,7 @@ export const CohortWorkspace = () => {
                 <EmptyBlock
                   msg="No classes yet. Add a class for each delivery mode (in person, online, hybrid)."
                   action={
-                    canManageCurrentRoute && (
+                    canManageCohorts && (
                       <Btn variant="primary" size="sm" onClick={() => editors.newClass(cohort.id)}>
                         + Add class
                       </Btn>
@@ -180,13 +181,13 @@ export const CohortWorkspace = () => {
                   className: "text-right",
                   render: (k) => (
                     <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
-                      {canManageCurrentRoute && (
-                        <>
-                          <Btn size="sm" onClick={() => editors.editClass(k)}>Edit</Btn>
-                          <Btn size="sm" className="text-red-700" onClick={() => editors.deleteClass(k)}>
-                            Delete
-                          </Btn>
-                        </>
+                      {canManageCohorts && (
+                        <Btn size="sm" onClick={() => editors.editClass(k)}>Edit</Btn>
+                      )}
+                      {access.canDelete && (
+                        <Btn size="sm" className="text-red-700" onClick={() => editors.deleteClass(k)}>
+                          Delete
+                        </Btn>
                       )}
                       <Btn size="sm" variant="primary" onClick={() => navigate(somPaths.class(cohort.id, k.id))}>
                         Open
@@ -206,7 +207,7 @@ export const CohortWorkspace = () => {
             cohortId={cohort.id}
             programId={cohort.program.id}
             classes={cohort.courses}
-            canManage={canManageCurrentRoute}
+            canManage={access.can("grade")}
           />
         )}
 
@@ -215,12 +216,12 @@ export const CohortWorkspace = () => {
             cohortId={cohort.id}
             programId={cohort.program.id}
             classes={cohort.courses}
-            canManage={canManageCurrentRoute}
+            canManage={access.can("take_attendance")}
           />
         )}
 
         {tab === "Announcements" && (
-          <CohortAnnouncements cohortId={cohort.id} classes={cohort.courses} canManage={canManageCurrentRoute} />
+          <CohortAnnouncements cohortId={cohort.id} classes={cohort.courses} canManage={access.can("announce")} />
         )}
 
         {tab === "Schedule" && (
@@ -228,7 +229,7 @@ export const CohortWorkspace = () => {
             cohortId={cohort.id}
             programId={cohort.program.id}
             roster={roster}
-            canManage={canManageCurrentRoute}
+            canManage={access.can("manage_assignments")}
           />
         )}
 
@@ -236,7 +237,7 @@ export const CohortWorkspace = () => {
           <CohortAssessments
             cohortId={cohort.id}
             programId={cohort.program.id}
-            canManage={canManageCurrentRoute}
+            canManage={access.can("manage_assignments")}
           />
         )}
       </div>

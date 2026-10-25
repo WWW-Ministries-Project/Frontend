@@ -1,4 +1,5 @@
 import type { NavGroup } from "@/routes/sideNavGroups";
+import { isScopeValue, normalizeActionOverrides, type ScopeValue } from "./permissionCatalog";
 
 export type PermissionValue =
   | "No_Access"
@@ -9,7 +10,8 @@ export type AccessAction = "view" | "manage" | "admin";
 export type PermissionMap = Record<string, unknown>;
 export type LegacyPermissionMap = Record<string, boolean>;
 export type ExclusionsMap = Record<string, number[]>;
-export type ScopeMode = "assigned_departments";
+/** `assigned_departments` is what roles saved before the scope picker stored. */
+export type ScopeMode = ScopeValue | "assigned_departments";
 export type ScopesMap = Record<string, ScopeMode>;
 
 export const CANONICAL_PERMISSION_DOMAINS = [
@@ -43,6 +45,7 @@ export const CANONICAL_PERMISSION_DOMAINS = [
   "Promotions",
   "Messaging",
   "Reports",
+  "Rides",
 ] as const;
 
 export type PermissionDomain = (typeof CANONICAL_PERMISSION_DOMAINS)[number];
@@ -113,6 +116,7 @@ const DOMAIN_ALIASES: Record<PermissionDomain, string[]> = {
   Promotions: ["Promotions", "Promotion"],
   Messaging: ["Messaging"],
   Reports: ["Reports", "Report"],
+  Rides: ["Rides", "Ride to church", "Ride"],
 };
 
 // Domains added after access levels were already saved fall back to a broader
@@ -134,6 +138,9 @@ const DOMAIN_FALLBACKS: Partial<Record<PermissionDomain, PermissionDomain[]>> = 
   // were saved, so Settings administrators keep access until Reports is set.
   // Mirrors PERMISSION_KEY_ALIASES in the Backend's authorization.ts.
   Reports: ["Settings", "Access_rights"],
+  // Ride to church borrowed Membership management before it had a domain.
+  // Mirrors PERMISSION_KEY_ALIASES in the Backend's authorization.ts.
+  Rides: ["Membership_Management", "Members"],
 };
 
 /** Domains that are no longer offered in the access-level editor but may
@@ -188,7 +195,7 @@ export const ACCESS_LEVEL_DOMAINS: DomainMeta[] = [
     key: "Appointments",
     label: "Appointments",
     description: "Bookings, availability and counseling schedules",
-    group: "Engagement",
+    group: "Ministry & engagement",
     required: false,
   },
   {
@@ -223,21 +230,21 @@ export const ACCESS_LEVEL_DOMAINS: DomainMeta[] = [
     key: "Program",
     label: "Programs",
     description: "Program setup and enrollment administration",
-    group: "Engagement",
+    group: "Ministry & engagement",
     required: true,
   },
   {
     key: "School_of_ministry",
     label: "School of Ministry",
     description: "Curriculum, cohorts and learning workflows",
-    group: "Engagement",
+    group: "Ministry & engagement",
     required: false,
   },
   {
     key: "Events",
     label: "Events",
     description: "Event planning and participation records",
-    group: "Engagement",
+    group: "Ministry & engagement",
     required: true,
   },
   {
@@ -251,7 +258,7 @@ export const ACCESS_LEVEL_DOMAINS: DomainMeta[] = [
     key: "Theme",
     label: "Theme",
     description: "Communication themes and annual planning content",
-    group: "Engagement",
+    group: "Ministry & engagement",
     required: false,
   },
   {
@@ -259,28 +266,28 @@ export const ACCESS_LEVEL_DOMAINS: DomainMeta[] = [
     label: "Community",
     description:
       "Members' feed, important church messages and moderation of reported content",
-    group: "Engagement",
+    group: "Ministry & engagement",
     required: false,
   },
   {
     key: "Sermons",
     label: "Sermons",
     description: "Sermon series and video links for members",
-    group: "Engagement",
+    group: "Ministry & engagement",
     required: false,
   },
   {
     key: "Promotions",
     label: "Promotions",
     description: "Promotional banners on the mobile app home screen",
-    group: "Engagement",
+    group: "Ministry & engagement",
     required: false,
   },
   {
     key: "Messaging",
     label: "Messaging",
     description: "Welcome, birthday and church-wide SMS, email and in-app messages",
-    group: "Engagement",
+    group: "Ministry & engagement",
     required: false,
   },
   {
@@ -330,6 +337,13 @@ export const ACCESS_LEVEL_DOMAINS: DomainMeta[] = [
     label: "Reports",
     description: "Executive summary and department report sign-off (admin approves and returns)",
     group: "Overview",
+    required: false,
+  },
+  {
+    key: "Rides",
+    label: "Ride to church",
+    description: "Ride offers, safety reports, blocks and pickup points",
+    group: "People",
     required: false,
   },
   {
@@ -424,7 +438,12 @@ const VALID_ACCESS_VALUES = new Set<PermissionValue>([
   "Can_Manage",
   "Super_Admin",
 ]);
-const VALID_SCOPE_VALUES = new Set<ScopeMode>(["assigned_departments"]);
+const isScopeMode = (value: string): value is ScopeMode =>
+  value === "assigned_departments" || isScopeValue(value);
+
+/** Scopes that limit a role to the caller's departments. */
+export const isDepartmentScope = (scope: ScopeMode | null | undefined) =>
+  scope === "assigned_departments" || scope === "department" || scope === "department_member";
 
 const normalizeLookupToken = (value: string) =>
   value.trim().toLowerCase().replace(/[\s_-]+/g, "");
@@ -517,8 +536,8 @@ const normalizeScopes = (value: unknown): ScopesMap => {
         return normalized;
       }
 
-      const scope = rawScope.trim() as ScopeMode;
-      if (!VALID_SCOPE_VALUES.has(scope)) {
+      const scope = rawScope.trim();
+      if (!isScopeMode(scope)) {
         return normalized;
       }
 
@@ -549,6 +568,12 @@ export const normalizePermissionPayload = (
       if (Object.keys(scopes).length > 0) {
         normalized.Scopes = scopes;
       }
+      continue;
+    }
+
+    if (rawKey === "Actions") {
+      // Kept even when empty: a missing key marks a role saved before actions.
+      normalized.Actions = normalizeActionOverrides(rawValue);
       continue;
     }
 
@@ -650,7 +675,7 @@ export const resolveScope = (
 
   const resolvedDomain = String(resolveDomain(domain));
   const scope = scopes[resolvedDomain];
-  return scope && VALID_SCOPE_VALUES.has(scope) ? scope : null;
+  return scope && isScopeMode(scope) ? scope : null;
 };
 
 const parseLegacyRequirement = (

@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 
 import { useAuth } from "@/context/AuthWrapper";
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { notify } from "@/components/feedback";
 import { api } from "@/utils/api/apiCalls";
@@ -32,6 +33,7 @@ const STATUS_LABEL: Record<string, string> = { DRAFT: "Draft", PENDING: "In appr
 
 const RequisitionsAnalytics = () => {
   const { user } = useAuth();
+  const canExport = useAccessControl().hasAction("Requisition.export");
   const me = Number(user?.id) || 0;
   const today = todayKey();
   const year = Number(today.slice(0, 4));
@@ -209,9 +211,11 @@ const RequisitionsAnalytics = () => {
                 ...options.departmentOptions.map((o) => ({ value: String(o.value), label: o.label })),
               ]}
             />
-            <UiButton onClick={exportCsv} disabled={!a?.rows.length}>
-              Export CSV
-            </UiButton>
+            {canExport && (
+              <UiButton onClick={exportCsv} disabled={!a?.rows.length}>
+                Export CSV
+              </UiButton>
+            )}
           </>
         }
       />

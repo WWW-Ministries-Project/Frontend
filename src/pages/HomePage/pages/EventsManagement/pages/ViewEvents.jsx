@@ -1,11 +1,11 @@
 import SkeletonLoader from "@/pages/HomePage/Components/TableSkeleton";
 import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
 import { notify } from "@/components/feedback";
-import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { registeredEventAttendance as attendanceColumn } from "../utils/eventHelpers";
 import SeriesScopeModal from "../Components/SeriesScopeModal";
+import { useEventsAccess } from "../utils/useEventsAccess";
 import OnlineLinkModal from "../Components/OnlineLinkModal";
 import defaultImage1 from "/src/assets/image.svg";
 import axios from "/src/axiosInstance";
@@ -56,8 +56,8 @@ const ViewEvents = () => {
   const navigate = useNavigate();
   const id = params.get("event_id");
   const [onlineLinkModal, setOnlineLinkModal] = useState(false);
-  const { canManage } = useAccessControl();
-  const canManageEvents = canManage("Events");
+  const access = useEventsAccess();
+  const canManageLinks = access.manageOnlineLinks;
   const onlineLinks = eventdetails?.online_links || [];
 
   const handleEditClick = () => {
@@ -98,12 +98,12 @@ const ViewEvents = () => {
   }, [fetchEvent]);
 
   const tabs = useMemo(() => {
-    if (eventdetails?.requires_registration) {
+    if (eventdetails?.requires_registration && access.viewRegistrations) {
       return ["Details", "Registrations"];
     }
 
     return ["Details"];
-  }, [eventdetails?.requires_registration]);
+  }, [eventdetails?.requires_registration, access.viewRegistrations]);
 
   useEffect(() => {
     if (!tabs.includes(selectedTab)) {
@@ -147,6 +147,7 @@ const ViewEvents = () => {
           eventName={eventdetails?.event_name}
           onConfirm={handleSeriesEditConfirm}
           onCancel={() => setSeriesModal(false)}
+          allowSeries={access.manageSeries}
         />
       )}
       <OnlineLinkModal
@@ -213,11 +214,13 @@ const ViewEvents = () => {
               </div>
 
               <div className="flex flex-wrap gap-3">
-                <Button
-                  value="Edit Event"
-                  className="border border-white/20 bg-white/10 px-6 py-2 text-white"
-                  onClick={handleEditClick}
-                />
+                {access.edit && (
+                  <Button
+                    value="Edit Event"
+                    className="border border-white/20 bg-white/10 px-6 py-2 text-white"
+                    onClick={handleEditClick}
+                  />
+                )}
                 {eventdetails?.requires_registration &&
                   eventdetails?.public_registration_url && (
                     <>
@@ -314,7 +317,7 @@ const ViewEvents = () => {
                       Join links members can use to attend this event online.
                     </p>
                   </div>
-                  {onlineLinks.length > 0 && canManageEvents && (
+                  {onlineLinks.length > 0 && canManageLinks && (
                     <Button
                       value="Edit links"
                       variant="secondary"
@@ -356,7 +359,7 @@ const ViewEvents = () => {
                       </div>
                     ))}
                   </div>
-                ) : canManageEvents ? (
+                ) : canManageLinks ? (
                   <EmptyState
                     scope="section"
                     className="mx-auto w-full max-w-[20rem]"
@@ -400,7 +403,7 @@ const ViewEvents = () => {
             </div>
           )}
 
-          {selectedTab === "Registrations" && eventdetails.requires_registration && (
+          {selectedTab === "Registrations" && eventdetails.requires_registration && access.viewRegistrations && (
             <div className="space-y-6">
               <div className="grid gap-4 md:grid-cols-3">
                 <div className="rounded-2xl border border-lightGray bg-gray-50 p-4">

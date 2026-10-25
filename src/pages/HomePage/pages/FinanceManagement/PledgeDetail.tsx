@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 import { notify } from "@/components/feedback";
-import { useRouteAccess } from "@/context/RouteAccessContext";
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { api } from "@/utils/api/apiCalls";
 import type { PledgePayment, PledgerRow } from "@/utils/api/pledges/interface";
@@ -40,7 +40,13 @@ const PledgeDetail = () => {
   const navigate = useNavigate();
   const back = useBackNavigation("/home/finance/pledges");
   const today = useToday();
-  const { canManageCurrentRoute: canManage } = useRouteAccess();
+  const { hasAction } = useAccessControl();
+  const canEdit = hasAction("Pledges.edit");
+  const canDelete = hasAction("Pledges.delete");
+  const canRemind = hasAction("Pledges.send_reminders");
+  const canRecord = hasAction("Pledges.record_redemption");
+  const canCredit = hasAction("Pledges.reconcile_online");
+  const canExport = hasAction("Pledges.export");
 
   const query = useMemo(() => ({ id: String(id) }), [id]);
   const payQuery = useMemo(() => ({ pledge_id: String(id), take: 200 }), [id]);
@@ -57,12 +63,12 @@ const PledgeDetail = () => {
 
   // Arriving from "Create pledge" opens Add pledgers straight away.
   useEffect(() => {
-    if (pledge && params.get("add") === "1" && canManage) {
+    if (pledge && params.get("add") === "1" && canEdit) {
       setDialog({ kind: "add" });
       params.delete("add");
       setParams(params, { replace: true });
     }
-  }, [pledge, params, setParams, canManage]);
+  }, [pledge, params, setParams, canEdit]);
 
   const reload = async () => {
     await Promise.all([res.refetch(), payRes.refetch()]);
@@ -212,21 +218,21 @@ const PledgeDetail = () => {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <UiButton onClick={exportCsv}>Export CSV</UiButton>
-            {canManage && !s.done && withBalance.length > 0 && (
+            {canExport && <UiButton onClick={exportCsv}>Export CSV</UiButton>}
+            {canRemind && !s.done && withBalance.length > 0 && (
               <UiButton onClick={() => remindAll(summary, () => void res.refetch())}>Remind all with a balance</UiButton>
             )}
-            {canManage && (
+            {canEdit && (
               <UiButton tone="primary" onClick={() => setDialog({ kind: "add" })} disabled={!pledge.groups?.length}>
                 Add pledgers
               </UiButton>
             )}
-            {canManage && (
+            {(canEdit || canDelete) && (
               <ActionMenu
                 ariaLabel="More pledge actions"
                 items={[
-                  { label: "Edit details", onClick: () => setDialog({ kind: "edit" }) },
-                  { label: "Delete pledge", onClick: deletePledge, danger: true },
+                  ...(canEdit ? [{ label: "Edit details", onClick: () => setDialog({ kind: "edit" }) }] : []),
+                  ...(canDelete ? [{ label: "Delete pledge", onClick: deletePledge, danger: true }] : []),
                 ]}
               />
             )}
@@ -324,25 +330,29 @@ const PledgeDetail = () => {
                         </div>
                         <Bar thin percent={percent} tone={r > 0 ? "primary" : "success"} />
                       </div>
-                      {canManage && (
+                      {(canRecord || canRemind || canEdit) && (
                         <div className="flex flex-none items-center gap-2">
                           {r > 0 && (
                             <>
-                              <UiButton size="sm" tone="primary" onClick={() => setDialog({ kind: "pay", pledger: p })}>
-                                Record payment
-                              </UiButton>
-                              {p.user && (
+                              {canRecord && (
+                                <UiButton size="sm" tone="primary" onClick={() => setDialog({ kind: "pay", pledger: p })}>
+                                  Record payment
+                                </UiButton>
+                              )}
+                              {canRemind && p.user && (
                                 <UiButton size="sm" disabled={busyId === p.id} onClick={() => void remindOne(p)}>
                                   {busyId === p.id ? "Sending…" : "Remind"}
                                 </UiButton>
                               )}
                             </>
                           )}
-                          <ActionMenu
-                            ariaLabel={`More for ${pledgerName(p)}`}
-                            width={200}
-                            items={[{ label: "Remove pledger", onClick: () => removePledger(p), danger: true }]}
-                          />
+                          {canEdit && (
+                            <ActionMenu
+                              ariaLabel={`More for ${pledgerName(p)}`}
+                              width={200}
+                              items={[{ label: "Remove pledger", onClick: () => removePledger(p), danger: true }]}
+                            />
+                          )}
                         </div>
                       )}
                     </div>
@@ -388,7 +398,7 @@ const PledgeDetail = () => {
                         ? "Credited to the pledger"
                         : "Settled but not credited to the pledger"}
                   </span>
-                  {unc && canManage && (
+                  {unc && canCredit && (
                     <UiButton size="sm" tone="primary" disabled={busyId === p.id} onClick={() => void credit(p)}>
                       {busyId === p.id ? "Crediting…" : "Credit now"}
                     </UiButton>

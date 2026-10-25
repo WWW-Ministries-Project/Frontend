@@ -6,6 +6,7 @@ import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { ALL_BRANCHES, useBranchStore } from "@/store/useBranchStore";
 import { api } from "@/utils/api/apiCalls";
+import { markRequisitionDisbursed } from "@/utils/api/requisitions/requisitionActions";
 import type {
   RequisitionFormPayload,
   RequisitionOverviewDetail,
@@ -43,7 +44,7 @@ export const uploadRequisitionFile = async (file: File): Promise<string> => {
 export const useRequisitionsData = (scope: "mine" | "all") => {
   const { user } = useAuth();
   const me = Number(user?.id) || 0;
-  const { canManage } = useAccessControl();
+  const { canManage, canView, hasAction } = useAccessControl();
   const activeBranchId = useBranchStore((state) => state.activeBranchId);
   const now = useNow();
 
@@ -52,8 +53,27 @@ export const useRequisitionsData = (scope: "mine" | "all") => {
   const data = overview.data?.data;
 
   const rows = useMemo<Row[]>(() => (Array.isArray(data?.requisitions) ? data!.requisitions : []), [data]);
-  const isManager = data?.viewer.is_manager ?? canManage("Requisition");
   const isApprover = data?.viewer.is_approver ?? false;
+  // What the role allows: the server's answer when it sends one, else the
+  // same rule computed from the role here.
+  const serverCan = data?.viewer.can;
+  const can = useMemo(
+    () => ({
+      scope: serverCan?.scope ?? (canView("Requisition") ? (canManage("Requisition") ? "branch" : "own") : "own"),
+      export: serverCan?.export ?? hasAction("Requisition.export"),
+      sendReminders: serverCan?.send_reminders ?? hasAction("Requisition.send_reminders"),
+      markDisbursed: serverCan?.mark_disbursed ?? hasAction("Requisition.mark_disbursed"),
+      delete: serverCan?.delete ?? hasAction("Requisition.delete"),
+      overrideStep: serverCan?.override_step ?? hasAction("Requisition.override_step"),
+      // Raising is open to the chain's requester list; a Requisition role
+      // can only switch it off.
+      raise: !canView("Requisition") || hasAction("Requisition.raise"),
+    }),
+    [serverCan, canView, canManage, hasAction]
+  );
+  // Sees more than their own and their steps: the admin view of the list.
+  const isManageRole = data?.viewer.is_manager ?? canManage("Requisition");
+  const isManager = isManageRole || can.scope !== "own";
   const replyDays = data?.reply_days || 3;
   const lookbackDays = data?.lookback_days || 30;
 
@@ -100,6 +120,8 @@ export const useRequisitionsData = (scope: "mine" | "all") => {
     return response?.data;
   }, []);
 
+  const markDisbursed = useCallback(async (id: number) => markRequisitionDisbursed(id), []);
+
   const remove = useCallback(async (id: number) => {
     await api.delete.deleteRequest({ id });
   }, []);
@@ -118,7 +140,9 @@ export const useRequisitionsData = (scope: "mine" | "all") => {
     now,
     rows,
     isManager,
+    isManageRole,
     isApprover,
+    can,
     replyDays,
     lookbackDays,
     loading: overview.loading,
@@ -130,6 +154,7 @@ export const useRequisitionsData = (scope: "mine" | "all") => {
     approve,
     reject,
     remind,
+    markDisbursed,
     remove,
     comment,
     loadDetail,

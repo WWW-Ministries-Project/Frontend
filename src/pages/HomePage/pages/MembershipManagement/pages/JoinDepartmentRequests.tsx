@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { useFetch } from "@/CustomHooks/useFetch";
 import {
   BulkBar,
@@ -114,7 +115,13 @@ export const JoinDepartmentRequests = () => {
     [joinRequests, status, query, memberCodes]
   );
   const { visible, remaining, showMore } = useRowLimit(rows, `${status}|${query}`);
-  const selectable = status === "PENDING";
+  const { hasAction } = useAccessControl();
+  // The list holds what the API lets the caller see. Without View pipelines
+  // that is only departments they head, where they may always decide.
+  const canDecide =
+    hasAction("Membership_Management.decide_join_request") ||
+    !hasAction("Membership_Management.view_pipelines");
+  const selectable = canDecide && status === "PENDING";
 
   useEffect(() => {
     const ids = new Set(rows.map((request) => String(request.id)));
@@ -318,6 +325,9 @@ export const JoinDepartmentRequests = () => {
             loading={joinsLoading}
             renderActions={(request) =>
               request.status === "PENDING" ? (
+                !canDecide ? (
+                  <Pill tone="neutral">Pending</Pill>
+                ) : (
                 <>
                   <UiButton tone="primary" size="sm" onClick={() => setApproveIds([request.id])}>
                     Approve
@@ -326,6 +336,7 @@ export const JoinDepartmentRequests = () => {
                     Decline
                   </UiButton>
                 </>
+                )
               ) : request.status === "APPROVED" ? (
                 <Pill tone="success">Approved</Pill>
               ) : (

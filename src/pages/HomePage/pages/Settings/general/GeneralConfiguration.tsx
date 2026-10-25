@@ -4,6 +4,7 @@ import { useSearchParams } from "react-router-dom";
 import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { InlineAlert, notify } from "@/components/feedback";
 import { UnsavedBar } from "@/pages/HomePage/pages/Settings/Components/settingsUi";
+import { useIsLegacyRole } from "@/pages/HomePage/pages/Settings/utils/useIsLegacyRole";
 import { cn } from "@/utils/cn";
 
 import { ApplyAttendanceDialog } from "./dialogs/ApplyAttendanceDialog";
@@ -27,16 +28,28 @@ import { RequisitionSection } from "./sections/RequisitionSection";
 import { type AttendanceApply, useRulesDraft } from "./useRulesDraft";
 
 const GeneralConfiguration = () => {
-  const { canView, canManage, canAdmin } = useAccessControl();
+  const { canView, canManage, canAdmin, hasAction } = useAccessControl();
+  const legacy = useIsLegacyRole();
   const canEdit = canManage("Settings");
+  // Attendance timing moved to Church_Attendance.configure_timing; roles saved before actions keep Settings manage.
+  const canEditTiming = hasAction("Church_Attendance.configure_timing") || (legacy && canEdit);
+  // Org-wide rules: the API also needs these in every branch you hold a role in.
+  const canConfigure = hasAction("Settings.configure_general");
+  // Report set-up moved to Reports; roles saved before actions keep Settings manage.
+  const canConfigureReports = hasAction("Reports.configure") || (legacy && canEdit);
+  // Branches are on purpose (Settings.manage_branches); roles saved before actions keep Settings.
+  const canBranches = hasAction("Settings.manage_branches") || (legacy && canEdit);
+  const canDeleteBranches = hasAction("Settings.manage_branches") || (legacy && canAdmin("Settings"));
   // Requisition timing is guarded by the Requisition module, not Settings.
   const showRequisition = canView("Requisition");
-  const visible = (key: SectionKey) => key !== "requisition" || showRequisition;
+  const showLogs = hasAction("Settings.view_logs");
+  const visible = (key: SectionKey) =>
+    (key !== "requisition" || showRequisition) && (key !== "logs" || showLogs);
   const sectionKeys = SECTION_KEYS.filter(visible);
   const [params, setParams] = useSearchParams();
   const requested = params.get("section");
   const section: SectionKey = isSectionKey(requested) && visible(requested) ? requested : "branches";
-  const rules = useRulesDraft({ withRequisition: showRequisition });
+  const rules = useRulesDraft({ withRequisition: showRequisition, withLogs: showLogs });
   const [askApply, setAskApply] = useState(false);
 
   const pick = (next: SectionKey) =>
@@ -90,21 +103,21 @@ const GeneralConfiguration = () => {
   const sectionBody = () => {
     switch (section) {
       case "branches":
-        return <BranchesSection canEdit={canEdit} canDelete={canAdmin("Settings")} />;
+        return <BranchesSection canEdit={canBranches} canDelete={canDeleteBranches} />;
       case "positions":
-        return <PositionsSection canEdit={canManage("Positions")} canDelete={canAdmin("Positions")} />;
+        return <PositionsSection />;
       case "attendance":
-        return <AttendanceSection rules={rules} canEdit={canEdit} />;
+        return <AttendanceSection rules={rules} canEdit={canEditTiming} />;
       case "requisition":
         return <RequisitionSection rules={rules} canEdit={canManage("Requisition")} />;
       case "eligibility":
-        return <EligibilitySection rules={rules} canEdit={canEdit} />;
+        return <EligibilitySection rules={rules} canEdit={canConfigure} />;
       case "reports":
-        return <ReportsSection rules={rules} canEdit={canEdit} />;
+        return <ReportsSection rules={rules} canEdit={canConfigureReports} />;
       case "notifications":
         return <NotificationsSection />;
       case "logs":
-        return <LogsSection rules={rules} canEdit={canEdit} />;
+        return <LogsSection rules={rules} canEdit={canConfigure} />;
     }
   };
 
@@ -118,7 +131,7 @@ const GeneralConfiguration = () => {
           </p>
         </div>
 
-        {!canEdit && (
+        {!canEditTiming && !canConfigure && !canConfigureReports && !canBranches && (
           <InlineAlert tone="info">
             You can view these settings but not change them. Ask someone with Manage access to Settings.
           </InlineAlert>

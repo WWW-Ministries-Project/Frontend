@@ -17,5 +17,8 @@ export const DEPARTMENT_REPORTS_ACCESS: PermissionRequirement = [
   { domain: "Life Center", action: "view" },
 ];
 
+/** Manage / admin decisions on Reports pages come from this domain only. */
+export const REPORTS_DOMAIN_ACCESS: PermissionRequirement = { domain: "Reports", action: "view" };
+
 export const REPORTS_MENU_ACCESS: PermissionRequirement = DEPARTMENT_REPORTS_ACCESS;
 export const EXECUTIVE_SUMMARY_ACCESS: PermissionRequirement = { domain: "Reports", action: "view" };

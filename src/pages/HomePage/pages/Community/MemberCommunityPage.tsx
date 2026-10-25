@@ -400,7 +400,7 @@ const MemberCommunityFeed = () => {
                 <PostCard
                   key={post.id}
                   post={post}
-                  canManage={me.canManage}
+                  canManage={me.actions.deleteAny}
                   onChange={updatePost}
                   onRemove={() => removePost(post.id)}
                   onRestore={() => restorePost(post.id)}
@@ -446,7 +446,8 @@ const MemberCommunityFeed = () => {
           ]);
           setTotal((value) => value + 1);
         }}
-        canManage={me.canManage}
+        canPostChurchWide={me.actions.postChurchWide}
+        canPinImportant={me.actions.pinImportant}
         departments={me.departments}
         viewerName={viewerName}
         initialAudience={composerAudience}

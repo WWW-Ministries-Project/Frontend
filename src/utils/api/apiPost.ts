@@ -302,6 +302,11 @@ export class ApiCreationCalls {
     return this.postToApi<T>("user/register", payload);
   };
 
+  /** The public membership form; the API keeps only the person's own details. */
+  registerMemberPublic = <T>(payload: unknown): Promise<ApiResponse<T>> => {
+    return this.postToApi<T>("user/public-register", payload);
+  };
+
   bulkUpdateMemberStatus = (
     payload: BulkUpdateMemberStatusPayload
   ): Promise<ApiResponse<BulkUpdateMemberStatusResponse>> => {

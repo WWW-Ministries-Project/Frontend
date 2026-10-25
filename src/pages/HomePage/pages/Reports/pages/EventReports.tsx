@@ -1,8 +1,10 @@
+import { ReportsRouteAccess } from "../components/ReportsRouteAccess";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { notify } from "@/components/feedback";
 import { useAccessControl } from "@/CustomHooks/useAccessControl";
+import { useIsLegacyRole } from "@/pages/HomePage/pages/Settings/utils/useIsLegacyRole";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { api } from "@/utils";
 import type { ApiResponse } from "@/utils/interfaces";
@@ -44,8 +46,10 @@ const NO_DATA = "no attendance data yet";
 const EventReports = () => {
   const navigate = useNavigate();
   const wide = useIsWide();
-  const { canManage } = useAccessControl();
-  const canGenerate = canManage("Events");
+  const { canManage, hasAction } = useAccessControl();
+  const legacy = useIsLegacyRole();
+  // Reports.event_generate; roles saved before actions keep Events manage.
+  const canGenerate = hasAction("Reports.event_generate") || (legacy && canManage("Events"));
 
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<StatusFilter>("all");
@@ -389,4 +393,10 @@ const EventReports = () => {
   );
 };
 
-export default EventReports;
+const EventReportsPage = () => (
+  <ReportsRouteAccess>
+    <EventReports />
+  </ReportsRouteAccess>
+);
+
+export default EventReportsPage;

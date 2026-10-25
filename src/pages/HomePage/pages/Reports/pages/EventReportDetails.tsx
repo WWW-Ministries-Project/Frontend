@@ -1,3 +1,4 @@
+import { ReportsRouteAccess } from "../components/ReportsRouteAccess";
 import { useBackNavigation } from "@/CustomHooks/useBackNavigation";
 import { useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
@@ -57,6 +58,7 @@ const ACTION_LABEL: Record<string, string> = {
   APPROVED: "Approved",
   RETURNED: "Returned for changes",
   RESUBMITTED: "Resubmitted for approval",
+  STEP_APPROVED: "Approved at their step",
 };
 
 const n = (v: number | null | undefined) => Number(v || 0);
@@ -379,10 +381,14 @@ const EventReportDetails = () => {
           { key: "attendance", label: "Church attendance" },
           { key: "review", label: "Approval", count: comments.length },
         ]}
-        exportItems={[
-          { label: busy === "pdf" ? "Preparing PDF…" : "Download PDF", onClick: () => download("pdf"), disabled: Boolean(busy) },
-          { label: busy === "docx" ? "Preparing DOCX…" : "Download DOCX", onClick: () => download("docx"), disabled: Boolean(busy) },
-        ]}
+        exportItems={
+          can.can_export === false
+            ? undefined
+            : [
+                { label: busy === "pdf" ? "Preparing PDF…" : "Download PDF", onClick: () => download("pdf"), disabled: Boolean(busy) },
+                { label: busy === "docx" ? "Preparing DOCX…" : "Download DOCX", onClick: () => download("docx"), disabled: Boolean(busy) },
+              ]
+        }
         actions={
           <>
             {occurrences.length > 1 && (
@@ -596,4 +602,10 @@ const EventReportDetails = () => {
   );
 };
 
-export default EventReportDetails;
+const EventReportDetailsPage = () => (
+  <ReportsRouteAccess>
+    <EventReportDetails />
+  </ReportsRouteAccess>
+);
+
+export default EventReportDetailsPage;

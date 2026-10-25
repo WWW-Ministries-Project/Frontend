@@ -15,7 +15,7 @@ import { formatDay } from "./adminRideFormat";
 const firstName = (name: string) => name.trim().split(/\s+/)[0] ?? name;
 
 /** Member-to-member ride blocks, which the safety team can lift. */
-export const RideBlocksPanel = () => {
+export const RideBlocksPanel = ({ canLift }: { canLift: boolean }) => {
   const [blocks, setBlocks] = useState<RideBlock[]>([]);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
@@ -86,13 +86,15 @@ export const RideBlocksPanel = () => {
                   Since {formatDay(block.created_at)}
                 </span>
               </div>
-              <button
-                type="button"
-                onClick={() => lift(block)}
-                className={btnSecondary}
-              >
-                Lift block
-              </button>
+              {canLift ? (
+                <button
+                  type="button"
+                  onClick={() => lift(block)}
+                  className={btnSecondary}
+                >
+                  Lift block
+                </button>
+              ) : null}
             </li>
           ))}
           {blocks.length === 0 ? (

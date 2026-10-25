@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
 import { notify } from "@/components/feedback";
-import { useRouteAccess } from "@/context/RouteAccessContext";
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { api } from "@/utils/api/apiCalls";
 import type { GivingContribution } from "@/utils/api/finance/interface";
 import { cn } from "@/utils/cn";
@@ -51,12 +51,18 @@ const mismatch = (c: GivingContribution) =>
 const drift = (c: GivingContribution) => c.fee_actual !== null && Math.abs(c.fee_actual - c.fee) > 0;
 const atOf = (c: GivingContribution) => c.paid_at || c.createdAt;
 
+/** Without Giving.view_donor_details the API withholds who gave. */
+const giverName = (c: GivingContribution) => (c.donor_hidden ? "Giver hidden" : c.donor_name);
+
 const GivingContributions = () => {
   const [params] = useSearchParams();
   const today = useToday();
   const width = useViewportWidth();
   const wide = width >= WIDE_TABLE_MIN;
-  const { canManageCurrentRoute: canManage } = useRouteAccess();
+  const { hasAction } = useAccessControl();
+  const canReconcile = hasAction("Giving.reconcile_payment");
+  const canMessage = hasAction("Giving.message_donor");
+  const canExport = hasAction("Giving.export");
   const { options } = useGivingOptions();
 
   const initialOpt = params.get("option") ?? "";
@@ -142,7 +148,7 @@ const GivingContributions = () => {
     attention.push({
       key: `mm-${c.id}`,
       pill: { label: "Amount differs", tone: "danger" },
-      title: `${c.donor_name} · ${c.reference}`,
+      title: `${giverName(c)} · ${c.reference}`,
       text: `Expected ${money(m(charged(c)))} but Paystack collected ${money(m(c.amount_paid))}. Check the transaction before it goes into the weekly record.`,
       actions: [{ label: "View", onClick: () => setDrawer(c.id), primary: true }],
     })
@@ -153,7 +159,7 @@ const GivingContributions = () => {
       pill: { label: "Stuck", tone: "warning" },
       title: `${plural(stuck.length, "payment has", "payments have")} been pending over a day`,
       text: "Ask Paystack for the latest status so they’re marked successful or failed.",
-      actions: canManage
+      actions: canReconcile
         ? [{ label: busy ? "Checking…" : "Check status now", onClick: () => void recheck(stuck.map((c) => c.reference)), primary: true }]
         : [],
     });
@@ -235,9 +241,11 @@ const GivingContributions = () => {
           actions={
             <>
               <FilterToggleButton open={showF} count={filterCount} onClick={() => setShowF((v) => !v)} />
-              <UiButton onClick={exportCsv} disabled={!list.length}>
-                Export CSV
-              </UiButton>
+              {canExport && (
+                <UiButton onClick={exportCsv} disabled={!list.length}>
+                  Export CSV
+                </UiButton>
+              )}
             </>
           }
         />
@@ -364,7 +372,7 @@ const GivingContributions = () => {
                   key: "donor",
                   header: "Donor",
                   width: "minmax(180px,1.4fr)",
-                  render: (c) => <CellText strong main={c.donor_name} sub={c.reference} />,
+                  render: (c) => <CellText strong main={giverName(c)} sub={c.reference} />,
                 },
                 { key: "opt", header: "Giving option", width: "minmax(130px,1fr)", render: (c) => optName(c.giving_option_id, c.giving_option_name) },
                 { key: "gift", header: <span className="block text-right">Gift</span>, width: "110px", render: (c) => <span className="block text-right font-semibold tabular-nums">{money(m(c.amount))}</span> },
@@ -402,7 +410,7 @@ const GivingContributions = () => {
                   >
                     <div className="flex w-full items-start gap-3">
                       <div className="min-w-0 flex-1">
-                        <p className="font-semibold">{c.donor_name}</p>
+                        <p className="font-semibold">{giverName(c)}</p>
                         <p className="text-xs text-gray-500">
                           {fmtD(atOf(c))} · {optName(c.giving_option_id, c.giving_option_name)}
                         </p>
@@ -434,12 +442,12 @@ const GivingContributions = () => {
           onClose={() => setDrawer(null)}
           busy={busy}
           pill={mismatch(drawerRow) ? { label: "Check amount", tone: "danger" } : contribPill(drawerRow.status)}
-          title={drawerRow.donor_name}
+          title={giverName(drawerRow)}
           subtitle={`${optName(drawerRow.giving_option_id, drawerRow.giving_option_name)} · ${fmtD(atOf(drawerRow))} at ${fmtTime(atOf(drawerRow))}`}
           buttons={
-            canManage && drawerRow.status === "pending"
+            canReconcile && drawerRow.status === "pending"
               ? [{ label: busy ? "Checking…" : "Check status with Paystack", onClick: () => void recheck([drawerRow.reference]), tone: "primary" }]
-              : canManage && (drawerRow.status === "failed" || drawerRow.status === "abandoned") && drawerRow.user_id
+              : canMessage && (drawerRow.status === "failed" || drawerRow.status === "abandoned") && drawerRow.user_id
                 ? [{ label: "Send a “try again” message", onClick: () => void nudge(drawerRow), tone: "primary" }]
                 : [{ label: "Close", onClick: () => setDrawer(null) }]
           }
@@ -485,7 +493,7 @@ const GivingContributions = () => {
               </div>
             ))}
           </div>
-          {(drawerRow.status === "failed" || drawerRow.status === "abandoned") && !drawerRow.user_id && (
+          {(drawerRow.status === "failed" || drawerRow.status === "abandoned") && !drawerRow.user_id && !drawerRow.donor_hidden && (
             <p className="text-xs text-gray-500">This giver has no member account, so they can’t be messaged from here.</p>
           )}
         </SideDrawer>

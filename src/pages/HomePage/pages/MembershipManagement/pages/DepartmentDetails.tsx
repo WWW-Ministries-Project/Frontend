@@ -2,7 +2,6 @@ import { useBackNavigation } from "@/CustomHooks/useBackNavigation";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useOutletContext, useParams } from "react-router-dom";
 
-import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { useFetch } from "@/CustomHooks/useFetch";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import { AddDepartmentMemberDialog } from "@/pages/HomePage/pages/MembershipManagement/components/departments/AddDepartmentMemberDialog";
@@ -12,6 +11,7 @@ import {
   DepartmentPositionsTab,
 } from "@/pages/HomePage/pages/MembershipManagement/components/departments/DepartmentDetailTabs";
 import { DepartmentFormDialog } from "@/pages/HomePage/pages/MembershipManagement/components/departments/DepartmentFormDialog";
+import { useDepartmentAccess } from "@/pages/HomePage/pages/MembershipManagement/components/departments/useDepartmentAccess";
 import {
   clearDepartmentHead,
   setDepartmentHead,
@@ -71,10 +71,7 @@ export const DepartmentDetails = () => {
   const back = useBackNavigation(departmentsListPath);
   const { id } = useParams();
   const { refetchDepartments } = useOutletContext<MembershipOutletContext>();
-  const { canManage, getScope } = useAccessControl();
-  const canManageDepartments = canManage("Departments");
-  const isHodScopedAccess = getScope("Departments") === "assigned_departments";
-  const canSeeJoinRequests = canManage("Membership_Management") || isHodScopedAccess;
+  const access = useDepartmentAccess();
   const departments = useSettingsStore(
     (state) => state.departments
   ) as DepartmentRecord[];
@@ -147,6 +144,14 @@ export const DepartmentDetails = () => {
     { silent: true }
   );
 
+  const storeDepartment = departments.find((item) => item.id === departmentId);
+  const department: DepartmentRecord | undefined =
+    rosterResponse?.data ?? pageResponse?.data ?? storeDepartment;
+  const headId = department?.department_head_info?.id ?? department?.department_head ?? null;
+  // Membership managers decide every department's join requests; a head decides their own.
+  const canSeeJoinRequests =
+    access.canDecideAny || (access.userId !== null && headId === access.userId);
+
   const joinQuery = useMemo(
     // Any status other than PENDING/APPROVED/DECLINED returns every status.
     () => ({
@@ -167,9 +172,6 @@ export const DepartmentDetails = () => {
     { silent: true }
   );
 
-  const storeDepartment = departments.find((item) => item.id === departmentId);
-  const department: DepartmentRecord | undefined =
-    rosterResponse?.data ?? pageResponse?.data ?? storeDepartment;
   const roster = useMemo(() => rosterResponse?.data?.members ?? [], [rosterResponse]);
   const pageMembers = pageResponse?.data?.members ?? [];
   const pageTotal = pageResponse?.meta?.total ?? pageResponse?.total ?? pageMembers.length;
@@ -178,7 +180,6 @@ export const DepartmentDetails = () => {
     rosterResponse?.data?.member_count ??
     storeDepartment?.member_count ??
     (appliedSearch ? roster.length : pageTotal);
-  const headId = department?.department_head_info?.id ?? department?.department_head ?? null;
 
   const positions = useMemo(() => {
     const fromDepartment = storeDepartment?.position ?? [];
@@ -236,7 +237,7 @@ export const DepartmentDetails = () => {
       return;
     }
     try {
-      if (member.id === headId) await clearDepartmentHead(department);
+      if (member.id === headId && access.canAssignHead) await clearDepartmentHead(department);
       showNotification(`${member.name} removed from ${department.name}`, "success");
     } catch (error) {
       showNotification(
@@ -322,22 +323,26 @@ export const DepartmentDetails = () => {
             </p>
             {department && <p className="text-sm text-white/85">{meta}</p>}
           </div>
-          {canManageDepartments && department && (
+          {(access.canEdit || access.canManageMembers) && department && (
             <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => setEditOpen(true)}
-                className="min-h-10 rounded-lg border border-white/40 bg-transparent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10"
-              >
-                Edit department
-              </button>
-              <button
-                type="button"
-                onClick={() => setAddOpen(true)}
-                className="min-h-10 rounded-lg bg-white px-5 py-2 text-sm font-medium text-primary transition-colors hover:bg-gray-100"
-              >
-                Add member
-              </button>
+              {access.canEdit && (
+                <button
+                  type="button"
+                  onClick={() => setEditOpen(true)}
+                  className="min-h-10 rounded-lg border border-white/40 bg-transparent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10"
+                >
+                  Edit department
+                </button>
+              )}
+              {access.canManageMembers && (
+                <button
+                  type="button"
+                  onClick={() => setAddOpen(true)}
+                  className="min-h-10 rounded-lg bg-white px-5 py-2 text-sm font-medium text-primary transition-colors hover:bg-gray-100"
+                >
+                  Add member
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -362,7 +367,8 @@ export const DepartmentDetails = () => {
             page={page}
             totalPages={totalPages}
             onPageChange={setPage}
-            canManage={canManageDepartments}
+            canMakeHead={access.canAssignHead}
+            canRemove={access.canManageMembers}
             onOpenMember={(member) => openMember(member.id)}
             onMakeHead={(member) => void makeHead(member)}
             onRemove={(member) => void removeMember(member)}
@@ -406,6 +412,7 @@ export const DepartmentDetails = () => {
             departmentName={department.name}
             positions={positions}
             memberIdsInDepartment={rosterIds}
+            canAssignPosition={access.canAssignPositions}
             onClose={() => setAddOpen(false)}
             onAdded={() => {
               setAddOpen(false);

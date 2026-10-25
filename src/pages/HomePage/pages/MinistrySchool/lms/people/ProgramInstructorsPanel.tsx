@@ -12,7 +12,13 @@ import { runAction } from "../runAction";
 import { somPaths } from "../somUtils";
 import { Avatar, Btn, EmptyBlock, LoadError, Panel, Pill } from "../ui";
 
-type Props = { programId: number; canManage: boolean };
+type Props = {
+  programId: number;
+  /** School_of_ministry.manage_instructors: change the roster. */
+  canManage: boolean;
+  /** Read the roster (defaults to canManage). */
+  canView?: boolean;
+};
 type AbilityKey = keyof InstructorAbilities;
 
 const ABILITIES: { key: AbilityKey; label: string }[] = [
@@ -31,11 +37,11 @@ const DEFAULT_ABILITIES: InstructorAbilities = {
 
 const MAX_RESULTS = 60;
 
-export const ProgramInstructorsPanel = ({ programId, canManage }: Props) => {
+export const ProgramInstructorsPanel = ({ programId, canManage, canView = canManage }: Props) => {
   const { data, loading, error, refetch } = useFetch(
     api.fetch.fetchProgramInstructors,
     { programId: String(programId) },
-    !canManage
+    !canView
   );
   const [adding, setAdding] = useState(false);
   const [busy, setBusy] = useState<number | null>(null);
@@ -45,7 +51,7 @@ export const ProgramInstructorsPanel = ({ programId, canManage }: Props) => {
     [data]
   );
 
-  if (!canManage) {
+  if (!canView) {
     return (
       <EmptyBlock msg="The instructor roster is managed by School of Ministry managers. Class instructors are shown on each class in the Cohorts tab." />
     );
@@ -95,9 +101,11 @@ export const ProgramInstructorsPanel = ({ programId, canManage }: Props) => {
       <Panel
         title="Instructors teaching this program"
         action={
-          <Btn size="sm" variant="primary" onClick={() => setAdding(true)}>
-            + Add instructors
-          </Btn>
+          canManage && (
+            <Btn size="sm" variant="primary" onClick={() => setAdding(true)}>
+              + Add instructors
+            </Btn>
+          )
         }
       >
         <p className="border-b border-gray-100 px-4 py-2.5 text-sm text-primaryGray">
@@ -139,7 +147,7 @@ export const ProgramInstructorsPanel = ({ programId, canManage }: Props) => {
                       )}
                     </div>
                   </div>
-                  <fieldset className="flex flex-col gap-1 text-sm" disabled={disabled || !row.onRoster}>
+                  <fieldset className="flex flex-col gap-1 text-sm" disabled={disabled || !row.onRoster || !canManage}>
                     <legend className="sr-only">Abilities for {row.name}</legend>
                     {ABILITIES.map((a) => (
                       <label
@@ -157,7 +165,7 @@ export const ProgramInstructorsPanel = ({ programId, canManage }: Props) => {
                     ))}
                   </fieldset>
                   <div className="flex gap-2 laptop:justify-end">
-                    {row.onRoster ? (
+                    {!canManage ? null : row.onRoster ? (
                       <Btn size="sm" disabled={disabled} onClick={() => remove(row)}>
                         Remove
                       </Btn>
@@ -173,7 +181,7 @@ export const ProgramInstructorsPanel = ({ programId, canManage }: Props) => {
           </ul>
         )}
         <p className="border-t border-gray-100 px-4 py-2.5 text-xs text-mainGray">
-          Instructors can only grade, take attendance and message in programs they teach or are on the roster of.
+          Instructors work only in programs they teach or are on the roster of, and only with the abilities ticked here.
         </p>
       </Panel>
 

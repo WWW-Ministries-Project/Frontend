@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 
 import { BranchSelectField } from "@/components/BranchSelectField";
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { notify } from "@/components/feedback";
 import { useStore } from "@/store/useStore";
 import { api } from "@/utils/api/apiCalls";
@@ -52,6 +53,9 @@ export const PledgeFormDialog = ({
   onSaved: (id: number) => void;
 }) => {
   const editing = Boolean(pledge);
+  const { hasAction } = useAccessControl();
+  // Changing who calls an existing pledge's pledgers is Pledges.manage_callers.
+  const callersLocked = editing && !hasAction("Pledges.manage_callers");
   const eventsOptions = useStore((s) => s.eventsOptions);
   const { options: memberOptions } = useMemberNames();
   const banks = useBanks();
@@ -189,50 +193,54 @@ export const PledgeFormDialog = ({
                 <span key={`${c.user_id ?? c.name}-${i}`} className="inline-flex min-h-9 items-center gap-2 rounded-full border border-primary bg-primary px-3 text-sm text-white">
                   {c.name}
                   {!c.user_id && <span className="text-xs text-white/70">guest</span>}
-                  <button
-                    type="button"
-                    aria-label={`Remove ${c.name}`}
-                    onClick={() => setCallers(callers.filter((_, j) => j !== i))}
-                    className="text-base leading-none text-white/80 hover:text-white"
-                  >
-                    ×
-                  </button>
+                  {!callersLocked && (
+                    <button
+                      type="button"
+                      aria-label={`Remove ${c.name}`}
+                      onClick={() => setCallers(callers.filter((_, j) => j !== i))}
+                      className="text-base leading-none text-white/80 hover:text-white"
+                    >
+                      ×
+                    </button>
+                  )}
                 </span>
               ))}
               {!callers.length && <Hint tone={tried ? "danger" : "muted"}>No one yet.</Hint>}
             </div>
-            <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,220px),1fr))] gap-2">
-              <MemberPicker
-                options={memberOptions}
-                value={null}
-                exclude={callers.filter((c) => c.user_id).map((c) => String(c.user_id))}
-                onChange={(v) => v && setCallers([...callers, { user_id: Number(v.id), name: v.name }])}
-                placeholder="Add a member"
-              />
-              <div className="flex gap-2">
-                <TextInput
-                  value={guestCaller}
-                  placeholder="Or a guest’s name"
-                  onChange={(e) => setGuestCaller(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && guestCaller.trim()) {
-                      e.preventDefault();
+            {!callersLocked && (
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,220px),1fr))] gap-2">
+                <MemberPicker
+                  options={memberOptions}
+                  value={null}
+                  exclude={callers.filter((c) => c.user_id).map((c) => String(c.user_id))}
+                  onChange={(v) => v && setCallers([...callers, { user_id: Number(v.id), name: v.name }])}
+                  placeholder="Add a member"
+                />
+                <div className="flex gap-2">
+                  <TextInput
+                    value={guestCaller}
+                    placeholder="Or a guest’s name"
+                    onChange={(e) => setGuestCaller(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && guestCaller.trim()) {
+                        e.preventDefault();
+                        setCallers([...callers, { name: guestCaller.trim() }]);
+                        setGuestCaller("");
+                      }
+                    }}
+                  />
+                  <UiButton
+                    disabled={!guestCaller.trim()}
+                    onClick={() => {
                       setCallers([...callers, { name: guestCaller.trim() }]);
                       setGuestCaller("");
-                    }
-                  }}
-                />
-                <UiButton
-                  disabled={!guestCaller.trim()}
-                  onClick={() => {
-                    setCallers([...callers, { name: guestCaller.trim() }]);
-                    setGuestCaller("");
-                  }}
-                >
-                  Add
-                </UiButton>
+                    }}
+                  >
+                    Add
+                  </UiButton>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </FullRow>
 

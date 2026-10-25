@@ -107,6 +107,9 @@ export const waitStart = (row: Row) => pendingStep(row)?.started_at ?? row.submi
 
 export const waitDays = (row: Row, now: Date) => (row.status === "PENDING" ? daysBetween(waitStart(row), now) : 0);
 
+/** Approved and then marked paid out / handed over (status stays APPROVED). */
+export const isDisbursed = (row: Row) => row.raw_status === "DISBURSED" || !!row.disbursed;
+
 export const canAct = (row: Row, me: number) => row.status === "PENDING" && pendingStep(row)?.approver.id === me;
 
 /** A step later in the chain belongs to me and the requisition hasn't reached me yet. */
@@ -140,7 +143,7 @@ export const waitColor = (days: number, reply: number) =>
 
 export const pillOf = (row: Row, me: number, now: Date, reply: number): { label: string; tone: PillTone } => {
   if (row.status === "DRAFT") return { label: "Draft", tone: "neutral" };
-  if (row.status === "APPROVED") return { label: "Approved", tone: "success" };
+  if (row.status === "APPROVED") return { label: isDisbursed(row) ? "Disbursed" : "Approved", tone: "success" };
   if (row.status === "REJECTED") return { label: "Rejected", tone: "danger" };
   const over = waitDays(row, now) > reply;
   if (canAct(row, me)) return { label: "Waiting for you", tone: over ? "danger" : "info" };
@@ -151,6 +154,10 @@ export const pillOf = (row: Row, me: number, now: Date, reply: number): { label:
 export const subOf = (row: Row, me: number, now: Date, reply: number): { text: string; className: string } => {
   const muted = "text-gray-500";
   if (row.status === "DRAFT") return { text: "Not submitted yet", className: muted };
+  if (row.status === "APPROVED" && isDisbursed(row)) {
+    const by = row.disbursed?.by?.name ? ` by ${row.disbursed.by.name}` : "";
+    return { text: `Disbursed ${fmtD(row.disbursed?.at ?? row.decided_at)}${by}`, className: muted };
+  }
   if (row.status === "APPROVED") {
     const took = row.submitted_at && row.decided_at ? ` · took ${dur(daysBetween(row.submitted_at, row.decided_at))}` : "";
     return { text: `Approved ${fmtD(row.decided_at)}${took}`, className: muted };

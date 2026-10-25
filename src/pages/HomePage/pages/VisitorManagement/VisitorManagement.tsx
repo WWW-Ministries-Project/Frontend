@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import { notify } from "@/components/feedback";
 import {
@@ -19,6 +18,7 @@ import {
 import { matchesQuery } from "@/pages/HomePage/pages/MembershipManagement/components/manager/managerHelpers";
 import { relativePath } from "@/utils/const";
 import { exportVisitorsToExcel } from "@/utils/api/visitors/visitorActions";
+import { useVisitorAccess } from "@/pages/HomePage/pages/VisitorManagement/utils/useVisitorAccess";
 import type { QueryType } from "@/utils/interfaces";
 
 import { useVisitorDialogs } from "./Components/useVisitorDialogs";
@@ -56,8 +56,7 @@ const monthLabel = (key: string) =>
 
 export function VisitorManagement() {
   const navigate = useNavigate();
-  const { canManage } = useAccessControl();
-  const canManageVisitors = canManage("Visitors");
+  const access = useVisitorAccess();
 
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState<StageTab>("all");
@@ -176,22 +175,22 @@ export function VisitorManagement() {
     const visitor = record.visitor;
     return [
       { label: "View profile", onClick: () => navigate(visitorDetailsPath(record.id)) },
-      { label: "Edit visitor", onClick: () => dialogs.edit(visitor), hidden: !canManageVisitors },
+      { label: "Edit visitor", onClick: () => dialogs.edit(visitor), hidden: !access.canEdit(visitor) },
       {
         label: "Record follow-up",
         onClick: () => dialogs.recordFollowUp(visitor),
-        hidden: !canManageVisitors,
+        hidden: !access.can("record_follow_up", visitor),
       },
       {
         label: "Convert to member",
         onClick: () => dialogs.convert(visitor),
-        hidden: !canManageVisitors || record.stage === "member",
+        hidden: !access.canConvert || record.stage === "member",
       },
       {
         label: "Delete visitor",
         onClick: () => dialogs.remove(visitor),
         danger: true,
-        hidden: !canManageVisitors,
+        hidden: !access.canDelete,
       },
     ];
   };
@@ -211,10 +210,12 @@ export function VisitorManagement() {
                 count={filterCount}
                 onClick={() => setShowFilters((open) => !open)}
               />
-              <UiButton onClick={() => void exportList()} disabled={list.length === 0}>
-                Export to Excel
-              </UiButton>
-              {canManageVisitors && (
+              {access.canExport && (
+                <UiButton onClick={() => void exportList()} disabled={list.length === 0}>
+                  Export to Excel
+                </UiButton>
+              )}
+              {access.canRegister && (
                 <UiButton tone="primary" onClick={dialogs.register}>
                   Register visitor
                 </UiButton>
@@ -310,7 +311,7 @@ export function VisitorManagement() {
               title="No visitors yet"
               text="Visitor records will appear here after a visitor is registered."
               action={
-                canManageVisitors ? (
+                access.canRegister ? (
                   <UiButton tone="primary" onClick={dialogs.register}>
                     Register visitor
                   </UiButton>

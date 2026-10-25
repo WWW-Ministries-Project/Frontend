@@ -6,6 +6,7 @@ import { api, formatDatefull } from "@/utils";
 import { useNavigate } from "react-router-dom";
 import { usePut } from "@/CustomHooks/usePut";
 import { showNotification } from "@/pages/HomePage/utils";
+import { useSomAccess } from "@/pages/HomePage/pages/MinistrySchool/utils/useSomAccess";
 
 interface Submission {
      id: string;
@@ -36,6 +37,7 @@ const AssignmentManager = ({ cohortId, assignments, setSelectedAssignment: _setS
     const [selectedAssignment, setLocalSelectedAssignment] = React.useState<AssignmentTopic | null>(null);
     const [dueDate, setDueDate] = React.useState("");
     const [isDeactivateModalOpen, setIsDeactivateModalOpen] = React.useState(false);
+    const canManageAssignments = useSomAccess().can("manage_assignments");
 
     const {
         updateData: activateAssignment,
@@ -122,21 +124,23 @@ const AssignmentManager = ({ cohortId, assignments, setSelectedAssignment: _setS
                                     <div className="flex shrink-0 flex-wrap items-center gap-3">
                                       {topic.isActive ? (
                                         <>
-                                          <Button
-                                            variant="secondary"
-                                            value="Deactivate"
-                                            onClick={() => {
-                                              setLocalSelectedAssignment(topic);
-                                              setIsDeactivateModalOpen(true);
-                                            }}
-                                          />
+                                          {canManageAssignments && (
+                                            <Button
+                                              variant="secondary"
+                                              value="Deactivate"
+                                              onClick={() => {
+                                                setLocalSelectedAssignment(topic);
+                                                setIsDeactivateModalOpen(true);
+                                              }}
+                                            />
+                                          )}
                                           <Button
                                             variant="primary"
                                             value="Grade"
                                             onClick={() => navigate(`grades/${topic.topicId}`)}
                                           />
                                         </>
-                                      ) : (
+                                      ) : canManageAssignments ? (
                                         <Button
                                           variant="primary"
                                           value="Activate"
@@ -146,7 +150,7 @@ const AssignmentManager = ({ cohortId, assignments, setSelectedAssignment: _setS
                                             setIsModalOpen(true);
                                           }}
                                         />
-                                      )}
+                                      ) : null}
                                     </div>
                                   </div>
                                 ))

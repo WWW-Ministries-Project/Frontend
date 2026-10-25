@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import { BranchSelectField } from "@/components/BranchSelectField";
 import { notify } from "@/components/feedback";
-import { useRouteAccess } from "@/context/RouteAccessContext";
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { api } from "@/utils/api/apiCalls";
 import type { GivingOption, GivingOptionPayload } from "@/utils/api/finance/interface";
 import { relativePath } from "@/utils/const";
@@ -25,12 +25,18 @@ interface OptDraft {
   name: string;
   description: string;
   account: AccountDraft;
+  /** The account number as loaded (masked without Giving.view_full_account_number). */
+  loadedNumber: string;
+  loadedBankName: string;
 }
 
 const GivingOptions = () => {
   const navigate = useNavigate();
   const today = useToday();
-  const { canManageCurrentRoute: canManage } = useRouteAccess();
+  const { hasAction } = useAccessControl();
+  const canManage = hasAction("Giving.manage_options");
+  const canArchive = hasAction("Giving.archive");
+  const canSettlement = hasAction("Giving.manage_settlement_account");
   const { options, loading, error, reload } = useGivingOptions();
   const contribs = useContributions({});
   const banks = useBanks();
@@ -84,14 +90,25 @@ const GivingOptions = () => {
               verified: true,
               manual: false,
             },
+            loadedNumber: o.account_number ?? "",
+            loadedBankName: o.bank_name ?? "",
           }
-        : { id: null, name: "", description: "", account: EMPTY_ACCOUNT }
+        : { id: null, name: "", description: "", account: EMPTY_ACCOUNT, loadedNumber: "", loadedBankName: "" }
     );
   };
 
+  // Editing an existing account: kept as is when the role can't change it, and
+  // the masked number is accepted back unchanged.
+  const accountLocked = (x: OptDraft) => Boolean(x.id) && !canSettlement;
+  const numberUnchanged = (x: OptDraft) => Boolean(x.id) && x.account.account_number === x.loadedNumber;
+
   const draftErrors = (x: OptDraft) => [
     ...(!x.name.trim() ? ["Give the option a name members will recognise."] : []),
-    ...accountErrors(x.account),
+    ...(accountLocked(x)
+      ? []
+      : accountErrors(x.account).filter(
+          (e) => !(numberUnchanged(x) && (e.startsWith("Enter a 10") || e.startsWith("Enter the 10")))
+        )),
     ...(!x.id && allBranches && !branchId ? ["Choose the branch this option belongs to."] : []),
   ];
 
@@ -107,9 +124,10 @@ const GivingOptions = () => {
       ...(draft.description.trim() ? { description: draft.description.trim() } : {}),
       account_type: draft.account.account_type,
       settlement_bank: draft.account.settlement_bank,
-      bank_name: bank?.name ?? draft.account.settlement_bank,
-      account_number: draft.account.account_number.replace(/\s/g, ""),
-      account_name: draft.account.account_name.trim(),
+      // A locked account is sent back exactly as loaded.
+      bank_name: accountLocked(draft) ? draft.loadedBankName : bank?.name ?? draft.account.settlement_bank,
+      account_number: accountLocked(draft) ? draft.loadedNumber : draft.account.account_number.replace(/\s/g, ""),
+      account_name: accountLocked(draft) ? draft.account.account_name : draft.account.account_name.trim(),
       currency: "GHS",
       ...(!draft.id && branchId ? { branch_id: Number(branchId) } : {}),
     };
@@ -277,7 +295,7 @@ const GivingOptions = () => {
                       Copy link
                     </UiButton>
                   )}
-                  {canManage && (
+                  {(paused ? canManage : canArchive) && (
                     <UiButton className="flex-auto" tone={paused ? "secondary" : "danger"} onClick={() => toggle(o)}>
                       {paused ? "Resume" : "Pause"}
                     </UiButton>
@@ -332,12 +350,25 @@ const GivingOptions = () => {
             <FullRow>
               <p className="border-t border-gray-200 pt-2 text-base font-semibold text-primary">Settlement account</p>
             </FullRow>
-            <SettlementAccountFields
-              value={draft.account}
-              onChange={(account) => setDraft({ ...draft, account })}
-              tried={tried}
-              banks={banks}
-            />
+            {accountLocked(draft) ? (
+              <FullRow>
+                <div className="flex flex-col gap-0.5 rounded-lg bg-inputBackground p-3 text-sm">
+                  <p className="font-semibold">
+                    {draft.loadedBankName || draft.account.settlement_bank} ·{" "}
+                    {draft.account.account_number}
+                  </p>
+                  <p className="text-gray-600">{draft.account.account_name}</p>
+                  <p className="text-xs text-gray-500">Only someone who manages settlement accounts can change this.</p>
+                </div>
+              </FullRow>
+            ) : (
+              <SettlementAccountFields
+                value={draft.account}
+                onChange={(account) => setDraft({ ...draft, account })}
+                tried={tried}
+                banks={banks}
+              />
+            )}
           </FieldGrid>
         </CommDialog>
       )}

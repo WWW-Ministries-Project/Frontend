@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 
 import { InlineAlert, type InlineAlertTone, describeError, notify } from "@/components/feedback";
-import { useUserStore } from "@/store/userStore";
 
 import type { CommDialogButton } from "../../ChurchCommunication/ui/commUi";
 import { Field, SelectInput } from "../../MembershipManagement/components/membershipUi";
@@ -46,19 +45,22 @@ export const AppointmentDrawer = ({
   onClose: () => void;
   onDialog: (kind: DrawerDialog) => void;
 }) => {
-  const myId = useUserStore((state) => state.id);
   const [reassigning, setReassigning] = useState(startReassigning);
   const [reTo, setReTo] = useState("");
   const [busy, setBusy] = useState(false);
 
-  const { isAdmin, now, settings } = data;
+  const { access, now, settings } = data;
   const sla = settings.replyDeadlineHours;
   const person = data.personOf(booking);
   const slot = slotOf(booking);
   const away = booking.status === "PENDING" ? awayOn(person, booking.date) : undefined;
   const overdue = isOverdue(booking, sla, now);
   const outcomeDue = needsOutcome(booking, now);
-  const canAct = isAdmin || (!!myId && String(myId) === booking.attendeeId);
+  // The person booked acts on their own booking; anyone else needs the
+  // action on a booking whose attendee isn't hidden from their role.
+  const may = (action: Parameters<typeof access.onBooking>[0]) => access.onBooking(action, booking.attendeeId);
+  const canRemind = access.forOthers("send_reminders", booking.attendeeId);
+  const canReassign = access.forOthers("reassign", booking.attendeeId);
 
   const alert: { tone: InlineAlertTone; text: string } | null = away
     ? { tone: "warning", text: `${person.name} is on leave until ${fmtD(away.to)}. Reassign this request so ${firstName(booking.requester)} isn’t left waiting.` }
@@ -92,7 +94,7 @@ export const AppointmentDrawer = ({
   const reassignOptions = useMemo(
     () =>
       data.staff
-        .filter((s) => s.id !== booking.attendeeId && !s.paused && !awayOn(s, booking.date))
+        .filter((s) => s.id !== booking.attendeeId && !s.paused && !awayOn(s, booking.date) && !access.hidden(s.id))
         .map((s) => {
           const next = freeSlots({ staff: s, bookings: data.bookings, settings, now, limit: 1 })[0];
           return {
@@ -100,7 +102,7 @@ export const AppointmentDrawer = ({
             label: `${s.name}${s.role ? ` · ${s.role}` : ""} · next free ${next ? fmtD(next.date) : "none"}`,
           };
         }),
-    [data.staff, data.bookings, booking.attendeeId, booking.date, settings, now]
+    [data.staff, data.bookings, booking.attendeeId, booking.date, settings, now, access]
   );
 
   const run = async (work: () => Promise<void>) => {
@@ -171,33 +173,31 @@ export const AppointmentDrawer = ({
       { label: "Back", onClick: () => setReassigning(false) },
       { label: "Reassign", onClick: reassign, tone: "primary", disabled: !reTo },
     ];
-  } else if (booking.status === "PENDING" && canAct) {
+  } else if (booking.status === "PENDING" && may("respond")) {
     buttons = [
-      ...(isAdmin
-        ? [
-            { label: "Remind", onClick: remind, tone: "ghost" as const },
-            { label: "Reassign", onClick: () => setReassigning(true) },
-          ]
-        : []),
+      ...(canRemind ? [{ label: "Remind", onClick: remind, tone: "ghost" as const }] : []),
+      ...(canReassign ? [{ label: "Reassign", onClick: () => setReassigning(true) }] : []),
       { label: "Decline", onClick: () => onDialog("decline"), tone: "danger" },
       { label: "Suggest time", onClick: () => onDialog("suggest") },
       { label: "Accept", onClick: accept, tone: "primary" },
     ];
-  } else if (booking.status === "RESCHEDULED" && isAdmin) {
+  } else if (booking.status === "RESCHEDULED" && (canReassign || access.forOthers("respond", booking.attendeeId))) {
     buttons = [
-      { label: "Reassign", onClick: () => setReassigning(true) },
-      { label: "Cancel", onClick: () => onDialog("cancel"), tone: "danger" },
-      { label: `Confirm for ${firstName(booking.requester)}`, onClick: confirmProposal, tone: "primary" },
+      ...(canReassign ? [{ label: "Reassign", onClick: () => setReassigning(true) }] : []),
+      ...(may("cancel_any") ? [{ label: "Cancel", onClick: () => onDialog("cancel"), tone: "danger" as const }] : []),
+      ...(access.forOthers("respond", booking.attendeeId)
+        ? [{ label: `Confirm for ${firstName(booking.requester)}`, onClick: confirmProposal, tone: "primary" as const }]
+        : []),
     ];
-  } else if (outcomeDue && canAct) {
+  } else if (outcomeDue && may("complete")) {
     buttons = [
       { label: "No-show", onClick: () => outcome("no_show") },
       { label: "Completed", onClick: () => outcome("complete"), tone: "primary" },
     ];
-  } else if (booking.status === "CONFIRMED" && canAct) {
+  } else if (booking.status === "CONFIRMED" && (may("cancel_any") || may("respond"))) {
     buttons = [
-      { label: "Cancel appointment", onClick: () => onDialog("cancel"), tone: "danger" },
-      { label: "Move to another time", onClick: () => onDialog("suggest") },
+      ...(may("cancel_any") ? [{ label: "Cancel appointment", onClick: () => onDialog("cancel"), tone: "danger" as const }] : []),
+      ...(may("respond") ? [{ label: "Move to another time", onClick: () => onDialog("suggest") }] : []),
     ];
   }
 

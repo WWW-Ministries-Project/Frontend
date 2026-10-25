@@ -74,8 +74,11 @@ const PlayIcon = () => (
 );
 
 const SermonManager = () => {
-  const { hasPermission } = useAccessControl();
-  const canManage = hasPermission("manage_sermons");
+  const { hasAction } = useAccessControl();
+  const canManage = hasAction("Sermons.create");
+  const canPublish = hasAction("Sermons.publish");
+  const canManageSeries = hasAction("Sermons.manage_series");
+  const canDelete = hasAction("Sermons.delete");
 
   const sermonsQuery = useFetch(api.fetch.fetchSermons, { take: 100 });
   const seriesQuery = useFetch(api.fetch.fetchSermonSeries, { take: 100 });
@@ -303,12 +306,14 @@ const SermonManager = () => {
         title="Sermons"
         subtitle="YouTube sermons members watch in the app, grouped into series."
         actions={
-          canManage ? (
+          canManage || canManageSeries ? (
             <>
-              <UiButton onClick={() => openSeries(null)}>New series</UiButton>
-              <UiButton tone="primary" onClick={() => openSermon(null)}>
-                Add sermon
-              </UiButton>
+              {canManageSeries && <UiButton onClick={() => openSeries(null)}>New series</UiButton>}
+              {canManage && (
+                <UiButton tone="primary" onClick={() => openSermon(null)}>
+                  Add sermon
+                </UiButton>
+              )}
             </>
           ) : undefined
         }
@@ -435,22 +440,28 @@ const SermonManager = () => {
                           ))}
                         </div>
                       )}
-                      {canManage && (
+                      {(canManage || canPublish || canDelete) && (
                         <div className="mt-auto flex flex-wrap gap-2 pt-2">
-                          <UiButton
-                            size="sm"
-                            tone={published ? "ghost" : "primary"}
-                            className={published ? "text-primary hover:bg-primary/5" : "px-3"}
-                            onClick={() => togglePublish(sermon)}
-                          >
-                            {published ? "Unpublish" : "Publish"}
-                          </UiButton>
-                          <UiButton size="sm" onClick={() => openSermon(sermon)}>
-                            Edit
-                          </UiButton>
-                          <UiButton size="sm" tone="danger" onClick={() => deleteSermon(sermon)}>
-                            Delete
-                          </UiButton>
+                          {canPublish && (
+                            <UiButton
+                              size="sm"
+                              tone={published ? "ghost" : "primary"}
+                              className={published ? "text-primary hover:bg-primary/5" : "px-3"}
+                              onClick={() => togglePublish(sermon)}
+                            >
+                              {published ? "Unpublish" : "Publish"}
+                            </UiButton>
+                          )}
+                          {canManage && (
+                            <UiButton size="sm" onClick={() => openSermon(sermon)}>
+                              Edit
+                            </UiButton>
+                          )}
+                          {canDelete && (
+                            <UiButton size="sm" tone="danger" onClick={() => deleteSermon(sermon)}>
+                              Delete
+                            </UiButton>
+                          )}
                         </div>
                       )}
                     </div>
@@ -496,15 +507,15 @@ const SermonManager = () => {
                     >
                       View sermons
                     </UiButton>
-                    {canManage && (
-                      <>
-                        <UiButton size="sm" onClick={() => openSeries(item)}>
-                          Edit
-                        </UiButton>
-                        <UiButton size="sm" tone="danger" onClick={() => deleteSeries(item, items.length)}>
-                          Delete
-                        </UiButton>
-                      </>
+                    {canManageSeries && (
+                      <UiButton size="sm" onClick={() => openSeries(item)}>
+                        Edit
+                      </UiButton>
+                    )}
+                    {canDelete && (
+                      <UiButton size="sm" tone="danger" onClick={() => deleteSeries(item, items.length)}>
+                        Delete
+                      </UiButton>
                     )}
                   </div>
                 </div>
@@ -526,10 +537,12 @@ const SermonManager = () => {
             ...(sermonDraft.newTag.trim() ? [{ label: "Add tag", onClick: addTag }] : []),
             ...(sermonDraft.wasPublished
               ? [{ label: "Save changes", onClick: () => saveSermon(false), tone: "primary" as const }]
-              : [
-                  { label: "Save draft", onClick: () => saveSermon(false) },
-                  { label: "Publish", onClick: () => saveSermon(true), tone: "primary" as const },
-                ]),
+              : canPublish
+                ? [
+                    { label: "Save draft", onClick: () => saveSermon(false) },
+                    { label: "Publish", onClick: () => saveSermon(true), tone: "primary" as const },
+                  ]
+                : [{ label: "Save draft", onClick: () => saveSermon(false), tone: "primary" as const }]),
           ]}
         >
           {videoId && (

@@ -13,11 +13,22 @@ import { relativePath } from "@/utils/const";
 
 const paths = relativePath.home.membership.management;
 
-const TABS: { key: string; label: string; count: keyof ManagerData["counts"] }[] = [
+const TABS: {
+  key: string;
+  label: string;
+  count: keyof ManagerData["counts"];
+  /** Hidden unless the caller has this access (see ManagerData.access). */
+  needs?: keyof ManagerData["access"];
+}[] = [
   { key: paths.memberConfirmation, label: "Member confirmation", count: "confirm" },
-  { key: paths.visitorToMembership, label: "Visitor-to-membership", count: "visitors" },
-  { key: paths.soulwonToMembership, label: "Soulwon-to-membership", count: "souls" },
-  { key: paths.guestToMembership, label: "Guest-to-membership", count: "guests" },
+  {
+    key: paths.visitorToMembership,
+    label: "Visitor-to-membership",
+    count: "visitors",
+    needs: "visitors",
+  },
+  { key: paths.soulwonToMembership, label: "Soulwon-to-membership", count: "souls", needs: "souls" },
+  { key: paths.guestToMembership, label: "Guest-to-membership", count: "guests", needs: "guests" },
   { key: paths.joinRequests, label: "Join department requests", count: "joins" },
 ];
 
@@ -25,10 +36,11 @@ export const MembershipManagement = () => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const data = useManagerDataSource();
+  const tabs = TABS.filter((tab) => !tab.needs || data.access[tab.needs]);
 
   const segments = pathname.split("/").filter(Boolean);
   const active =
-    TABS.find((tab) => segments.includes(tab.key))?.key ?? paths.memberConfirmation;
+    tabs.find((tab) => segments.includes(tab.key))?.key ?? paths.memberConfirmation;
 
   return (
     <PageOutline
@@ -47,7 +59,7 @@ export const MembershipManagement = () => {
           ariaLabel="Membership management"
           value={active}
           onChange={(key) => navigate(key)}
-          tabs={TABS.map((tab) => ({
+          tabs={tabs.map((tab) => ({
             key: tab.key,
             label: tab.label,
             count: data.counts[tab.count],

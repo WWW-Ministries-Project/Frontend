@@ -11,7 +11,15 @@ import { FieldHint, ToggleSwitch } from "../../ChurchCommunication/ui/commUi";
 import { UiButton } from "../../MembershipManagement/components/membershipUi";
 import { roleWorkspaceNote } from "../access/workspacesModel";
 import { Avatar, LevelDot, SettingsDrawer, SubHeading } from "../Components/settingsUi";
-import { draftFromAccessRight, formatLastActive, LEVEL_RANK, MODULES } from "../utils/settingsModel";
+import { scopeLabel } from "@/utils/permissionCatalog";
+
+import {
+  customActionCount,
+  draftFromAccessRight,
+  formatLastActive,
+  LEVEL_RANK,
+  MODULES,
+} from "../utils/settingsModel";
 import { describeExpiry, grantsOf, isActive, type UsersData } from "./useUsersData";
 import { usePickableBranches } from "../utils/usePickableBranches";
 
@@ -27,6 +35,7 @@ export const UserDrawer = ({
   meId,
   canRoles,
   canStatus,
+  canReset,
   preferBranch,
   onDeactivate,
 }: {
@@ -36,6 +45,7 @@ export const UserDrawer = ({
   meId: string;
   canRoles: boolean;
   canStatus: boolean;
+  canReset: boolean;
   /** Branch to describe first (the active branch when one is picked). */
   preferBranch: number | null;
   onDeactivate: (ids: number[]) => void;
@@ -82,7 +92,14 @@ export const UserDrawer = ({
     });
     const none = MODULES.filter((m) => (draft.perms[m.key] || "No_Access") === "No_Access").length;
     if (none) notes.push(`No access to ${none} other ${none === 1 ? "module" : "modules"}.`);
-    if (Object.keys(draft.scopes).length) notes.push("Departments and attendance limited to their own departments.");
+    Object.entries(draft.scopes).forEach(([key, value]) => {
+      const module = MODULES.find((m) => m.key === key);
+      if (module && draft.perms[key] !== "No_Access") {
+        notes.push(`${module.label}: ${scopeLabel(key, value).toLowerCase()} only.`);
+      }
+    });
+    const custom = customActionCount(draft);
+    if (custom) notes.push(`${custom} ${custom === 1 ? "action differs" : "actions differ"} from the level defaults.`);
     Object.entries(draft.excl).forEach(([key, ids]) => {
       const fromRole = role.exclusion_users?.[key] ?? [];
       const names = ids.map((id) => {
@@ -342,7 +359,7 @@ export const UserDrawer = ({
           <UiButton
             tone="secondary"
             onClick={() => void sendReset()}
-            disabled={sending || !user.email || !(canStatus || canRoles)}
+            disabled={sending || !user.email || !canReset}
             className="whitespace-nowrap"
           >
             {sending ? "Sending…" : "Send reset link"}

@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { notify } from "@/components/feedback";
-import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { useFetch } from "@/CustomHooks/useFetch";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import { confirmAction } from "@/pages/HomePage/utils/helperFunctions";
@@ -12,6 +11,7 @@ import type { EventType } from "@/utils/api/events/interfaces";
 import EventCatalogueDialog from "../Components/EventCatalogueDialog";
 import { Dot, PageHeading, SearchInput, Segmented, UiButton } from "../Components/eventsUi";
 import ScheduleEventEditor, { type SchedulePrefill } from "../Components/ScheduleEventEditor";
+import { useEventsAccess } from "../utils/useEventsAccess";
 import {
   clockLabel,
   EVENTS_PATHS,
@@ -45,8 +45,9 @@ const scheduleText = (item: EventType) => {
 
 const AllEvent = () => {
   const navigate = useNavigate();
-  const { canManage } = useAccessControl();
-  const canManageEvents = canManage("Events");
+  const access = useEventsAccess();
+  // Events here are the catalogue (event types); dates are scheduled events.
+  const canManageTypes = access.manageTypes;
 
   const { data, refetch } = useFetch(api.fetch.fetchAllUniqueEvents);
   const { data: upcomingData, refetch: refetchUpcoming } = useFetch(
@@ -152,7 +153,7 @@ const AllEvent = () => {
           title="Events"
           subtitle="The gatherings your church runs. Define each once, then schedule it as often as you need."
           actions={
-            canManageEvents ? (
+            canManageTypes ? (
               <UiButton tone="primary" onClick={() => setDialog({ event: null })}>
                 New event
               </UiButton>
@@ -203,7 +204,7 @@ const AllEvent = () => {
                 )}
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                {canManageEvents && (
+                {access.create && (
                   <UiButton
                     tone="primary"
                     className="px-4"
@@ -226,11 +227,13 @@ const AllEvent = () => {
                 >
                   See dates
                 </UiButton>
-                {canManageEvents && (
+                {canManageTypes && (
+                  <UiButton tone="ghost" className="px-3 text-primary hover:bg-primary/5" onClick={() => setDialog({ event: item })}>
+                    Edit
+                  </UiButton>
+                )}
+                {canManageTypes && access.delete && (
                   <>
-                    <UiButton tone="ghost" className="px-3 text-primary hover:bg-primary/5" onClick={() => setDialog({ event: item })}>
-                      Edit
-                    </UiButton>
                     <UiButton
                       tone="ghost"
                       aria-label={`Delete ${item.event_name}`}

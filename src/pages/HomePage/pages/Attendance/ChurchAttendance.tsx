@@ -17,7 +17,7 @@ import {
   SelectInput,
   UiButton,
 } from "@/pages/HomePage/pages/MembershipManagement/components/membershipUi";
-import { notify } from "@/components/feedback";
+import { InlineAlert, notify } from "@/components/feedback";
 import { api } from "@/utils";
 
 import { CountTabs, GroupSection, StatGrid, StatTile } from "./Components/attendanceUi";
@@ -59,13 +59,19 @@ interface RecordRow {
 }
 
 export default function ChurchAttendance() {
-  const { canManage, canAdmin } = useAccessControl();
-  const canRecord = canManage("Church_Attendance");
-  const canDelete = canAdmin("Church_Attendance");
+  const { hasAction, scopeFor } = useAccessControl();
+  // Headcounts are church-wide: a role limited to its departments reads them only.
+  const scope = scopeFor("Church_Attendance");
+  const departmentScoped = scope === "department" || scope === "department_member";
+  const canRecord = hasAction("Church_Attendance.record") && !departmentScoped;
+  const canEditPast = hasAction("Church_Attendance.edit_past");
+  const canDelete = hasAction("Church_Attendance.delete") && !departmentScoped;
+  const canExport = hasAction("Church_Attendance.export");
   const [searchParams, setSearchParams] = useSearchParams();
 
   const { records, loading, refetch } = useAttendanceRecords();
   const today = todayKey();
+  const canEdit = (record: AttendanceRecord) => canRecord && (canEditPast || record.date.slice(0, 10) >= today);
   const thisYear = Number(today.slice(0, 4));
   const years = useMemo(() => {
     const set = new Set([thisYear, thisYear - 1]);
@@ -373,9 +379,11 @@ export default function ChurchAttendance() {
           actions={
             <>
               <FilterToggleButton open={showFilters} count={filterCount} onClick={() => setShowFilters((open) => !open)} />
-              <UiButton onClick={exportCsv} disabled={!recList.length}>
-                Export CSV
-              </UiButton>
+              {canExport && (
+                <UiButton onClick={exportCsv} disabled={!recList.length}>
+                  Export CSV
+                </UiButton>
+              )}
               {canRecord && (
                 <UiButton tone="primary" onClick={() => setTarget({ eventId: unrecorded[0]?.id || "" })}>
                   Record attendance
@@ -384,6 +392,13 @@ export default function ChurchAttendance() {
             </>
           }
         />
+
+        {departmentScoped && (
+          <InlineAlert tone="info" title="Read-only headcounts">
+            Your attendance access covers your departments, and service headcounts are church-wide. Record your
+            departments&apos; check-ins under Event Attendance.
+          </InlineAlert>
+        )}
 
         {showFilters && (
           <FilterPanel
@@ -484,14 +499,20 @@ export default function ChurchAttendance() {
                   columns={recColumns}
                   rows={section.recs.slice(0, limit)}
                   getRowId={(row) => row.record.id}
-                  onRowClick={canRecord ? (row) => setTarget({ record: row.record }) : undefined}
+                  onRowClick={
+                    canRecord
+                      ? (row) => {
+                          if (canEdit(row.record)) setTarget({ record: row.record });
+                        }
+                      : undefined
+                  }
                   minWidth="1180px"
                   actionsWidth="150px"
                   renderActions={
                     canRecord || canDelete
                       ? (row) => (
                           <>
-                            {canRecord && (
+                            {canEdit(row.record) && (
                               <UiButton size="sm" onClick={() => setTarget({ record: row.record })}>
                                 Edit
                               </UiButton>

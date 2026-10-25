@@ -1,6 +1,6 @@
 import { pictureInstance } from "@/axiosInstance";
 import { Modal } from "@/components/Modal";
-import { useRouteAccess } from "@/context/RouteAccessContext";
+import { useSomAccess } from "../../utils/useSomAccess";
 import { useFetch } from "@/CustomHooks/useFetch";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import SkeletonLoader from "@/pages/HomePage/Components/reusable/SkeletonLoader";
@@ -382,7 +382,8 @@ const LibraryEditor = ({
 
 /** Shared files and videos reused as units across School of Ministry programs. */
 export const ContentLibraryPage = () => {
-  const { canManageCurrentRoute: canManage } = useRouteAccess();
+  // Shared by every program: whole-school designers only.
+  const canManage = useSomAccess().canAll("design_curriculum");
   const { data, loading, error, refetch } = useFetch(api.fetch.fetchContentLibrary, undefined, !canManage);
   const [search, setSearch] = useState("");
   const [type, setType] = useState<LibraryType | "">("");

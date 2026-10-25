@@ -10,6 +10,7 @@ import { useFetch } from "@/CustomHooks/useFetch";
 import { api } from "@/utils";
 import { ApiResponse } from "@/utils/interfaces";
 import { showNotification } from "@/pages/HomePage/utils";
+import { useSomAccess } from "@/pages/HomePage/pages/MinistrySchool/utils/useSomAccess";
 
 
 interface Submission {
@@ -228,6 +229,9 @@ const GradingPanel = () => {
   const [_editingGrade, _setEditingGrade] = useState("");
   const [gradingSubmissionIds, setGradingSubmissionIds] = useState<string[]>([]);
   const [isBulkGrading, setIsBulkGrading] = useState(false);
+  // Grading needs School_of_ministry.grade (instructors have it for their own
+  // programs; the API checks which programs and the roster's grading ability).
+  const canGrade = useSomAccess().can("grade");
 
   const setSubmissionGradingState = useCallback((submissionId: string, isGrading: boolean) => {
     setGradingSubmissionIds((current) => {
@@ -371,6 +375,10 @@ const GradingPanel = () => {
         const submission = row.original;
         const isSaving = gradingSubmissionIds.includes(submission.id);
 
+        if (!canGrade) {
+          return <span className="font-semibold">{formatGradeLabel(submission)}</span>;
+        }
+
         if (_editingId === submission.id) {
           return (
             <div className="flex items-center gap-2">
@@ -437,7 +445,7 @@ const GradingPanel = () => {
         );
       },
     },
-  ], [_editingId, _editingGrade, gradingSubmissionIds, gradeSubmission, handleInlineGrade]);
+  ], [_editingId, _editingGrade, gradingSubmissionIds, gradeSubmission, handleInlineGrade, canGrade]);
 
   const filteredSubmissions = useMemo(() => {
     if (!assignment) return [];
@@ -556,8 +564,8 @@ const GradingPanel = () => {
           <TableComponent
             data={filteredSubmissions}
             columns={columns}
-            enableSelection={_editingId === null && !isBulkGrading}
-            bulkActions={_editingId === null ? QUICK_GRADES.map((g) => ({
+            enableSelection={canGrade && _editingId === null && !isBulkGrading}
+            bulkActions={canGrade && _editingId === null ? QUICK_GRADES.map((g) => ({
               label: `${g}%`,
               value: String(g),
             })) : []}

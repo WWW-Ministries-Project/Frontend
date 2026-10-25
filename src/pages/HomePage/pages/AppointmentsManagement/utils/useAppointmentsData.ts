@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { useFetch } from "@/CustomHooks/useFetch";
+import { useUserStore } from "@/store/userStore";
+import { normalizePermissionPayload, type PermissionMap } from "@/utils/accessControl";
 import { api } from "@/utils/api/apiCalls";
 import type { AppointmentActionPayload } from "@/utils/api/appointment/interfaces";
 
@@ -23,13 +25,67 @@ export const useNow = () => {
   return now;
 };
 
+/** Appointments actions a role can switch (permissions redesign §7.12). */
+export type ApptAction =
+  | "respond"
+  | "complete"
+  | "manage_own_availability"
+  | "book_for_others"
+  | "cancel_any"
+  | "reassign"
+  | "send_reminders"
+  | "manage_others_availability"
+  | "export"
+  | "configure"
+  | "delete";
+
+/**
+ * What the signed-in person may do in Appointments, mirroring the API's
+ * appointment-access.ts: the person booked always acts on their own
+ * booking; anyone else's needs the action at Manage (or switched on), a
+ * whole-branch scope, and the attendee not hidden from their role.
+ */
+export const useAppointmentAccess = () => {
+  const { canManage, hasAction, isExcluded, getScope, scopeFor, accessPermissions } = useAccessControl();
+  const myId = useUserStore((state) => state.id);
+
+  return useMemo(() => {
+    const stored = normalizePermissionPayload(accessPermissions as PermissionMap);
+    const actions = stored.Actions as Record<string, Record<string, boolean>> | undefined;
+    // Roles saved before actions existed keep their whole-branch view.
+    const scope = actions === undefined && !getScope("Appointments") ? "branch" : scopeFor("Appointments");
+    const manager = canManage("Appointments");
+
+    const isMine = (attendeeId?: string | number | null) => !!myId && String(myId) === String(attendeeId ?? "");
+    const hidden = (attendeeId?: string | number | null) =>
+      !!attendeeId && isExcluded("Appointments", Number(attendeeId));
+    const can = (action: ApptAction) => hasAction(`Appointments.${action}`);
+    const forOthers = (action: ApptAction, attendeeId?: string | number | null) =>
+      can(action) && (manager || actions?.Appointments?.[action] === true) && scope !== "own" && !hidden(attendeeId);
+
+    return {
+      myId,
+      scope,
+      can,
+      isMine,
+      hidden,
+      forOthers,
+      /** Own booking, or someone else's with the action. */
+      onBooking: (action: ApptAction, attendeeId?: string | number | null) =>
+        isMine(attendeeId) || forOthers(action, attendeeId),
+      /** Settings and booking reasons: Full, or Manage on a role saved before actions. */
+      canConfigure: can("configure") || (actions === undefined && manager),
+      canExport: can("export"),
+    };
+  }, [accessPermissions, canManage, getScope, hasAction, isExcluded, myId, scopeFor]);
+};
+
 /**
  * Everything the Appointments pages read: bookings, people and their
  * schedules, and the booking rules. All branch-scoped through useFetch.
  */
 export const useAppointmentsData = ({ withBookings = true }: { withBookings?: boolean } = {}) => {
-  const { canManage } = useAccessControl();
-  const isAdmin = canManage("Appointments");
+  const access = useAppointmentAccess();
   const now = useNow();
 
   const bookingsQuery = useFetch(api.fetch.fetchAppointmentBookings, undefined, !withBookings);
@@ -104,7 +160,7 @@ export const useAppointmentsData = ({ withBookings = true }: { withBookings?: bo
   );
 
   return {
-    isAdmin,
+    access,
     now,
     bookings,
     staff,

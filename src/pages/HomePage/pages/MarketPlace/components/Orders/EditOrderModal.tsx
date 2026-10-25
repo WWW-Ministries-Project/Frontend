@@ -6,6 +6,7 @@ import { Button } from "@/components";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelect from "@/components/FormikSelect";
 import { Actions } from "@/components/ui/form/Actions";
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import type { IOrderDetail, IUpdateOrderPayload } from "@/utils/api/marketPlace/interface";
 
 interface IProps {
@@ -92,7 +93,22 @@ export function EditOrderModal({ order, loading, onSubmit, onClose }: IProps) {
   // failed, stock is no longer reserved the way item edits assume, so the
   // server rejects it outright — disable the fields client-side too rather
   // than let the admin fill out a form that will always 400.
+  const { hasAction } = useAccessControl();
+  // Each part of the order is its own action; fields the role can't change stay read-only.
+  const canEditItems = hasAction("Marketplace.edit_order_items");
+  const canMarkPaid = hasAction("Marketplace.mark_paid");
+  const canFulfil = hasAction("Marketplace.fulfil_order");
+  const canCancel = hasAction("Marketplace.cancel_any_order");
+  const deliveryOptions = useMemo(
+    () =>
+      DELIVERY_STATUS_OPTIONS.filter(
+        (o) => (o.value === "cancelled" ? canCancel : canFulfil) || o.value === order?.delivery_status
+      ),
+    [canCancel, canFulfil, order?.delivery_status]
+  );
+
   const itemsLocked =
+    !canEditItems ||
     order?.delivery_status === "delivered" ||
     order?.delivery_status === "cancelled" ||
     order?.payment_status === "failed";
@@ -215,12 +231,12 @@ export function EditOrderModal({ order, loading, onSubmit, onClose }: IProps) {
 
               <div className="space-y-4 px-6 py-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Field component={FormikInputDiv} id="first_name" name="first_name" label="First name *" />
-                  <Field component={FormikInputDiv} id="last_name" name="last_name" label="Last name *" />
-                  <Field component={FormikInputDiv} id="email" name="email" type="email" label="Email *" />
-                  <Field component={FormikInputDiv} id="phone_number" name="phone_number" label="Phone *" />
-                  <Field component={FormikInputDiv} id="country" name="country" label="Country *" />
-                  <Field component={FormikInputDiv} id="country_code" name="country_code" label="Country code" />
+                  <Field component={FormikInputDiv} id="first_name" name="first_name" disabled={!canEditItems} label="First name *" />
+                  <Field component={FormikInputDiv} id="last_name" name="last_name" disabled={!canEditItems} label="Last name *" />
+                  <Field component={FormikInputDiv} id="email" name="email" disabled={!canEditItems} type="email" label="Email *" />
+                  <Field component={FormikInputDiv} id="phone_number" name="phone_number" disabled={!canEditItems} label="Phone *" />
+                  <Field component={FormikInputDiv} id="country" name="country" disabled={!canEditItems} label="Country *" />
+                  <Field component={FormikInputDiv} id="country_code" name="country_code" disabled={!canEditItems} label="Country code" />
                   <Field
                     component={FormikSelect}
                     id="payment_status"
@@ -228,20 +244,22 @@ export function EditOrderModal({ order, loading, onSubmit, onClose }: IProps) {
                     label="Payment status"
                     options={PAYMENT_STATUS_OPTIONS}
                     clearable={false}
+                    disabled={!canMarkPaid}
                   />
                   <Field
                     component={FormikSelect}
                     id="delivery_status"
                     name="delivery_status"
                     label="Delivery status"
-                    options={DELIVERY_STATUS_OPTIONS}
+                    options={deliveryOptions}
                     clearable={false}
+                    disabled={!canFulfil && !canCancel}
                   />
                 </div>
 
                 <div>
                   <p className="mb-2 font-semibold">Items</p>
-                  {itemsLocked && (
+                  {itemsLocked && canEditItems && (
                     <p className="mb-2 text-sm text-gray-500">
                       Items can&apos;t be edited once delivery is delivered/cancelled or payment has failed.
                     </p>

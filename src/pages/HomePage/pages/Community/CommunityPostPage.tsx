@@ -287,7 +287,7 @@ const CommunityPostDetail = () => {
       <PostCard
         post={post}
         variant="detail"
-        canManage={me.canManage}
+        canManage={me.actions.deleteAny}
         onChange={setPost}
         onRemove={backToFeed}
         onRestore={load}
@@ -313,7 +313,7 @@ const CommunityPostDetail = () => {
                 <CommentItem
                   comment={comment}
                   highlighted={highlightId === comment.id}
-                  canManage={me.canManage}
+                  canManage={me.actions.deleteAny}
                   onReactionsChange={updateCommentReactions}
                   onRemove={() => removeComment(comment.id)}
                   onRestore={() => restoreComment(comment.id)}
@@ -326,7 +326,7 @@ const CommunityPostDetail = () => {
                     comment={reply}
                     isReply
                     highlighted={highlightId === reply.id}
-                    canManage={me.canManage}
+                    canManage={me.actions.deleteAny}
                     onReactionsChange={updateCommentReactions}
                     onRemove={() => removeComment(reply.id)}
                     onRestore={() => restoreComment(reply.id)}

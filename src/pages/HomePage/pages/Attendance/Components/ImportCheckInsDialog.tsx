@@ -58,12 +58,19 @@ export const ImportCheckInsDialog = ({
   open,
   onClose,
   onImported,
-  canManage,
+  canImport,
+  canRecordOfficial,
+  departmentScoped,
 }: {
   open: boolean;
   onClose: () => void;
   onImported: () => void;
-  canManage: boolean;
+  /** Church_Attendance.import_biometric: preview punches. */
+  canImport: boolean;
+  /** Church_Attendance.record_official: save them as official attendance. */
+  canRecordOfficial: boolean;
+  /** Only check-ins of members of the caller's departments are recorded. */
+  departmentScoped: boolean;
 }) => {
   const now = new Date();
   const [month, setMonth] = useState(now.getMonth() + 1);
@@ -115,7 +122,7 @@ export const ImportCheckInsDialog = ({
     setSelected(next);
     reset();
   };
-  const disabled = busy || !selected.length || !canManage;
+  const disabled = busy || !selected.length || !canImport;
 
   return (
     <Modal
@@ -138,9 +145,19 @@ export const ImportCheckInsDialog = ({
         </div>
 
         <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-6">
-          {!canManage && (
+          {!canImport && (
             <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
-              You can view check-ins, but you need manage attendance access to preview or import.
+              You can view check-ins, but your role can&apos;t preview or import them.
+            </p>
+          )}
+          {canImport && !canRecordOfficial && (
+            <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+              You can preview punches. Recording them as official attendance needs another role.
+            </p>
+          )}
+          {canImport && departmentScoped && (
+            <p className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+              Only check-ins of members of your departments are recorded as official attendance.
             </p>
           )}
           <div className="grid gap-4 sm:grid-cols-2">
@@ -333,7 +350,7 @@ export const ImportCheckInsDialog = ({
           <UiButton disabled={disabled} onClick={() => start(selected, true)}>
             Preview
           </UiButton>
-          <UiButton tone="primary" disabled={disabled} onClick={() => start(selected, false)}>
+          <UiButton tone="primary" disabled={disabled || !canRecordOfficial} onClick={() => start(selected, false)}>
             Import selected
           </UiButton>
         </div>

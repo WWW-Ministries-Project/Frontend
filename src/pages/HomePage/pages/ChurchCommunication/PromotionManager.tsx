@@ -124,8 +124,11 @@ const EMPTY_TEXT: Record<PromoState, string> = {
 };
 
 const PromotionManager = () => {
-  const { hasPermission } = useAccessControl();
-  const canManage = hasPermission("manage_promotions");
+  const { hasAction } = useAccessControl();
+  const canManage = hasAction("Promotions.create");
+  const canPublish = hasAction("Promotions.publish");
+  const canReorder = hasAction("Promotions.reorder");
+  const canDelete = hasAction("Promotions.delete");
   const { data, loading, refetch } = useFetch(api.fetch.fetchPromotions, { take: 100 });
   const { handleUpload, loading: uploading } = usePictureUpload();
 
@@ -307,7 +310,7 @@ const PromotionManager = () => {
           <h2 className="text-base font-semibold text-primary">On Home now</h2>
           <p className="text-sm text-gray-600">
             The first {HOME_SLOTS} live promotions show, in this order.
-            {canManage ? " Use the arrows to reorder." : ""}
+            {canReorder ? " Use the arrows to reorder." : ""}
           </p>
         </div>
         {live.length > HOME_SLOTS && (
@@ -349,7 +352,7 @@ const PromotionManager = () => {
                         : "No end date"
                       : `Hidden · only ${HOME_SLOTS} show`}
                   </span>
-                  {canManage && (
+                  {canReorder && (
                     <>
                       <button
                         type="button"
@@ -440,12 +443,14 @@ const PromotionManager = () => {
                       ? `${formatDay(promotion.start_date)}${promotion.end_date ? ` – ${formatDay(promotion.end_date)}` : " · no end date"}`
                       : "No dates set"}
                   </p>
-                  {canManage && (
+                  {(canManage || canPublish || canDelete) && (
                     <div className="mt-auto flex flex-wrap gap-2 pt-2">
-                      <UiButton size="sm" onClick={() => openDialog(promotion)}>
-                        Edit
-                      </UiButton>
-                      {state === "draft" ? (
+                      {canManage && (
+                        <UiButton size="sm" onClick={() => openDialog(promotion)}>
+                          Edit
+                        </UiButton>
+                      )}
+                      {!canPublish ? null : state === "draft" ? (
                         <UiButton size="sm" tone="primary" className="px-3" onClick={() => setPublished(promotion, true)}>
                           Publish
                         </UiButton>
@@ -454,9 +459,11 @@ const PromotionManager = () => {
                           Unpublish
                         </UiButton>
                       ) : null}
-                      <UiButton size="sm" tone="danger" onClick={() => remove(promotion)}>
-                        Delete
-                      </UiButton>
+                      {canDelete && (
+                        <UiButton size="sm" tone="danger" onClick={() => remove(promotion)}>
+                          Delete
+                        </UiButton>
+                      )}
                     </div>
                   )}
                 </div>
@@ -482,12 +489,16 @@ const PromotionManager = () => {
                 ]
               : [
                   { label: "Cancel", onClick: closeDialog },
-                  { label: "Save draft", onClick: () => save(false) },
-                  {
-                    label: draft.start > todayIso() ? "Schedule" : "Publish",
-                    onClick: () => save(true),
-                    tone: "primary",
-                  },
+                  { label: "Save draft", onClick: () => save(false), ...(canPublish ? {} : { tone: "primary" as const }) },
+                  ...(canPublish
+                    ? [
+                        {
+                          label: draft.start > todayIso() ? "Schedule" : "Publish",
+                          onClick: () => save(true),
+                          tone: "primary" as const,
+                        },
+                      ]
+                    : []),
                 ]
           }
         >

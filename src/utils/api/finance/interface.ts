@@ -178,8 +178,11 @@ export interface GivingContribution {
   /** Snapshot taken when the payment started, not a live join */
   giving_option_name: string;
   user_id: number | null;
+  /** Null when `donor_hidden` (the role lacks Giving.view_donor_details). */
   donor_name: string;
   donor_email: string;
+  /** Set when the giver's name, email and member id were withheld. */
+  donor_hidden?: boolean;
   /** Minor units (pesewas) - divide by 100 to display. The donation: what the fund receives, NOT what the donor's card was charged */
   amount: number;
   /** The Paystack fee the donor was grossed up by, at the rate configured when the payment started. Added on top of `amount` - never part of it */

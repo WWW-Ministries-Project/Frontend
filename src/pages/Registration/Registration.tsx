@@ -59,7 +59,7 @@ export const Registration = () => {
   const [registrationSuccess, setRegistrationSuccess] =
     useState<boolean>(false);
   const { postData, loading, data: registrationResponse, error } = usePost(
-    api.post.createMember
+    api.post.registerMemberPublic
   );
 
   useEffect(() => {

@@ -14,6 +14,8 @@ export interface SeriesScopeModalProps {
   onCancel: () => void;
   /** Keeps the dialog open with a spinner while the change runs. */
   loading?: boolean;
+  /** Whether "later dates" and "every date" are offered (Events › Manage series). */
+  allowSeries?: boolean;
 }
 
 const SCOPE_OPTIONS: { value: SeriesScope; label: string }[] = [
@@ -28,6 +30,7 @@ const SeriesScopeModal: React.FC<SeriesScopeModalProps> = ({
   onConfirm,
   onCancel,
   loading,
+  allowSeries = true,
 }) => {
   const [selected, setSelected] = useState<SeriesScope>("this");
   const isDelete = action === "delete";
@@ -44,7 +47,7 @@ const SeriesScopeModal: React.FC<SeriesScopeModalProps> = ({
       loading={loading}
     >
       <div role="radiogroup" aria-label="Dates" className="flex flex-col gap-2">
-        {SCOPE_OPTIONS.map((option) => {
+        {SCOPE_OPTIONS.filter((option) => allowSeries || option.value === "this").map((option) => {
           const on = selected === option.value;
           return (
             <button

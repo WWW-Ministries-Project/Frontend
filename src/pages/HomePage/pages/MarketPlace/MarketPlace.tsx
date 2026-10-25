@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { useRouteAccess } from "@/context/RouteAccessContext";
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { encodeQuery, showDeleteDialog, showNotification } from "@/pages/HomePage/utils";
@@ -24,7 +24,9 @@ const TABS: MarketState[] = ["Active", "Upcoming", "Ended"];
 
 export function MarketPlace() {
   const navigate = useNavigate();
-  const { canManageCurrentRoute, canAdminCurrentRoute } = useRouteAccess();
+  const { hasAction } = useAccessControl();
+  const canManageMarkets = hasAction("Marketplace.manage_markets");
+  const canDeleteMarkets = hasAction("Marketplace.delete");
   const [tab, setTab] = useState<MarketState>("Active");
   const [modal, setModal] = useState<MarketModalMode | null>(null);
 
@@ -84,7 +86,7 @@ export function MarketPlace() {
           title="Markets"
           subtitle="Event storefronts and their selling windows"
           actions={
-            canManageCurrentRoute && (
+            canManageMarkets && (
               <button
                 type="button"
                 className={btnPrimary}
@@ -111,7 +113,7 @@ export function MarketPlace() {
               <p className="text-primaryGray">
                 Create a market to open a storefront for an event.
               </p>
-              {canManageCurrentRoute && (
+              {canManageMarkets && (
                 <button
                   type="button"
                   className={`${btnPrimary} mt-2`}
@@ -133,8 +135,8 @@ export function MarketPlace() {
                     products={products?.length}
                     orders={ordersRes ? (s?.orders ?? 0) : undefined}
                     revenue={ordersRes ? (s?.revenue ?? 0) : undefined}
-                    canManage={canManageCurrentRoute}
-                    canDelete={canAdminCurrentRoute}
+                    canManage={canManageMarkets}
+                    canDelete={canDeleteMarkets}
                     onOpen={openMarket}
                     onEdit={(market) => setModal({ kind: "edit", market })}
                     onDuplicate={(market) => setModal({ kind: "duplicate", market })}

@@ -77,7 +77,7 @@ const NO_FILTERS = { att: "", reason: "", from: "", to: "" };
 const AppointmentManager = () => {
   const navigate = useNavigate();
   const data = useAppointmentsData();
-  const { bookings, now, settings, isAdmin, personOf } = data;
+  const { bookings, now, settings, access, personOf } = data;
   const sla = settings.replyDeadlineHours;
   const wide = useViewportWidth() >= WIDE_TABLE_MIN;
 
@@ -175,13 +175,17 @@ const AppointmentManager = () => {
           key: b.id,
           title: `${b.requester} has waited ${dur(hrs(b.createdAt, now))} for ${person.name}`,
           text: `${b.reason} · ${fmtD(b.date)}, ${t12(b.start)}${b.remindedAt ? ` · reminded ${ago(b.remindedAt, now)}` : ""}`,
-          actions: isAdmin
-            ? [
-                { label: b.remindedAt ? "Remind again" : `Remind ${firstName(person.name)}`, onClick: () => remind(b) },
-                { label: "Reassign", onClick: () => openDrawer(b, true) },
-                { label: "Reply for them", onClick: () => openDrawer(b), primary: true },
-              ]
-            : [{ label: "View", onClick: () => openDrawer(b) }],
+          actions: [
+            ...(access.forOthers("send_reminders", b.attendeeId)
+              ? [{ label: b.remindedAt ? "Remind again" : `Remind ${firstName(person.name)}`, onClick: () => remind(b) }]
+              : []),
+            ...(access.forOthers("reassign", b.attendeeId)
+              ? [{ label: "Reassign", onClick: () => openDrawer(b, true) }]
+              : []),
+            access.onBooking("respond", b.attendeeId)
+              ? { label: access.isMine(b.attendeeId) ? "Reply" : "Reply for them", onClick: () => openDrawer(b), primary: true }
+              : { label: "View", onClick: () => openDrawer(b) },
+          ],
         };
       }),
     ...onLeave.map((b) => {
@@ -191,7 +195,7 @@ const AppointmentManager = () => {
         key: b.id,
         title: `${person.name} is on leave, but ${b.requester} booked them`,
         text: `${b.reason} · ${fmtD(b.date)}.${away ? ` ${away.note} until ${fmtD(away.to)}.` : ""}`,
-        actions: [isAdmin ? { label: "Reassign", onClick: () => openDrawer(b, true), primary: true } : { label: "View", onClick: () => openDrawer(b) }],
+        actions: [access.forOthers("reassign", b.attendeeId) ? { label: "Reassign", onClick: () => openDrawer(b, true), primary: true } : { label: "View", onClick: () => openDrawer(b) }],
       };
     }),
     ...(outcomeDue.length
@@ -260,10 +264,12 @@ const AppointmentManager = () => {
         actions={
           <>
             <FilterToggleButton open={showFilters} count={filterCount} onClick={() => setShowFilters((v) => !v)} />
-            <UiButton onClick={exportCsv} disabled={!list.length}>
-              Export CSV
-            </UiButton>
-            {isAdmin && (
+            {access.canExport && (
+              <UiButton onClick={exportCsv} disabled={!list.length}>
+                Export CSV
+              </UiButton>
+            )}
+            {access.can("book_for_others") && access.scope !== "own" && (
               <UiButton tone="primary" onClick={() => setDialog({ kind: "book" })}>
                 Book appointment
               </UiButton>

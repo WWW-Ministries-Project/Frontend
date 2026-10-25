@@ -4,6 +4,7 @@ import { AiStructuredMessage } from "./components/AiStructuredMessage";
 import { api } from "@/utils/api/apiCalls";
 import { ApiError } from "@/utils/api/errors/ApiError";
 import { useAccessControl } from "@/CustomHooks/useAccessControl";
+import { normalizePermissionPayload, type PermissionMap } from "@/utils/accessControl";
 import type {
   AiChatRequest,
   AiChatResponse,
@@ -288,8 +289,14 @@ const starterMessages: ChatEntry[] = [
 ];
 
 export const AIConsole = () => {
-  const { canManage } = useAccessControl();
-  const canManageAi = canManage("AI");
+  const { canManage, hasAction, accessPermissions } = useAccessControl();
+  const canChat = hasAction("AI.chat");
+  const canInsights = hasAction("AI.generate_insights");
+  const canViewUsage = hasAction("AI.view_usage");
+  // On purpose (Full); roles saved before actions existed keep AI manage.
+  const isLegacyRole = normalizePermissionPayload(accessPermissions as PermissionMap).Actions === undefined;
+  const canManageCredentials =
+    hasAction("AI.manage_credentials") || (isLegacyRole && canManage("AI"));
   const [prompt, setPrompt] = useState("");
   const [selectedModule, setSelectedModule] = useState("operations");
   const [selectedModel, setSelectedModel] = useState("gemini-2.5-flash");
@@ -479,15 +486,17 @@ export const AIConsole = () => {
   );
 
   useEffect(() => {
+    if (!canViewUsage) return;
     void refreshUsage();
     void refreshUsageHistory();
-  }, [refreshUsage, refreshUsageHistory]);
+  }, [canViewUsage, refreshUsage, refreshUsageHistory]);
 
   useEffect(() => {
     void refreshCredentials(provider);
   }, [provider, refreshCredentials]);
 
   useEffect(() => {
+    if (!canViewUsage) return;
     let timeoutId: number | null = null;
     let stopped = false;
 
@@ -526,7 +535,7 @@ export const AIConsole = () => {
       window.removeEventListener("focus", syncOnForeground);
       document.removeEventListener("visibilitychange", syncOnForeground);
     };
-  }, [refreshUsage, refreshUsageHistory]);
+  }, [canViewUsage, refreshUsage, refreshUsageHistory]);
 
   useEffect(() => {
     if (!selectedCredential) return;
@@ -549,8 +558,8 @@ export const AIConsole = () => {
     payload: AiChatRequest,
     idempotencyKey: string
   ) => {
-    if (!canManageAi) {
-      setChatError("AI manage access is required for this action.");
+    if (!canChat) {
+      setChatError("Your role can't use the AI assistant.");
       return;
     }
 
@@ -612,7 +621,7 @@ export const AIConsole = () => {
   const onSubmitPrompt = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const trimmedPrompt = prompt.trim();
-    if (!trimmedPrompt || isSending || !canManageAi) return;
+    if (!trimmedPrompt || isSending || !canChat) return;
 
     if (!selectedModel.trim()) {
       setChatError("Model selection is required.");
@@ -655,10 +664,10 @@ export const AIConsole = () => {
 
   const onRunInsights = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (isGeneratingInsight || !canManageAi) return;
+    if (isGeneratingInsight || !canInsights) return;
 
-    if (!canManageAi) {
-      setInsightError("AI manage access is required for this action.");
+    if (!canInsights) {
+      setInsightError("Your role can't generate AI insights.");
       return;
     }
 
@@ -725,8 +734,8 @@ export const AIConsole = () => {
 
   const onCreateCredential = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!canManageAi) {
-      setCredentialsError("AI manage access is required for this action.");
+    if (!canManageCredentials) {
+      setCredentialsError("Your role can't manage AI credentials.");
       return;
     }
 
@@ -766,8 +775,8 @@ export const AIConsole = () => {
 
   const onUpdateCredential = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!canManageAi) {
-      setCredentialsError("AI manage access is required for this action.");
+    if (!canManageCredentials) {
+      setCredentialsError("Your role can't manage AI credentials.");
       return;
     }
 
@@ -859,11 +868,17 @@ export const AIConsole = () => {
 
         <div className="grid gap-4 xl:grid-cols-[2fr_1fr]">
           <div className="space-y-4">
-            {!canManageAi && (
+            {(!canChat || !canInsights || !canManageCredentials) && (
               <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-                This access level can review AI usage and configured providers,
-                but sending prompts, generating insights, and updating
-                credentials requires AI manage access.
+                Your role can&apos;t{" "}
+                {[
+                  !canChat && "send prompts",
+                  !canInsights && "generate insights",
+                  !canManageCredentials && "change provider credentials",
+                ]
+                  .filter(Boolean)
+                  .join(", ")}
+                . Ask an administrator if you need this.
               </div>
             )}
 
@@ -988,7 +1003,7 @@ export const AIConsole = () => {
                   onChange={(event) => setPrompt(event.target.value)}
                   placeholder="Ask AI for operational insight..."
                   rows={3}
-                  disabled={!canManageAi}
+                  disabled={!canChat}
                   className="w-full rounded-lg border border-gray-300 p-3 text-sm outline-none transition focus:border-primary"
                 />
 
@@ -1004,7 +1019,7 @@ export const AIConsole = () => {
                     <button
                       type="button"
                       onClick={() => void onRetryLastFailedRequest()}
-                      disabled={isSending || !canManageAi}
+                      disabled={isSending || !canChat}
                       className="rounded-md border border-primary px-4 py-2 text-sm font-semibold text-primary disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       Retry failed send
@@ -1012,7 +1027,7 @@ export const AIConsole = () => {
                   )}
                   <button
                     type="submit"
-                    disabled={isSending || !prompt.trim() || !canManageAi}
+                    disabled={isSending || !prompt.trim() || !canChat}
                     className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {isSending ? "Sending..." : "Send"}
@@ -1036,7 +1051,7 @@ export const AIConsole = () => {
                   <select
                     value={insightModule}
                     onChange={(event) => setInsightModule(event.target.value)}
-                    disabled={!canManageAi}
+                    disabled={!canInsights}
                     className="rounded-md border border-gray-300 px-2 py-2 text-sm"
                   >
                     {AI_MODULE_OPTIONS.filter((moduleOption) =>
@@ -1051,7 +1066,7 @@ export const AIConsole = () => {
                     type="text"
                     value={insightPrompt}
                     onChange={(event) => setInsightPrompt(event.target.value)}
-                    disabled={!canManageAi}
+                    disabled={!canInsights}
                     placeholder="Optional focus: conversion, overdue follow-ups..."
                     className="rounded-md border border-gray-300 px-3 py-2 text-sm"
                   />
@@ -1062,7 +1077,7 @@ export const AIConsole = () => {
                 <div className="flex justify-end">
                   <button
                     type="submit"
-                    disabled={isGeneratingInsight || !canManageAi}
+                    disabled={isGeneratingInsight || !canInsights}
                     className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {isGeneratingInsight ? "Running..." : "Run insight"}
@@ -1207,7 +1222,7 @@ export const AIConsole = () => {
                     key={credential.id}
                     type="button"
                     onClick={() => setSelectedCredentialId(credential.id)}
-                    disabled={!canManageAi}
+                    disabled={!canManageCredentials}
                     className={`block w-full rounded-md border px-2 py-2 text-left text-xs ${
                       selectedCredentialId === credential.id
                         ? "border-primary bg-primary/5"
@@ -1241,7 +1256,7 @@ export const AIConsole = () => {
                       apiKey: event.target.value,
                     }))
                   }
-                  disabled={!canManageAi}
+                  disabled={!canManageCredentials}
                   placeholder="API key"
                   autoComplete="new-password"
                   className="w-full rounded-md border border-gray-300 px-3 py-2 text-xs"
@@ -1255,7 +1270,7 @@ export const AIConsole = () => {
                       apiSecret: event.target.value,
                     }))
                   }
-                  disabled={!canManageAi}
+                  disabled={!canManageCredentials}
                   placeholder="API secret (optional)"
                   autoComplete="new-password"
                   className="w-full rounded-md border border-gray-300 px-3 py-2 text-xs"
@@ -1264,7 +1279,7 @@ export const AIConsole = () => {
                   <input
                     type="checkbox"
                     checked={createCredentialForm.isActive}
-                    disabled={!canManageAi}
+                    disabled={!canManageCredentials}
                     onChange={(event) =>
                       setCreateCredentialForm((previousValue) => ({
                         ...previousValue,
@@ -1276,7 +1291,7 @@ export const AIConsole = () => {
                 </label>
                 <button
                   type="submit"
-                  disabled={!canManageAi}
+                  disabled={!canManageCredentials}
                   className="rounded-md bg-primary px-3 py-2 text-xs font-semibold text-white"
                 >
                   Save credential
@@ -1296,7 +1311,7 @@ export const AIConsole = () => {
                       apiKey: event.target.value,
                     }))
                   }
-                  disabled={!canManageAi}
+                  disabled={!canManageCredentials}
                   placeholder="New API key (optional)"
                   autoComplete="new-password"
                   className="w-full rounded-md border border-gray-300 px-3 py-2 text-xs"
@@ -1310,7 +1325,7 @@ export const AIConsole = () => {
                       apiSecret: event.target.value,
                     }))
                   }
-                  disabled={!canManageAi}
+                  disabled={!canManageCredentials}
                   placeholder="New API secret (optional)"
                   autoComplete="new-password"
                   className="w-full rounded-md border border-gray-300 px-3 py-2 text-xs"
@@ -1319,7 +1334,7 @@ export const AIConsole = () => {
                   <input
                     type="checkbox"
                     checked={updateCredentialForm.isActive}
-                    disabled={!canManageAi}
+                    disabled={!canManageCredentials}
                     onChange={(event) =>
                       setUpdateCredentialForm((previousValue) => ({
                         ...previousValue,
@@ -1331,7 +1346,7 @@ export const AIConsole = () => {
                 </label>
                 <button
                   type="submit"
-                  disabled={!selectedCredential || !canManageAi}
+                  disabled={!selectedCredential || !canManageCredentials}
                   className="rounded-md bg-primary px-3 py-2 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   Update credential

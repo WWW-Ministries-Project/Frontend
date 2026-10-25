@@ -11,6 +11,7 @@ import {
   showNotification,
 } from "@/pages/HomePage/utils";
 import { api, type IOrders } from "@/utils";
+import { reconcileMarketPayments } from "@/utils/api/marketPlace/orderActions";
 import { cn } from "@/utils/cn";
 
 import {
@@ -77,7 +78,14 @@ const GRID =
 export function OrdersPanel({ marketId, initialTab, title, subtitle }: IProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { canAdmin, canManage } = useAccessControl();
+  const { hasAction } = useAccessControl();
+  const canExport = hasAction("Marketplace.export_orders");
+  const canReconcile = hasAction("Marketplace.reconcile_payments");
+  const canCreateForMember = hasAction("Marketplace.create_order_for_member");
+  const canMarkPaid = hasAction("Marketplace.mark_paid");
+  const canFulfil = hasAction("Marketplace.fulfil_order");
+  const canDelete = hasAction("Marketplace.delete");
+  const canBulkAct = canMarkPaid || canFulfil || canDelete;
 
   const ordersQuery = useMemo(() => (marketId ? { market_id: marketId } : undefined), [marketId]);
   const { data: ordersRes, refetch } = useFetch(
@@ -224,6 +232,20 @@ export function OrdersPanel({ marketId, initialTab, title, subtitle }: IProps) {
     if (reconciling) return;
     setReconciling(true);
     try {
+      // On a market's page, check only that market's pending payments.
+      if (marketId) {
+        const result = await reconcileMarketPayments(marketId, 100);
+        const checked = result?.checked || 0;
+        showNotification(
+          checked
+            ? `Checked ${plural(checked, "pending payment")}` +
+                (result?.failed ? ` · ${result.failed} couldn't be checked` : "")
+            : "No pending payments to reconcile",
+          "success"
+        );
+        await refetch();
+        return;
+      }
       const res = await api.post.reconcileHubtelPendingPayments(100);
       const r = (res?.data || {}) as {
         success_updates?: number;
@@ -341,18 +363,22 @@ export function OrdersPanel({ marketId, initialTab, title, subtitle }: IProps) {
           </span>
         )}
       </button>
-      <button type="button" onClick={handleExport} className={btnSecondary}>
-        Export to Excel
-      </button>
-      <button
-        type="button"
-        onClick={handleReconcile}
-        disabled={reconciling}
-        className={btnSecondary}
-      >
-        {reconciling ? "Reconciling…" : "Reconcile payments"}
-      </button>
-      {canManage("Marketplace") && (
+      {canExport && (
+        <button type="button" onClick={handleExport} className={btnSecondary}>
+          Export to Excel
+        </button>
+      )}
+      {canReconcile && (
+        <button
+          type="button"
+          onClick={handleReconcile}
+          disabled={reconciling}
+          className={btnSecondary}
+        >
+          {reconciling ? "Reconciling…" : "Reconcile payments"}
+        </button>
+      )}
+      {canCreateForMember && (
         <button type="button" onClick={() => setCreating(true)} className={btnPrimary}>
           Place order for member
         </button>
@@ -453,19 +479,21 @@ export function OrdersPanel({ marketId, initialTab, title, subtitle }: IProps) {
           )}
         </div>
 
-        {selected.length > 0 && (
+        {selected.length > 0 && canBulkAct && (
           <div className="flex flex-wrap items-center gap-2 bg-primary px-4 py-2.5 text-sm text-white">
             <b className="mr-2">{selected.length} selected</b>
-            {canManage("Marketplace") && (
+            {canMarkPaid && (
+              <button
+                type="button"
+                disabled={bulkBusy}
+                className={bulkBtn}
+                onClick={() => runBulk({ payment_status: "success" }, "marked paid")}
+              >
+                Mark paid
+              </button>
+            )}
+            {canFulfil && (
               <>
-                <button
-                  type="button"
-                  disabled={bulkBusy}
-                  className={bulkBtn}
-                  onClick={() => runBulk({ payment_status: "success" }, "marked paid")}
-                >
-                  Mark paid
-                </button>
                 <button
                   type="button"
                   disabled={bulkBusy}
@@ -486,7 +514,7 @@ export function OrdersPanel({ marketId, initialTab, title, subtitle }: IProps) {
                 </button>
               </>
             )}
-            {canAdmin("Marketplace") && (
+            {canDelete && (
               <button
                 type="button"
                 disabled={bulkBusy}

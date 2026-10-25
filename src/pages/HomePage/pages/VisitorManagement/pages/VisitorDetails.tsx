@@ -2,7 +2,6 @@ import { useBackNavigation } from "@/CustomHooks/useBackNavigation";
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { showNotification } from "@/pages/HomePage/utils";
 import { errorText } from "@/pages/HomePage/pages/MembershipManagement/components/manager/managerHelpers";
@@ -38,6 +37,7 @@ import {
 import { formatPhoneNumber } from "@/utils/helperFunctions";
 
 import { responsibleOptions, useVisitorDialogs } from "../Components/useVisitorDialogs";
+import { useVisitorAccess } from "../utils/useVisitorAccess";
 import {
   followUpTypeLabel,
   heardLabel,
@@ -58,8 +58,7 @@ export const VisitorDetails = () => {
   const { visitorId = "" } = useParams();
   const navigate = useNavigate();
   const back = useBackNavigation(visitorsPath);
-  const { canManage } = useAccessControl();
-  const canManageVisitors = canManage("Visitors");
+  const access = useVisitorAccess();
   const [tab, setTab] = useState<Tab>("visits");
   const [busy, setBusy] = useState(false);
 
@@ -125,6 +124,11 @@ export const VisitorDetails = () => {
   const visits: VisitType[] = byDateDesc(visitor.visits ?? []);
   const followUps: FollowUpType[] = byDateDesc(visitor.followUps ?? []);
   const stage = STAGE_PILL[visitorStage(visitor, followUps)];
+  const canEditVisitor = access.canEdit(visitor);
+  const canLogVisit = access.can("log_visit", visitor);
+  const canFollowUp = access.can("record_follow_up", visitor);
+  const canAssign = access.can("assign_responsible", visitor);
+  const canConvert = access.canConvert && !visitor.is_member;
   const responsible = responsibleOptions(visitor);
   const firstVisit = isoDay(visitor.visitDate);
   const lastVisit = visits.length ? isoDay(visits[0].date) : firstVisit;
@@ -282,23 +286,27 @@ export const VisitorDetails = () => {
               <p className="text-sm text-white/85">{meta}</p>
             </div>
           </div>
-          {canManageVisitors && (
+          {(canEditVisitor || canLogVisit || canConvert || access.canDelete) && (
             <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => dialogs.edit(visitor)}
-                className={`${bandButton} border-white/40 bg-transparent text-white`}
-              >
-                Edit visitor
-              </button>
-              <button
-                type="button"
-                onClick={() => dialogs.recordVisit(visitor)}
-                className={`${bandButton} border-white/40 bg-transparent text-white`}
-              >
-                Record visit
-              </button>
-              {!visitor.is_member && (
+              {canEditVisitor && (
+                <button
+                  type="button"
+                  onClick={() => dialogs.edit(visitor)}
+                  className={`${bandButton} border-white/40 bg-transparent text-white`}
+                >
+                  Edit visitor
+                </button>
+              )}
+              {canLogVisit && (
+                <button
+                  type="button"
+                  onClick={() => dialogs.recordVisit(visitor)}
+                  className={`${bandButton} border-white/40 bg-transparent text-white`}
+                >
+                  Record visit
+                </button>
+              )}
+              {canConvert && (
                 <button
                   type="button"
                   onClick={() => dialogs.convert(visitor)}
@@ -307,13 +315,15 @@ export const VisitorDetails = () => {
                   Convert to member
                 </button>
               )}
-              <button
-                type="button"
-                onClick={() => dialogs.remove(visitor)}
-                className={`${bandButton} border-white/40 bg-transparent text-white`}
-              >
-                Delete
-              </button>
+              {access.canDelete && (
+                <button
+                  type="button"
+                  onClick={() => dialogs.remove(visitor)}
+                  className={`${bandButton} border-white/40 bg-transparent text-white`}
+                >
+                  Delete
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -338,7 +348,7 @@ export const VisitorDetails = () => {
                 : "Contact made by the responsible persons."
             }
           >
-            {canManageVisitors && (
+            {(isVisits ? canLogVisit : canFollowUp) && (
               <UiButton
                 onClick={() =>
                   isVisits ? dialogs.recordVisit(visitor) : dialogs.recordFollowUp(visitor)
@@ -358,7 +368,7 @@ export const VisitorDetails = () => {
                 minWidth="640px"
                 actionsWidth="120px"
                 renderActions={
-                  canManageVisitors && visits.length > 1
+                  access.canDelete && visits.length > 1
                     ? (row) => (
                         <UiButton
                           tone="danger"
@@ -388,7 +398,7 @@ export const VisitorDetails = () => {
               getRowId={(row) => String(row.id)}
               actionsWidth="200px"
               renderActions={
-                canManageVisitors
+                canFollowUp
                   ? (row) => (
                       <>
                         {!isCompletedStatus(row.status) && (
@@ -438,7 +448,7 @@ export const VisitorDetails = () => {
           <section className="flex flex-col gap-3 rounded-xl border border-lightGray bg-white p-6">
             <div className="flex items-center justify-between gap-2">
               <h2 className="text-base font-semibold text-primary">Responsible persons</h2>
-              {canManageVisitors && (
+              {canAssign && (
                 <button
                   type="button"
                   onClick={() => dialogs.assign(visitor)}
@@ -457,7 +467,7 @@ export const VisitorDetails = () => {
                   <p className="text-sm font-semibold text-primary">{person.label}</p>
                   <p className="text-xs text-gray-500">Responsible person</p>
                 </div>
-                {canManageVisitors && (
+                {canAssign && (
                   <button
                     type="button"
                     disabled={busy}

@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
+
 import {
   BulkBar,
   CellText,
@@ -52,6 +54,11 @@ export const MemberConfirmation = () => {
   const [selected, setSelected] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [assignIds, setAssignIds] = useState<number[]>([]);
+  const { hasAction } = useAccessControl();
+  // View pipelines is enough to look; moving people on needs Confirm members.
+  const canConfirm =
+    hasAction("Membership_Management.confirm_member") || hasAction("Members.change_status");
+  const canAssign = hasAction("Members.edit");
 
   const active = useMemo(
     () => members.filter((member) => member.is_active !== false),
@@ -235,23 +242,31 @@ export const MemberConfirmation = () => {
         />
       }
     >
-      {selected.length > 0 && (
+      {(canConfirm || canAssign) && selected.length > 0 && (
         <BulkBar
           label={`${selected.length} ${selected.length === 1 ? "member" : "members"} selected`}
           onClear={() => setSelected([])}
           actions={[
-            stage === "UNCONFIRMED"
-              ? { label: "Confirm selected", onClick: confirmSelected, disabled: busy }
-              : {
-                  label: "Make selected functional",
-                  onClick: makeSelectedFunctional,
-                  disabled: busy,
-                },
-            {
-              label: "Assign department",
-              onClick: () => setAssignIds(selectedMembers.map((member) => member.id)),
-              disabled: busy,
-            },
+            ...(!canConfirm
+              ? []
+              : stage === "UNCONFIRMED"
+                ? [{ label: "Confirm selected", onClick: confirmSelected, disabled: busy }]
+                : [
+                    {
+                      label: "Make selected functional",
+                      onClick: makeSelectedFunctional,
+                      disabled: busy,
+                    },
+                  ]),
+            ...(canAssign
+              ? [
+                  {
+                    label: "Assign department",
+                    onClick: () => setAssignIds(selectedMembers.map((member) => member.id)),
+                    disabled: busy,
+                  },
+                ]
+              : []),
           ]}
         />
       )}
@@ -262,7 +277,7 @@ export const MemberConfirmation = () => {
             columns={columns}
             rows={visible}
             getRowId={(member) => String(member.id)}
-            selectable
+            selectable={canConfirm || canAssign}
             selectedIds={selected}
             onToggleRow={toggleRow}
             onToggleAll={toggleAll}
@@ -274,7 +289,7 @@ export const MemberConfirmation = () => {
             minWidth="900px"
             loading={membersLoading}
             renderActions={(member) =>
-              stage === "UNCONFIRMED" ? (
+              !canConfirm ? null : stage === "UNCONFIRMED" ? (
                 <UiButton
                   tone="primary"
                   size="sm"
@@ -292,7 +307,7 @@ export const MemberConfirmation = () => {
                 >
                   Make functional
                 </UiButton>
-              ) : (
+              ) : !canAssign ? null : (
                 <UiButton
                   tone="secondary"
                   size="sm"

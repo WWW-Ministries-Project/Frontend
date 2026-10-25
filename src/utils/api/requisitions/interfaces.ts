@@ -40,13 +40,43 @@ export interface RequisitionOverviewRow {
   last_reminder_at: string | null;
   revised_from: { id: number; generated_id: string } | null;
   revised_to: { id: number; generated_id: string } | null;
+  /** Set once an approved requisition is marked disbursed (status stays APPROVED; raw_status is "DISBURSED"). */
+  disbursed?: RequisitionDisbursement | null;
   attachment_count: number;
   comment_count: number;
   steps: RequisitionOverviewStep[];
 }
 
+export interface RequisitionDisbursement {
+  at: string;
+  by: { id: number; name: string } | null;
+}
+
+export interface RequisitionDisbursedResponse {
+  requisition_id: number;
+  raw_status: "DISBURSED";
+  disbursed: RequisitionDisbursement;
+}
+
+/** What the viewer's role allows (newer servers). */
+export interface RequisitionViewerCapabilities {
+  scope: "own" | "department" | "branch";
+  raise_for_any_department: boolean;
+  send_reminders: boolean;
+  export: boolean;
+  mark_disbursed: boolean;
+  delete: boolean;
+  override_step: boolean;
+  configure_approvals: boolean;
+}
+
 export interface RequisitionOverviewResponse {
-  viewer: { user_id: number; is_manager: boolean; is_approver: boolean };
+  viewer: {
+    user_id: number;
+    is_manager: boolean;
+    is_approver: boolean;
+    can?: RequisitionViewerCapabilities;
+  };
   reply_days: number;
   lookback_days: number;
   requisitions: RequisitionOverviewRow[];

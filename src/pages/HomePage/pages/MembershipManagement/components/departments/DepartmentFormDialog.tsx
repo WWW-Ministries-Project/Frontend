@@ -12,6 +12,8 @@ import { LockedBranchField } from "@/components/BranchSelectField";
 import { useBranchFieldState } from "@/CustomHooks/useBranchFieldState";
 import { useUserStore } from "@/store/userStore";
 import { api } from "@/utils";
+
+import { useDepartmentAccess } from "./useDepartmentAccess";
 import type {
   DepartmentMutationPayload,
   DepartmentStatus,
@@ -58,6 +60,7 @@ export const DepartmentFormDialog = ({
   onSaved: () => void;
 }) => {
   const isEdit = Boolean(department);
+  const { canAssignHead } = useDepartmentAccess();
   const membersOptions = useActiveMemberOptions(open);
   const userId = useUserStore((state) => state.id);
   const { options: branches, lockedBranch, lockedReason } = useBranchFieldState();
@@ -183,6 +186,8 @@ export const DepartmentFormDialog = ({
             value={form.head}
             onChange={(event) => set("head")(event.target.value)}
             options={headOptions}
+            disabled={!canAssignHead}
+            title={canAssignHead ? undefined : "Assigning a head needs Full access to Departments"}
           />
         </Field>
         <Field label="Description">

@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
 
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
+
 import {
   CellText,
   DialogShell,
@@ -54,6 +56,8 @@ export const GuestToMembership = () => {
   const [approveTarget, setApproveTarget] = useState<MembershipRequestRow | null>(null);
   const [declineTarget, setDeclineTarget] = useState<MembershipRequestRow | null>(null);
   const [approving, setApproving] = useState(false);
+  const { hasAction } = useAccessControl();
+  const canDecide = hasAction("Membership_Management.decide_guest_request");
 
   const rows = useMemo(
     () =>
@@ -155,16 +159,20 @@ export const GuestToMembership = () => {
             rows={visible}
             getRowId={(request) => String(request.id)}
             loading={guestsLoading}
-            renderActions={(request) => (
-              <>
-                <UiButton tone="primary" size="sm" onClick={() => setApproveTarget(request)}>
-                  Approve
-                </UiButton>
-                <UiButton tone="danger" size="sm" onClick={() => setDeclineTarget(request)}>
-                  Decline
-                </UiButton>
-              </>
-            )}
+            renderActions={
+              canDecide
+                ? (request) => (
+                    <>
+                      <UiButton tone="primary" size="sm" onClick={() => setApproveTarget(request)}>
+                        Approve
+                      </UiButton>
+                      <UiButton tone="danger" size="sm" onClick={() => setDeclineTarget(request)}>
+                        Decline
+                      </UiButton>
+                    </>
+                  )
+                : undefined
+            }
           />
           <ShowMoreRows remaining={remaining} onClick={showMore} />
         </>

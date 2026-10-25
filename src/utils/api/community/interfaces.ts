@@ -136,10 +136,33 @@ export interface CommunityNotification {
   createdAt: string;
 }
 
+/** The role's Community actions, from `GET /community/me`. */
+export interface CommunityActions {
+  postChurchWide: boolean;
+  postAnyDepartment: boolean;
+  pinImportant: boolean;
+  moderate: boolean;
+  viewAuditLog: boolean;
+  deleteAny: boolean;
+  viewAnonymousAuthor: boolean;
+}
+
+export const NO_COMMUNITY_ACTIONS: CommunityActions = {
+  postChurchWide: false,
+  postAnyDepartment: false,
+  pinImportant: false,
+  moderate: false,
+  viewAuditLog: false,
+  deleteAny: false,
+  viewAnonymousAuthor: false,
+};
+
 export interface CommunityMe {
+  /** Community.moderate (kept for older clients). */
   canManage: boolean;
   /** Community view permission. */
   canModerate: boolean;
+  actions: CommunityActions;
   departments: CommunityDepartment[];
   /** 0 unless canModerate. */
   pendingReports: number;
@@ -220,7 +243,8 @@ export interface CommunityModerationItem {
   commentId: number | null;
   /** "Anonymous" or the author's name — what members see. */
   shownAs: string;
-  author: { id: number; name: string };
+  /** "Anonymous" with a null id unless the role may see anonymous authors. */
+  author: { id: number | null; name: string };
   isAnonymous: boolean;
   audienceLabel: string;
   body: string;
@@ -230,7 +254,8 @@ export interface CommunityModerationItem {
 }
 
 export interface CommunityAdminPost extends CommunityPost {
-  realAuthor: { id: number; name: string };
+  /** "Anonymous" with a null id unless the role may see anonymous authors. */
+  realAuthor: { id: number | null; name: string };
 }
 
 export interface CommunityAuditLogEntry {

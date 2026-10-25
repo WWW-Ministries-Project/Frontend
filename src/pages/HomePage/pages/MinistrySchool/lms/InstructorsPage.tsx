@@ -1,4 +1,4 @@
-import { useRouteAccess } from "@/context/RouteAccessContext";
+import { useSomAccess } from "../utils/useSomAccess";
 import { useFetch } from "@/CustomHooks/useFetch";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import SkeletonLoader from "@/pages/HomePage/Components/reusable/SkeletonLoader";
@@ -40,7 +40,8 @@ const matchesSearch = (q: string, name: string, email?: string | null) =>
   !q || name.toLowerCase().includes(q) || (email ?? "").toLowerCase().includes(q);
 
 export const InstructorsPage = () => {
-  const { canManageCurrentRoute: canManage } = useRouteAccess();
+  // The overview spans every program, so it needs the whole school.
+  const canManage = useSomAccess().viewsAll;
   const som = useSomData();
   const overview = useFetch(api.fetch.fetchInstructorsOverview, undefined, !canManage);
   const [search, setSearch] = useState("");

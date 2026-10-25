@@ -2,7 +2,7 @@ import { useBackNavigation } from "@/CustomHooks/useBackNavigation";
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
-import { useRouteAccess } from "@/context/RouteAccessContext";
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { useFetch } from "@/CustomHooks/useFetch";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
@@ -32,7 +32,9 @@ export function MarketDetails() {
   const [params] = useSearchParams();
   const { id: encodedId } = useParams();
   const id = decodeQuery(String(encodedId));
-  const { canManageCurrentRoute } = useRouteAccess();
+  const { hasAction } = useAccessControl();
+  const canManageMarkets = hasAction("Marketplace.manage_markets");
+  const canManageCatalog = hasAction("Marketplace.manage_catalog");
 
   const [tab, setTab] = useState<InnerTab>(
     params.get("tab")?.toLowerCase() === "orders" ? "Orders" : "Products"
@@ -104,19 +106,23 @@ export function MarketDetails() {
               <p className="text-base text-gray-700">{market.description}</p>
             )}
           </div>
-          {canManageCurrentRoute && (
+          {(canManageMarkets || canManageCatalog) && (
             <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                className={btnSecondary}
-                disabled={!market}
-                onClick={() => market && setModal({ kind: "edit", market })}
-              >
-                Edit market
-              </button>
-              <button type="button" className={btnPrimary} onClick={addProduct}>
-                Add product
-              </button>
+              {canManageMarkets && (
+                <button
+                  type="button"
+                  className={btnSecondary}
+                  disabled={!market}
+                  onClick={() => market && setModal({ kind: "edit", market })}
+                >
+                  Edit market
+                </button>
+              )}
+              {canManageCatalog && (
+                <button type="button" className={btnPrimary} onClick={addProduct}>
+                  Add product
+                </button>
+              )}
             </div>
           )}
         </div>

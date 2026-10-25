@@ -39,9 +39,12 @@ const UsersPage = () => {
   const { users, roles, loading, failed, refetch, assign, setActive, branchName, roleName, userName } = data;
   const activeBranchId = useBranchStore((s) => s.activeBranchId);
   const meId = String(useUserStore((s) => s.id) ?? "");
-  const { canManage } = useAccessControl();
-  const canRoles = canManage("Access_rights");
-  const canStatus = canManage("Members");
+  const { hasAction } = useAccessControl();
+  const canRoles = hasAction("Access_rights.assign_roles");
+  const canInvite = hasAction("Access_rights.invite_users");
+  // Members actions still count, so roles that managed users from Members keep it.
+  const canStatus = hasAction("Access_rights.deactivate_users") || hasAction("Members.change_status");
+  const canReset = hasAction("Access_rights.reset_password") || hasAction("Members.send_password_link");
   const canSelect = canRoles || canStatus;
 
   const initialTab = params.get("tab");
@@ -225,7 +228,7 @@ const UsersPage = () => {
           title="Users"
           subtitle={subtitle}
           actions={
-            canRoles ? (
+            canInvite ? (
               <UiButton tone="primary" onClick={() => setGiving(true)} className="whitespace-nowrap">
                 Give access
               </UiButton>
@@ -436,6 +439,7 @@ const UsersPage = () => {
         meId={meId}
         canRoles={canRoles}
         canStatus={canStatus}
+        canReset={canReset}
         preferBranch={sb}
         onDeactivate={deactivate}
       />

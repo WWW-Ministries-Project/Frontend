@@ -1,4 +1,4 @@
-import { useRouteAccess } from "@/context/RouteAccessContext";
+import { useSomAccess } from "../../utils/useSomAccess";
 import { useFetch } from "@/CustomHooks/useFetch";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import SkeletonLoader from "@/pages/HomePage/Components/reusable/SkeletonLoader";
@@ -217,7 +217,7 @@ const ReportBody = ({ report }: { report: LmsReports }) => {
 
 /** School of Ministry reports: completion, attendance, pass rates, grading turnaround. */
 export const ReportsPage = () => {
-  const { canManageCurrentRoute } = useRouteAccess();
+  const canViewReports = useSomAccess().canAll("view_reports");
   const activeBranchId = useBranchStore((s) => s.activeBranchId);
   const branches = useBranchStore((s) => s.branches);
   const [from, setFrom] = useState("");
@@ -234,7 +234,7 @@ export const ReportsPage = () => {
     return Object.keys(q).length ? q : undefined;
   }, [activeBranchId, from, to]);
 
-  const { data, loading, error, refetch } = useFetch(api.fetch.fetchLmsReports, query, !canManageCurrentRoute);
+  const { data, loading, error, refetch } = useFetch(api.fetch.fetchLmsReports, query, !canViewReports);
   const report = data?.data ?? null;
 
   const scope =
@@ -275,8 +275,8 @@ export const ReportsPage = () => {
           }.`}
         />
 
-        {!canManageCurrentRoute ? (
-          <EmptyBlock msg="Reports are available to School of Ministry managers." />
+        {!canViewReports ? (
+          <EmptyBlock msg="Reports need School of Ministry › View reports for the whole school." />
         ) : (
           <>
             <div className="flex flex-wrap items-end gap-3">

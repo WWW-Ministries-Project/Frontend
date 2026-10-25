@@ -41,7 +41,8 @@ export const DepartmentMembersTab = ({
   page,
   totalPages,
   onPageChange,
-  canManage,
+  canMakeHead,
+  canRemove,
   onOpenMember,
   onMakeHead,
   onRemove,
@@ -56,7 +57,9 @@ export const DepartmentMembersTab = ({
   page: number;
   totalPages: number;
   onPageChange: (page: number) => void;
-  canManage: boolean;
+  canMakeHead: boolean;
+  /** Removing the head also clears the head, so it needs `canMakeHead` too. */
+  canRemove: boolean;
   onOpenMember: (member: DepartmentMemberRow) => void;
   onMakeHead: (member: DepartmentMemberRow) => void;
   onRemove: (member: DepartmentMemberRow) => void;
@@ -130,17 +133,19 @@ export const DepartmentMembersTab = ({
           minWidth="900px"
           actionsWidth="240px"
           renderActions={
-            canManage
+            canMakeHead || canRemove
               ? (member) => (
                   <>
-                    {member.id !== headId && (
+                    {canMakeHead && member.id !== headId && (
                       <UiButton size="sm" tone="secondary" onClick={() => onMakeHead(member)}>
                         Make head
                       </UiButton>
                     )}
-                    <UiButton size="sm" tone="danger" onClick={() => onRemove(member)}>
-                      Remove
-                    </UiButton>
+                    {canRemove && (member.id !== headId || canMakeHead) && (
+                      <UiButton size="sm" tone="danger" onClick={() => onRemove(member)}>
+                        Remove
+                      </UiButton>
+                    )}
                   </>
                 )
               : undefined

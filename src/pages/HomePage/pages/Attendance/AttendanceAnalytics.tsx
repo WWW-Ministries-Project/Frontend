@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import { AnalyticsFilters } from "@/pages/HomePage/pages/Analytics/types";
 import {
@@ -69,6 +70,7 @@ const ChartBody = ({ chart }: { chart: Chart }) => {
 
 export const AttendanceAnalytics = () => {
   const navigate = useNavigate();
+  const canExport = useAccessControl().hasAction("Church_Attendance.export");
   const today = todayKey();
   const [showFilters, setShowFilters] = useState(false);
   const [period, setPeriod] = useState(createDefaultPeriod);
@@ -207,7 +209,7 @@ export const AttendanceAnalytics = () => {
           actions={
             <>
               <FilterToggleButton open={showFilters} count={filterCount} onClick={() => setShowFilters((open) => !open)} />
-              <UiButton onClick={exportCsv}>Export CSV</UiButton>
+              {canExport && <UiButton onClick={exportCsv}>Export CSV</UiButton>}
             </>
           }
         />

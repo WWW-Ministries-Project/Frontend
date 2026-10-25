@@ -2,7 +2,7 @@ import { Cog6ToothIcon } from "@heroicons/react/24/outline";
 import { useCallback, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { useRouteAccess } from "@/context/RouteAccessContext";
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { InlineAlert } from "@/components/feedback";
 import { encodeQuery } from "@/pages/HomePage/utils";
@@ -73,7 +73,9 @@ export function ProductsPanel({
 }: IProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { canManageCurrentRoute } = useRouteAccess();
+  const { hasAction } = useAccessControl();
+  const canManageCatalog = hasAction("Marketplace.manage_catalog");
+  const canManageMarkets = hasAction("Marketplace.manage_markets");
 
   const [tab, setTab] = useState<ProductTab>(initialTab);
   const [query, setQuery] = useState("");
@@ -243,7 +245,7 @@ export function ProductsPanel({
         title="Create a market first"
         className="mb-4"
         action={
-          canManageCurrentRoute
+          canManageMarkets
             ? { label: "Create market", onClick: () => setMarketModal({ kind: "create" }) }
             : undefined
         }
@@ -300,7 +302,7 @@ export function ProductsPanel({
             </option>
           ))}
         </select>
-        {canManageCurrentRoute && (
+        {canManageCatalog && (
           <button
             type="button"
             onClick={openSettings}
@@ -353,11 +355,11 @@ export function ProductsPanel({
             return (
               <div
                 key={`${r.marketId}-${p.id}`}
-                role={canManageCurrentRoute ? "button" : undefined}
-                tabIndex={canManageCurrentRoute ? 0 : undefined}
-                onClick={canManageCurrentRoute ? () => editProduct(r) : undefined}
+                role={canManageCatalog ? "button" : undefined}
+                tabIndex={canManageCatalog ? 0 : undefined}
+                onClick={canManageCatalog ? () => editProduct(r) : undefined}
                 onKeyDown={(e) => {
-                  if (!canManageCurrentRoute) return;
+                  if (!canManageCatalog) return;
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
                     editProduct(r);
@@ -366,7 +368,7 @@ export function ProductsPanel({
                 className={cn(
                   cols,
                   "border-t border-gray-100 px-4 py-3 text-sm",
-                  canManageCurrentRoute &&
+                  canManageCatalog &&
                     "cursor-pointer hover:bg-gray-50 focus:bg-gray-50 focus:outline-none"
                 )}
               >
@@ -401,7 +403,7 @@ export function ProductsPanel({
                   />
                 </span>
                 <span className="font-medium text-blue-700">
-                  {canManageCurrentRoute ? "Edit" : ""}
+                  {canManageCatalog ? "Edit" : ""}
                 </span>
               </div>
             );
@@ -419,7 +421,7 @@ export function ProductsPanel({
               ? "No products yet."
               : "No products match these filters."}
           </p>
-          {rows.length === 0 && canManageCurrentRoute && !noMarkets && (
+          {rows.length === 0 && canManageCatalog && !noMarkets && (
             <button type="button" className={btnPrimary} onClick={addProduct}>
               Add product
             </button>
@@ -455,7 +457,7 @@ export function ProductsPanel({
         title={header.title}
         subtitle={header.subtitle}
         actions={
-          canManageCurrentRoute && (
+          canManageCatalog && (
             <button
               type="button"
               className={cn(btnPrimary, noMarkets && "cursor-not-allowed opacity-50")}

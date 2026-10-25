@@ -19,6 +19,7 @@ export const AddDepartmentMemberDialog = ({
   departmentName,
   positions,
   memberIdsInDepartment,
+  canAssignPosition = true,
   onClose,
   onAdded,
 }: {
@@ -28,6 +29,8 @@ export const AddDepartmentMemberDialog = ({
   positions: { id: number; name: string }[];
   /** Members already in the department, hidden from the picker. */
   memberIdsInDepartment: Set<number>;
+  /** Without `Departments.assign_positions` members join with no position. */
+  canAssignPosition?: boolean;
   onClose: () => void;
   onAdded: () => void;
 }) => {
@@ -76,7 +79,7 @@ export const AddDepartmentMemberDialog = ({
       const outcome = await assignMembersToDepartment(
         [memberId],
         departmentId,
-        positionId ? Number(positionId) : null
+        canAssignPosition && positionId ? Number(positionId) : null
       );
       const { message, type } = describeOutcome(
         outcome,
@@ -111,13 +114,15 @@ export const AddDepartmentMemberDialog = ({
             hasError={Boolean(errors.member)}
           />
         </Field>
-        <Field label="Position">
-          <SelectInput
-            value={positionId}
-            onChange={(event) => setPositionId(event.target.value)}
-            options={positionOptions}
-          />
-        </Field>
+        {canAssignPosition && (
+          <Field label="Position">
+            <SelectInput
+              value={positionId}
+              onChange={(event) => setPositionId(event.target.value)}
+              options={positionOptions}
+            />
+          </Field>
+        )}
       </div>
     </DialogShell>
   );

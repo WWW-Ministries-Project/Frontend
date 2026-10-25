@@ -310,7 +310,9 @@ export const routes: AppRoute[] = [
             name: "Membership manager",
             element: <MembershipManagement />,
             isPrivate: true,
-            permissionNeeded: "manage_membership_management",
+            // Pipelines open at View; department heads (Departments manage)
+            // reach the join requests for departments they lead.
+            permissionNeeded: ["view_membership_management", "manage_departments"],
             sideTab: true,
             children: [
               {
@@ -325,7 +327,7 @@ export const routes: AppRoute[] = [
                   />
                 ),
                 isPrivate: true,
-                permissionNeeded: "manage_membership_management",
+                permissionNeeded: "view_membership_management",
               },
               {
                 path: relativePath.home.membership.management
@@ -333,7 +335,7 @@ export const routes: AppRoute[] = [
                 name: "Member Confirmation",
                 element: <MemberConfirmation />,
                 isPrivate: true,
-                permissionNeeded: "manage_membership_management",
+                permissionNeeded: "view_membership_management",
               },
               {
                 path: relativePath.home.membership.management
@@ -341,7 +343,7 @@ export const routes: AppRoute[] = [
                 name: "Visitor-to-Membership",
                 element: <VisitorToMembership />,
                 isPrivate: true,
-                permissionNeeded: "manage_membership_management",
+                permissionNeeded: "view_membership_management",
               },
               {
                 path: relativePath.home.membership.management
@@ -349,21 +351,21 @@ export const routes: AppRoute[] = [
                 name: "Soulwon-to-Membership",
                 element: <SoulwonToMembership />,
                 isPrivate: true,
-                permissionNeeded: "manage_membership_management",
+                permissionNeeded: "view_membership_management",
               },
               {
                 path: relativePath.home.membership.management.guestToMembership,
                 name: "Guest-to-Membership",
                 element: <GuestToMembership />,
                 isPrivate: true,
-                permissionNeeded: "manage_membership_management",
+                permissionNeeded: "view_membership_management",
               },
               {
                 path: relativePath.home.membership.management.joinRequests,
                 name: "Join Department Requests",
                 element: <JoinDepartmentRequests />,
                 isPrivate: true,
-                permissionNeeded: "manage_membership_management",
+                permissionNeeded: ["view_membership_management", "manage_departments"],
               },
             ],
           },
@@ -427,7 +429,9 @@ export const routes: AppRoute[] = [
         name: "Ride to church",
         element: <RidesManager />,
         isPrivate: true,
-        permissionNeeded: "manage_membership_management",
+        // Falls back to Membership management for roles saved before Rides
+        // existed; each tab is gated by its own action.
+        permissionNeeded: "view_rides",
         sideTab: true,
       },
       {
@@ -563,7 +567,7 @@ export const routes: AppRoute[] = [
             name: "Event reports",
             element: <EventReports />,
             isPrivate: true,
-            permissionNeeded: "view_events",
+            permissionNeeded: ["view_reports", "view_events"],
             sideTab: true,
           },
           {
@@ -572,7 +576,7 @@ export const routes: AppRoute[] = [
             backLabel: "Event report",
             element: <EventReportDetails />,
             isPrivate: true,
-            permissionNeeded: "view_events",
+            permissionNeeded: ["view_reports", "view_events"],
           },
         ],
       },
@@ -770,6 +774,7 @@ export const routes: AppRoute[] = [
             name: "Analytics",
             element: <RequisitionsAnalytics />,
             isPrivate: true,
+            permissionNeeded: "view_requisition",
             sideTab: true,
           },
           {
@@ -864,14 +869,16 @@ export const routes: AppRoute[] = [
             element: <Suspense fallback={null}><FinanceRecord /></Suspense>,
             backLabel: "Weekly record",
             isPrivate: true,
-            permissionNeeded: "manage_financials",
+            // The page gates drafts and submitting by action.
+            permissionNeeded: "view_financials",
           },
           {
             path: "configuration",
             name: "Configuration",
             element: <Suspense fallback={null}><FinanceConfiguration /></Suspense>,
             isPrivate: true,
-            permissionNeeded: "manage_financials",
+            // The page gates each section by action (configure, configure_approvals).
+            permissionNeeded: "view_financials",
             sideTab: true,
           },
           {
@@ -1324,7 +1331,7 @@ export const routes: AppRoute[] = [
             name: "Users",
             element: <Suspense fallback={null}><UsersPage /></Suspense>,
             isPrivate: true,
-            permissionNeeded: "manage_users",
+            permissionNeeded: ["manage_access_rights", "manage_members"],
             sideTab: true,
           },
           {

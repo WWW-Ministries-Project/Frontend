@@ -5,9 +5,22 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { InlineAlert, notify } from "@/components/feedback";
 import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { confirmAction } from "@/pages/HomePage/utils/helperFunctions";
+import { useBranchStore } from "@/store/useBranchStore";
 import { useUserStore } from "@/store/userStore";
+import { normalizePermissionPayload, type PermissionMap } from "@/utils/accessControl";
 import { api } from "@/utils/api/apiCalls";
 import { cn } from "@/utils/cn";
+import {
+  actionAllowed,
+  actionDefault,
+  defaultScope,
+  normalizeActionOverrides,
+  PERMISSION_CATALOG,
+  scopeDescription,
+  scopeLabel,
+  type CatalogAction,
+  type LevelRank,
+} from "@/utils/permissionCatalog";
 
 import {
   BandTabs,
@@ -19,14 +32,20 @@ import {
 import { Avatar, LevelDot, PeopleChips, Segmented, UnsavedBar } from "../Components/settingsUi";
 import type { AccessLevelGrant } from "../utils/settingsInterfaces";
 import {
+  actionOn,
   changedModules,
+  clampToCeiling,
   cloneDraft,
   draftFromAccessRight,
   formatDay,
+  hasAction,
+  LEVEL_RANK,
   LEVELS,
   MODULE_GROUPS,
   MODULES,
   plural,
+  requirementLabel,
+  scopeOf,
   type Level,
   type RoleDraft,
   type SettingsModule,
@@ -62,11 +81,28 @@ const BAND_BUTTON = "border-white/40 bg-transparent text-white hover:bg-white/10
 /*                                 Module row                                 */
 /* -------------------------------------------------------------------------- */
 
+const ChevronIcon = ({ open }: { open: boolean }) => (
+  <svg
+    aria-hidden="true"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={2}
+    className={cn("h-4 w-4 text-gray-600 transition-transform", open && "rotate-180")}
+  >
+    <path d="m6 9 6 6 6-6" />
+  </svg>
+);
+
 const ModuleRow = ({
   module,
   draft,
   changed,
-  canEdit,
+  editable,
+  ceilingRank,
+  canGiveAction,
+  expanded,
+  onToggleExpanded,
   memberOptions,
   nameOf,
   update,
@@ -74,15 +110,56 @@ const ModuleRow = ({
   module: SettingsModule;
   draft: RoleDraft;
   changed: boolean;
-  canEdit: boolean;
+  /** Can edit, and the role isn't one they hold. */
+  editable: boolean;
+  /** Highest level the editor may give in this module. */
+  ceilingRank: LevelRank;
+  /** Whether the editor may switch this action on. */
+  canGiveAction: (action: CatalogAction) => boolean;
+  expanded: boolean;
+  onToggleExpanded: () => void;
   memberOptions: { id: number; name: string }[];
   nameOf: (key: string, id: number) => string;
   update: (fn: (d: RoleDraft) => void) => void;
 }) => {
   const level = draft.perms[module.key] || "No_Access";
-  const has = level !== "No_Access";
+  const rank = LEVEL_RANK[level];
+  const has = rank > 0;
   const hidden = draft.excl[module.key] || [];
   const exclTitle = module.key === "Members" ? "Hide these people’s profiles" : "Hide these people’s appointments";
+  const entry = PERMISSION_CATALOG[module.key];
+  const overrides = draft.actions[module.key] || {};
+
+  const actions = entry && has
+    ? entry.actions.map((a) => {
+        const byLevel = actionDefault(rank, a);
+        const on = actionOn(draft, module.key, a);
+        const custom = overrides[a.key] !== undefined && overrides[a.key] !== byLevel;
+        const allowed = canGiveAction(a);
+        const missing = !!a.requires && on && !hasAction(draft, a.requires);
+        const hint = [
+          custom ? (on ? "Added for this role" : "Switched off for this role") : a.explicit ? "Off unless you switch it on" : `Comes with ${LEVELS[a.defaultLevel].label}`,
+          a.note,
+          editable && !allowed && !on ? "Above your own access" : "",
+        ]
+          .filter(Boolean)
+          .join(" · ");
+        return { a, on, custom, hint, disabled: !editable || (!on && !allowed), missing, byLevel };
+      })
+    : [];
+  const scopes = entry?.scopes ?? ["branch"];
+  const byLevelScope = defaultScope(rank, module.key);
+  const scope = scopeOf(draft, module.key);
+  const custom = has && (actions.some((x) => x.custom) || scope !== byLevelScope);
+
+  const toggleAction = (a: CatalogAction, on: boolean, byLevel: boolean) =>
+    update((d) => {
+      const next = { ...(d.actions[module.key] || {}) };
+      if (!on === byLevel) delete next[a.key];
+      else next[a.key] = !on;
+      if (Object.keys(next).length) d.actions[module.key] = next;
+      else delete d.actions[module.key];
+    });
 
   return (
     <div className="flex flex-col gap-3 border-t border-gray-200 px-4 py-4 tablet:px-6">
@@ -95,51 +172,182 @@ const ModuleRow = ({
                 Edited
               </Pill>
             )}
+            {custom && (
+              <Pill tone="neutral" className="px-2 py-0">
+                Custom
+              </Pill>
+            )}
+            {module.extra === "new" && (
+              <Pill tone="success" className="px-2 py-0">
+                New
+              </Pill>
+            )}
           </div>
           <p className="text-xs text-gray-500">{module.description}</p>
         </div>
         <Segmented<Level>
           ariaLabel={`${module.label} access`}
           value={level}
-          disabled={!canEdit}
+          disabled={!editable}
           onChange={(value) =>
             update((d) => {
               d.perms[module.key] = value;
             })
           }
-          options={LEVELS.map((lv, i) => ({
-            value: lv.value,
-            label: (
-              <>
-                <LevelDot rank={i} />
-                {lv.label}
-              </>
-            ),
-          }))}
+          options={LEVELS.map((lv, i) => {
+            const over = editable && i > ceilingRank;
+            return {
+              value: lv.value,
+              disabled: over,
+              title: over ? "Above your own access" : lv.label,
+              label: (
+                <>
+                  <LevelDot rank={i} />
+                  {lv.label}
+                </>
+              ),
+            };
+          })}
         />
       </div>
-      {module.extra === "scope" && has && (
-        <label className="flex cursor-pointer items-start gap-3 rounded-lg bg-inputBackground px-4 py-3">
-          <input
-            type="checkbox"
-            checked={!!draft.scopes[module.key]}
-            disabled={!canEdit}
-            onChange={() =>
-              update((d) => {
-                if (d.scopes[module.key]) delete d.scopes[module.key];
-                else d.scopes[module.key] = true;
-              })
-            }
-            className="mt-0.5 h-4 w-4 flex-shrink-0 accent-primary"
-          />
-          <span className="flex flex-col gap-0.5">
-            <span className="text-sm font-medium text-primary">Only their own departments</span>
-            <span className="text-xs text-gray-500">
-              They see and act on the departments they belong to, not the whole church.
-            </span>
+
+      {entry && has && (
+        <button
+          type="button"
+          onClick={onToggleExpanded}
+          aria-expanded={expanded}
+          className="inline-flex min-h-9 flex-wrap items-center gap-x-2 gap-y-1 self-start rounded-lg border border-lightGray bg-white px-3 py-1.5 text-left text-sm text-primary hover:bg-gray-100"
+        >
+          <span className="font-medium">
+            {actions.filter((x) => x.on).length} of {actions.length} actions
           </span>
-        </label>
+          <span className="text-gray-600">· {scopeLabel(module.key, scope)}</span>
+          <ChevronIcon open={expanded} />
+        </button>
       )}
+
+      {entry && has && expanded && (
+        <div className="grid gap-x-6 gap-y-4 rounded-lg bg-inputBackground p-4 [grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))]">
+          <div className="flex min-w-0 flex-col gap-2">
+            <div className="flex min-h-8 flex-wrap items-center justify-between gap-2">
+              <p className="text-sm font-semibold text-primary">What they can do</p>
+              {custom && editable && (
+                <UiButton
+                  tone="ghost"
+                  size="sm"
+                  onClick={() =>
+                    update((d) => {
+                      delete d.actions[module.key];
+                      delete d.scopes[module.key];
+                    })
+                  }
+                >
+                  Reset to {LEVELS[rank].label} defaults
+                </UiButton>
+              )}
+            </div>
+            <div className="flex flex-col gap-0.5">
+              {actions.map(({ a, on, custom: actionCustom, hint, disabled, missing, byLevel }) => (
+                <label
+                  key={a.key}
+                  className={cn(
+                    "flex items-start gap-3 rounded-lg p-2 text-sm text-primary",
+                    disabled ? "cursor-default" : "cursor-pointer hover:bg-white",
+                    disabled && !on && editable && "opacity-60"
+                  )}
+                >
+                  <input
+                    type="checkbox"
+                    checked={on}
+                    disabled={disabled}
+                    onChange={() => toggleAction(a, on, byLevel)}
+                    className="mt-0.5 h-4 w-4 flex-shrink-0 accent-primary"
+                  />
+                  <span className="flex min-w-0 flex-col gap-0.5">
+                    <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                      <span>{a.label}</span>
+                      {actionCustom && (
+                        <Pill tone="neutral" className="px-2 py-0">
+                          Custom
+                        </Pill>
+                      )}
+                      {a.explicit && (
+                        <Pill tone="warning" className="px-2 py-0">
+                          On purpose
+                        </Pill>
+                      )}
+                      {a.isNew && (
+                        <Pill tone="success" className="px-2 py-0">
+                          New feature
+                        </Pill>
+                      )}
+                    </span>
+                    <span className="text-xs text-gray-500">{hint}</span>
+                    {missing && a.requires && (
+                      <span className="text-xs text-amber-700">
+                        Also needs {requirementLabel(a.requires)}, which this role doesn’t have.
+                      </span>
+                    )}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+          <div className="flex min-w-0 flex-col gap-2">
+            <div className="flex min-h-8 items-center">
+              <p className="text-sm font-semibold text-primary">Whose records they see</p>
+            </div>
+            {scopes.length === 1 ? (
+              <p className="text-sm text-gray-600">Whole branch. This module has no narrower option.</p>
+            ) : (
+              <div role="radiogroup" aria-label="Whose records they see" className="flex flex-col gap-2">
+                {scopes.map((value) => {
+                  const on = scope === value;
+                  return (
+                    <label
+                      key={value}
+                      className={cn(
+                        "flex items-start gap-3 rounded-lg border px-3 py-2.5 text-sm text-primary",
+                        on ? "border-primary bg-white" : "border-lightGray bg-transparent",
+                        editable ? "cursor-pointer" : "cursor-default"
+                      )}
+                    >
+                      <input
+                        type="radio"
+                        name={`scope-${module.key}`}
+                        checked={on}
+                        disabled={!editable}
+                        onChange={() =>
+                          update((d) => {
+                            if (value === byLevelScope) delete d.scopes[module.key];
+                            else d.scopes[module.key] = value;
+                          })
+                        }
+                        className="mt-0.5 h-4 w-4 flex-shrink-0 accent-primary"
+                      />
+                      <span className="flex min-w-0 flex-col gap-0.5">
+                        <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                          <span className="font-medium">{scopeLabel(module.key, value)}</span>
+                          {value === byLevelScope && (
+                            <Pill tone="neutral" className="px-2 py-0">
+                              Default
+                            </Pill>
+                          )}
+                        </span>
+                        <span className="text-xs text-gray-500">{scopeDescription(module.key, value)}</span>
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            )}
+            <p className="text-xs text-gray-500">
+              Narrows what they see and act on. It never reaches past the branch the role is given in.
+            </p>
+          </div>
+        </div>
+      )}
+
       {module.extra === "excl" && has && (
         <div className="flex flex-col gap-2 rounded-lg bg-inputBackground px-4 py-3">
           <div className="flex flex-col gap-0.5">
@@ -151,7 +359,7 @@ const ModuleRow = ({
           <PeopleChips
             framed={false}
             tone="white"
-            disabled={!canEdit}
+            disabled={!editable}
             people={hidden.map((id) => ({ id, name: nameOf(module.key, id) }))}
             options={memberOptions.filter((m) => !hidden.includes(m.id))}
             addLabel={exclTitle}
@@ -178,6 +386,14 @@ const ModuleRow = ({
             Grant on purpose
           </Pill>
           <span className="text-xs text-gray-600">{module.why} Templates and “Set all” never switch it on.</span>
+        </div>
+      )}
+      {module.extra === "retire" && (
+        <div className="flex flex-wrap items-center gap-2">
+          <Pill tone="neutral" className="px-2 py-0">
+            Being retired
+          </Pill>
+          <span className="text-xs text-gray-600">{module.why}</span>
         </div>
       )}
     </div>
@@ -283,7 +499,7 @@ const RoleDetail = () => {
   const [params, setParams] = useSearchParams();
   const tabParam = params.get("tab");
   const tab: Tab = tabParam === "people" || tabParam === "ws" ? tabParam : "perm";
-  const { canManage, canAdmin } = useAccessControl();
+  const { canManage, canAdmin, getAccessLevel, accessPermissions } = useAccessControl();
   const canEdit = canManage("Access_rights");
   const canDelete = canAdmin("Access_rights");
   const myId = useUserStore((s) => s.id);
@@ -296,6 +512,7 @@ const RoleDetail = () => {
   const [draft, setDraft] = useState<RoleDraft | null>(null);
   const [pq, setPq] = useState("");
   const [onlyWithAccess, setOnlyWithAccess] = useState<"all" | "with">("all");
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [modal, setModal] = useState<Modal>(null);
   const [saving, setSaving] = useState(false);
   /** Optimistic workspaces while a toggle saves. */
@@ -306,6 +523,7 @@ const RoleDetail = () => {
     setDraft(null);
     setPq("");
     setOnlyWithAccess("all");
+    setExpanded({});
     setWsPending(null);
   }, [roleId]);
 
@@ -318,9 +536,41 @@ const RoleDetail = () => {
     setParams(next, { replace: true });
   }, [role, params, setParams, canEdit]);
 
+  // You can only give what you have yourself: levels and actions above the
+  // editor's own access are locked (the API refuses them too).
+  const myRank = useCallback(
+    (key: string): LevelRank => LEVEL_RANK[(getAccessLevel(key) as Level | undefined) ?? "No_Access"] ?? 0,
+    [getAccessLevel]
+  );
+  const myActions = useMemo(() => {
+    const stored = normalizePermissionPayload(accessPermissions as PermissionMap).Actions;
+    return stored === undefined ? undefined : normalizeActionOverrides(stored);
+  }, [accessPermissions]);
+  const canGive = useCallback(
+    (key: string) => (a: CatalogAction) => myRank(key) === 3 || actionAllowed(myRank(key), myActions, key, a),
+    [myRank, myActions]
+  );
+  // Nobody changes their own access: a role you hold is read-only to you.
+  const heldIn = useMemo(
+    () => (role?.grants || []).filter((g) => String(g.user_id) === String(myId)).map((g) => g.branch_name),
+    [role, myId]
+  );
+  // Roles are shared across branches; one used where you have no role is
+  // someone else's to change.
+  const allowedBranchIds = useBranchStore((s) => s.allowedBranchIds);
+  const elsewhere = useMemo(
+    () =>
+      allowedBranchIds
+        ? [...new Set((role?.grants || []).filter((g) => !allowedBranchIds.includes(g.branch_id)).map((g) => g.branch_name))]
+        : [],
+    [role, allowedBranchIds]
+  );
+  const locked = heldIn.length > 0 || elsewhere.length > 0;
+  const editable = canEdit && !locked;
+
   const current = draft ?? base;
   const changed = useMemo(() => changedModules(base, current), [base, current]);
-  const dirty = canEdit && changed.size > 0;
+  const dirty = editable && changed.size > 0;
 
   useEffect(() => {
     if (!dirty) return;
@@ -350,7 +600,7 @@ const RoleDetail = () => {
   );
 
   const update = (fn: (d: RoleDraft) => void) => {
-    if (!canEdit) return;
+    if (!editable) return;
     setDraft((prev) => {
       const next = cloneDraft(prev ?? base);
       fn(next);
@@ -416,7 +666,7 @@ const RoleDetail = () => {
         const copy = await createRole(
           copyName(roles, role.name),
           role.description || "",
-          base,
+          clampToCeiling(base, myRank),
           reloadRoles,
           isDefaultWorkspaces(role) ? undefined : workspacesOf(role)
         );
@@ -477,6 +727,7 @@ const RoleDetail = () => {
   };
 
   /* ------------------------------ permissions ----------------------------- */
+  const hasCeiling = MODULES.some((m) => m.extra !== "retire" && myRank(m.key) < 3);
   const query = pq.trim().toLowerCase();
   const groups = MODULE_GROUPS.map((group) => {
     const all = MODULES.filter((m) => m.group === group);
@@ -512,7 +763,8 @@ const RoleDetail = () => {
       </div>
       <p className="text-xs text-gray-600">
         <strong className="font-semibold">View</strong> see records · <strong className="font-semibold">Manage</strong>{" "}
-        create and edit · <strong className="font-semibold">Full</strong> also delete and change module settings
+        create and edit · <strong className="font-semibold">Full</strong> also delete and change module settings. Each
+        level comes with a set of actions; open a module to add or remove actions and choose whose records they see.
       </p>
       {groups.map(({ group, all, on, rows }) => (
         <section key={group} className="overflow-hidden rounded-xl border border-lightGray">
@@ -523,7 +775,7 @@ const RoleDetail = () => {
                 {on} of {all.length} with access
               </p>
             </div>
-            {canEdit && (
+            {editable && (
               <select
                 value=""
                 aria-label={`Set every module in ${group}`}
@@ -531,9 +783,11 @@ const RoleDetail = () => {
                   const value = e.target.value as Level | "";
                   if (!value) return;
                   update((d) => {
-                    all.filter((m) => m.extra !== "explicit").forEach((m) => {
-                      d.perms[m.key] = value;
-                    });
+                    all
+                      .filter((m) => m.extra !== "explicit" && m.extra !== "retire")
+                      .forEach((m) => {
+                        d.perms[m.key] = LEVELS[Math.min(LEVEL_RANK[value], myRank(m.key))].value;
+                      });
                   });
                 }}
                 className="h-10 cursor-pointer rounded-lg border border-gray-500/35 bg-white px-3 text-sm text-primary"
@@ -553,7 +807,11 @@ const RoleDetail = () => {
               module={m}
               draft={current}
               changed={changed.has(m.key)}
-              canEdit={canEdit}
+              editable={editable}
+              ceilingRank={myRank(m.key)}
+              canGiveAction={canGive(m.key)}
+              expanded={!!expanded[m.key]}
+              onToggleExpanded={() => setExpanded((prev) => ({ ...prev, [m.key]: !prev[m.key] }))}
               memberOptions={memberOptions}
               nameOf={nameOf}
               update={update}
@@ -682,6 +940,23 @@ const RoleDetail = () => {
       <div className="flex flex-1 flex-col gap-4 bg-white px-[var(--app-page-padding-inline)] py-6">
         {!canEdit && (
           <InlineAlert tone="info">View only. You can see this role’s permissions but not change them.</InlineAlert>
+        )}
+        {canEdit && heldIn.length > 0 && tab !== "people" && (
+          <InlineAlert tone="warning">
+            You have this role in {[...new Set(heldIn)].join(" and ")}. Nobody can change their own access, so another
+            admin has to edit it.
+          </InlineAlert>
+        )}
+        {canEdit && !heldIn.length && elsewhere.length > 0 && tab !== "people" && (
+          <InlineAlert tone="warning">
+            This role is also used in {elsewhere.join(" and ")}, where you don’t have a role. An admin there has to
+            change it.
+          </InlineAlert>
+        )}
+        {editable && tab === "perm" && hasCeiling && (
+          <InlineAlert tone="info">
+            You can only give what you have yourself. Levels and actions above your own access are locked.
+          </InlineAlert>
         )}
         {tab === "perm" ? (
           permissions

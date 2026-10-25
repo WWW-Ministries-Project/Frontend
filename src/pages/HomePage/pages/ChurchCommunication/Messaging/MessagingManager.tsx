@@ -1,10 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { notify } from "@/components/feedback";
-import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { confirmAction } from "@/pages/HomePage/utils/helperFunctions";
 import { api } from "@/utils/api/apiCalls";
+import {
+  fetchMessagingAccess,
+  NO_MESSAGING_ACCESS,
+  type MessagingAccess,
+} from "@/utils/api/messaging/messagingAccess";
 import type {
   DispatchFilter,
   MessageDispatch,
@@ -53,8 +57,11 @@ const FILTERS: { key: DispatchFilter; label: string }[] = [
 const nf = (value: number) => value.toLocaleString("en-US");
 
 const MessagingManager = () => {
-  const { hasPermission } = useAccessControl();
-  const canManage = hasPermission("manage_messaging");
+  // Actions and audience scope as the API resolves them for the active branch.
+  const accessQuery = useFetch(fetchMessagingAccess, undefined, false, { silent: true });
+  const access: MessagingAccess = accessQuery.data?.data ?? NO_MESSAGING_ACCESS;
+  const { send_in_app, send_email, send_sms, edit_templates, toggle_automatic } = access.actions;
+  const canSend = send_in_app || send_email || send_sms;
   const wide = useViewportWidth() >= WIDE_TABLE_MIN;
 
   const [tab, setTab] = useState<Tab>("history");
@@ -133,6 +140,7 @@ const MessagingManager = () => {
     return (
       <MessageCompose
         seed={compose}
+        access={access}
         timezone={s?.timezone ?? "Africa/Accra"}
         onClose={() => setCompose(null)}
         onSent={async () => {
@@ -153,14 +161,18 @@ const MessagingManager = () => {
         title="Messaging"
         subtitle="Send SMS, email and in-app messages, and manage automatic welcome and birthday messages."
         actions={
-          canManage ? (
+          edit_templates || canSend ? (
             <>
-              <UiButton onClick={openSettings} disabled={!s}>
-                Settings
-              </UiButton>
-              <UiButton tone="primary" onClick={() => setCompose({})}>
-                New message
-              </UiButton>
+              {edit_templates && (
+                <UiButton onClick={openSettings} disabled={!s}>
+                  Settings
+                </UiButton>
+              )}
+              {canSend && (
+                <UiButton tone="primary" onClick={() => setCompose({})}>
+                  New message
+                </UiButton>
+              )}
             </>
           ) : undefined
         }
@@ -326,7 +338,8 @@ const MessagingManager = () => {
 
       {tab === "auto" && (
         <AutomaticMessages
-          canManage={canManage}
+          canEdit={edit_templates}
+          canToggle={toggle_automatic}
           settings={s}
           storeMissing={storeMissing}
           onOpenSettings={openSettings}
@@ -336,7 +349,7 @@ const MessagingManager = () => {
       {opened && (
         <DispatchDialog
           dispatch={opened}
-          canManage={canManage}
+          access={access}
           onClose={() => setOpenId(null)}
           onChanged={refreshHistory}
           onDuplicate={() => {
@@ -428,13 +441,13 @@ const DeliveryBar = ({ row, attempted, inline }: { row: MessageDispatch; attempt
 
 const DispatchDialog = ({
   dispatch,
-  canManage,
+  access,
   onClose,
   onChanged,
   onDuplicate,
 }: {
   dispatch: MessageDispatch;
-  canManage: boolean;
+  access: MessagingAccess;
   onClose: () => void;
   onChanged: () => Promise<void>;
   onDuplicate: () => void;
@@ -444,6 +457,14 @@ const DispatchDialog = ({
   const totals = totalsOf(dispatch);
   const pill = dispatchPill(dispatch);
   const people = peopleOf(dispatch);
+  const { actions } = access;
+  const canSend = actions.send_in_app || actions.send_email || actions.send_sms;
+  // A retry resends only the channels the role may: failed SMS costs money
+  // again, so it needs retry_paid.
+  const retryable =
+    (actions.retry_paid ? channelCounts(dispatch, "sms").failed : 0) +
+    (actions.send_email ? channelCounts(dispatch, "email").failed : 0) +
+    (actions.send_in_app ? channelCounts(dispatch, "inApp").failed : 0);
 
   useEffect(() => {
     if (!totals?.failed) return;
@@ -479,7 +500,7 @@ const DispatchDialog = ({
       await onChanged();
       onClose();
       notify.success({
-        title: `Retrying ${nf(response.data?.retried ?? totals?.failed ?? 0)} failed`,
+        title: `Retrying ${nf(response.data?.retried ?? retryable)} failed`,
         message: "Numbers that are invalid will fail again. Fix them in member profiles.",
       });
     } finally {
@@ -521,10 +542,10 @@ const DispatchDialog = ({
         .join(" · ")}
       buttons={[
         { label: "Close", onClick: onClose },
-        ...(canManage ? [{ label: "Duplicate", onClick: onDuplicate }] : []),
-        ...(canManage && dispatch.status === "SCHEDULED" ? [{ label: "Cancel message", onClick: cancel, tone: "danger" as const }] : []),
-        ...(canManage && dispatch.status !== "SCHEDULED" && dispatch.status !== "CANCELLED" && totals?.failed
-          ? [{ label: `Retry ${nf(totals.failed)} failed`, onClick: retry, tone: "primary" as const }]
+        ...(canSend ? [{ label: "Duplicate", onClick: onDuplicate }] : []),
+        ...(actions.schedule && dispatch.status === "SCHEDULED" ? [{ label: "Cancel message", onClick: cancel, tone: "danger" as const }] : []),
+        ...(dispatch.status !== "SCHEDULED" && dispatch.status !== "CANCELLED" && retryable > 0
+          ? [{ label: `Retry ${nf(retryable)} failed`, onClick: retry, tone: "primary" as const }]
           : []),
       ]}
     >

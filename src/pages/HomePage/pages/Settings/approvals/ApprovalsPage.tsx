@@ -4,15 +4,23 @@ import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import { ToggleSwitch } from "@/pages/HomePage/pages/ChurchCommunication/ui/commUi";
 import { PageHeading, Pill, UiButton } from "@/pages/HomePage/pages/MembershipManagement/components/membershipUi";
 import { plural, summarizeNames } from "@/pages/HomePage/pages/Settings/utils/settingsModel";
+import { useIsLegacyRole } from "@/pages/HomePage/pages/Settings/utils/useIsLegacyRole";
 import { cn } from "@/utils/cn";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
 import { reqNote, stepIsOpen, stepLabel, WF, WorkflowDraft, workflowErrors, WorkflowKey, WORKFLOW_KEYS } from "./approvalsModel";
 import { CardState, useApprovals } from "./useApprovals";
 import WorkflowDrawer from "./WorkflowDrawer";
 
-const EDIT_DOMAIN: Record<WorkflowKey, string> = { REQ: "Requisition", REP: "Events", FIN: "Financials" };
+/** Changing a chain is an on-purpose action of its module. */
+const EDIT_ACTION: Record<WorkflowKey, string> = {
+  REQ: "Requisition.configure_approvals",
+  REP: "Reports.event_configure_approvals",
+  FIN: "Financials.configure_approvals",
+};
+/** What editing needed before actions; roles saved before them keep it. */
+const LEGACY_EDIT_DOMAIN: Record<WorkflowKey, string> = { REQ: "Requisition", REP: "Events", FIN: "Financials" };
 
 interface FlowNode {
   label: string;
@@ -102,7 +110,12 @@ interface Editor {
 }
 
 const ApprovalsPage = () => {
-  const { canManage } = useAccessControl();
+  const { canManage, hasAction } = useAccessControl();
+  const legacy = useIsLegacyRole();
+  const canEditWorkflow = useCallback(
+    (key: WorkflowKey) => hasAction(EDIT_ACTION[key]) || (legacy && canManage(LEGACY_EDIT_DOMAIN[key])),
+    [hasAction, legacy, canManage]
+  );
   const approvals = useApprovals();
   const { cards, retry, save, personName, positionName } = approvals;
   const [editor, setEditor] = useState<Editor | null>(null);
@@ -116,7 +129,7 @@ const ApprovalsPage = () => {
     const key = editKey as WorkflowKey;
     const state = cards[key];
     if (state.status === "loading") return;
-    if (state.status === "ready" && canManage(EDIT_DOMAIN[key])) {
+    if (state.status === "ready" && canEditWorkflow(key)) {
       setEditor({ key, draft: state.stored.draft, turnOn: !state.stored.exists });
     }
     setParams(
@@ -127,7 +140,7 @@ const ApprovalsPage = () => {
       },
       { replace: true }
     );
-  }, [editKey, cards, canManage, setParams]);
+  }, [editKey, cards, canEditWorkflow, setParams]);
 
   const flowFor = (key: WorkflowKey, d: WorkflowDraft): FlowNode[] => {
     const nodes: FlowNode[] = [];
@@ -220,7 +233,7 @@ const ApprovalsPage = () => {
       );
     }
 
-    const canEdit = canManage(EDIT_DOMAIN[key]);
+    const canEdit = canEditWorkflow(key);
     const { draft } = state.stored;
     const on = draft.active;
 

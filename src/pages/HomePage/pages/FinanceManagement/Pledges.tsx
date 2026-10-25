@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { useRouteAccess } from "@/context/RouteAccessContext";
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import type { PledgeListRow } from "@/utils/api/pledges/interface";
 
 import PageOutline from "../../Components/PageOutline";
@@ -17,7 +17,9 @@ type Tab = "active" | "done" | "all";
 const Pledges = () => {
   const navigate = useNavigate();
   const today = useToday();
-  const { canManageCurrentRoute: canManage } = useRouteAccess();
+  const { hasAction } = useAccessControl();
+  const canCreate = hasAction("Pledges.create");
+  const canRemind = hasAction("Pledges.send_reminders");
   const { pledges, loading, error, reload } = usePledgeList();
   const [tab, setTab] = useState<Tab>("active");
   const [creating, setCreating] = useState(false);
@@ -42,7 +44,7 @@ const Pledges = () => {
         title: `${p.title ?? "Pledge"} ended ${fmtD(s.deadline)}`,
         text: `${money(num(p.remaining))} outstanding${p.pledgers_with_balance ? ` from ${plural(p.pledgers_with_balance, "pledger")}` : ""}.`,
         actions: [
-          ...(canManage ? [{ label: "Remind pledgers", onClick: () => remindAll(p, reload), primary: true }] : []),
+          ...(canRemind ? [{ label: "Remind pledgers", onClick: () => remindAll(p, reload), primary: true }] : []),
           { label: "Open", onClick: () => open(p) },
         ],
       });
@@ -63,7 +65,7 @@ const Pledges = () => {
           title="Pledges"
           subtitle="Pledge campaigns, who has paid, and what is still outstanding."
           actions={
-            canManage && (
+            canCreate && (
               <UiButton tone="primary" onClick={() => setCreating(true)}>
                 Create pledge
               </UiButton>

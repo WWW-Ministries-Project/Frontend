@@ -4,6 +4,7 @@ import {
   DialogShell,
   Field,
   SelectInput,
+  TextInput,
 } from "@/pages/HomePage/pages/MembershipManagement/components/membershipUi";
 import {
   MEMBER_STAGES,
@@ -223,23 +224,39 @@ const DeleteDialog = ({
   onDone: () => void;
 }) => {
   const { busy, run } = useRunner(onClose, onDone);
+  // Deleting several records at once can't be undone either: type to confirm.
+  const phrase = members.length > 1 ? `delete ${members.length} members` : "";
+  const [typed, setTyped] = useState("");
+  const confirmed = !phrase || typed.trim().toLowerCase() === phrase;
   return (
     <DialogShell
       open
       onClose={onClose}
       title={`Delete ${subjectOf(members)}?`}
       subtitle="This removes the member record and family links. This can’t be undone."
-      ctaLabel="Delete"
+      ctaLabel={members.length > 1 ? `Delete ${countText(members.length)}` : "Delete member"}
       ctaTone="danger"
       loading={busy}
-      onConfirm={() =>
+      ctaDisabled={!confirmed}
+      onConfirm={() => {
+        if (!confirmed) return;
         run(
           () => deleteMembers(members.map((member) => member.id)),
           (count) => `${countText(count)} deleted`,
           `Couldn't delete ${subjectOf(members)}`
-        )
-      }
-    />
+        );
+      }}
+    >
+      {phrase && (
+        <Field label={`Type “${phrase}” to confirm`}>
+          <TextInput
+            value={typed}
+            autoComplete="off"
+            onChange={(event) => setTyped(event.target.value)}
+          />
+        </Field>
+      )}
+    </DialogShell>
   );
 };
 

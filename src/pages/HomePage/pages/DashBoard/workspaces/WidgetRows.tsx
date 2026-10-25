@@ -10,6 +10,7 @@ import type {
 import { cn } from "@/utils/cn";
 
 import { actionsFor, KIND_META } from "./queueActions";
+import { useQueueAccess } from "./useQueueAccess";
 import { agendaParts, BZ, ghs, initials } from "./wsFormat";
 import { Ring } from "./WidgetCharts";
 import type { BtnSpec, WidgetCtx } from "./wsTypes";
@@ -94,6 +95,7 @@ export const QueueRows = ({
   items: QueueItem[];
   ctx: WidgetCtx;
 }) => {
+  const access = useQueueAccess();
   const live = items.filter((item) => !ctx.isDone(item));
   const tab = ctx.tabOf(widgetId, "all");
   const shown = live.filter((item) => tab === "all" || item.kind === tab);
@@ -119,7 +121,7 @@ export const QueueRows = ({
               >
                 View
               </UiButton>
-              {actionsFor(item).map((action) => (
+              {actionsFor(item, access).map((action) => (
                 <UiButton
                   key={action.key}
                   tone={BTN_TONE[action.tone]}
