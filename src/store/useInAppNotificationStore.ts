@@ -59,6 +59,7 @@ interface InAppNotificationStore {
     payload: unknown,
     source?: NotificationIngestSource
   ) => void;
+  applyNotificationUpdate: (payload: unknown) => void;
   applyUnreadCountPayload: (payload: unknown) => void;
   applyReadAllFromServer: (payload?: unknown) => void;
   applyClearAllFromServer: (payload?: unknown) => void;
@@ -402,6 +403,48 @@ export const useInAppNotificationStore = create<InAppNotificationStore>(
             ? state.totalCount + merged.added.length
             : merged.notifications.length,
         recentlyToastedKeys: toastKeys.slice(-MAX_TOAST_KEYS),
+      });
+    },
+
+    // A `notification_updated` event is a read/unread receipt (often from
+    // another device), NOT a new notification. Reconcile only rows already in
+    // the loaded window — never add, play a sound, toast, or bump totalCount.
+    // An update for a row outside the window is ignored here; the authoritative
+    // unread count still arrives via applyUnreadCountPayload.
+    applyNotificationUpdate: (payload) => {
+      const incoming = extractNotificationsFromPayload(payload);
+      if (!incoming.length) return;
+
+      const state = get();
+      const indexByIdentity = new Map(
+        state.notifications.map((notification, index) => [
+          getNotificationIdentity(notification),
+          index,
+        ])
+      );
+
+      const next = [...state.notifications];
+      let unreadDelta = 0;
+      let changed = false;
+
+      incoming.forEach((notification) => {
+        const index = indexByIdentity.get(getNotificationIdentity(notification));
+        if (index === undefined) return;
+
+        const previous = next[index];
+        const merged = { ...previous, ...notification };
+        next[index] = merged;
+        changed = true;
+
+        if (previous.isRead && !merged.isRead) unreadDelta += 1;
+        if (!previous.isRead && merged.isRead) unreadDelta -= 1;
+      });
+
+      if (!changed) return;
+
+      set({
+        notifications: next,
+        unreadCount: Math.max(0, state.unreadCount + unreadDelta),
       });
     },
 

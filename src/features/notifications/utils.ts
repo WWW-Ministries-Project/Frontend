@@ -615,6 +615,15 @@ export const resolveNotificationNavigationTarget = (
       const currentOrigin = window.location.origin;
 
       if (parsedUrl.origin !== currentOrigin) {
+        // Only open external targets over https. Anything else (http downgrade,
+        // or an exotic scheme that slipped past isAbsoluteUrl) is not trusted —
+        // fall back to an in-app route instead of opening it.
+        if (parsedUrl.protocol !== "https:") {
+          return {
+            url: buildFallbackActionUrl(notification, currentPathname),
+            external: false,
+          };
+        }
         return { url: parsedUrl.toString(), external: true };
       }
 
@@ -624,8 +633,8 @@ export const resolveNotificationNavigationTarget = (
       };
     } catch {
       return {
-        url: rawActionUrl,
-        external: true,
+        url: buildFallbackActionUrl(notification, currentPathname),
+        external: false,
       };
     }
   }

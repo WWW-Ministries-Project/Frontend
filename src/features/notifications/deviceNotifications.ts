@@ -277,6 +277,13 @@ export const getDevicePushSetupState =
     }
   };
 
+// The connector re-syncs on focus / visibility / online, which can fire many
+// times a session. The backend subscribe is idempotent, so skip the POST when
+// the endpoint has not changed and we synced it recently.
+let lastSyncedEndpoint: string | null = null;
+let lastSyncedAt = 0;
+const RESUBSCRIBE_MIN_INTERVAL_MS = 5 * 60 * 1000;
+
 export const ensureDevicePushSubscription =
   async (): Promise<EnsureDevicePushSubscriptionResult> => {
     if (!isPushSubscriptionSupported()) return "failed";
@@ -311,7 +318,17 @@ export const ensureDevicePushSubscription =
         });
       }
 
+      const now = Date.now();
+      if (
+        subscription.endpoint === lastSyncedEndpoint &&
+        now - lastSyncedAt < RESUBSCRIBE_MIN_INTERVAL_MS
+      ) {
+        return "enabled";
+      }
+
       await api.post.subscribeToNotificationPush(buildSubscriptionPayload(subscription));
+      lastSyncedEndpoint = subscription.endpoint;
+      lastSyncedAt = now;
       return "enabled";
     } catch {
       return "failed";

@@ -33,6 +33,7 @@ type CrossTabMessageType =
   | "connected"
   | "disconnected"
   | "notification"
+  | "notification_updated"
   | "unread_count"
   | "read_all"
   | "cleared"
@@ -106,6 +107,7 @@ const parseCrossTabMessage = (value: unknown): CrossTabMessage | null => {
     type !== "connected" &&
     type !== "disconnected" &&
     type !== "notification" &&
+    type !== "notification_updated" &&
     type !== "unread_count" &&
     type !== "read_all" &&
     type !== "cleared" &&
@@ -170,6 +172,9 @@ export const NotificationRealtimeConnector = () => {
   const setConnected = useInAppNotificationStore((state) => state.setConnected);
   const ingestNotificationPayload = useInAppNotificationStore(
     (state) => state.ingestNotificationPayload
+  );
+  const applyNotificationUpdate = useInAppNotificationStore(
+    (state) => state.applyNotificationUpdate
   );
   const applyUnreadCountPayload = useInAppNotificationStore(
     (state) => state.applyUnreadCountPayload
@@ -455,10 +460,17 @@ export const NotificationRealtimeConnector = () => {
 
       switch (name) {
         case "notification":
-        case "notification_updated":
           ingestNotificationPayload(body, "realtime");
           applyUnreadCountPayload(body);
           publishCrossTab("notification", body);
+          publishCrossTab("unread_count", body);
+          return;
+        case "notification_updated":
+          // A read/unread receipt, not a new notification: reconcile in place,
+          // no sound/toast/insert. Follower tabs get the update-only variant.
+          applyNotificationUpdate(body);
+          applyUnreadCountPayload(body);
+          publishCrossTab("notification_updated", body);
           publishCrossTab("unread_count", body);
           return;
         case "unread_count":
@@ -669,6 +681,11 @@ export const NotificationRealtimeConnector = () => {
         return;
       }
 
+      if (message.type === "notification_updated") {
+        applyNotificationUpdate(message.payload);
+        return;
+      }
+
       if (message.type === "unread_count") {
         applyUnreadCountPayload(message.payload);
         return;
@@ -823,6 +840,7 @@ export const NotificationRealtimeConnector = () => {
   }, [
     applyClearAllFromServer,
     applyDeletedFromServer,
+    applyNotificationUpdate,
     applyReadAllFromServer,
     applyUnreadCountPayload,
     fetchNotifications,
