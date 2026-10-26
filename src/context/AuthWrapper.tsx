@@ -5,6 +5,7 @@ import {
   clearAuthSession,
   resetProtectedAppState,
 } from "@/utils/authSession";
+import { clearNotificationRealtimeStorage } from "@/features/notifications/realtimeStorageKeys";
 import { getToken } from "@/utils/helperFunctions";
 import { userType, userTypeWithToken } from "@/utils/interfaces";
 import PropTypes from "prop-types";
@@ -87,8 +88,11 @@ export const AuthWrapper = ({ children }: { children: React.ReactNode }) => {
       if (getToken()) return;
 
       // Clear locally without re-broadcasting, otherwise tabs would bounce the
-      // logout signal back and forth.
+      // logout signal back and forth. Also drop the shared (not user-scoped)
+      // notification snapshot/leader keys so a follower cannot rehydrate the
+      // previous user's notifications.
       useUserStore.getState().clearUser();
+      clearNotificationRealtimeStorage();
       resetProtectedAppState();
       navigate("/login", { replace: true });
     };

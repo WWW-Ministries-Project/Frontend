@@ -15,6 +15,9 @@
 - `PATCH /notifications/:id/read`
 - `PATCH /notifications/:id/unread`
 - `PATCH /notifications/read-all`
+- `DELETE /notifications` (clear all)
+- `POST /notifications/delete` (delete selected; body `{ ids: Array<number|string> }`, owner-scoped)
+- `GET /notifications/preferences`, `GET|PATCH /notifications/preferences/:type`
 
 All routes require bearer auth. The API answers `401 { "message": "Account inactive" }` for deactivated accounts; the dashboard treats it as a sign-out.
 
