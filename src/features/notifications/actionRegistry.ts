@@ -459,6 +459,17 @@ export const NOTIFICATION_ACTION_REGISTRY: NotificationActionDefinition[] = [
     defaultPriority: "CRITICAL",
     toastForHighPriorityOnly: true,
   },
+  // A sermon was auto-imported from YouTube; take the manager to the sermon
+  // list to review or edit it. SermonManager edits inline, so there is no
+  // per-id edit route — the list route is the correct target.
+  {
+    type: "sermon.ingested",
+    entityType: "sermon",
+    description: "A new sermon was imported from YouTube and may need review.",
+    actionUrlTemplate: "/home/communication/sermons",
+    defaultPriority: "MEDIUM",
+    toastForHighPriorityOnly: true,
+  },
 ];
 
 const notificationActionDefinitionMap = new Map(
