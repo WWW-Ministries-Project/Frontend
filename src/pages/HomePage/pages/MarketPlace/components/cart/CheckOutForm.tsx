@@ -2,7 +2,7 @@ import { Form, Formik, getIn, useField, useFormikContext } from "formik";
 import { useEffect } from "react";
 import { object, string } from "yup";
 
-import { ContactInput } from "@/components/ContactInput";
+import { PhoneField } from "@/components/subform/PhoneField";
 import {
   ContactsSubForm,
   type IContactsSubForm,
@@ -72,7 +72,7 @@ export function CheckoutForm({
       ...(billinDetails?.contact_info || {}),
       email: billinDetails?.contact_info?.email || defaults.email,
       phone: {
-        ...ContactInput.initialValues,
+        ...PhoneField.initialValues,
         ...(billinDetails?.contact_info?.phone || {}),
         number: billinDetails?.contact_info?.phone?.number || defaults.phone,
       },
@@ -99,7 +99,7 @@ export function CheckoutForm({
                 <TextField name="personal_info.last_name" label="Last name" autoComplete="family-name" />
                 <TextField name="contact_info.email" label="Email" type="email" autoComplete="email" />
                 <div className="[&>div]:mb-0">
-                  <ContactInput
+                  <PhoneField
                     prefix="contact_info"
                     label="Phone"
                     zipClass="h-11 rounded-l-lg border border-r-0 bg-gray-50 px-2 text-sm"

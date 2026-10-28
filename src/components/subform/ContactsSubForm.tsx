@@ -1,4 +1,4 @@
-import { ContactInput, IContactInput } from "@/components/ContactInput";
+import { PhoneField, type IContactInput } from "@/components/subform/PhoneField";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import { Field } from "formik";
 import { object, string } from "yup";
@@ -16,7 +16,7 @@ const ContactsSubFormComponent = ({
   const marker = showRequiredMarkers ? " *" : "";
   return (
     <>
-      <ContactInput
+      <PhoneField
         disabled={disabled}
         label={`Phone number${marker}`}
         prefix={prefix}
@@ -72,7 +72,7 @@ const initialValues: IContactsSubForm = {
   resident_country: "",
   state_region: "",
   city: "",
-  phone: ContactInput.initialValues,
+  phone: PhoneField.initialValues,
   // ...EmergencyContact.initialValues,
 };
 const validationSchema = {
@@ -83,7 +83,7 @@ const validationSchema = {
   resident_country: string().required("Resident country is required"),
   state_region: string().required("State/Region is required"),
   city: string().required("City is required"),
-  phone: object().shape(ContactInput.validationSchema),
+  phone: object().shape(PhoneField.validationSchema),
 };
 export const ContactsSubForm = Object.assign(ContactsSubFormComponent, {
   initialValues,
