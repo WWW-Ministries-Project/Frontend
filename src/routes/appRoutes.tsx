@@ -144,6 +144,7 @@ import {
   GeneralConfiguration,
   RoleDetail,
   UsersPage,
+  VisitorFollowUpsSettings,
 } from "@/pages/HomePage/pages/Settings/lazyPages";
 import {
   AssetAnalytics,
@@ -1338,6 +1339,14 @@ export const routes: AppRoute[] = [
             path: "approvals",
             name: "Approvals",
             element: <Suspense fallback={null}><ApprovalsPage /></Suspense>,
+            isPrivate: true,
+            permissionNeeded: "view_settings",
+            sideTab: true,
+          },
+          {
+            path: "visitor-follow-ups",
+            name: "Visitor Follow-ups",
+            element: <Suspense fallback={null}><VisitorFollowUpsSettings /></Suspense>,
             isPrivate: true,
             permissionNeeded: "view_settings",
             sideTab: true,

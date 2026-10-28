@@ -5,6 +5,10 @@ import type {
 } from "./reports/interfaces";
 import type { RequisitionReminderResponse } from "./requisitions/interfaces";
 import type { ApiResponse, QueryType } from "../interfaces";
+import type {
+  VisitorFollowUpConfig,
+  VisitorFollowUpConfigPayload,
+} from "./settings/visitorFollowUpInterfaces";
 import { ApiExecution } from "./apiConstructor";
 import { postData } from "./apiFunctions";
 import type {
@@ -395,6 +399,12 @@ export class ApiCreationCalls {
     payload: ReportConfigPayload
   ): Promise<ApiResponse<ReportConfig>> => {
     return this.postToApi("settings/upsert-report-config", payload);
+  };
+
+  upsertVisitorFollowUpConfig = (
+    payload: VisitorFollowUpConfigPayload
+  ): Promise<ApiResponse<VisitorFollowUpConfig>> => {
+    return this.postToApi("settings/upsert-visitor-follow-up-config", payload);
   };
 
   upsertSystemNotificationConfig = (
