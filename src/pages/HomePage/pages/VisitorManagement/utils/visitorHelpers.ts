@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from "react";
 
+import { TITLE_OPTIONS as SHARED_TITLE_OPTIONS } from "@/components/subform/titleOptions";
 import { useFetch } from "@/CustomHooks/useFetch";
 import type { PillTone } from "@/pages/HomePage/pages/MembershipManagement/components/membershipUi";
 import { initialsOf } from "@/pages/HomePage/pages/MembershipManagement/components/membershipUiUtils";
@@ -47,7 +48,8 @@ export const FOLLOW_UP_TYPES = [
   { value: "sms", label: "SMS" },
 ];
 
-export const TITLE_OPTIONS = ["Mr", "Mrs", "Ms", "Dr", "Rev"];
+// Derived from the shared list so the visitor and member forms offer the same titles.
+export const TITLE_OPTIONS: string[] = SHARED_TITLE_OPTIONS.map((o) => o.value);
 
 const labelFrom = (options: { value: string; label: string }[], value?: string | null) => {
   if (!value) return "";
