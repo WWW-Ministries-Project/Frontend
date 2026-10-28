@@ -129,14 +129,19 @@ const PhoneFieldComponent = ({
 };
 
 /**
- * Optional single-input phone number (e.g. `contact_info.other_number`). Validated
- * against the primary number's country code unless entered in +international form.
+ * Shared country-code + number phone input, bound to `${prefix}.phone.{country_code,number}`
+ * (or top-level `phone.*` when no prefix). Carries the required-number/required-code
+ * statics so it is a drop-in for the former ContactInput.
  */
 export const PhoneField = Object.assign(PhoneFieldComponent, {
   initialValues,
   validationSchema,
 });
 
+/**
+ * Optional single-input phone number (e.g. `contact_info.other_number`). Validated
+ * against the primary number's country code unless entered in +international form.
+ */
 export const OtherNumberField = ({
   name,
   codeName,
