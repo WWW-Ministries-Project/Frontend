@@ -133,7 +133,9 @@ const EventSelectionFields = () => {
   }, [debouncedSearch, weekFrom, weekTo, selectedEventId]);
   const { data: eventOptionsResponse, loading: eventOptionsLoading } = useFetch(
     api.fetch.fetchEventOptions,
-    eventQuery
+    eventQuery,
+    false,
+    { silent: true }
   );
 
   const eventRecords = React.useMemo(
@@ -150,11 +152,11 @@ const EventSelectionFields = () => {
     ? "Loading events..."
     : debouncedSearch
       ? eventOptions.length > 0
-        ? `Showing events matching "${debouncedSearch}".`
+        ? "Searching all events by name."
         : `No events match "${debouncedSearch}".`
       : visitDate
         ? `Showing events for the week of ${visitDate}. Type to search all events.`
-        : "Showing all events. Type to search by name.";
+        : "Showing recent events. Pick a visit date or type to search.";
 
   return (
     <>
