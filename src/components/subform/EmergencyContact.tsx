@@ -2,7 +2,7 @@ import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
 import { Field } from "formik";
 import { object, string } from "yup";
-import { ContactInput, IContactInput } from "../ContactInput";
+import { PhoneField, type IContactInput } from "@/components/subform/PhoneField";
 import { ISelectOption } from "@/pages/HomePage/utils/homeInterfaces";
 
 const EmergencyContactComponent = ({
@@ -38,7 +38,7 @@ const EmergencyContactComponent = ({
         id={`${prefix}.emergency_contact_phone_number`}
         name={`${prefix}.emergency_contact_phone_number`}
       /> */}
-      <ContactInput prefix={prefix} label="Phone number *"/>
+      <PhoneField prefix={prefix} label="Phone number *"/>
     </>
   );
 };
@@ -65,12 +65,12 @@ export interface IEmergencyContact {
 const initialValues: IEmergencyContact = {
   name: "",
   relation: "",
-  phone: ContactInput.initialValues,
+  phone: PhoneField.initialValues,
 };
 const validationSchema = {
   name: string().required("Required"),
   relation: string().required("Required"),
-  phone: object().shape(ContactInput.validationSchema),
+  phone: object().shape(PhoneField.validationSchema),
 };
 
 export const EmergencyContact = Object.assign(EmergencyContactComponent, {

@@ -126,6 +126,7 @@ import { Branch, BranchDeleteImpact } from "./settings/branchInterfaces";
 import type { AttendanceTimingSettingsConfig } from "./settings/attendanceTimingInterfaces";
 import type { EventReportExclusionsConfig } from "./settings/eventReportExclusionInterfaces";
 import type { ReportConfig } from "./settings/reportConfigInterfaces";
+import type { VisitorFollowUpConfig } from "./settings/visitorFollowUpInterfaces";
 import type { RoleEligibilityConfig } from "./settings/eligibilityInterfaces";
 import type {
   SystemNotificationAdminCandidate,
@@ -505,6 +506,12 @@ export class ApiCalls {
 
   fetchReportConfig = (): Promise<ApiResponse<ReportConfig>> => {
     return this.fetchFromApi("settings/report-config");
+  };
+
+  fetchVisitorFollowUpConfig = (): Promise<
+    ApiResponse<VisitorFollowUpConfig>
+  > => {
+    return this.fetchFromApi("settings/visitor-follow-up-config");
   };
 
   fetchSystemNotificationConfig = (): Promise<

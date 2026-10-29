@@ -12,7 +12,6 @@ import {
   NameInfo,
 } from "@/components/subform";
 import { FormHeader, FormLayout } from "@/components/ui";
-import { SelectField } from "@/pages/HomePage/Components/reusable/SelectField";
 import { useStore } from "@/store/useStore";
 import { api, EventResponseType, formatDate } from "@/utils";
 import { Field, Form, Formik, useFormikContext } from "formik";
@@ -23,6 +22,7 @@ import { ALL_BRANCHES, useBranchStore } from "@/store/useBranchStore";
 type SyncEventDateFormValues = {
   visit?: {
     eventId?: string | number;
+    date?: string;
   };
 };
 
@@ -59,36 +59,21 @@ const clergyOptions = [
   { label: "No", value: "no" },
 ];
 
-const monthOptions = Array.from({ length: 12 }, (_, index) => ({
-  label: new Date(2000, index, 1).toLocaleString("default", {
-    month: "long",
-  }),
-  value: String(index + 1),
-}));
-
-const getCurrentMonthYear = () => {
-  const today = new Date();
-
-  return {
-    month: String(today.getMonth() + 1),
-    year: String(today.getFullYear()),
-  };
-};
-
-const createYearOptions = (activeYear: string) => {
-  const currentYear = new Date().getFullYear();
-  const years = new Set<string>([activeYear]);
-
-  for (let year = currentYear + 2; year >= currentYear - 20; year -= 1) {
-    years.add(String(year));
-  }
-
-  return Array.from(years)
-    .sort((left, right) => Number(right) - Number(left))
-    .map((year) => ({
-      label: year,
-      value: year,
-    }));
+// Monday–Sunday ISO week bounds for a yyyy-mm-dd string.
+const weekBounds = (isoDate: string): { from: string; to: string } | null => {
+  if (!isoDate) return null;
+  const d = new Date(`${isoDate}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return null;
+  const day = (d.getDay() + 6) % 7; // 0 = Monday
+  const monday = new Date(d);
+  monday.setDate(d.getDate() - day);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  const fmt = (x: Date) =>
+    `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, "0")}-${String(
+      x.getDate()
+    ).padStart(2, "0")}`;
+  return { from: fmt(monday), to: fmt(sunday) };
 };
 
 const mapEventOptions = (events: EventResponseType[]): VisitorEventOption[] =>
@@ -120,32 +105,37 @@ const SyncEventDate = ({ eventsOptions }: { eventsOptions: { value: string | num
 
 const EventSelectionFields = () => {
   const { values } = useFormikContext<SyncEventDateFormValues>();
-  const { month: currentMonth, year: currentYear } = React.useMemo(
-    () => getCurrentMonthYear(),
-    []
-  );
-  const [eventFilterMonth, setEventFilterMonth] = React.useState(currentMonth);
-  const [eventFilterYear, setEventFilterYear] = React.useState(currentYear);
-
-  const currentEventId = values?.visit?.eventId
+  const visitDate = values?.visit?.date ? String(values.visit.date) : "";
+  const selectedEventId = values?.visit?.eventId
     ? String(values.visit.eventId)
     : "";
-  const includedEventIdRef = React.useRef(currentEventId);
+
+  const [eventSearch, setEventSearch] = React.useState("");
+  const [debouncedSearch, setDebouncedSearch] = React.useState("");
+  React.useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(eventSearch.trim()), 300);
+    return () => clearTimeout(t);
+  }, [eventSearch]);
+
+  const week = weekBounds(visitDate);
+  const weekFrom = week?.from;
+  const weekTo = week?.to;
   const eventQuery = React.useMemo(() => {
-    const query: Record<string, string> = {
-      month: eventFilterMonth,
-      year: eventFilterYear,
-    };
-
-    if (includedEventIdRef.current) {
-      query.includeEventId = includedEventIdRef.current;
+    const query: Record<string, string> = {};
+    if (debouncedSearch) {
+      query.q = debouncedSearch;
+    } else if (weekFrom && weekTo) {
+      query.from = weekFrom;
+      query.to = weekTo;
     }
-
+    if (selectedEventId) query.includeEventId = selectedEventId;
     return query;
-  }, [eventFilterMonth, eventFilterYear]);
+  }, [debouncedSearch, weekFrom, weekTo, selectedEventId]);
   const { data: eventOptionsResponse, loading: eventOptionsLoading } = useFetch(
     api.fetch.fetchEventOptions,
-    eventQuery
+    eventQuery,
+    false,
+    { silent: true }
   );
 
   const eventRecords = React.useMemo(
@@ -157,45 +147,16 @@ const EventSelectionFields = () => {
     () => mapEventOptions(eventRecords),
     [eventRecords]
   );
-  const yearOptions = React.useMemo(
-    () => createYearOptions(eventFilterYear),
-    [eventFilterYear]
-  );
-  const selectedEvent = React.useMemo(
-    () =>
-      includedEventIdRef.current
-        ? eventRecords.find(
-            (event) => String(event.id) === includedEventIdRef.current
-          )
-        : undefined,
-    [eventRecords]
-  );
-  const selectedEventOutsideFilter = React.useMemo(() => {
-    if (!selectedEvent?.start_date) {
-      return false;
-    }
-
-    const selectedDate = new Date(selectedEvent.start_date);
-    if (Number.isNaN(selectedDate.getTime())) {
-      return false;
-    }
-
-    return (
-      selectedDate.getMonth() + 1 !== Number(eventFilterMonth) ||
-      selectedDate.getFullYear() !== Number(eventFilterYear)
-    );
-  }, [eventFilterMonth, eventFilterYear, selectedEvent?.start_date]);
-  const activeMonthLabel =
-    monthOptions.find((option) => option.value === eventFilterMonth)?.label ||
-    "Selected month";
 
   const eventHelperText = eventOptionsLoading
     ? "Loading events..."
-    : selectedEventOutsideFilter
-      ? `Showing ${activeMonthLabel} ${eventFilterYear} events plus the visitor's current event.`
-      : eventOptions.length > 0
-        ? `Showing events for ${activeMonthLabel} ${eventFilterYear}.`
-        : `No events found for ${activeMonthLabel} ${eventFilterYear}.`;
+    : debouncedSearch
+      ? eventOptions.length > 0
+        ? "Searching all events by name."
+        : `No events match "${debouncedSearch}".`
+      : visitDate
+        ? `Showing events for the week of ${visitDate}. Type to search all events.`
+        : "Showing recent events. Pick a visit date or type to search.";
 
   return (
     <>
@@ -204,32 +165,26 @@ const EventSelectionFields = () => {
         <div className="mb-4">
           <p className="text-sm font-semibold text-primary">Visit Event</p>
           <p className="text-xs text-primaryGray">
-            Filter events by month and year before selecting the visit event.
+            Pick a visit date to see events for that week, or search by name.
           </p>
         </div>
-        <div className="grid gap-4 md:grid-cols-3">
-          <SelectField
-            id="visitor-event-filter-month"
-            label="Month"
-            value={eventFilterMonth}
-            options={monthOptions}
-            searchable={false}
-            sortOptions={false}
-            onChange={(_, value) =>
-              setEventFilterMonth(String(value || currentMonth))
-            }
-          />
-          <SelectField
-            id="visitor-event-filter-year"
-            label="Year"
-            value={eventFilterYear}
-            options={yearOptions}
-            searchable={false}
-            sortOptions={false}
-            onChange={(_, value) =>
-              setEventFilterYear(String(value || currentYear))
-            }
-          />
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="flex flex-col gap-1">
+            <label
+              htmlFor="visitor-event-search"
+              className="text-sm font-medium text-primary"
+            >
+              Search events
+            </label>
+            <input
+              id="visitor-event-search"
+              type="text"
+              value={eventSearch}
+              onChange={(e) => setEventSearch(e.target.value)}
+              placeholder="Search events by name"
+              className="w-full rounded-lg border border-lightGray px-3 py-2 text-sm"
+            />
+          </div>
           <Field
             component={FormikSelectField}
             options={eventOptions}

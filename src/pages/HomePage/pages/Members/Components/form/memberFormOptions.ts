@@ -3,29 +3,7 @@ import type { SelectOption } from "@/pages/HomePage/pages/MembershipManagement/c
 const toOptions = (values: string[]): SelectOption[] =>
   values.map((value) => ({ value, label: value }));
 
-// Values mirror the shared subforms in src/components/subform so the payload is unchanged.
-export const TITLE_OPTIONS = toOptions([
-  "Mr",
-  "Mrs",
-  "Miss",
-  "Ms",
-  "Dr",
-  "Prof",
-  "Pastor",
-  "Apostle",
-  "Prophet",
-  "Evangelist",
-  "Teacher",
-  "Bishop",
-  "Rev",
-  "Elder",
-  "Deacon",
-  "Deaconess",
-  "Minister",
-  "Hon",
-  "Sir",
-  "Lady",
-]);
+export { TITLE_OPTIONS } from "@/components/subform/titleOptions";
 
 export const GENDER_OPTIONS = toOptions(["Male", "Female"]);
 

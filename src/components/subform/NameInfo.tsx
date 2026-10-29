@@ -1,8 +1,8 @@
-import { ISelectOption } from "@/pages/HomePage/utils/homeInterfaces";
 import { Field } from "formik";
 import { string } from "yup";
 import { FormikInputDiv } from "../FormikInputDiv";
 import FormikSelectField from "../FormikSelect";
+import { TITLE_OPTIONS } from "./titleOptions";
 
 const NameInfoComponent = ({
   disabled = false,
@@ -22,7 +22,7 @@ const NameInfoComponent = ({
         placeholder="Select title"
         id={prefix ? `${prefix}.title` : "title"}
         name={prefix ? `${prefix}.title` : "title"}
-        options={titleOptions}
+        options={TITLE_OPTIONS}
         clearable
       />
       <Field
@@ -52,29 +52,6 @@ const NameInfoComponent = ({
     </>
   );
 };
-
-const titleOptions: ISelectOption[] = [
-  { label: "Mr", value: "Mr" },
-  { label: "Mrs", value: "Mrs" },
-  { label: "Miss", value: "Miss" },
-  { label: "Ms", value: "Ms" },
-  { label: "Dr", value: "Dr" },
-  { label: "Prof", value: "Prof" },
-  { label: "Pastor", value: "Pastor" },
-  { label: "Apostle", value: "Apostle" },
-  { label: "Prophet", value: "Prophet" },
-  { label: "Evangelist", value: "Evangelist" },
-  { label: "Teacher", value: "Teacher" },
-  { label: "Bishop", value: "Bishop" },
-  { label: "Rev", value: "Rev" },
-  { label: "Elder", value: "Elder" },
-  { label: "Deacon", value: "Deacon" },
-  { label: "Deaconess", value: "Deaconess" },
-  { label: "Minister", value: "Minister" },
-  { label: "Hon", value: "Hon" },
-  { label: "Sir", value: "Sir" },
-  { label: "Lady", value: "Lady" },
-];
 
 export interface INameInfo {
   title?: string;

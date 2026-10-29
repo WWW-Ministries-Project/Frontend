@@ -6,3 +6,6 @@ export const AccessRightsList = lazy(() => import("./access/AccessRightsList"));
 export const RoleDetail = lazy(() => import("./access/RoleDetail"));
 export const UsersPage = lazy(() => import("./users/UsersPage"));
 export const ApprovalsPage = lazy(() => import("./approvals/ApprovalsPage"));
+export const VisitorFollowUpsSettings = lazy(
+  () => import("./visitorFollowUps/VisitorFollowUpsSettings"),
+);
