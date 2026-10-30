@@ -141,6 +141,10 @@ const DOMAIN_FALLBACKS: Partial<Record<PermissionDomain, PermissionDomain[]>> = 
   // Ride to church borrowed Membership management before it had a domain.
   // Mirrors PERMISSION_KEY_ALIASES in the Backend's authorization.ts.
   Rides: ["Membership_Management", "Members"],
+  // AI shipped after access levels were saved, so Settings/Access-rights
+  // administrators keep access until AI is set explicitly. Mirrors
+  // PERMISSION_KEY_ALIASES in the Backend's authorization.ts.
+  AI: ["Settings", "Access_rights"],
 };
 
 /** Domains that are no longer offered in the access-level editor but may
