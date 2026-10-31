@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { notify } from "@/components/feedback";
+import { useAssistantStore } from "@/store/assistantStore";
 import { buildBranchQuery, useBranchStore } from "@/store/useBranchStore";
 import { api } from "@/utils";
 import type { AiTask, AiTaskAction, AiTasksResponse } from "@/utils/api/ai/tasksInterfaces";
@@ -10,6 +11,8 @@ import { TaskCard } from "../TaskCard";
 
 const EMPTY: AiTasksResponse = { summary: { total: 0, overdue: 0, doneToday: 0 }, groups: [] };
 
+const taskKey = (task: AiTask) => `${task.source}:${task.id}`;
+
 interface ForYouTabProps {
   greetingName: string;
 }
@@ -17,42 +20,76 @@ interface ForYouTabProps {
 export const ForYouTab = ({ greetingName }: ForYouTabProps) => {
   const navigate = useNavigate();
   const activeBranchId = useBranchStore((state) => state.activeBranchId);
+  const setTasksCount = useAssistantStore((state) => state.setTasksCount);
   const [data, setData] = useState<AiTasksResponse>(EMPTY);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const load = useCallback(
+    async (showSpinner = true) => {
+      if (showSpinner) setLoading(true);
+      setError(null);
+      try {
+        const res = await api.fetch.fetchAiTasks(buildBranchQuery(activeBranchId));
+        setData(res.data ?? EMPTY);
+      } catch {
+        setError("Couldn't load your tasks. Try again shortly.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [activeBranchId]
+  );
+
   useEffect(() => {
-    let active = true;
-    setLoading(true);
-    setError(null);
-    api.fetch
-      .fetchAiTasks(buildBranchQuery(activeBranchId))
-      .then((res) => {
-        if (active) setData(res.data ?? EMPTY);
-      })
-      .catch(() => {
-        if (active) setError("Couldn't load your tasks. Try again shortly.");
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [activeBranchId]);
+    void load();
+  }, [load]);
+
+  useEffect(() => {
+    setTasksCount(data.summary.total);
+  }, [data.summary.total, setTasksCount]);
 
   const onAction = (task: AiTask, action: AiTaskAction) => {
     if (action.kind === "open" && task.screen) {
       navigate(task.screen);
       return;
     }
-    // Inline actions (approve/assign/generate/sms) are wired in a later phase.
+    // Approve/assign/generate/sms are wired to module endpoints in a later phase.
     notify.info({ title: "Available soon", message: "This action will be wired up shortly." });
+  };
+
+  const onSnooze = async (task: AiTask, until: string, label: string) => {
+    const key = taskKey(task);
+    // Optimistic: drop the task from its group now.
+    setData((prev) => ({
+      ...prev,
+      groups: prev.groups
+        .map((group) => ({ ...group, items: group.items.filter((item) => taskKey(item) !== key) }))
+        .filter((group) => group.items.length > 0),
+      summary: { ...prev.summary, total: Math.max(0, prev.summary.total - 1) },
+    }));
+
+    try {
+      await api.post.setAiTaskState({ task_key: key, state: "snoozed", snoozed_until: until, label });
+      notify.success({
+        title: `Snoozed until ${label.toLowerCase()}`,
+        message: task.title,
+        action: {
+          label: "Undo",
+          onClick: () => {
+            void api.delete.clearAiTaskState(key).then(() => load(false));
+          },
+        },
+      });
+    } catch {
+      notify.error({ title: "Couldn't snooze", message: "Try again." });
+      void load(false);
+    }
   };
 
   const { summary, groups } = data;
   const done = summary.doneToday;
-  const progressPct = summary.total > 0 ? Math.round((done / summary.total) * 100) : 0;
+  const progressPct = summary.total + done > 0 ? Math.round((done / (summary.total + done)) * 100) : 0;
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
 
@@ -69,10 +106,10 @@ export const ForYouTab = ({ greetingName }: ForYouTabProps) => {
               }`
             : "Nothing is waiting on you right now."}
         </p>
-        {summary.total > 0 ? (
+        {summary.total + done > 0 ? (
           <div className="mt-1 flex flex-col gap-1">
             <p className="text-xs text-gray-500">
-              {done} of {summary.total} done today
+              {done} of {summary.total + done} done today
             </p>
             <div className="h-1.5 overflow-hidden rounded-full bg-gray-200">
               <div className="h-full rounded-full bg-[#080D2D] transition-[width]" style={{ width: `${progressPct}%` }} />
@@ -102,7 +139,7 @@ export const ForYouTab = ({ greetingName }: ForYouTabProps) => {
               {group.label} · {group.items.length}
             </p>
             {group.items.map((task) => (
-              <TaskCard key={task.id} task={task} onAction={onAction} />
+              <TaskCard key={taskKey(task)} task={task} onAction={onAction} onSnooze={onSnooze} />
             ))}
           </div>
         ))

@@ -43,3 +43,17 @@ export interface AiTasksResponse {
   groups: AiTaskGroup[];
   warnings?: string[];
 }
+
+export interface AiTaskStatePayload {
+  task_key: string;
+  state: "done" | "snoozed";
+  snoozed_until?: string;
+  label?: string;
+}
+
+export interface AiTaskStateResult {
+  task_key: string;
+  state: string;
+  snoozed_until: string | null;
+  label: string | null;
+}

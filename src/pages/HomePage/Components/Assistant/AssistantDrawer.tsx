@@ -15,6 +15,7 @@ const DATE_LABEL = new Date().toLocaleDateString([], { weekday: "short", day: "n
 
 export const AssistantDrawer = () => {
   const { tab, view, setTab, setView, close } = useAssistantStore();
+  const tasksCount = useAssistantStore((state) => state.tasksCount);
   const { user } = useAuth();
   const unreadCount = useInAppNotificationStore((state) => state.unreadCount);
   const branches = useBranchStore((state) => state.branches);
@@ -36,7 +37,7 @@ export const AssistantDrawer = () => {
   }, [close]);
 
   const tabs: { key: AssistantTab; label: string; count: number }[] = [
-    { key: "tasks", label: "For you", count: 0 },
+    { key: "tasks", label: "For you", count: tasksCount },
     { key: "updates", label: "Updates", count: unreadCount },
     { key: "ask", label: "Ask", count: 0 },
   ];

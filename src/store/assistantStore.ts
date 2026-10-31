@@ -28,6 +28,8 @@ interface AssistantState {
   draft: string;
   busy: boolean;
   toast: AssistantToast | null;
+  /** Count shown on the "For you" tab pill; set by the tasks tab on load. */
+  tasksCount: number;
 
   openTo: (tab?: AssistantTab) => void;
   close: () => void;
@@ -38,6 +40,7 @@ interface AssistantState {
   setBusy: (busy: boolean) => void;
   setConversationId: (id?: string) => void;
   setToast: (toast: AssistantToast | null) => void;
+  setTasksCount: (count: number) => void;
 }
 
 export const useAssistantStore = create<AssistantState>((set) => ({
@@ -50,6 +53,7 @@ export const useAssistantStore = create<AssistantState>((set) => ({
   draft: "",
   busy: false,
   toast: null,
+  tasksCount: 0,
 
   openTo: (tab) =>
     set((state) => ({
@@ -66,4 +70,5 @@ export const useAssistantStore = create<AssistantState>((set) => ({
   setBusy: (busy) => set({ busy }),
   setConversationId: (conversationId) => set({ conversationId }),
   setToast: (toast) => set({ toast }),
+  setTasksCount: (tasksCount) => set({ tasksCount }),
 }));
