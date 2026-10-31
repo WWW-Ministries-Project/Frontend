@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { notify } from "@/components/feedback";
+import { showConfirmDialog } from "@/pages/HomePage/utils/helperFunctions";
 import { useAssistantStore } from "@/store/assistantStore";
 import { buildBranchQuery, useBranchStore } from "@/store/useBranchStore";
 import { api } from "@/utils";
@@ -49,12 +50,86 @@ export const ForYouTab = ({ greetingName }: ForYouTabProps) => {
     setTasksCount(data.summary.total);
   }, [data.summary.total, setTasksCount]);
 
+  // Optimistically drop a task from the feed (used after an action succeeds).
+  const dropTask = (key: string) =>
+    setData((prev) => ({
+      ...prev,
+      groups: prev.groups
+        .map((group) => ({ ...group, items: group.items.filter((item) => taskKey(item) !== key) }))
+        .filter((group) => group.items.length > 0),
+      summary: {
+        ...prev.summary,
+        total: Math.max(0, prev.summary.total - 1),
+        doneToday: prev.summary.doneToday + 1,
+      },
+    }));
+
+  // Mark a task done after its module action succeeded, then re-sync.
+  const markDone = async (task: AiTask, doneMessage: string) => {
+    const key = taskKey(task);
+    dropTask(key);
+    notify.success({ title: doneMessage, message: task.title });
+    try {
+      await api.post.setAiTaskState({ task_key: key, state: "done", label: doneMessage });
+    } catch {
+      /* the module action already succeeded; state sync is best-effort */
+    }
+    void load(false);
+  };
+
+  const runApprove = async (task: AiTask) => {
+    try {
+      if (task.source === "requisition") {
+        await api.post.requisitionApprovalAction({
+          requisition_id: Number(task.id),
+          action: "APPROVE",
+        });
+        return markDone(task, "Approved");
+      }
+      if (task.source === "finance") {
+        await api.post.approveFinancial(task.id);
+        return markDone(task, "Approved");
+      }
+      if (task.source === "appointment") {
+        await api.post.appointmentBookingAction(task.id, { action: "accept" });
+        return markDone(task, "Accepted");
+      }
+    } catch (error) {
+      notify.fromError(error, { title: "Couldn't complete" });
+    }
+  };
+
+  const runSms = (task: AiTask) => {
+    showConfirmDialog(
+      "Send pledge reminders?",
+      async () => {
+        await api.post.remindPledgers({ pledge_id: Number(task.id) });
+        await markDone(task, "Reminders sent");
+      },
+      {
+        points: [
+          "Sends an SMS to every pledger with an outstanding balance.",
+          "Messages can't be recalled once sent.",
+        ],
+        confirmLabel: "Send reminders",
+      }
+    );
+  };
+
   const onAction = (task: AiTask, action: AiTaskAction) => {
-    if (action.kind === "open" && task.screen) {
-      navigate(task.screen);
+    if (action.kind === "open") {
+      if (task.screen) navigate(task.screen);
       return;
     }
-    // Approve/assign/generate/sms are wired to module endpoints in a later phase.
+    if (action.kind === "approve") {
+      void runApprove(task);
+      return;
+    }
+    if (action.kind === "sms") {
+      runSms(task);
+      return;
+    }
+    // assign / generate land with their module flows in a later iteration.
     notify.info({ title: "Available soon", message: "This action will be wired up shortly." });
   };
 
