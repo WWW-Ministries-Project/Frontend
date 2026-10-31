@@ -1352,6 +1352,14 @@ export const routes: AppRoute[] = [
             sideTab: true,
           },
           {
+            path: "ai-console",
+            name: "AI Console",
+            element: <AIConsole />,
+            isPrivate: true,
+            permissionNeeded: { domain: "AI", action: "view" },
+            sideTab: true,
+          },
+          {
             path: "approval",
             name: "Approval",
             element: <Navigate to="/home/settings/approvals" replace />,

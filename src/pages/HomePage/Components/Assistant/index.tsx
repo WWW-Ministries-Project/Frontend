@@ -29,9 +29,9 @@ export const Assistant = () => {
   const [nudgeReady, setNudgeReady] = useState(false);
 
   const canViewAi = canView("AI");
-  const onAiConsole = location.pathname.startsWith(
-    `${relativePath.home.main}/${relativePath.home.ai}`
-  );
+  const onAiConsole =
+    location.pathname.startsWith(`${relativePath.home.main}/${relativePath.home.ai}`) ||
+    location.pathname.includes("/settings/ai-console");
   const active = canViewAi && !onAiConsole;
 
   // Overdue count drives the launcher badge and the nudge; refreshes on branch
