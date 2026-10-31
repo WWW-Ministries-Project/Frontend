@@ -26,6 +26,7 @@ import type {
   SaveRidePickupPointDto,
 } from "./rides/interfaces";
 import type { Promotion, UpdatePromotionDto } from "./promotions/interfaces";
+import type { AiPreferences, AiPreferencesPatch } from "./ai/preferencesInterfaces";
 import type { AnnualTheme, AnnualThemePayload } from "./theme/interfaces";
 import type { DecideMembershipRequestPayload } from "./guests/interfaces";
 import type {
@@ -992,6 +993,12 @@ export class ApiUpdateCalls {
     payload: Record<string, never> = {}
   ): Promise<ApiResponse<unknown>> => {
     return this.apiExecution.patchData("notifications/read-all", payload);
+  };
+
+  updateAiPreferences = (
+    payload: AiPreferencesPatch
+  ): Promise<ApiResponse<AiPreferences>> => {
+    return this.apiExecution.patchData("ai/preferences", payload);
   };
 
   updateNotificationPreference = (
