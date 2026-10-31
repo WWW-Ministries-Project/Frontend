@@ -153,6 +153,7 @@ import type {
   AiUsageHistoryResponse,
   AiUsageSummary,
 } from "./ai/interfaces";
+import type { AiTasksResponse } from "./ai/tasksInterfaces";
 import type {
   AvailableGivingOption,
   FinanceApprovalConfig,
@@ -1438,6 +1439,13 @@ export class ApiCalls {
 
   fetchAiChatbotConfig = (): Promise<ApiResponse<AiChatbotConfig>> => {
     return this.fetchFromApi("ai/chatbot/config");
+  };
+
+  // Assistant "For you" task feed (branch-scoped via buildBranchQuery).
+  fetchAiTasks = (
+    query?: QueryType
+  ): Promise<ApiResponse<AiTasksResponse>> => {
+    return this.fetchFromApi("ai/tasks", query);
   };
 
   // AI usage and quota tracking
