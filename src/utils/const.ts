@@ -48,6 +48,9 @@ export const relativePath = {
     },
     reports: {
       main: "reports",
+      executiveSummary: "reports/executive-summary",
+      departmentReports: "reports/department",
+      departmentReportDetails: "reports/department/:key",
       eventReports: "reports/event-reports",
       eventReportDetails: "reports/event-reports/:id",
     },
@@ -89,6 +92,10 @@ export const relativePath = {
     },
     marketPlace: {
       main: "market-place",
+      markets: "market-place/markets",
+      products: "market-place/products",
+      orders: "market-place/orders",
+      orderDetails: "market-place/orders/:orderId",
       details: "market-place/:id",
       addProduct: "market-place/:marketId/create-product",
       editProduct: "market-place/:marketId/edit-product/:productId",
@@ -135,6 +142,11 @@ export const relativePath = {
     pledgesComplete: "/member/pledges/complete",
     schoolOfMinistries: {
       main: "school-of-ministries",
+      assignments: "school-of-ministries/assignments",
+      assignmentDetails: "school-of-ministries/assignments/:topicId",
+      grades: "school-of-ministries/grades",
+      schedule: "school-of-ministries/schedule",
+      announcements: "school-of-ministries/announcements",
       allPrograms: "school-of-ministries/programs",
       myClass: "school-of-ministries/my-class",
       myEnrolledPrograms: "school-of-ministries/programs/my-enrolled-programs",

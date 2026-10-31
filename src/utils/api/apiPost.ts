@@ -1,7 +1,14 @@
-import { LifeCenterMemberForm } from "@/pages/HomePage/pages/LifeCenter/components/LifeCenterMemberForm";
-import { ILifeCernterRoles } from "@/pages/HomePage/pages/LifeCenter/components/RolesForm";
-import { ISoulsWonForm } from "@/pages/HomePage/pages/LifeCenter/components/SoulsWonForm";
+import type {
+  DeptReportDetail,
+  DeptReportSelector,
+  EventReportSignOffPayload,
+} from "./reports/interfaces";
+import type { RequisitionReminderResponse } from "./requisitions/interfaces";
 import type { ApiResponse, QueryType } from "../interfaces";
+import type {
+  VisitorFollowUpConfig,
+  VisitorFollowUpConfigPayload,
+} from "./settings/visitorFollowUpInterfaces";
 import { ApiExecution } from "./apiConstructor";
 import { postData } from "./apiFunctions";
 import type {
@@ -30,25 +37,61 @@ import type {
   SaveRidePickupPointDto,
 } from "./rides/interfaces";
 import type { CreatePromotionDto, Promotion } from "./promotions/interfaces";
+import type { AnnualTheme, AnnualThemePayload } from "./theme/interfaces";
 import type {
   Sermon,
   SermonSeries,
   CreateSermonDto,
   CreateSermonSeriesDto,
 } from "./sermons/interfaces";
-import { AssetPayloadType } from "./assets/interfaces";
+import type {
+  AssetSavePayload,
+  AssetSnapshot,
+  AssetStatusPayload,
+  AssetStatusResponse,
+  AssetRow,
+  RepairRequisitionPayload,
+  RepairRequisitionResponse,
+  StockCheckResponse,
+} from "./assets/interfaces";
 import type {
   InitializePledgePaymentPayload,
   InitializePledgePaymentResult,
   PledgeDetail,
   PledgeMutationPayload,
+  PledgePayment,
+  PledgeRemindResult,
   PledgerInput,
   Redemption,
   RetryPledgePaymentPayload,
 } from "./pledges/interface";
-import { LifeCenterType, MeetingType } from "./lifeCenter/interfaces";
+import {
+  LeaderReminderReason,
+  LifeCenterMemberPayload,
+  LifeCenterSavePayload,
+  LifeCenterType,
+  MeetingPayload,
+  MeetingType,
+  SoulWonPayload,
+} from "./lifeCenter/interfaces";
 import {
   CohortPayloadType,
+  BankQuestion,
+  BankQuestionPayload,
+  ExtensionPayload,
+  ModulePayload,
+  Rubric,
+  RubricPayload,
+  AnnouncementPayload,
+  ApplyResult,
+  InstructorAbilities,
+  LibraryItem,
+  LibraryItemPayload,
+  LmsAnnouncement,
+  LmsSession,
+  ProgramInstructor,
+  SessionPayload,
+  ProgramModule,
   ProgramsPayloadType,
 } from "./ministrySchool/interfaces";
 import type {
@@ -67,6 +110,10 @@ import type {
 } from "./departmentJoinRequests/interfaces";
 import type { Branch, BranchPayload } from "./settings/branchInterfaces";
 import type {
+  GiveAccessPayload,
+  GiveAccessResult,
+} from "./settings/accessLevelAssignmentInterfaces";
+import type {
   AttendanceTimingSettingsConfig,
   AttendanceTimingSettingsPayload,
 } from "./settings/attendanceTimingInterfaces";
@@ -74,6 +121,7 @@ import type {
   EventReportExclusionsConfig,
   EventReportExclusionsPayload,
 } from "./settings/eventReportExclusionInterfaces";
+import type { ReportConfig, ReportConfigPayload } from "./settings/reportConfigInterfaces";
 import type {
   RoleEligibilityConfig,
   RoleEligibilityConfigPayload,
@@ -90,6 +138,7 @@ import type {
 import {
   BiometricAttendanceImportPayload,
   BiometricAttendanceImportStartResponse,
+  EventReminderRow,
   EventType,
   PublicEventRegistrationPayload,
   ValidateEventMemberPayload,
@@ -107,16 +156,21 @@ import type {
 } from "./marketPlace/interface";
 import {
   Appointment,
+  AppointmentActionPayload,
   AppointmentReason,
   CreateAppointmentBookingPayload,
   CreateAppointmentReasonPayload,
   CreateStaffAvailabilityPayload,
+  CreateStaffTimeOffPayload,
   StaffAvailability,
+  StaffTimeOff,
 } from "./appointment/interfaces";
 import type {
   FinanceApprovalConfig,
+  FinanceApprovalConfigPayload,
   FinanceMutationRequest,
   FinancialRecord,
+  GivingContribution,
   GivingOption,
   GivingOptionPayload,
   InitializeGivingPayload,
@@ -142,6 +196,7 @@ import type {
   AiInsightsRequest,
   CreateAiCredentialPayload,
 } from "./ai/interfaces";
+import type { AiTaskStatePayload, AiTaskStateResult } from "./ai/tasksInterfaces";
 import type { NotificationPushSubscriptionPayload } from "./notifications/interfaces";
 import type {
   DownloadedFile,
@@ -252,6 +307,11 @@ export class ApiCreationCalls {
     return this.postToApi<T>("user/register", payload);
   };
 
+  /** The public membership form; the API keeps only the person's own details. */
+  registerMemberPublic = <T>(payload: unknown): Promise<ApiResponse<T>> => {
+    return this.postToApi<T>("user/public-register", payload);
+  };
+
   bulkUpdateMemberStatus = (
     payload: BulkUpdateMemberStatusPayload
   ): Promise<ApiResponse<BulkUpdateMemberStatusResponse>> => {
@@ -270,14 +330,43 @@ export class ApiCreationCalls {
     return this.postToApi("event/create-event", payload);
   };
 
+  /** Replaces an occurrence's reminders. Needs at least one offset. */
+  saveEventReminders = (payload: {
+    event_id: number;
+    reminders: number[];
+  }): Promise<ApiResponse<EventReminderRow[]>> => {
+    return this.postToApi<EventReminderRow[]>("event/reminders", payload);
+  };
+
   createUniqueEvent = (payload: EventType): Promise<ApiResponse<EventType>> => {
     return this.postToApi<EventType>("event/create-event-type", payload);
   };
 
-  createAsset = (
-    payload: AssetPayloadType
-  ): Promise<ApiResponse<unknown>> => {
-    return this.postToApi("assets/create-asset", payload);
+  // Assets
+  saveAsset = (payload: AssetSavePayload): Promise<ApiResponse<AssetRow>> => {
+    return this.postToApi<AssetRow>("assets/save-asset", payload);
+  };
+  updateAssetStatus = (payload: AssetStatusPayload): Promise<ApiResponse<AssetStatusResponse>> => {
+    return this.postToApi<AssetStatusResponse>("assets/update-status", payload);
+  };
+  restoreAssets = (payload: { snapshots: AssetSnapshot[] }): Promise<ApiResponse<{ assets: AssetRow[] }>> => {
+    return this.postToApi<{ assets: AssetRow[] }>("assets/restore", payload);
+  };
+  confirmAssetLost = (payload: { id: number }): Promise<ApiResponse<{ asset: AssetRow; previous: AssetSnapshot }>> => {
+    return this.postToApi<{ asset: AssetRow; previous: AssetSnapshot }>("assets/confirm-lost", payload);
+  };
+  raiseRepairRequisition = (payload: RepairRequisitionPayload): Promise<ApiResponse<RepairRequisitionResponse>> => {
+    return this.postToApi<RepairRequisitionResponse>("assets/repair-requisition", payload);
+  };
+  clearRepairRequisition = (payload: { id: number }): Promise<ApiResponse<{ asset: AssetRow }>> => {
+    return this.postToApi<{ asset: AssetRow }>("assets/clear-repair-requisition", payload);
+  };
+  /** action: start | cancel | mark | set-fix | add-extra | remove-extra | submit | reopen | remind | recount | mark-rest-missing | close */
+  stockCheckAction = <T = StockCheckResponse>(
+    action: string,
+    payload: Record<string, unknown>
+  ): Promise<ApiResponse<T>> => {
+    return this.postToApi<T>(`assets/stock-checks/${action}`, payload);
   };
   createRequisition = <T = unknown>(
     payload: Record<string, unknown>
@@ -307,6 +396,18 @@ export class ApiCreationCalls {
     return this.postToApi("settings/upsert-event-report-exclusions", payload);
   };
 
+  upsertReportConfig = (
+    payload: ReportConfigPayload
+  ): Promise<ApiResponse<ReportConfig>> => {
+    return this.postToApi("settings/upsert-report-config", payload);
+  };
+
+  upsertVisitorFollowUpConfig = (
+    payload: VisitorFollowUpConfigPayload
+  ): Promise<ApiResponse<VisitorFollowUpConfig>> => {
+    return this.postToApi("settings/upsert-visitor-follow-up-config", payload);
+  };
+
   upsertSystemNotificationConfig = (
     payload: SystemNotificationSettingsPayload
   ): Promise<ApiResponse<SystemNotificationSettingsConfig>> => {
@@ -317,6 +418,58 @@ export class ApiCreationCalls {
     payload: EventReportApprovalConfigPayload
   ): Promise<ApiResponse<ApprovalConfig>> => {
     return this.postToApi("event-reports/upsert-approval-config", payload);
+  };
+
+  // Event report sign-off
+  approveEventReport = (payload: EventReportSignOffPayload): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("event-reports/approve", payload);
+  };
+
+  returnEventReport = (payload: EventReportSignOffPayload): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("event-reports/return", payload);
+  };
+
+  resubmitEventReport = (payload: EventReportSignOffPayload): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("event-reports/resubmit", payload);
+  };
+
+  commentOnEventReport = (payload: EventReportSignOffPayload): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("event-reports/comment", payload);
+  };
+
+  // Department reports
+  submitDepartmentReport = (payload: DeptReportSelector): Promise<ApiResponse<DeptReportDetail>> => {
+    return this.postToApi("department-reports/submit", payload);
+  };
+
+  approveDepartmentReport = (payload: DeptReportSelector): Promise<ApiResponse<DeptReportDetail>> => {
+    return this.postToApi("department-reports/approve", payload);
+  };
+
+  returnDepartmentReport = (
+    payload: DeptReportSelector & { note: string }
+  ): Promise<ApiResponse<DeptReportDetail>> => {
+    return this.postToApi("department-reports/return", payload);
+  };
+
+  commentOnDepartmentReport = (
+    payload: DeptReportSelector & { text: string }
+  ): Promise<ApiResponse<DeptReportDetail>> => {
+    return this.postToApi("department-reports/comment", payload);
+  };
+
+  remindDepartmentReport = (
+    payload: DeptReportSelector
+  ): Promise<ApiResponse<{ sent_to: number }>> => {
+    return this.postToApi("department-reports/remind", payload);
+  };
+
+  decideLeadershipRequest = (payload: {
+    request_id: number;
+    decision: "APPROVE" | "RESPOND";
+    response?: string;
+  }): Promise<ApiResponse<{ id: number; outcome: string; response: string | null }>> => {
+    return this.postToApi("department-reports/requests/decide", payload);
   };
 
   generateEventReport = (
@@ -361,6 +514,17 @@ export class ApiCreationCalls {
     payload: RequisitionApprovalActionPayload
   ): Promise<ApiResponse<unknown>> => {
     return this.postToApi("requisitions/approval-action", payload);
+  };
+  addRequisitionComment = (payload: {
+    requisition_id: number;
+    comment: string;
+  }): Promise<ApiResponse<{ id: number; created_at: string }>> => {
+    return this.postToApi("requisitions/add-comment", payload);
+  };
+  sendRequisitionReminder = (payload: {
+    requisition_id: number;
+  }): Promise<ApiResponse<RequisitionReminderResponse>> => {
+    return this.postToApi("requisitions/send-reminder", payload);
   };
 
   subscribeToNotificationPush = (
@@ -407,6 +571,67 @@ export class ApiCreationCalls {
     return this.postToApi("program/program", payload);
   };
 
+  createProgramModule = (payload: ModulePayload): Promise<ApiResponse<ProgramModule>> => {
+    return this.postToApi("program/module", payload);
+  };
+
+  createBankQuestion = (payload: BankQuestionPayload): Promise<ApiResponse<BankQuestion>> => {
+    return this.postToApi("program/question-bank", payload);
+  };
+
+  addBankQuestionsToUnit = (payload: {
+    topicId: number;
+    questionIds: number[];
+  }): Promise<ApiResponse<{ added: number; skipped: number; total: number }>> => {
+    return this.postToApi("program/question-bank/add-to-unit", payload);
+  };
+
+  createRubric = (payload: RubricPayload): Promise<ApiResponse<Rubric>> => {
+    return this.postToApi("program/rubric", payload);
+  };
+
+  issueCertificates = (payload: {
+    programId: number;
+    userIds: number[];
+  }): Promise<ApiResponse<{ issued: number; results: { userId: number; ok: boolean; error?: string }[] }>> => {
+    return this.postToApi("program/certificates/issue", payload);
+  };
+
+  createLmsSession = (payload: SessionPayload): Promise<ApiResponse<LmsSession>> => {
+    return this.postToApi("program/session", payload);
+  };
+
+  sendCohortAnnouncement = (payload: AnnouncementPayload): Promise<ApiResponse<LmsAnnouncement>> => {
+    return this.postToApi("program/announcement", payload);
+  };
+
+  applyToProgram = (payload: { courseId: number; note?: string }): Promise<ApiResponse<ApplyResult>> => {
+    return this.postToApi("program/apply", payload);
+  };
+
+  addProgramInstructors = (
+    payload: { programId: number; userIds: number[] } & Partial<InstructorAbilities>
+  ): Promise<ApiResponse<ProgramInstructor[]>> => {
+    return this.postToApi("program/program-instructors", payload);
+  };
+
+  createLibraryItem = (payload: LibraryItemPayload): Promise<ApiResponse<LibraryItem>> => {
+    return this.postToApi("program/library-item", payload);
+  };
+
+  useLibraryItem = (payload: {
+    itemId: number;
+    programId: number;
+    moduleId?: number | null;
+    title?: string;
+  }): Promise<ApiResponse<{ topicId: number; name: string }>> => {
+    return this.postToApi("program/library/use", payload);
+  };
+
+  grantAssignmentExtension = (payload: ExtensionPayload): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("program/assignment-extension", payload);
+  };
+
   // Create Cohort
   createCohort = (
     payload: CohortPayloadType
@@ -442,6 +667,20 @@ export class ApiCreationCalls {
     payload: Record<string, unknown>
   ): Promise<ApiResponse<T>> => {
     return this.postToApi<T>("program/unenroll", payload);
+  };
+
+  /** Let a member sign in to the admin app with a role in one branch. */
+  giveAccess = (
+    payload: GiveAccessPayload
+  ): Promise<ApiResponse<GiveAccessResult>> => {
+    return this.postToApi("user/give-access", payload);
+  };
+
+  /** Admin: email someone a link to set a new password. */
+  sendResetLink = (payload: {
+    user_id: number;
+  }): Promise<ApiResponse<{ user_id: number; email: string; expires_in: string }>> => {
+    return this.postToApi("user/send-reset-link", payload);
   };
 
   forgotPassword = <T>(payload: unknown): Promise<ApiResponse<T>> => {
@@ -486,13 +725,13 @@ export class ApiCreationCalls {
   // };
 
   createLifeCenter = (
-    payload: LifeCenterType
+    payload: LifeCenterSavePayload
   ): Promise<ApiResponse<LifeCenterType>> => {
     return this.postToApi("lifecenter/create-lifecenter", payload);
   };
 
   createSoul = (
-    payload: ISoulsWonForm
+    payload: SoulWonPayload
   ): Promise<
     ApiResponse<{
       id: string | number;
@@ -503,29 +742,27 @@ export class ApiCreationCalls {
     return this.postToApi("lifecenter/soulwon", payload);
   };
 
-  createMeeting = (payload: {
-    lifeCenterId: string;
-    date: string;
-    offeringAmount: string;
-    currency: string;
-    note: string | null;
-    attendeeSoulWonIds: number[];
-    firstTimerSoulWonIds: number[];
-    newFirstTimers: unknown[];
-  }): Promise<ApiResponse<MeetingType>> => {
+  createMeeting = (payload: MeetingPayload): Promise<ApiResponse<MeetingType>> => {
     return this.postToApi("lifecenter/meeting", payload);
   };
 
-  createLifeCenterRole = (
-    payload: ILifeCernterRoles
-  ): Promise<ApiResponse<{ id: string; name: string }>> => {
+  createLifeCenterRole = (payload: {
+    name: string;
+  }): Promise<ApiResponse<{ id: string; name: string }>> => {
     return this.postToApi("lifecenter/create-role", payload);
   };
 
   createLifeCenterMember = (
-    payload: LifeCenterMemberForm
-  ): Promise<ApiResponse<LifeCenterMemberForm>> => {
+    payload: LifeCenterMemberPayload
+  ): Promise<ApiResponse<unknown>> => {
     return this.postToApi("lifecenter/add-lifecenter-member", payload);
+  };
+
+  remindLifeCenterLeader = (payload: {
+    lifeCenterId: number | string;
+    reason: LeaderReminderReason;
+  }): Promise<ApiResponse<{ sent_to: string }>> => {
+    return this.postToApi("lifecenter/remind-leader", payload);
   };
 
   //marketPlace
@@ -603,6 +840,24 @@ export class ApiCreationCalls {
     return this.postToApi("appointment/reasons", payload);
   };
 
+  // Accept, suggest, decline, cancel, record outcome, remind, reassign…
+  appointmentBookingAction = (
+    id: string | number,
+    payload: AppointmentActionPayload
+  ): Promise<ApiResponse<Appointment>> => {
+    return this.postToApi(`appointment/bookings/${id}/actions`, payload);
+  };
+
+  createStaffTimeOff = (
+    userId: string | number,
+    payload: CreateStaffTimeOffPayload
+  ): Promise<ApiResponse<StaffTimeOff>> => {
+    return this.postToApi(
+      `appointment/availability/staff/${userId}/time-off`,
+      payload
+    );
+  };
+
   // Record Attendance
   recordChurchAttendance = (
     payload: unknown
@@ -636,8 +891,8 @@ export class ApiCreationCalls {
 
   //Create theme
   createAnnualTheme = (
-    payload: unknown
-  ): Promise<ApiResponse<unknown>> => {
+    payload: AnnualThemePayload | unknown
+  ): Promise<ApiResponse<AnnualTheme>> => {
     return this.postToApi("theme/create-theme", payload);
   }
 
@@ -749,6 +1004,23 @@ export class ApiCreationCalls {
     id: number
   ): Promise<ApiResponse<Promotion>> => {
     return this.postToApi(`promotions/${id}/publish`, {});
+  };
+
+  unpublishPromotion = (id: number): Promise<ApiResponse<Promotion>> => {
+    return this.postToApi(`promotions/${id}/unpublish`, {});
+  };
+
+  /** Rewrites sort_order to 1..n in the order given. */
+  reorderPromotions = (ids: number[]): Promise<ApiResponse<Promotion[]>> => {
+    return this.postToApi("promotions/reorder", { ids });
+  };
+
+  /** Community manager: pin or unpin a post above the feed. */
+  pinCommunityPost = (
+    id: number,
+    pinned: boolean
+  ): Promise<ApiResponse<{ id: number; isPinned: boolean }>> => {
+    return this.postToApi(`community/admin/posts/${id}/pin`, { pinned });
   };
 
   archivePromotion = (
@@ -872,9 +1144,47 @@ export class ApiCreationCalls {
   };
 
   upsertFinanceApprovalConfig = (
-    payload: FinanceApprovalConfig
+    payload: FinanceApprovalConfigPayload
   ): Promise<ApiResponse<FinanceApprovalConfig>> => {
     return this.postToApi("financials/upsert-approval-config", payload);
+  };
+
+  // finance approver approves a submitted weekly record. Query: { id }
+  approveFinancial = (id: string): Promise<ApiResponse<FinancialRecord>> => {
+    return this.postToApi(`financials/approve-financial?id=${encodeURIComponent(id)}`, {});
+  };
+
+  // finance approver sends a submitted weekly record back as a draft
+  returnFinancial = (
+    id: string,
+    note: string
+  ): Promise<ApiResponse<FinancialRecord>> => {
+    return this.postToApi(`financials/return-financial?id=${encodeURIComponent(id)}`, { note });
+  };
+
+  // ask Paystack for the latest status of unsettled contributions
+  recheckContributions = (
+    references: string[]
+  ): Promise<ApiResponse<GivingContribution[]> & { checked?: number; failed?: number }> => {
+    return this.postToApi("givingoption/contributions/recheck", { references });
+  };
+
+  // invite a member whose gift failed or was abandoned to give again
+  nudgeContribution = (reference: string): Promise<ApiResponse<unknown>> => {
+    return this.postToApi("givingoption/contributions/nudge", { reference });
+  };
+
+  // record the redemption for a settled pledge payment that wasn't credited
+  creditPledgePayment = (paymentId: string): Promise<ApiResponse<PledgePayment>> => {
+    return this.postToApi("pledges/credit-payment", { payment_id: paymentId });
+  };
+
+  // remind pledgers with a balance (all, or the given pledgers)
+  remindPledgers = (payload: {
+    pledge_id: number;
+    pledger_ids?: number[];
+  }): Promise<ApiResponse<PledgeRemindResult>> => {
+    return this.postToApi("pledges/remind-pledgers", payload);
   };
 
   createAiCredential = (
@@ -905,6 +1215,12 @@ export class ApiCreationCalls {
       : undefined;
 
     return this.postToApiWithOptions("ai/chatbot", payload, { headers });
+  };
+
+  setAiTaskState = (
+    payload: AiTaskStatePayload
+  ): Promise<ApiResponse<AiTaskStateResult>> => {
+    return this.postToApi("ai/tasks/state", payload);
   };
 
   createAiInsights = (
@@ -954,7 +1270,9 @@ export class ApiCreationCalls {
 
   setRideAlert = (
     payload: RideAlertDto
-  ): Promise<ApiResponse<{ pickup_point_id: number; alert_on: boolean }>> => {
+  ): Promise<
+    ApiResponse<{ pickup_point_id: number; event_id?: number; alert_on: boolean }>
+  > => {
     return this.postToApi("rides/alerts", payload);
   };
 

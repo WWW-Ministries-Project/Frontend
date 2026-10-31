@@ -1,255 +1,279 @@
-import { HeaderControls } from "@/components/HeaderControls";
-import { Modal } from "@/components/Modal";
-import PageOutline from "@/pages/HomePage/Components/PageOutline";
-import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
-import { useState, useMemo, useEffect, useCallback } from "react";
-import EventForm from "../Components/EventForm";
-import { api, EventType } from "@/utils";
-import { useFetch } from "@/CustomHooks/useFetch";
-import { useDelete } from "@/CustomHooks/useDelete";
-import { usePost } from "@/CustomHooks/usePost";
-import { usePut } from "@/CustomHooks/usePut";
-import { showDeleteDialog, showNotification } from "@/pages/HomePage/utils";
-import { AllEventCard } from "../Components/AllEventCard";
-import { TAB_TO_EVENT_TYPE } from "../utils/eventInterfaces";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-// Tab to event type mapping
+import { notify } from "@/components/feedback";
+import { useFetch } from "@/CustomHooks/useFetch";
+import PageOutline from "@/pages/HomePage/Components/PageOutline";
+import { confirmAction } from "@/pages/HomePage/utils/helperFunctions";
+import { api } from "@/utils/api/apiCalls";
+import type { EventType } from "@/utils/api/events/interfaces";
 
-const compareEventsAlphabetically = (a: EventType, b: EventType) => {
-  const nameComparison = String(a.event_name || "").localeCompare(
-    String(b.event_name || "")
-  );
+import EventCatalogueDialog from "../Components/EventCatalogueDialog";
+import { Dot, PageHeading, SearchInput, Segmented, UiButton } from "../Components/eventsUi";
+import ScheduleEventEditor, { type SchedulePrefill } from "../Components/ScheduleEventEditor";
+import { useEventsAccess } from "../utils/useEventsAccess";
+import {
+  clockLabel,
+  EVENTS_PATHS,
+  type EventRecord,
+  fmtShortDay,
+  monthKeyOf,
+  nextWeekday,
+  normalizeType,
+  plural,
+  type ScheduledEvent,
+  sortBySchedule,
+  TYPE_TABS,
+  type TypeFilter,
+  todayKey,
+  toScheduled,
+  typeColor,
+  typeLabel,
+  WEEKDAYS,
+} from "../utils/eventsModel";
 
-  if (nameComparison !== 0) {
-    return nameComparison;
+const scheduleText = (item: EventType) => {
+  if (item.event_category === "WEEKLY" && typeof item.schedule_day === "number") {
+    const times =
+      item.schedule_start_time && item.schedule_end_time
+        ? ` · ${clockLabel(item.schedule_start_time)} – ${clockLabel(item.schedule_end_time)}`
+        : "";
+    return `${WEEKDAYS[item.schedule_day]}s${times}`;
   }
-
-  const typeComparison = String(a.event_type || "").localeCompare(
-    String(b.event_type || "")
-  );
-
-  if (typeComparison !== 0) {
-    return typeComparison;
-  }
-
-  return String(a.id ?? "").localeCompare(String(b.id ?? ""));
+  return "Scheduled as needed";
 };
 
-
-
 const AllEvent = () => {
-  const [openModal, setOpenModal] = useState(false);
-  const [currentData, setCurrentData] = useState<EventType | null>(null);
-  const [selectedTab, setSelectedTab] = useState<keyof typeof TAB_TO_EVENT_TYPE>("All");
-  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
+  const access = useEventsAccess();
+  // Events here are the catalogue (event types); dates are scheduled events.
+  const canManageTypes = access.manageTypes;
 
-  const handleViewSchedules = useCallback((event: EventType) => {
-    navigate(
-      `/home/events/event-schedules?event_name_id=${event.id}&event_name=${encodeURIComponent(event.event_name)}`
-    );
-  }, [navigate]);
-
-  // Single source of truth for events
-  const [allEvents, setAllEvents] = useState<EventType[]>([]);
-
-  const { data: lcData } = useFetch(api.fetch.fetchAllUniqueEvents);
-  const { executeDelete } = useDelete(api.delete.deleteUniqueEvent);
-  const { postData, data } = usePost(api.post.createUniqueEvent);
-  const { updateData, data: update_value } = usePut(
-    api.put.updateUniqueEvent
+  const { data, refetch } = useFetch(api.fetch.fetchAllUniqueEvents);
+  const { data: upcomingData, refetch: refetchUpcoming } = useFetch(
+    api.fetch.fetchUpcomingEvents,
+    undefined,
+    false,
+    { silent: true }
   );
 
+  const [type, setType] = useState<TypeFilter>("all");
+  const [query, setQuery] = useState("");
+  const [dialog, setDialog] = useState<{ event: EventType | null } | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [schedule, setSchedule] = useState<SchedulePrefill | null>(null);
 
+  const catalogue = useMemo(() => (Array.isArray(data?.data) ? (data!.data as EventType[]) : []), [data]);
 
-  // Initialize events from API data
-  useEffect(() => {
-    if (lcData?.data?.length) {
-      setAllEvents([...lcData.data]);
-    }
-  }, [lcData]);
-
-  const handleModalOpenForCreate = () => {
-    setCurrentData(null);
-    setOpenModal(true);
-  };
-
-  const handleTabSelect = (tab: keyof typeof TAB_TO_EVENT_TYPE) => {
-    setSelectedTab(tab);
-  };
-
-  // Filter events based on selected tab and search query
-  const filteredEvents = useMemo(() => {
-    let filtered = [...allEvents];
-
-    // Filter by tab
-    if (selectedTab !== "All") {
-      const eventType = TAB_TO_EVENT_TYPE[selectedTab];
-      if (eventType) {
-        filtered = filtered.filter(event => event.event_type === eventType);
-      }
-    }
-
-    // Filter by search query
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(event => 
-        event.event_name.toLowerCase().includes(query) ||
-        event.event_description.toLowerCase().includes(query) ||
-        event.event_type.toLowerCase().includes(query)
-      );
-    }
-
-    return filtered.sort(compareEventsAlphabetically);
-  }, [allEvents, selectedTab, searchQuery]); // Added allEvents as dependency
-
-  const handleDelete = (id: string) => {
-      setAllEvents((prev) => prev.filter((item) => item.id !== id));
-    };
-    const deleteUniqueEvent = (id: string, name: string) => {
-      showDeleteDialog({ id, name }, async () => {
-        await executeDelete({ id: id });
-        handleDelete(id);
-        showNotification("Event deleted successfully", "success");
+  const upcomingByEvent = useMemo(() => {
+    const today = todayKey();
+    const map = new Map<string, ScheduledEvent[]>();
+    const list = Array.isArray(upcomingData?.data) ? (upcomingData!.data as unknown as EventRecord[]) : [];
+    list
+      .map(toScheduled)
+      .filter((event) => event.endDate >= today)
+      .sort(sortBySchedule)
+      .forEach((event) => {
+        const key = event.eventNameId;
+        map.set(key, [...(map.get(key) ?? []), event]);
       });
-    };
-  
-    const handleEdit = (value: EventType) => {
-      setCurrentData(value);
-      setOpenModal(true);
-    };
+    return map;
+  }, [upcomingData]);
 
-  
+  const q = query.trim().toLowerCase();
+  const cards = useMemo(
+    () =>
+      catalogue
+        .filter(
+          (item) =>
+            (type === "all" || normalizeType(item.event_type) === type) &&
+            (!q || `${item.event_name} ${item.event_description}`.toLowerCase().includes(q))
+        )
+        .sort(
+          (a, b) =>
+            Number(b.event_category === "WEEKLY") - Number(a.event_category === "WEEKLY") ||
+            String(a.event_name).localeCompare(String(b.event_name))
+        ),
+    [catalogue, q, type]
+  );
 
-  const editItem = useCallback((item: EventType) => {
-    setAllEvents((prev) => prev.map((event) => (event.id === item.id ? item : event)));
-    setOpenModal(false);
-  }, []);
-
-  const handleMutate = async (data: EventType) => {
+  const save = async (payload: EventType) => {
+    const editing = dialog?.event;
+    setSaving(true);
     try {
-      if (currentData) {
-        await updateData(data, { id: currentData?.id });
-        setCurrentData(data);
+      if (editing) {
+        await api.put.updateUniqueEvent(payload, { id: editing.id });
+        notify.success({ title: "Event updated", message: `Changes to ${payload.event_name} were saved.` });
       } else {
-        await postData(data);
+        await api.post.createUniqueEvent(payload);
+        notify.success({
+          title: "Event added",
+          message: `${payload.event_name}. Schedule its first date when you’re ready.`,
+        });
       }
-    } catch {
-      showNotification("Something went wrong", "error");
+      setDialog(null);
+      await refetch();
+    } catch (error) {
+      notify.fromError(error, { title: "Couldn't save the event" });
+    } finally {
+      setSaving(false);
     }
   };
 
-  const addToList = (item: EventType) => {
-    setAllEvents((prev) => [item, ...prev]); // Add to allEvents
-    setOpenModal(false);
-  };
-
-  useEffect(() => {
-    const event = data?.data as EventType | undefined;
-    if (
-      event &&
-      typeof event.id === "number" &&
-      typeof event.event_name === "string" &&
-      typeof event.event_type === "string" &&
-      typeof event.event_description === "string"
-    ) {
-      addToList(event);
-      showNotification("Events created successfully", "success");
-      setCurrentData(null);
-    }
-  }, [data?.data]);
-
-  useEffect(() => {
-    if (update_value?.data && currentData?.id) {
-      const updatedData = update_value.data;
-      editItem({
-        ...updatedData,
-        id: currentData?.id,
+  const askDelete = (item: EventType) => {
+    const upcoming = upcomingByEvent.get(String(item.id))?.length ?? 0;
+    if (upcoming) {
+      confirmAction({
+        title: `${item.event_name} still has ${plural(upcoming, "upcoming date")}`,
+        message:
+          "Delete those first from Scheduled events, then remove it here. Past dates stay in your history either way.",
+        confirmLabel: "Delete event",
+        blocked: true,
+        onConfirm: () => undefined,
       });
-      showNotification("Event updated successfully", "success");
-      setCurrentData(null);
+      return;
     }
-  }, [update_value?.data, editItem]);
+    confirmAction({
+      title: `Delete ${item.event_name}?`,
+      points: ["It disappears from this list.", "Past dates and their attendance stay in analytics."],
+      confirmLabel: "Delete event",
+      tone: "danger",
+      onConfirm: async () => {
+        await api.delete.deleteUniqueEvent({ id: item.id });
+        notify.success({ title: "Event deleted", message: `${item.event_name} was removed.` });
+        await refetch();
+      },
+    });
+  };
 
-  return ( 
-    <PageOutline>
-      <div>
-        <HeaderControls
-          title={`Events (${filteredEvents.length})`}
-          subtitle="Create and manage your events"
-          screenWidth={window.innerWidth}
-          btnName="Create Event"
-          handleClick={handleModalOpenForCreate}
+  return (
+    <PageOutline className="flex flex-col gap-4">
+      <div className="mb-2">
+        <PageHeading
+          title="Events"
+          subtitle="The gatherings your church runs. Define each once, then schedule it as often as you need."
+          actions={
+            canManageTypes ? (
+              <UiButton tone="primary" onClick={() => setDialog({ event: null })}>
+                New event
+              </UiButton>
+            ) : undefined
+          }
         />
       </div>
 
-      
-
-      <div className="flex mb-6">
-        <TabSelection
-          tabs={["All", "ACTIVITY", "PROGRAM", "SERVICE", "OTHER"]}
-          selectedTab={selectedTab}
-          onTabSelect={handleTabSelect}
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+        <Segmented ariaLabel="Type" items={TYPE_TABS} value={type} onChange={setType} scroll />
+        <SearchInput
+          value={query}
+          onChange={setQuery}
+          placeholder="Search events"
+          ariaLabel="Search events"
+          className="max-w-[340px] flex-[1_1_240px]"
         />
       </div>
 
-      {/* Results summary */}
-      <div className="mb-4">
-        <p className="text-primaryGray">
-          Showing {filteredEvents?.length} of {allEvents.length} events
-          {selectedTab !== "All" && ` in ${selectedTab.toLowerCase()}`}
-          {searchQuery && ` matching "${searchQuery}"`}
-        </p>
-      </div>
-
-      {/* Events Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {(filteredEvents?.length ?? 0) > 0 ? (
-          (filteredEvents ?? []).map((event) => (
-            <AllEventCard
-              key={event.id}
-              item={event}
-              handleEdit={handleEdit}
-              deleteUniqueEvent={deleteUniqueEvent}
-              onView={handleViewSchedules}
-            />
-          ))
-        ) : (
-          <div className="col-span-full text-center py-12">
-            <div className="text-primaryGray">
-              <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.47-.881-6.08-2.33" />
-              </svg>
-              <h3 className="mb-2 text-lg font-medium text-primary">No events found</h3>
-              <p className="mb-4 text-primaryGray">
-                {searchQuery 
-                  ? `No events match your search "${searchQuery}"`
-                  : `No events found in ${selectedTab} category`
-                }
-              </p>
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="font-medium text-primary hover:text-primary/80"
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,320px),1fr))] gap-4">
+        {cards.map((item) => {
+          const upcoming = upcomingByEvent.get(String(item.id)) ?? [];
+          const next = upcoming[0];
+          const weekly = item.event_category === "WEEKLY";
+          return (
+            <div
+              key={item.id}
+              className="flex flex-col gap-3 rounded-2xl border border-lightGray bg-white p-5 shadow-[0_8px_24px_rgb(var(--color-shadow)_/_0.08)]"
+            >
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-gray-100 px-2.5 py-0.5 text-xs font-semibold text-gray-700">
+                  <Dot color={typeColor(item.event_type)} />
+                  {typeLabel(item.event_type)}
+                </span>
+                <span className="text-xs text-gray-500">{weekly ? "Weekly" : "Special"}</span>
+              </div>
+              <h2 className="text-xl font-semibold leading-7 text-primary">{item.event_name}</h2>
+              <p className="flex-1 text-sm text-gray-600">{item.event_description || "No description yet."}</p>
+              <div className="flex flex-col gap-0.5 rounded-lg bg-inputBackground p-3">
+                <span className="text-xs text-gray-500">{scheduleText(item)}</span>
+                <span className={next ? "text-sm font-medium text-primary" : "text-sm font-medium text-amber-700"}>
+                  {next
+                    ? `Next: ${fmtShortDay(next.date)}${next.start ? `, ${clockLabel(next.start)}` : ""}`
+                    : "Nothing scheduled"}
+                </span>
+                {upcoming.length > 0 && (
+                  <span className="text-xs text-gray-500">{plural(upcoming.length, "upcoming date")}</span>
+                )}
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                {access.create && (
+                  <UiButton
+                    tone="primary"
+                    className="px-4"
+                    onClick={() =>
+                      setSchedule({
+                        eventNameId: item.id,
+                        date: nextWeekday(weekly && typeof item.schedule_day === "number" ? item.schedule_day : null),
+                      })
+                    }
+                  >
+                    Schedule
+                  </UiButton>
+                )}
+                <UiButton
+                  onClick={() =>
+                    navigate(
+                      `${EVENTS_PATHS.scheduled}?event=${item.id}&month=${monthKeyOf(next?.date ?? todayKey())}`
+                    )
+                  }
                 >
-                  Clear search
-                </button>
-              )}
+                  See dates
+                </UiButton>
+                {canManageTypes && (
+                  <UiButton tone="ghost" className="px-3 text-primary hover:bg-primary/5" onClick={() => setDialog({ event: item })}>
+                    Edit
+                  </UiButton>
+                )}
+                {canManageTypes && access.delete && (
+                  <>
+                    <UiButton
+                      tone="ghost"
+                      aria-label={`Delete ${item.event_name}`}
+                      className="ml-auto px-3 text-red-700 hover:bg-red-50 hover:text-red-700"
+                      onClick={() => askDelete(item)}
+                    >
+                      Delete
+                    </UiButton>
+                  </>
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })}
       </div>
+      {cards.length === 0 && (
+        <p className="py-8 text-center text-sm text-gray-500">
+          {catalogue.length ? "No events match." : "No events yet. Add the gatherings your church runs."}
+        </p>
+      )}
 
-      {/* Event form */}
-      <Modal open={openModal} onClose={() => setOpenModal(false)}>
-        <EventForm
-          editData={currentData}
-          closeModal={() => setOpenModal(false)}
-          handleMutate={handleMutate}
-          loading={false}
+      <EventCatalogueDialog
+        open={Boolean(dialog)}
+        event={dialog?.event ?? null}
+        existing={catalogue}
+        saving={saving}
+        onClose={() => setDialog(null)}
+        onSave={save}
+      />
+
+      {schedule && (
+        <ScheduleEventEditor
+          mode={{ kind: "new", prefill: schedule }}
+          onClose={() => setSchedule(null)}
+          onSaved={() => {
+            setSchedule(null);
+            void refetchUpcoming();
+          }}
         />
-      </Modal>
+      )}
     </PageOutline>
   );
 };

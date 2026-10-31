@@ -1,340 +1,438 @@
-import { ArrowLeftIcon } from "@heroicons/react/24/outline";
-import { Button, ProfilePicture } from "@/components";
-import { Badge } from "@/components/Badge";
-import EmptyState from "@/components/EmptyState";
-import { SearchBar } from "@/components/SearchBar";
-import { useFetch } from "@/CustomHooks/useFetch";
-import PageOutline from "@/pages/HomePage/Components/PageOutline";
-import { PaginationComponent } from "@/pages/HomePage/Components/reusable/PaginationComponent";
-import { decodeQuery, encodeQuery } from "@/pages/HomePage/utils";
-import useSettingsStore from "@/pages/HomePage/pages/Settings/utils/settingsStore";
-import { api, DepartmentDetailsType, MembersType, relativePath } from "@/utils";
-import { ApiResponse, QueryType } from "@/utils/interfaces";
+import { useBackNavigation } from "@/CustomHooks/useBackNavigation";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useOutletContext, useParams } from "react-router-dom";
+
+import { useFetch } from "@/CustomHooks/useFetch";
+import PageOutline from "@/pages/HomePage/Components/PageOutline";
+import { AddDepartmentMemberDialog } from "@/pages/HomePage/pages/MembershipManagement/components/departments/AddDepartmentMemberDialog";
+import {
+  DepartmentJoinRequestsTab,
+  DepartmentMembersTab,
+  DepartmentPositionsTab,
+} from "@/pages/HomePage/pages/MembershipManagement/components/departments/DepartmentDetailTabs";
+import { DepartmentFormDialog } from "@/pages/HomePage/pages/MembershipManagement/components/departments/DepartmentFormDialog";
+import { useDepartmentAccess } from "@/pages/HomePage/pages/MembershipManagement/components/departments/useDepartmentAccess";
+import {
+  clearDepartmentHead,
+  setDepartmentHead,
+} from "@/pages/HomePage/pages/MembershipManagement/components/departments/departmentMutations";
+import {
+  apiErrorMessage,
+  departmentStatusPill,
+  departmentsListPath,
+  memberProfilePath,
+  type DepartmentMemberRow,
+  type DepartmentRecord,
+} from "@/pages/HomePage/pages/MembershipManagement/components/departments/departmentShared";
+import {
+  ApproveJoinRequestDialog,
+  DeclineJoinRequestDialog,
+} from "@/pages/HomePage/pages/MembershipManagement/components/departments/JoinRequestDialogs";
+import {
+  BandTabs,
+  SectionEmpty,
+} from "@/pages/HomePage/pages/MembershipManagement/components/membershipUi";
+import {
+  plural,
+} from "@/pages/HomePage/pages/MembershipManagement/components/membershipUiUtils";
+import useSettingsStore from "@/pages/HomePage/pages/Settings/utils/settingsStore";
+import {
+  decodeQuery,
+  encodeQuery,
+  showLoader,
+  showNotification,
+} from "@/pages/HomePage/utils";
+import { buildBranchQuery, useBranchStore } from "@/store/useBranchStore";
+import { api } from "@/utils";
+import type { JoinRequestRow } from "@/utils";
+import { removeMemberFromDepartment } from "@/utils/api/members/membershipActions";
+import type { ApiResponse, QueryType } from "@/utils/interfaces";
 
 type MembershipOutletContext = {
   refetchDepartments: (query?: QueryType) => Promise<unknown>;
 };
 
+type DetailTab = "members" | "positions" | "joins";
+
+type DepartmentDetailsResponse = ApiResponse<
+  (DepartmentRecord & { members: DepartmentMemberRow[] }) | null
+> & { total?: number; totalPages?: number };
+
 const MEMBERS_PER_PAGE = 12;
+/** Upper bound for the unpaginated roster used by the Positions tab and pickers. */
+const ROSTER_LIMIT = 1000;
 
-const formatMembershipType = (membershipType?: string) => {
-  if (membershipType === "ONLINE") return "Online e-church family";
-  if (membershipType === "IN_HOUSE") return "In-person church family";
-
-  return "Membership";
-};
-
-const formatMemberStatus = (
-  status?: MembersType["status"]
-): "Functional Member" | "Confirmed Member" | "Unconfirmed Member" => {
-  if (status === "MEMBER") return "Functional Member";
-  if (status === "CONFIRMED") return "Confirmed Member";
-
-  return "Unconfirmed Member";
-};
+const fetchDetails = api.fetch.fetchDepartmentDetails as unknown as (
+  query?: QueryType
+) => Promise<DepartmentDetailsResponse>;
 
 export const DepartmentDetails = () => {
   const navigate = useNavigate();
+  const back = useBackNavigation(departmentsListPath);
   const { id } = useParams();
-  const { refetchDepartments } =
-    useOutletContext<MembershipOutletContext>();
-  const departments = useSettingsStore((state) => state.departments);
-  const [searchValue, setSearchValue] = useState("");
+  const { refetchDepartments } = useOutletContext<MembershipOutletContext>();
+  const access = useDepartmentAccess();
+  const departments = useSettingsStore(
+    (state) => state.departments
+  ) as DepartmentRecord[];
+  const storePositions = useSettingsStore((state) => state.positions) as {
+    id: number;
+    name: string;
+    department?: { id: number } | null;
+  }[];
+  const { activeBranchId, branches } = useBranchStore();
+
+  const [tab, setTab] = useState<DetailTab>("members");
+  const [search, setSearch] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [page, setPage] = useState(1);
+  const [editOpen, setEditOpen] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
+  const [approving, setApproving] = useState<JoinRequestRow | null>(null);
+  const [declining, setDeclining] = useState<JoinRequestRow | null>(null);
 
   const departmentId = useMemo(() => {
-    if (!id) {
-      return null;
-    }
-
-    const decodedId = Number(decodeQuery(String(id)));
-    return Number.isFinite(decodedId) ? decodedId : null;
+    if (!id) return null;
+    const decoded = Number(decodeQuery(String(id)));
+    return Number.isFinite(decoded) && decoded > 0 ? decoded : null;
   }, [id]);
 
-  const department = useMemo(
+  // Server-side search, debounced.
+  useEffect(() => {
+    const timer = window.setTimeout(() => setAppliedSearch(search.trim()), 300);
+    return () => window.clearTimeout(timer);
+  }, [search]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [appliedSearch, departmentId]);
+
+  useEffect(() => {
+    if (departments.length === 0) void refetchDepartments();
+  }, [departments.length, refetchDepartments]);
+
+  const pageQuery = useMemo(
     () =>
       departmentId === null
         ? undefined
-        : departments.find((item) => item.id === departmentId),
-    [departmentId, departments]
+        : {
+            id: String(departmentId),
+            page: String(page),
+            limit: String(MEMBERS_PER_PAGE),
+            ...(appliedSearch ? { name: appliedSearch } : {}),
+          },
+    [appliedSearch, departmentId, page]
   );
-
-  const departmentQuery = useMemo(() => {
-    if (departmentId === null) {
-      return undefined;
-    }
-
-    return {
-      id: String(departmentId),
-      page: String(currentPage),
-      limit: String(MEMBERS_PER_PAGE),
-      ...(appliedSearch.trim() ? { name: appliedSearch.trim() } : {}),
-    };
-  }, [appliedSearch, currentPage, departmentId]);
-
   const {
-    data: departmentResponse,
-    loading: membersLoading,
-    error: departmentError,
-  } = useFetch<ApiResponse<DepartmentDetailsType | null>>(
-    api.fetch.fetchDepartmentDetails as (
-      query?: QueryType
-    ) => Promise<ApiResponse<DepartmentDetailsType | null>>,
-    departmentQuery,
-    departmentId === null
+    data: pageResponse,
+    loading: pageLoading,
+    error: pageError,
+    refetch: refetchPage,
+  } = useFetch(fetchDetails, pageQuery, departmentId === null);
+
+  const rosterQuery = useMemo(
+    () =>
+      departmentId === null
+        ? undefined
+        : { id: String(departmentId), page: "1", limit: String(ROSTER_LIMIT) },
+    [departmentId]
+  );
+  const { data: rosterResponse, refetch: refetchRoster } = useFetch(
+    fetchDetails,
+    rosterQuery,
+    departmentId === null,
+    { silent: true }
   );
 
-  useEffect(() => {
-    if (departments.length === 0) {
-      void refetchDepartments();
+  const storeDepartment = departments.find((item) => item.id === departmentId);
+  const department: DepartmentRecord | undefined =
+    rosterResponse?.data ?? pageResponse?.data ?? storeDepartment;
+  const headId = department?.department_head_info?.id ?? department?.department_head ?? null;
+  // Membership managers decide every department's join requests; a head decides their own.
+  const canSeeJoinRequests =
+    access.canDecideAny || (access.userId !== null && headId === access.userId);
+
+  const joinQuery = useMemo(
+    // Any status other than PENDING/APPROVED/DECLINED returns every status.
+    () => ({
+      ...(buildBranchQuery(activeBranchId) ?? {}),
+      status: "ALL",
+      ...(departmentId !== null ? { department_id: departmentId } : {}),
+    }),
+    [activeBranchId, departmentId]
+  );
+  const {
+    data: joinResponse,
+    loading: joinLoading,
+    refetch: refetchJoins,
+  } = useFetch(
+    api.fetch.fetchJoinRequests,
+    joinQuery,
+    !canSeeJoinRequests || departmentId === null,
+    { silent: true }
+  );
+
+  const roster = useMemo(() => rosterResponse?.data?.members ?? [], [rosterResponse]);
+  const pageMembers = pageResponse?.data?.members ?? [];
+  const pageTotal = pageResponse?.meta?.total ?? pageResponse?.total ?? pageMembers.length;
+  const totalPages = Math.max(1, Math.ceil(pageTotal / MEMBERS_PER_PAGE));
+  const memberCount =
+    rosterResponse?.data?.member_count ??
+    storeDepartment?.member_count ??
+    (appliedSearch ? roster.length : pageTotal);
+
+  const positions = useMemo(() => {
+    const fromDepartment = storeDepartment?.position ?? [];
+    if (fromDepartment.length > 0) return fromDepartment;
+    return storePositions
+      .filter((position) => position.department?.id === departmentId)
+      .map((position) => ({ id: position.id, name: position.name }));
+  }, [departmentId, storeDepartment, storePositions]);
+
+  const rosterIds = useMemo(() => new Set(roster.map((member) => member.id)), [roster]);
+
+  const requests = useMemo(
+    () =>
+      (joinResponse?.data ?? []).filter(
+        (request) => request.department_id === departmentId
+      ),
+    [departmentId, joinResponse]
+  );
+  const pendingCount = requests.filter((request) => request.status === "PENDING").length;
+
+  const branchName = branches.find((branch) => branch.id === department?.branch_id)?.name;
+  const status = departmentStatusPill(department?.status);
+
+  const refreshAll = () => {
+    void refetchPage();
+    void refetchRoster();
+    void refetchDepartments();
+  };
+
+  const openMember = (memberId: number) =>
+    navigate(memberProfilePath(encodeQuery(memberId)));
+
+  const makeHead = async (member: DepartmentMemberRow) => {
+    if (!department) return;
+    showLoader(true);
+    try {
+      await setDepartmentHead(department, member.id);
+      showNotification(`${member.name} is now head of ${department.name}`, "success");
+      refreshAll();
+    } catch (error) {
+      showNotification(apiErrorMessage(error, "Unable to change the head."), "error");
+    } finally {
+      showLoader(false);
     }
-  }, [departments.length, refetchDepartments]);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [appliedSearch, departmentId]);
-
-  const departmentDetails = departmentResponse
-    ? departmentResponse.data ?? undefined
-    : department;
-  const departmentMembers = useMemo(
-    () => departmentResponse?.data?.members ?? [],
-    [departmentResponse?.data?.members]
-  );
-  const totalMembers =
-    departmentResponse?.meta?.total ??
-    departmentResponse?.data?.member_count ??
-    departmentMembers.length;
-
-  const handleViewMember = (memberId: number) => {
-    navigate(`${relativePath.home.main}/${relativePath.home.members.main}/${encodeQuery(memberId)}`);
   };
 
-  const handleSearchSubmit = () => {
-    setAppliedSearch(searchValue);
+  const removeMember = async (member: DepartmentMemberRow) => {
+    if (!department) return;
+    showLoader(true);
+    try {
+      await removeMemberFromDepartment(member.id, department.id);
+    } catch (error) {
+      showNotification(apiErrorMessage(error, "Unable to remove member."), "error");
+      showLoader(false);
+      return;
+    }
+    try {
+      if (member.id === headId && access.canAssignHead) await clearDepartmentHead(department);
+      showNotification(`${member.name} removed from ${department.name}`, "success");
+    } catch (error) {
+      showNotification(
+        apiErrorMessage(
+          error,
+          `${member.name} was removed, but the department head couldn't be cleared.`
+        ),
+        "error"
+      );
+    } finally {
+      refreshAll();
+      showLoader(false);
+    }
   };
 
-  const handleBack = () => {
-    navigate(
-      `${relativePath.home.main}/${relativePath.home.membership.main}/${relativePath.home.membership.departments.main}`
-    );
+  const afterJoinDecision = () => {
+    setApproving(null);
+    setDeclining(null);
+    void refetchJoins();
+    refreshAll();
   };
 
-  const crumbs = useMemo(
-    () => [
-      { label: "Home", link: relativePath.home.main },
-      { label: "Membership", link: `${relativePath.home.main}/${relativePath.home.membership.main}` },
-      {
-        label: "Departments and Ministries",
-        link: `${relativePath.home.main}/${relativePath.home.membership.main}/${relativePath.home.membership.departments.main}`,
-      },
-      { label: departmentDetails?.name || "Department Details" },
-    ],
-    [departmentDetails?.name]
-  );
+  const notFound =
+    departmentId === null || (Boolean(pageResponse) && !pageResponse?.data && !pageLoading);
 
-  if (departmentId === null) {
+  if (notFound) {
     return (
-      <PageOutline crumbs={crumbs}>
-        <EmptyState
-          scope="page"
-          msg="Department not found"
-          description="The department identifier is invalid."
+      <PageOutline
+        crumbs={[
+          { label: "Departments and Ministries", link: departmentsListPath },
+          { label: "Department" },
+        ]}
+      >
+        <SectionEmpty
+          title="Department not found"
+          text="It may have been deleted, or you may not have access to it."
         />
       </PageOutline>
     );
   }
 
-  const showMissingDepartmentState =
-    Boolean(departmentResponse) && !departmentResponse?.data;
+  const tabs: { key: DetailTab; label: string }[] = [
+    { key: "members", label: `Members (${memberCount})` },
+    { key: "positions", label: "Positions" },
+    ...(canSeeJoinRequests
+      ? [{ key: "joins" as const, label: `Join requests (${pendingCount})` }]
+      : []),
+  ];
+
+  const headName = department?.department_head_info?.name?.trim();
+  const meta = [
+    headName ? `Head: ${headName}` : "Head not assigned",
+    plural(memberCount, "member"),
+    branchName,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
   return (
-    <PageOutline crumbs={crumbs}>
-      <div className="space-y-6">
-        <section className="relative overflow-hidden rounded-[1.75rem] bg-primary px-6 py-7 text-white shadow-lg">
-          <div className="absolute -right-12 top-0 h-48 w-48 rounded-full bg-secondary/20 blur-3xl" />
-          <div className="absolute bottom-0 left-0 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
-
-          <div className="relative space-y-6">
-            <button
-              type="button"
-              onClick={handleBack}
-              className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-sm text-white transition hover:bg-white/15"
-            >
-              <ArrowLeftIcon className="h-4 w-4" />
-              Back to Departments
-            </button>
-
-            <div className="grid gap-4 lg:grid-cols-[1.4fr_0.8fr] lg:items-end">
-              <div className="space-y-3">
-                <p className="text-xs uppercase tracking-[0.24em] text-white/70">
-                  Department / Ministry
-                </p>
-                <h1 className="text-3xl font-semibold">
-                  {departmentDetails?.name || "Loading Department..."}
-                </h1>
-                <p className="max-w-2xl text-sm leading-6 text-white/80 md:text-base">
-                  {departmentDetails?.description?.trim() ||
-                    "No department description has been added yet."}
-                </p>
-
-                <div className="flex flex-wrap gap-2">
-                  <Badge className="border-white/20 bg-white/10 px-3 py-1 text-xs text-white">
-                    {departmentDetails?.department_head_info?.name
-                      ? "Head assigned"
-                      : "Head not assigned"}
-                  </Badge>
-                  <Badge className="border-white/20 bg-white/10 px-3 py-1 text-xs text-white">
-                    {totalMembers} member{totalMembers === 1 ? "" : "s"}
-                  </Badge>
-                </div>
-              </div>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="rounded-2xl border border-white/10 bg-white/10 px-4 py-4">
-                  <p className="text-xs uppercase tracking-[0.16em] text-white/65">
-                    Department Head
-                  </p>
-                  <p className="mt-2 text-lg font-semibold text-white">
-                    {departmentDetails?.department_head_info?.name || "Not assigned"}
-                  </p>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-white/10 px-4 py-4">
-                  <p className="text-xs uppercase tracking-[0.16em] text-white/65">
-                    Members Listed
-                  </p>
-                  <p className="mt-2 text-lg font-semibold text-white">
-                    {totalMembers}
-                  </p>
-                </div>
-              </div>
+    <div className="flex min-h-full flex-col">
+      <div className="flex flex-col gap-4 bg-primary px-[var(--app-page-padding-inline)] pt-5 text-white">
+        <button
+          type="button"
+          onClick={back.goBack}
+          className="self-start bg-transparent p-0 text-sm text-white/80 transition-colors hover:text-white"
+        >
+          ← Back to {back.label}
+        </button>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="flex min-w-0 max-w-[760px] flex-col gap-2">
+            <div className="flex flex-wrap items-center gap-3">
+              <h1 className="text-2xl font-semibold leading-8">
+                {department?.name ?? "Loading department…"}
+              </h1>
+              {department && (
+                <span className="rounded-full border border-white/35 bg-white/15 px-2.5 py-0.5 text-xs font-semibold">
+                  {status.label}
+                </span>
+              )}
             </div>
+            <p className="text-sm text-white/85">
+              {department?.description?.trim() || "No description yet."}
+            </p>
+            {department && <p className="text-sm text-white/85">{meta}</p>}
           </div>
-        </section>
-
-        {showMissingDepartmentState ? (
-          <EmptyState
-            scope="page"
-            msg="Department not found"
-            description="The selected department could not be found in the current configuration."
-          />
-        ) : (
-          <section className="app-card space-y-5 p-5">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-              <div>
-                <h2 className="text-lg font-semibold text-primary">
-                  Members in {departmentDetails?.name || "Department"}
-                </h2>
-                <p className="text-sm text-primaryGray">
-                  Select a member to open the existing profile details page.
-                </p>
-              </div>
-
-              <div className="w-full md:max-w-md">
-                <SearchBar
-                  id="department-member-search"
-                  placeholder="Search by name, member ID, phone or email"
-                  value={searchValue}
-                  onChange={(event) => setSearchValue(event.target.value)}
-                  onSubmit={handleSearchSubmit}
-                  className="w-full"
-                />
-              </div>
+          {(access.canEdit || access.canManageMembers) && department && (
+            <div className="flex flex-wrap gap-2">
+              {access.canEdit && (
+                <button
+                  type="button"
+                  onClick={() => setEditOpen(true)}
+                  className="min-h-10 rounded-lg border border-white/40 bg-transparent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-white/10"
+                >
+                  Edit department
+                </button>
+              )}
+              {access.canManageMembers && (
+                <button
+                  type="button"
+                  onClick={() => setAddOpen(true)}
+                  className="min-h-10 rounded-lg bg-white px-5 py-2 text-sm font-medium text-primary transition-colors hover:bg-gray-100"
+                >
+                  Add member
+                </button>
+              )}
             </div>
-
-            {departmentError && (
-              <div className="rounded-xl border border-error/30 bg-errorBG px-4 py-3 text-sm text-error">
-                {departmentError.message || "Unable to load department members."}
-              </div>
-            )}
-
-            {membersLoading ? (
-              <p className="text-sm text-primaryGray">Loading members...</p>
-            ) : departmentMembers.length > 0 ? (
-              <>
-                <div className="grid gap-4 xl:grid-cols-2">
-                  {departmentMembers.map((member) => (
-                    <button
-                      key={member.id}
-                      type="button"
-                      onClick={() => handleViewMember(member.id)}
-                      className="flex w-full items-center justify-between gap-4 rounded-2xl border border-lightGray bg-white p-4 text-left transition hover:border-primary/25 hover:bg-primary/5"
-                    >
-                      <div className="flex min-w-0 items-center gap-4">
-                        <ProfilePicture
-                          className="h-12 w-12 rounded-full border border-lightGray bg-white"
-                          textClass="text-sm font-semibold text-primary"
-                          src={member.photo}
-                          alt={member.name}
-                          name={member.name}
-                        />
-
-                        <div className="min-w-0 space-y-2">
-                          <div>
-                            <p className="truncate text-base font-semibold text-primary">
-                              {member.name}
-                            </p>
-                            <p className="truncate text-sm text-primaryGray">
-                              {member.email || "No email address"}
-                            </p>
-                          </div>
-
-                          <div className="flex flex-wrap gap-2">
-                            <Badge className="border-primary/15 bg-primary/5 px-3 py-1 text-xs text-primary">
-                              {formatMembershipType(member.membership_type)}
-                            </Badge>
-                            <Badge className="border-secondary/20 bg-secondary/10 px-3 py-1 text-xs text-secondary">
-                              {formatMemberStatus(member.status)}
-                            </Badge>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="hidden shrink-0 text-right md:block">
-                        <p className="text-xs uppercase tracking-[0.16em] text-primaryGray">
-                          Member ID
-                        </p>
-                        <p className="mt-1 text-sm font-semibold text-primary">
-                          {member.member_id || "-"}
-                        </p>
-                        <p className="mt-3 text-sm font-medium text-secondary">
-                          Open Profile
-                        </p>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-
-                {totalMembers > MEMBERS_PER_PAGE && (
-                  <PaginationComponent
-                    total={totalMembers}
-                    take={MEMBERS_PER_PAGE}
-                    onPageChange={(page) => setCurrentPage(page)}
-                  />
-                )}
-              </>
-            ) : (
-              <EmptyState
-                scope="section"
-                msg="No members found"
-                description={
-                  appliedSearch.trim()
-                    ? "Try a different search term."
-                    : "No members are currently assigned to this department."
-                }
-              />
-            )}
-          </section>
-        )}
-
-        <div className="flex justify-end">
-          <Button value="Back to Departments" variant="secondary" onClick={handleBack} />
+          )}
         </div>
+        <BandTabs tabs={tabs} value={tab} onChange={setTab} ariaLabel="Department sections" />
       </div>
-    </PageOutline>
+
+      <div className="flex flex-1 flex-col gap-4 bg-white px-[var(--app-page-padding-inline)] py-6">
+        {pageError && tab === "members" && (
+          <p role="alert" className="text-sm text-red-700">
+            {apiErrorMessage(pageError, "Unable to load department members.")}
+          </p>
+        )}
+        {tab === "members" && department && (
+          <DepartmentMembersTab
+            departmentId={department.id}
+            departmentName={department.name}
+            headId={headId}
+            members={pageMembers}
+            loading={pageLoading}
+            search={search}
+            onSearch={setSearch}
+            page={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            canMakeHead={access.canAssignHead}
+            canRemove={access.canManageMembers}
+            onOpenMember={(member) => openMember(member.id)}
+            onMakeHead={(member) => void makeHead(member)}
+            onRemove={(member) => void removeMember(member)}
+          />
+        )}
+        {tab === "positions" && department && (
+          <DepartmentPositionsTab
+            departmentId={department.id}
+            positions={positions}
+            members={roster}
+          />
+        )}
+        {tab === "joins" && department && (
+          <DepartmentJoinRequestsTab
+            departmentName={department.name}
+            requests={requests}
+            loading={joinLoading}
+            canDecide={canSeeJoinRequests}
+            onOpenMember={openMember}
+            onApprove={setApproving}
+            onDecline={setDeclining}
+          />
+        )}
+      </div>
+
+      {department && (
+        <>
+          <DepartmentFormDialog
+            open={editOpen}
+            department={department}
+            existingNames={departments}
+            onClose={() => setEditOpen(false)}
+            onSaved={() => {
+              setEditOpen(false);
+              refreshAll();
+            }}
+          />
+          <AddDepartmentMemberDialog
+            open={addOpen}
+            departmentId={department.id}
+            departmentName={department.name}
+            positions={positions}
+            memberIdsInDepartment={rosterIds}
+            canAssignPosition={access.canAssignPositions}
+            onClose={() => setAddOpen(false)}
+            onAdded={() => {
+              setAddOpen(false);
+              refreshAll();
+            }}
+          />
+          <ApproveJoinRequestDialog
+            request={approving}
+            positions={positions}
+            onClose={() => setApproving(null)}
+            onDone={afterJoinDecision}
+          />
+          <DeclineJoinRequestDialog
+            request={declining}
+            onClose={() => setDeclining(null)}
+            onDone={afterJoinDecision}
+          />
+        </>
+      )}
+    </div>
   );
 };
 

@@ -10,16 +10,15 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { Button } from "@/components";
-import { useRouteAccess } from "@/context/RouteAccessContext";
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
-import SlantTabs from "@/pages/HomePage/Components/reusable/SlantTabs";
-import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
 import type { IProductType } from "@/utils/api/marketPlace/interface";
 import { usePost } from "@/CustomHooks/usePost";
 import { api } from "@/utils";
 import { usePut } from "@/CustomHooks/usePut";
 import { useDelete } from "@/CustomHooks/useDelete";
 import { showDeleteDialog, showNotification } from "@/pages/HomePage/utils";
+import { cn } from "@/utils/cn";
 
 interface IProps {
   isOpen: boolean;
@@ -36,7 +35,9 @@ export const ConfigurationsDrawer = ({
   types,
   refetch,
 }: IProps) => {
-  const { canManageCurrentRoute } = useRouteAccess();
+  const { hasAction } = useAccessControl();
+  const canManageCatalog = hasAction("Marketplace.manage_catalog");
+  const canDelete = hasAction("Marketplace.delete");
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>(TABS[0]);
   const [editItem, setEditItem] = useState<IProductType | null>(null);
   const [count, setCount] = useState(0);
@@ -166,33 +167,68 @@ export const ConfigurationsDrawer = ({
   return (
     <>
       <div
-        className={`fixed inset-0 bg-black bg-opacity-30 z-40 transition-opacity duration-300 ${
-          isOpen ? "opacity-100 visible" : "opacity-0 invisible"
-        }`}
+        className={cn(
+          "fixed inset-0 z-[120] bg-primary/45 transition-opacity duration-300",
+          isOpen ? "visible opacity-100" : "invisible opacity-0"
+        )}
         onClick={onClose}
+        aria-hidden
       />
 
-      <div
-        className={`fixed top-0 -right-5 h-screen w-[424px] xs:w-[100%] sm:w-[400px] md:w-[424px]  bg-white shadow-lg z-50 transition-transform duration-300 text-[#474D66] ${
-          isOpen ? "-translate-x-4" : "translate-x-full"
-        }`}
+      <aside
+        role="dialog"
+        aria-label="Product settings"
+        aria-hidden={!isOpen}
+        className={cn(
+          "fixed right-0 top-0 z-[121] flex h-[100dvh] w-full flex-col bg-white text-primary shadow-2xl transition-transform duration-300 sm:w-[424px]",
+          isOpen ? "translate-x-0" : "invisible translate-x-full"
+        )}
       >
-        <header className="p-4 flex justify-between items-center">
-          <h2 className="text-lg font-semibold">Configurations</h2>
-          <XMarkIcon className="w-5 cursor-pointer" onClick={onClose} />
+        <header className="flex items-start justify-between gap-3 border-b border-gray-200 p-5">
+          <div>
+            <h2 className="text-lg font-semibold">Product settings</h2>
+            <p className="text-sm text-primaryGray">
+              Types and categories used to organise products.
+            </p>
+          </div>
+          <button
+            type="button"
+            aria-label="Close"
+            onClick={onClose}
+            className="flex size-8 items-center justify-center rounded-lg text-primaryGray hover:bg-gray-100"
+          >
+            <XMarkIcon className="size-5" />
+          </button>
         </header>
 
-        <div className="p-4 overflow-y-auto">
-          <SlantTabs
-            selectedTab={activeTab.label}
-            tabs={TABS.map((t) => t.label)}
-            onTabSelect={(label) => {
-              const selected = TABS.find((t) => t.label === label);
-              if (selected) setActiveTab(selected);
-            }}
-          />
+        <div className="flex-1 overflow-y-auto p-5">
+          <div
+            role="tablist"
+            className="flex w-fit gap-1 rounded-lg border border-lightGray bg-lightGray/30 p-1"
+          >
+            {TABS.map((t) => (
+              <button
+                key={t.key}
+                type="button"
+                role="tab"
+                aria-selected={activeTab.key === t.key}
+                onClick={() => {
+                  setActiveTab(t);
+                  setEditItem(null);
+                }}
+                className={cn(
+                  "rounded-md px-4 py-2 text-sm",
+                  activeTab.key === t.key
+                    ? "bg-white font-semibold shadow-sm"
+                    : "text-primaryGray"
+                )}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
 
-          <div className="my-5">
+          <div className="my-5 flex flex-col gap-4">
             <ConfigurationForm
               key={count}
               label={activeTab.label}
@@ -205,25 +241,31 @@ export const ConfigurationsDrawer = ({
                 isAddingNewTCategory ||
                 isUpdatingProductCategory
               }
-              isReadOnly={!canManageCurrentRoute}
+              isReadOnly={!canManageCatalog}
             />
 
-            {list.length > 0 && <HorizontalLine />}
-
-            <ul className="space-y-4 h-[60vh] overflow-y-scroll ">
+            <ul className="flex flex-col gap-2">
               {list.map((item) => (
                 <ItemCard
                   key={item.id}
                   item={item}
                   onEdit={() => setEditItem(item)}
                   onDelete={() => handleDelete(item.id, item.name)}
-                  canManageActions={canManageCurrentRoute}
+                  canManageActions={canManageCatalog}
+                  canDelete={canDelete}
                 />
               ))}
+              {list.length === 0 && (
+                <li className="rounded-lg border border-dashed border-lightGray p-6 text-center text-sm text-primaryGray">
+                  {activeTab.key === "type"
+                    ? "No product types yet."
+                    : "No categories yet."}
+                </li>
+              )}
             </ul>
           </div>
         </div>
-      </div>
+      </aside>
     </>
   );
 };
@@ -233,24 +275,41 @@ const ItemCard = ({
   onEdit,
   onDelete,
   canManageActions,
+  canDelete,
 }: {
   item: IProductType;
   onEdit: () => void;
   onDelete: () => void;
   canManageActions?: boolean;
+  canDelete?: boolean;
 }) => (
-  <li className="flex justify-between items-center p-4 border rounded-lg ">
-    <div className="flex items-center gap-4">
-      <Square3Stack3DIcon className="w-6" />
-      <p>{item.name}</p>
+  <li className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 px-4 py-3 text-sm">
+    <div className="flex min-w-0 items-center gap-3">
+      <Square3Stack3DIcon className="size-5 shrink-0 text-primaryGray" />
+      <p className="truncate">{item.name}</p>
     </div>
-    {canManageActions && (
-      <div className="flex gap-2">
-        <PencilSquareIcon className="w-5 cursor-pointer" onClick={onEdit} />
-        <TrashIcon
-          className="w-5 text-red-500 cursor-pointer"
-          onClick={onDelete}
-        />
+    {(canManageActions || canDelete) && (
+      <div className="flex gap-1">
+        {canManageActions && (
+          <button
+            type="button"
+            aria-label={`Edit ${item.name}`}
+            onClick={onEdit}
+            className="flex size-8 items-center justify-center rounded-lg text-primaryGray hover:bg-gray-100 hover:text-primary"
+          >
+            <PencilSquareIcon className="size-[18px]" />
+          </button>
+        )}
+        {canDelete && (
+          <button
+            type="button"
+            aria-label={`Delete ${item.name}`}
+            onClick={onDelete}
+            className="flex size-8 items-center justify-center rounded-lg text-red-600 hover:bg-red-50"
+          >
+            <TrashIcon className="size-[18px]" />
+          </button>
+        )}
       </div>
     )}
   </li>
@@ -311,6 +370,6 @@ const ConfigurationForm = ({
 };
 
 const TABS = [
-  { key: "type", label: "Product Type" },
-  { key: "category", label: "Product Category" },
+  { key: "type", label: "Product type" },
+  { key: "category", label: "Category" },
 ] as const;

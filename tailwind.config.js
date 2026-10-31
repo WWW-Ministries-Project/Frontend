@@ -1,4 +1,84 @@
+import defaultColors from "tailwindcss/colors";
+
 const colorVar = cssVarName => `rgb(var(${cssVarName}) / <alpha-value>)`;
+
+/*
+ * Tailwind palette scales are routed through CSS variables (like `gray`) so raw
+ * palette classes (`bg-red-50`, `text-blue-700`, `border-slate-200`) follow the
+ * active theme. Light keeps Tailwind's stock values; dark flips each scale so
+ * tints become dark surfaces and text shades become light.
+ */
+const SHADES = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
+const NEUTRAL_HUES = ["slate", "zinc", "neutral", "stone"];
+const CHROMATIC_HUES = [
+  "red", "orange", "amber", "yellow", "lime", "green", "emerald", "teal",
+  "cyan", "sky", "blue", "indigo", "violet", "purple", "fuchsia", "pink", "rose",
+];
+const PALETTE_HUES = [...NEUTRAL_HUES, ...CHROMATIC_HUES];
+
+const hexToRgb = hex => {
+  const value = hex.replace("#", "");
+  return [0, 2, 4].map(offset => parseInt(value.slice(offset, offset + 2), 16));
+};
+const mixRgb = (from, to, amount) =>
+  from.map((channel, index) => Math.round(channel * amount + to[index] * (1 - amount)));
+const rgbTriplet = rgb => rgb.join(" ");
+
+// Dark card surface (--color-white in dark mode) that tints are blended into.
+const DARK_SURFACE = [16, 24, 39];
+const DARK_NEUTRAL_RAMP = {
+  50: "15 23 42",
+  100: "23 33 56",
+  200: "42 55 83",
+  300: "71 85 121",
+  400: "100 116 150",
+  500: "133 148 179",
+  600: "170 183 212",
+  700: "196 206 230",
+  800: "221 228 245",
+  900: "240 244 255",
+  950: "248 250 255",
+};
+const darkChromaticShade = (scale, shade) => {
+  const rgb = key => hexToRgb(scale[key]);
+  const map = {
+    50: mixRgb(rgb(950), DARK_SURFACE, 0.45),
+    100: mixRgb(rgb(950), DARK_SURFACE, 0.7),
+    200: mixRgb(rgb(900), DARK_SURFACE, 0.7),
+    300: rgb(800),
+    400: rgb(600),
+    500: rgb(500),
+    600: rgb(500),
+    700: rgb(400),
+    800: rgb(300),
+    900: rgb(200),
+    950: rgb(100),
+  };
+  return rgbTriplet(map[shade]);
+};
+
+const paletteColors = Object.fromEntries(
+  PALETTE_HUES.map(hue => [
+    hue,
+    Object.fromEntries(SHADES.map(shade => [shade, colorVar(`--color-${hue}-${shade}`)])),
+  ])
+);
+
+const paletteVariables = () => {
+  const light = {};
+  const dark = {};
+  PALETTE_HUES.forEach(hue => {
+    const scale = defaultColors[hue];
+    SHADES.forEach(shade => {
+      const name = `--color-${hue}-${shade}`;
+      light[name] = rgbTriplet(hexToRgb(scale[shade]));
+      dark[name] = NEUTRAL_HUES.includes(hue)
+        ? DARK_NEUTRAL_RAMP[shade]
+        : darkChromaticShade(scale, shade);
+    });
+  });
+  return { ":root": light, '[data-theme="dark"]': dark };
+};
 
 const brandColors = {
   primary: colorVar("--color-primary"),
@@ -14,6 +94,7 @@ const brandColors = {
   success: colorVar("--color-success"),
   error: colorVar("--color-error"),
   warning: colorVar("--color-warning"),
+  info: colorVar("--color-info"),
 
   shadow: colorVar("--color-shadow"),
   blur: colorVar("--color-blur"),
@@ -74,6 +155,7 @@ export default {
       colors: {
         ...brandColors,
         ...legacyColors,
+        ...paletteColors,
         white: colorVar("--color-white"),
         black: colorVar("--color-black"),
         gray: {
@@ -95,6 +177,7 @@ export default {
         wiggle: "wiggle 1s",
         fadeIn: "fadeIn 1s",
         fadeOut: "fadeOut 1s",
+        "toast-in": "toast-in 0.2s ease-out",
         "pulse-ring":
           "pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite",
         "divine-glow": "divine-glow 3s ease-in-out infinite",
@@ -106,6 +189,10 @@ export default {
         "accordion-up": "accordion-up 0.2s ease-out",
       },
       keyframes: {
+        "toast-in": {
+          from: { opacity: "0", transform: "translateY(8px)" },
+          to: { opacity: "1", transform: "none" },
+        },
         "accordion-down": {
           from: { height: "0" },
           to: { height: "var(--radix-accordion-content-height)" },
@@ -192,6 +279,9 @@ export default {
     },
   },
   plugins: [
+    function ({ addBase }) {
+      addBase(paletteVariables());
+    },
     function ({ addUtilities }) {
       addUtilities({
         ".text-sma": {

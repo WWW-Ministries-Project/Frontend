@@ -1,3 +1,4 @@
+import { useBackNavigation } from "@/CustomHooks/useBackNavigation";
 import {
   ArrowLeftIcon,
   PaperAirplaneIcon,
@@ -71,6 +72,7 @@ const CommunityPostDetail = () => {
   const [searchParams] = useSearchParams();
   const commentParam = searchParams.get("comment");
   const navigate = useNavigate();
+  const back = useBackNavigation(relativePath.member.community);
   const { me } = useCommunityMe();
 
   const [post, setPost] = useState<CommunityPost | null>(null);
@@ -266,8 +268,8 @@ const CommunityPostDetail = () => {
       <div className="mb-4 flex items-center gap-3">
         <button
           type="button"
-          onClick={backToFeed}
-          aria-label="Back to Community"
+          onClick={back.goBack}
+          aria-label={`Back to ${back.label}`}
           className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-lightGray bg-white text-primary hover:bg-lightGray/40"
         >
           <ArrowLeftIcon className="h-5 w-5" />
@@ -285,7 +287,7 @@ const CommunityPostDetail = () => {
       <PostCard
         post={post}
         variant="detail"
-        canManage={me.canManage}
+        canManage={me.actions.deleteAny}
         onChange={setPost}
         onRemove={backToFeed}
         onRestore={load}
@@ -311,7 +313,7 @@ const CommunityPostDetail = () => {
                 <CommentItem
                   comment={comment}
                   highlighted={highlightId === comment.id}
-                  canManage={me.canManage}
+                  canManage={me.actions.deleteAny}
                   onReactionsChange={updateCommentReactions}
                   onRemove={() => removeComment(comment.id)}
                   onRestore={() => restoreComment(comment.id)}
@@ -324,7 +326,7 @@ const CommunityPostDetail = () => {
                     comment={reply}
                     isReply
                     highlighted={highlightId === reply.id}
-                    canManage={me.canManage}
+                    canManage={me.actions.deleteAny}
                     onReactionsChange={updateCommentReactions}
                     onRemove={() => removeComment(reply.id)}
                     onRestore={() => restoreComment(reply.id)}
@@ -341,59 +343,65 @@ const CommunityPostDetail = () => {
 
       <div className="fixed inset-x-0 bottom-0 z-30 border-t border-lightGray bg-white/95 backdrop-blur">
         <div className="mx-auto w-full max-w-3xl px-4 py-3 md:px-6">
-          {replyTo ? (
-            <div className="mb-2 flex items-center justify-between text-xs text-primaryGray">
-              <span>
-                Replying to <strong className="text-primary">{replyTo.name}</strong>
-              </span>
-              <button
-                type="button"
-                aria-label="Cancel reply"
-                onClick={() => setReplyTo(null)}
-                className="rounded p-1 hover:bg-lightGray/40"
-              >
-                <XMarkIcon className="h-4 w-4" />
-              </button>
-            </div>
-          ) : null}
-          {offerAnonymous ? (
-            <label className="mb-2 flex items-center gap-2 text-xs text-primaryGray">
-              <input
-                type="checkbox"
-                checked={replyAnonymously}
-                onChange={(event) => setReplyAnonymously(event.target.checked)}
-                className="h-4 w-4 accent-amber-600"
-              />
-              Comment anonymously, like your post
-            </label>
-          ) : null}
-          <div className="flex items-end gap-2">
-            <textarea
-              ref={inputRef}
-              value={text}
-              rows={1}
-              maxLength={2000}
-              onChange={(event) => setText(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" && !event.shiftKey) {
-                  event.preventDefault();
-                  send();
-                }
-              }}
-              placeholder="Write a comment…"
-              aria-label="Write a comment"
-              className="max-h-32 min-h-[44px] flex-1 resize-none rounded-2xl border border-lightGray bg-white px-4 py-2.5 text-sm text-primary focus:border-primary focus:outline-none"
-            />
-            <button
-              type="button"
-              onClick={send}
-              disabled={!text.trim() || sending}
-              aria-label="Send comment"
-              className="inline-flex h-11 w-11 flex-none items-center justify-center rounded-full bg-primary text-white hover:bg-primary/90 disabled:opacity-45"
-            >
-              <PaperAirplaneIcon className="h-5 w-5" />
-            </button>
-          </div>
+          {post?.commentsEnabled === false ? (
+            <p className="py-2 text-center text-sm text-primaryGray">Comments are turned off for this post.</p>
+          ) : (
+            <>
+              {replyTo ? (
+                <div className="mb-2 flex items-center justify-between text-xs text-primaryGray">
+                  <span>
+                    Replying to <strong className="text-primary">{replyTo.name}</strong>
+                  </span>
+                  <button
+                    type="button"
+                    aria-label="Cancel reply"
+                    onClick={() => setReplyTo(null)}
+                    className="rounded p-1 hover:bg-lightGray/40"
+                  >
+                    <XMarkIcon className="h-4 w-4" />
+                  </button>
+                </div>
+              ) : null}
+              {offerAnonymous ? (
+                <label className="mb-2 flex items-center gap-2 text-xs text-primaryGray">
+                  <input
+                    type="checkbox"
+                    checked={replyAnonymously}
+                    onChange={(event) => setReplyAnonymously(event.target.checked)}
+                    className="h-4 w-4 accent-amber-600"
+                  />
+                  Comment anonymously, like your post
+                </label>
+              ) : null}
+              <div className="flex items-end gap-2">
+                <textarea
+                  ref={inputRef}
+                  value={text}
+                  rows={1}
+                  maxLength={2000}
+                  onChange={(event) => setText(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" && !event.shiftKey) {
+                      event.preventDefault();
+                      send();
+                    }
+                  }}
+                  placeholder="Write a comment…"
+                  aria-label="Write a comment"
+                  className="max-h-32 min-h-[44px] flex-1 resize-none rounded-2xl border border-lightGray bg-white px-4 py-2.5 text-sm text-primary focus:border-primary focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={send}
+                  disabled={!text.trim() || sending}
+                  aria-label="Send comment"
+                  className="inline-flex h-11 w-11 flex-none items-center justify-center rounded-full bg-primary text-white hover:bg-primary/90 disabled:opacity-45"
+                >
+                  <PaperAirplaneIcon className="h-5 w-5" />
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import axios from "axios";
 import { baseUrl } from "./pages/Authentication/utils/helpers";
 import { getToken } from "./utils/helperFunctions";
+import { getActiveBranchHeaderValue } from "./store/useBranchStore";
 
 const SESSION_EXPIRY_MARKERS = [
   "session expired",
@@ -24,6 +25,7 @@ const PERMISSION_DENIAL_MARKERS = [
 const PUBLIC_AUTH_PATHS = [
   "/user/login",
   "/user/register",
+  "/user/public-register",
   "/user/forgot-password",
   "/user/reset-password",
 ];
@@ -158,6 +160,14 @@ const applyRequestInterceptor = (client) => {
       } else if (config.headers?.Authorization) {
         delete config.headers.Authorization;
       }
+      // The branch the user is working in. The API scopes lists to it and
+      // saves new records there; absent means "all of my branches".
+      const activeBranchId = token ? getActiveBranchHeaderValue() : null;
+      if (activeBranchId) {
+        config.headers["X-Branch-Id"] = String(activeBranchId);
+      } else if (config.headers["X-Branch-Id"]) {
+        delete config.headers["X-Branch-Id"];
+      }
       return config;
     },
     (error) => Promise.reject(error)
@@ -196,7 +206,15 @@ const applyResponseInterceptor = (client) => {
           });
         }
       } else if (statusCode === 403) {
-        if (!skipAccessDenied && hasActiveSession) {
+        if (error?.response?.data?.code === "BRANCH_FORBIDDEN") {
+          // The active branch is no longer one of the user's branches; the
+          // branch sync falls back to one that is instead of a full block.
+          dispatchAppEvent("app:branch-forbidden", { statusCode, message });
+        } else if (error?.response?.data?.code === "GRANT_CEILING") {
+          // Giving more access than you hold, or editing your own: the
+          // request is refused but the page is still yours, so the error
+          // toast is enough.
+        } else if (!skipAccessDenied && hasActiveSession) {
           dispatchAppEvent("app:access-denied", {
             statusCode,
             message,

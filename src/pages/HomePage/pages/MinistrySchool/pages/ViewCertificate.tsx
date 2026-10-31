@@ -187,7 +187,7 @@ const ViewCertificate = ({ loading = false }: ViewCertificateProps) => {
                 <p className="text-lg">program with distinction</p>
               </div>
 
-              <div className="grid grid-cols-2 gap-8 mb-8">
+              <div className="mb-8 grid grid-cols-2 gap-4 tablet:gap-8">
                 <div className="text-center">
                   <p className="text-muted-foreground mb-1">Date of Completion</p>
                   <p className="font-medium">{new Date(student.completionDate).toLocaleDateString()}</p>
@@ -199,13 +199,13 @@ const ViewCertificate = ({ loading = false }: ViewCertificateProps) => {
               </div>
 
               <div className="mt-12 pt-8 border-t border-dashed border-muted">
-                <div className="grid grid-cols-2 gap-8">
+                <div className="grid grid-cols-2 gap-4 tablet:gap-8">
                   <div className="text-center">
-                    <div className="h-px w-48 bg-foreground mx-auto mb-2"></div>
+                    <div className="mx-auto mb-2 h-px w-full max-w-48 bg-foreground"></div>
                     <p className="text-muted-foreground">Pastor&apos;s Signature</p>
                   </div>
                   <div className="text-center">
-                    <div className="h-px w-48 bg-foreground mx-auto mb-2"></div>
+                    <div className="mx-auto mb-2 h-px w-full max-w-48 bg-foreground"></div>
                     <p className="text-muted-foreground">Program Director</p>
                   </div>
                 </div>

@@ -84,6 +84,8 @@ export const AllStudents = ({
   total,
   loading = false,
   onBulkAction,
+  canEnroll = false,
+  canEditStatus = false,
 }: {
   Data: Student[];
   onOpen: () => void;
@@ -93,9 +95,29 @@ export const AllStudents = ({
   total?: number;
   loading?: boolean;
   onBulkAction?: (selectedRows: Student[], action: string) => void | Promise<void>;
+  /** School_of_ministry.enroll_others: enroll and unenroll other people. */
+  canEnroll?: boolean;
+  /** School_of_ministry.edit_progress: change enrollment status. */
+  canEditStatus?: boolean;
 }) => {
   const navigate = useNavigate();
   const advancedOpsEnabled = isLmsFeatureEnabled("server_student_operations");
+  // The local flag only switches the feature on; the role decides who may use it.
+  const bulkActions =
+    advancedOpsEnabled && onBulkAction
+      ? [
+          ...(canEditStatus
+            ? [
+                { label: "Set Active", value: "status_active" },
+                { label: "Set Completed", value: "status_completed" },
+                { label: "Set Pending", value: "status_pending" },
+              ]
+            : []),
+          ...(canEnroll
+            ? [{ label: "Unenroll", value: "unenroll", variant: "danger" as const }]
+            : []),
+        ]
+      : [];
   const [internalQuery, setInternalQuery] = useState<StudentListQuery>(DEFAULT_QUERY);
   const effectiveQuery = query ?? internalQuery;
   const [searchInput, setSearchInput] = useState(effectiveQuery.search);
@@ -348,14 +370,16 @@ export const AllStudents = ({
           )}
         </div>
 
-        <div className="flex justify-end">
-          <button
-            onClick={onOpen}
-            className="h-10 whitespace-nowrap rounded-lg bg-primary px-4 text-sm text-white"
-          >
-            Enroll student
-          </button>
-        </div>
+        {canEnroll && (
+          <div className="flex justify-end">
+            <button
+              onClick={onOpen}
+              className="h-10 whitespace-nowrap rounded-lg bg-primary px-4 text-sm text-white"
+            >
+              Enroll student
+            </button>
+          </div>
+        )}
       </div>
 
       {loading && !hasData ? (
@@ -370,20 +394,11 @@ export const AllStudents = ({
             <TableComponent
               data={rows}
               columns={columns}
-              enableSelection={advancedOpsEnabled && Boolean(onBulkAction)}
+              enableSelection={bulkActions.length > 0}
               onBulkAction={(selectedRows, action) =>
                 onBulkAction?.(selectedRows as Student[], action)
               }
-              bulkActions={
-                advancedOpsEnabled && onBulkAction
-                  ? [
-                      { label: "Set Active", value: "status_active" },
-                      { label: "Set Completed", value: "status_completed" },
-                      { label: "Set Pending", value: "status_pending" },
-                      { label: "Unenroll", value: "unenroll", variant: "danger" as const },
-                    ]
-                  : []
-              }
+              bulkActions={bulkActions}
               total={total}
               displayedCount={effectiveQuery.take}
               onPageChange={(page, take) => {

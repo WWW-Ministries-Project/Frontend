@@ -6,6 +6,24 @@
  * accepted.
  */
 
+/**
+ * One church event members can arrange rides to (Sunday service, midweek
+ * service, a programme): confirmed events in the next 14 days, soonest
+ * first. A ride is for the event's day, not its hours.
+ */
+export interface RideEvent {
+  id: number;
+  name: string;
+  /** "YYYY-MM-DD". */
+  date: string;
+  /** "Wednesday". */
+  weekday: string;
+  /** 24h "HH:MM", when known. */
+  start_time: string | null;
+  end_time: string | null;
+  location: string | null;
+}
+
 /** A public landmark a rider is picked up at. */
 export interface RidePoint {
   id: number;
@@ -33,9 +51,16 @@ export interface RideArea {
 }
 
 export interface RideCatalog {
-  service_date: string;
+  /** The event's day; null when no event is taking rides. */
+  service_date: string | null;
+  /** The event's name. */
   service_label: string;
-  /** 24h "HH:MM" departure choices. */
+  /** The event this catalog is for (the one asked for, else the soonest). */
+  event_id?: number | null;
+  event?: RideEvent | null;
+  /** Every event taking rides, soonest first. */
+  events?: RideEvent[];
+  /** 24h "HH:MM" suggestions ahead of the event's start; empty when unknown. */
   depart_times: string[];
   min_seats: number;
   max_seats: number;
@@ -73,6 +98,7 @@ export interface RideAreaRef {
 export interface DriverRide {
   id: number;
   service_date: string;
+  event?: RideEvent | null;
   area: RideAreaRef;
   depart_time: string;
   reminder_time: string;
@@ -122,6 +148,7 @@ export interface PassengerRide {
   ride: {
     id: number;
     service_date: string;
+    event?: RideEvent | null;
     area: RideAreaRef;
     depart_time: string;
     seats_total: number;
@@ -140,8 +167,13 @@ export interface PassengerRide {
 export type RideRole = "driver" | "passenger" | null;
 
 export interface MyRide {
-  service_date: string;
+  service_date: string | null;
   service_label: string;
+  /** The event this answer is about. */
+  event?: RideEvent | null;
+  events?: RideEvent[];
+  /** Events the member drives or holds / waits on a seat for. */
+  my_event_ids?: number[];
   role: RideRole;
   offer: DriverRide | null;
   request: PassengerRide | null;
@@ -149,6 +181,7 @@ export interface MyRide {
 
 export interface RideSearchResult {
   service_date: string;
+  event?: RideEvent | null;
   pickup_point: RidePoint;
   alert_on: boolean;
   /** The member already drives or holds a seat this Sunday. */
@@ -173,6 +206,8 @@ export interface PublishRideDto {
   seats: number;
   pickup_point_ids: number[];
   car_details?: string;
+  /** Defaults to the soonest event. */
+  event_id?: number;
 }
 
 export interface RequestSeatDto {
@@ -188,6 +223,8 @@ export interface DeclineRequestDto {
 export interface RideAlertDto {
   pickup_point_id: number;
   enabled: boolean;
+  /** Defaults to the soonest event. */
+  event_id?: number;
 }
 
 export interface RideReportDto {
@@ -231,6 +268,7 @@ export interface AdminRideRequest {
 export interface AdminRideOffer {
   id: number;
   status: RideOfferStatus;
+  event?: RideEvent | null;
   area: RideAreaRef;
   depart_time: string;
   seats_total: number;
@@ -247,6 +285,7 @@ export interface AdminRideOffer {
 export interface AdminRideOverview {
   service_date: string;
   current_service_date: string;
+  /** Joined names of the date's events, e.g. "Sunday Service · Youth Programme". */
   service_label: string;
   /** The current service date plus recent dates that had rides, newest first. */
   service_dates: string[];

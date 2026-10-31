@@ -1,71 +1,165 @@
 import { CalendarIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
 
-import { Button } from "@/components";
-import ActionButton from "@/pages/HomePage/Components/reusable/ActionButton";
-import { formatDate } from "@/utils";
 import type { IMarket } from "@/utils/api/marketPlace/interface";
-import { MarketStatusChip } from "../chips/MarketStatusChip";
+import { StatusPill } from "../StatusPill";
+import {
+  formatDate,
+  formatMoney,
+  getMarketState,
+  marketStatePill,
+} from "../../utils/marketplaceModel";
+import { btnPrimary } from "../markets/styles";
 
 interface IProps {
   market: IMarket;
-  handleEdit: (market: IMarket) => void;
-  handleDuplicate: (market: IMarket) => void;
-  handleDelete: (id: string, name: string) => void;
-  openMarket: (id: string) => void;
+  products?: number;
+  orders?: number;
+  revenue?: number;
+  canManage: boolean;
+  canDelete: boolean;
+  onEdit: (market: IMarket) => void;
+  onDuplicate: (market: IMarket) => void;
+  onDelete: (market: IMarket) => void;
+  onOpen: (market: IMarket) => void;
 }
+
+const Stat = ({ label, value }: { label: string; value?: string | number }) => (
+  <div className="min-w-0">
+    <p className="text-xs text-gray-500">{label}</p>
+    <p className="whitespace-nowrap font-semibold">{value ?? "—"}</p>
+  </div>
+);
 
 export function MarketCard({
   market,
-  handleDelete,
-  handleEdit,
-  handleDuplicate,
-  openMarket,
+  products,
+  orders,
+  revenue,
+  canManage,
+  canDelete,
+  onEdit,
+  onDuplicate,
+  onDelete,
+  onOpen,
 }: IProps) {
-  const { name, description, event_name, start_date, end_date, id } = market;
-  const [showOptions, setShowOptions] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const state = getMarketState(market);
+  const showMenu = canManage || canDelete;
+
+  const menuItem =
+    "block w-full px-3.5 py-2.5 text-left text-sm transition-colors hover:bg-gray-100";
 
   return (
-    <div className="w-full flex flex-col justify-between rounded-2xl text-primaryGray border border-lightGray p-4 bg-white shadow-sm transition-shadow hover:shadow-md relative">
-      <div>
-        <div className="flex justify-between items-start gap-2">
-          <div>
-            <p className="font-medium text-xl">{name}</p>
-            <p className="font-medium mt-1">{event_name}</p>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <MarketStatusChip
-              start_date={market.start_date}
-              end_date={market.end_date}
-            />
-            <div
-              onClick={() => setShowOptions((prev) => !prev)}
+    <div className="flex flex-col gap-4 rounded-xl border border-lightGray bg-white p-5 text-primary shadow-sm transition-shadow hover:shadow-[0_8px_24px_rgb(var(--color-shadow)_/_0.08)]">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          {market.event_name && (
+            <p className="truncate text-xs uppercase tracking-wider text-primaryGray">
+              {market.event_name}
+            </p>
+          )}
+          <button
+            type="button"
+            onClick={() => onOpen(market)}
+            className="text-left text-lg font-semibold hover:underline"
+          >
+            {market.name}
+          </button>
+        </div>
+        <div className="relative flex shrink-0 items-center gap-1">
+          <StatusPill status={marketStatePill(state)} />
+          {showMenu && (
+            <button
+              type="button"
+              aria-label="Market options"
+              aria-haspopup="menu"
+              aria-expanded={menuOpen}
+              onClick={() => setMenuOpen((v) => !v)}
+              className="flex size-8 items-center justify-center rounded-lg text-lg text-primaryGray hover:bg-gray-100"
             >
-              <ActionButton
-                showOptions={showOptions}
-                onDelete={() => handleDelete(market.id, name)}
-                onEdit={() => handleEdit(market)}
-                onDuplicate={() => handleDuplicate(market)}
+              ⋯
+            </button>
+          )}
+          {menuOpen && (
+            <>
+              <div
+                className="fixed inset-0 z-40"
+                onClick={() => setMenuOpen(false)}
+                aria-hidden
               />
-            </div>
-          </div>
-        </div>
-
-        <p className="my-3">{description}</p>
-
-        <div className="flex items-center gap-2 text-primary">
-          <CalendarIcon className="h-5 w-5 text-black" />
-          <span>
-            {formatDate(start_date)} to {formatDate(end_date)}
-          </span>
+              <div
+                role="menu"
+                className="absolute right-0 top-full z-[41] mt-1 w-40 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg"
+              >
+                {canManage && (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className={menuItem}
+                    onClick={() => {
+                      setMenuOpen(false);
+                      onEdit(market);
+                    }}
+                  >
+                    Edit
+                  </button>
+                )}
+                {canManage && (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className={menuItem}
+                    onClick={() => {
+                      setMenuOpen(false);
+                      onDuplicate(market);
+                    }}
+                  >
+                    Duplicate
+                  </button>
+                )}
+                {canDelete && (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className={`${menuItem} text-red-700`}
+                    onClick={() => {
+                      setMenuOpen(false);
+                      onDelete(market);
+                    }}
+                  >
+                    Delete
+                  </button>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </div>
 
-      <div className="flex items-center gap-4 mt-5 w-full">
-        <Button className="w-full" value="Manage store" variant="primary" onClick={() => openMarket(id)} />
-        
+      {market.description && (
+        <p className="line-clamp-2 text-sm text-primaryGray">
+          {market.description}
+        </p>
+      )}
+
+      <p className="flex items-center gap-2 text-sm">
+        <CalendarIcon className="size-[18px] shrink-0" />
+        {formatDate(market.start_date)} – {formatDate(market.end_date)}
+      </p>
+
+      <div className="mt-auto grid grid-cols-3 gap-2 border-t border-gray-200 pt-4">
+        <Stat label="Products" value={products} />
+        <Stat label="Orders" value={orders} />
+        <Stat
+          label="Revenue"
+          value={revenue === undefined ? undefined : formatMoney(revenue)}
+        />
       </div>
+
+      <button type="button" className={btnPrimary} onClick={() => onOpen(market)}>
+        Manage store
+      </button>
     </div>
   );
 }

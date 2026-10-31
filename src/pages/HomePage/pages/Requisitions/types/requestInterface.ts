@@ -6,6 +6,7 @@ export type RequisitionStatusType =
   | "Awaiting_HOD_Approval"
   | "Awaiting_Pastor_Approval"
   | "APPROVED"
+  | "DISBURSED"
   | "REJECTED"
   | "Awaiting_Executive_Pastor_Approval"
   | "Pending signature";

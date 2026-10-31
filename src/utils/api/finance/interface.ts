@@ -44,6 +44,41 @@ export interface FinanceApprovalConfig {
   finance_approver_user_id: number | null;
   notification_user_ids: number[];
   is_active: boolean;
+  /** Share of total receipts taken as tithe on new weekly records. */
+  tithe_percentage?: number;
+}
+
+export interface FinanceApprovalConfigPayload {
+  finance_approver_user_id: number | null;
+  notification_user_ids: number[];
+  is_active?: boolean;
+  tithe_percentage?: number;
+}
+
+/** Receipt totals a weekly record fills in from Giving and Pledges. Major units. */
+export interface FinanceAutoAmounts {
+  from: string;
+  to: string;
+  online_giving: number;
+  online_giving_count: number;
+  pledges_redeemed: number;
+  pledges_redeemed_count: number;
+}
+
+/** One configured line (receipt, payment, tithe account or fund account). */
+export interface FinanceConfigLine {
+  id: string;
+  name: string;
+  description?: string | null;
+  percentage?: number | null;
+  branch_id?: number | null;
+}
+
+export interface FinanceConfigLinePayload {
+  name: string;
+  description?: string;
+  percentage?: number;
+  branch_id?: number;
 }
 
 export interface FinancialRecord {
@@ -58,6 +93,12 @@ export interface FinancialRecord {
   submittedAt?: string | null;
   approvedByUserId?: number | null;
   approvedAt?: string | null;
+  createdByUserId?: number | null;
+  updatedByUserId?: number | null;
+  returnedByUserId?: number | null;
+  returnedAt?: string | null;
+  returnNote?: string | null;
+  branch_id?: number | null;
   isEditable?: boolean;
   notificationUserIds?: number[];
 }
@@ -137,8 +178,11 @@ export interface GivingContribution {
   /** Snapshot taken when the payment started, not a live join */
   giving_option_name: string;
   user_id: number | null;
+  /** Null when `donor_hidden` (the role lacks Giving.view_donor_details). */
   donor_name: string;
   donor_email: string;
+  /** Set when the giver's name, email and member id were withheld. */
+  donor_hidden?: boolean;
   /** Minor units (pesewas) - divide by 100 to display. The donation: what the fund receives, NOT what the donor's card was charged */
   amount: number;
   /** The Paystack fee the donor was grossed up by, at the rate configured when the payment started. Added on top of `amount` - never part of it */
@@ -165,6 +209,12 @@ export type GivingContributionQuery = Partial<
     string | number
   >
 >;
+
+export interface ContributionRecheckResult {
+  data: GivingContribution[];
+  checked: number;
+  failed: number;
+}
 
 /* ------------------------------------------------------------------ */
 /* Member-facing giving                                                */

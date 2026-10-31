@@ -1,99 +1,53 @@
-import { MinusCircleIcon } from "@heroicons/react/24/outline";
-import { Field, FieldArray, getIn, useFormikContext } from "formik";
+import { getIn, useFormikContext } from "formik";
 
-import { Button } from "@/components";
-import { FormikInputDiv } from "@/components/FormikInputDiv";
-import FormikSelectField from "@/components/FormikSelect";
-import { FormLayout } from "@/components/ui";
-import { array, object, string, number } from "yup";
+import type { IProduct } from "@/utils/api/marketPlace/interface";
 
+export interface IStocksSubForm {
+  size: string;
+  stock: number | string;
+}
+
+/** Stock grid for one colour: one number input per enabled size. */
 const StocksSubFormComponent = ({ index }: { index: number }) => {
-  const { values: entire } = useFormikContext<object>();
+  const { values, setFieldValue } = useFormikContext<IProduct>();
   const stocks: IStocksSubForm[] =
-    getIn(entire, `product_colours[${index}].stock`) || initialValues;
+    getIn(values, `product_colours[${index}].stock`) || [];
+
+  if (!stocks.length) {
+    return (
+      <p className="text-sm text-gray-500">
+        Pick at least one size above to set stock for this colour.
+      </p>
+    );
+  }
 
   return (
-    <FieldArray name={`product_colours[${index}].stock`}>
-      {({ push, remove }) => (
-        <>
-          {stocks.map((item, i) => (
-            <div key={i} className="flex items-center gap-2 justify-between">
-              <div className="flex items-end">
-                <FormLayout>
-                  <Field
-                    name={`product_colours[${index}].stock[${i}].size`}
-                    component={FormikSelectField}
-                    options={sizes.filter(
-                      (sizeOption) =>
-                        !stocks.some((s) => s.size === sizeOption.value) ||
-                        item.size === sizeOption.value
-                    )}
-                    placeholder="Select size"
-                    id={`product_colours[${index}].stock[${i}].size`}
-                  />
-                  <Field
-                    name={`product_colours[${index}].stock[${i}].stock`}
-                    component={FormikInputDiv}
-                    placeholder="Number of stocks"
-                    type="number"
-                    id={`product_colours[${index}].stock[${i}].stock`}
-                  />
-                </FormLayout>
-                {stocks.length > 1 && (
-                  <MinusCircleIcon
-                    className="size-7 text-lightGray"
-                    onClick={() => remove(i)}
-                  />
-                )}
-              </div>
-            </div>
-          ))}
-          <div className="flex justify-end">
-            {stocks.length < sizes.length && (
-              <Button
-                variant="ghost"
-                value="+ Add size"
-                onClick={() => {
-                  const nextSize = sizes.find(
-                    (s) => !stocks.some((item) => item.size === s.value)
-                  )?.value;
-
-                  push({ size: nextSize, stock: 0 });
-                }}
-                className="hover:no-underline"
-              />
-            )}
-          </div>
-        </>
-      )}
-    </FieldArray>
+    <div className="grid grid-cols-[repeat(auto-fill,minmax(84px,1fr))] gap-2">
+      {stocks.map((item, i) => (
+        <label
+          key={item.size}
+          className="flex flex-col gap-1 text-xs text-primaryGray"
+        >
+          {item.size}
+          <input
+            type="number"
+            min={0}
+            inputMode="numeric"
+            value={item.stock}
+            onChange={(e) =>
+              setFieldValue(
+                `product_colours[${index}].stock[${i}].stock`,
+                e.target.value
+              )
+            }
+            className="h-9 rounded-md border border-lightGray px-2 text-sm text-primary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/10"
+          />
+        </label>
+      ))}
+    </div>
   );
 };
 
-const sizes = ["S", "M", "L", "XL", "2XL", "3XL","4XL"].map((size) => ({
-  label: size,
-  value: size,
-}));
-export interface IStocksSubForm {
-  size: string;
-  stock: number;
-}
-
-const initialValues: IStocksSubForm[] = [
-  {
-    size: "",
-    stock: 0,
-  },
-];
-
-const validationSchema = array().of(
-  object().shape({
-    size: string().required("Required"),
-    stock: number().min(0, "Stock can't be negative"),
-  })
-);
-
 export const StocksSubForm = Object.assign(StocksSubFormComponent, {
-  initialValues,
-  validationSchema,
+  initialValues: [] as IStocksSubForm[],
 });

@@ -32,7 +32,7 @@ const Filter: React.FC<FilterProps> = (props) => {
         id={props.name}
         size={props.size}
         value={props.value}
-        className="h-10 w-full rounded-lg border border-[#dcdcdc] bg-white px-3 text-sm text-primary"
+        className="h-10 w-full rounded-lg border border-gray-300 bg-white px-3 text-sm text-primary"
         onChange={handleChange}
         aria-label={props.placeholder || "Filter options"}
       >

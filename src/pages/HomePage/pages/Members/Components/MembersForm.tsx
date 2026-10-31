@@ -1,9 +1,3 @@
-import { ProfilePicture } from "@/components";
-import { BranchSelectField } from "@/components/BranchSelectField";
-import { FormikInputDiv } from "@/components/FormikInputDiv";
-import FormikSelectField from "@/components/FormikSelect";
-import { FormHeader, FormLayout, FullWidth, ProgressStepper } from "@/components/ui";
-import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
 import {
   ChildrenSubForm,
   ContactsSubForm,
@@ -16,184 +10,165 @@ import {
   UserSubForm,
   WorkInfoSubForm,
 } from "@components/subform";
-import { Field, useFormikContext } from "formik";
+import { FormikTouched, useFormikContext } from "formik";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { array, boolean, date, mixed, object, string } from "yup";
+
+import { UiButton } from "@/pages/HomePage/pages/MembershipManagement/components/membershipUi";
+import { FormErrorSummary, FormErrorItem } from "@/components/feedback";
+import { ALL_BRANCHES, useBranchStore } from "@/store/useBranchStore";
+
 import {
   DepartmentPositionSubForm,
   IDepartmentPositionSubForm,
 } from "./DepartmentPosition";
-import { RadioInput } from "./RadioInput";
-import { ALL_BRANCHES, useBranchStore } from "@/store/useBranchStore";
+import { FamilyMembersEditor } from "./form/FamilyMembersEditor";
+import {
+  BasicInfoSection,
+  ChurchInfoSection,
+  ContactInfoSection,
+  WorkInfoSection,
+} from "./form/MemberFormSections";
+import { MemberFormStepper } from "./form/MemberFormStepper";
+import {
+  StepKey,
+  errorsToTouched,
+  getMemberFormSteps,
+  hasNestedError,
+  stepFields,
+  stepHasError,
+} from "./form/memberFormSteps";
 
-type StepKey = "basic" | "contact" | "church" | "work" | "family";
-
-const hasNestedError = (errorValue: unknown): boolean => {
-  if (Array.isArray(errorValue)) {
-    return errorValue.some((item) => hasNestedError(item));
+/** Flattens Formik's nested errors into `{ field, message }` pairs (dot paths). */
+const flattenErrors = (errors: unknown, prefix = ""): FormErrorItem[] => {
+  if (!errors) return [];
+  if (typeof errors === "string") return [{ field: prefix, message: errors }];
+  if (Array.isArray(errors)) {
+    return errors.flatMap((entry, index) => flattenErrors(entry, `${prefix}.${index}`));
   }
-
-  if (errorValue && typeof errorValue === "object") {
-    return Object.values(errorValue as Record<string, unknown>).some((item) =>
-      hasNestedError(item)
+  if (typeof errors === "object") {
+    return Object.entries(errors as Record<string, unknown>).flatMap(([key, value]) =>
+      flattenErrors(value, prefix ? `${prefix}.${key}` : key)
     );
   }
-
-  return Boolean(errorValue);
-};
-
-const getSteps = (hasChildren: boolean) => {
-  const steps = [
-    {
-      key: "basic",
-      title: "Basic Information",
-      description: "Who the member is",
-    },
-    {
-      key: "contact",
-      title: "Contact Information",
-      description: "How we can reach them",
-    },
-    {
-      key: "church",
-      title: "Church Information",
-      description: "Membership & ministry details",
-    },
-    {
-      key: "work",
-      title: "Employment / Schooling",
-      description: "What they currently do",
-      skippable: true,
-    },
-  ] as {
-    key: StepKey;
-    title: string;
-    description: string;
-    skippable?: boolean;
-  }[];
-
-  if (hasChildren) {
-    steps.push({
-      key: "family",
-      title: "Family Information",
-      description: "Children details",
-    });
-  }
-
-  return steps;
+  return [];
 };
 
 interface IProps {
+  isEditMode: boolean;
+  submitting?: boolean;
   disabled?: boolean;
-  onRegisterControls?: (controls: {
-    goNext: () => void;
-    goBack: () => void;
-    isLastStep: boolean;
-    focusFirstErrorStep: (errors: unknown) => void;
-  }) => void;
 }
 
-const MembersFormComponent = ({ disabled = false, onRegisterControls }: IProps) => {
-  const { values, errors, setFieldValue } = useFormikContext<IMembersForm>();
-  const { activeBranchId } = useBranchStore();
-  const has_children = values.personal_info?.has_children ?? false;
+/**
+ * Multi-step admin member form. Must be rendered inside a Formik provider whose
+ * initial values / schema come from `MembersForm.initialValues` / `validationSchema`.
+ */
+const MembersFormComponent = ({ isEditMode, submitting = false, disabled = false }: IProps) => {
+  const formik = useFormikContext<IMembersForm>();
+  const { values, setFieldValue, validateForm, setTouched, submitForm } = formik;
+  const hasFamily = values.personal_info?.has_children ?? false;
+  const isUser = Boolean(values.is_user);
 
-  const steps = useMemo(() => getSteps(has_children), [has_children]);
-  const progressSteps = useMemo(
-    (): { id: StepKey; label: string; description: string; ariaLabel: string }[] =>
-      steps.map((step) => ({
-        id: step.key,
-        label: step.title,
-        description: step.description,
-        ariaLabel: `${step.title}. ${step.description}`,
-      })),
-    [steps]
-  );
-
+  const steps = useMemo(() => getMemberFormSteps(hasFamily), [hasFamily]);
   const [currentStep, setCurrentStep] = useState<StepKey>("basic");
+  const topRef = useRef<HTMLDivElement>(null);
+  // Bumped on each blocked Next/Save so the error summary shows and takes focus.
+  const [failedAttempts, setFailedAttempts] = useState(0);
   const previousIsUserRef = useRef(values.is_user);
-  const previousHasChildrenRef = useRef(has_children);
+  // Rows cleared by switching "ministry worker" off, so switching it back on
+  // restores them instead of losing the member's departments.
+  const clearedDepartmentsRef = useRef<IMembersForm["department_positions"] | null>(null);
+  const previousHasFamilyRef = useRef(hasFamily);
 
-  const currentIndex = steps.findIndex((s) => s.key === currentStep);
-
-  const stepHasError = useCallback(
-    (step: StepKey, formErrors: unknown): boolean => {
-      const errorsRecord =
-        formErrors && typeof formErrors === "object"
-          ? (formErrors as Record<string, unknown>)
-          : {};
-
-      switch (step) {
-        case "basic":
-          return (
-            hasNestedError(errorsRecord.personal_info) ||
-            hasNestedError(errorsRecord.branch_id)
-          );
-        case "contact":
-          return (
-            hasNestedError(errorsRecord.contact_info) ||
-            hasNestedError(errorsRecord.emergency_contact)
-          );
-        case "church":
-          return (
-            hasNestedError(errorsRecord.church_info) ||
-            (values.is_user && hasNestedError(errorsRecord.department_positions))
-          );
-        case "work":
-          return hasNestedError(errorsRecord.work_info);
-        case "family":
-          return has_children && hasNestedError(errorsRecord.family);
-        default:
-          return false;
-      }
-    },
-    [has_children, values.is_user]
+  const currentIndex = Math.max(
+    0,
+    steps.findIndex((step) => step.key === currentStep)
   );
+  const step = steps[currentIndex];
+  const isLastStep = currentIndex === steps.length - 1;
 
-  const isStepValid = (step: StepKey) => {
-    return !stepHasError(step, errors);
+  const goTo = useCallback((key: StepKey) => {
+    setCurrentStep(key);
+    topRef.current?.scrollIntoView({ block: "start", behavior: "smooth" });
+  }, []);
+
+  /** Validates the current step; marks its fields touched so inline errors show. */
+  const validateCurrentStep = useCallback(async () => {
+    const errors = await validateForm();
+    if (!stepHasError(step.key, errors, isUser)) return true;
+    setFailedAttempts((count) => count + 1);
+
+    const errorRecord = errors as Record<string, unknown>;
+    const stepTouched = stepFields(step.key, isUser).reduce<Record<string, unknown>>(
+      (acc, key) => {
+        if (errorRecord[key] !== undefined) acc[key] = errorsToTouched(errorRecord[key]);
+        return acc;
+      },
+      {}
+    );
+    setTouched({ ...formik.touched, ...stepTouched } as FormikTouched<IMembersForm>, false);
+    return false;
+  }, [formik.touched, isUser, setTouched, step.key, validateForm]);
+
+  const handleStepSelect = async (key: StepKey) => {
+    const targetIndex = steps.findIndex((item) => item.key === key);
+    if (targetIndex > currentIndex && !(await validateCurrentStep())) return;
+    goTo(key);
   };
 
-  const focusFirstErrorStep = useCallback(
-    (formErrors: unknown) => {
-      const firstInvalidStep = steps.find((step) =>
-        stepHasError(step.key, formErrors)
-      );
-      if (firstInvalidStep) {
-        setCurrentStep(firstInvalidStep.key);
-      }
-    },
-    [stepHasError, steps]
-  );
+  const handleSave = async () => {
+    const errors = await validateForm();
 
-  const goNext = useCallback(() => {
-    if (currentIndex < steps.length - 1) {
-      setCurrentStep(steps[currentIndex + 1].key);
+    if (hasNestedError(errors)) {
+      setTouched(errorsToTouched(errors) as FormikTouched<IMembersForm>, false);
+      const firstInvalid = steps.find((item) => stepHasError(item.key, errors, isUser));
+      if (firstInvalid) goTo(firstInvalid.key);
+      setFailedAttempts((count) => count + 1);
+      return;
     }
-  }, [currentIndex, steps]);
 
-  const goBack = useCallback(() => {
-    if (currentIndex > 0) {
-      setCurrentStep(steps[currentIndex - 1].key);
+    await submitForm();
+  };
+
+  const handleNext = async () => {
+    if (!(await validateCurrentStep())) return;
+    if (isLastStep) {
+      await handleSave();
+      return;
     }
-  }, [currentIndex, steps]);
+    goTo(steps[currentIndex + 1].key);
+  };
 
-  useEffect(() => {
-    onRegisterControls?.({
-      goNext,
-      goBack,
-      isLastStep: currentIndex === steps.length - 1,
-      focusFirstErrorStep,
-    });
-  }, [goNext, goBack, currentIndex, steps.length, focusFirstErrorStep, onRegisterControls]);
+  const handleSkip = async () => {
+    // Skipping the work step leaves it unanswered so its conditional rules don't block saving.
+    const errors = await validateForm();
+    if (stepHasError("work", errors, isUser)) {
+      await setFieldValue("work_info.employment_status", undefined);
+    }
+    if (isLastStep) {
+      await handleSave();
+      return;
+    }
+    goTo(steps[currentIndex + 1].key);
+  };
 
   useEffect(() => {
     if (previousIsUserRef.current === values.is_user) return;
-
     previousIsUserRef.current = values.is_user;
 
     if (!values.is_user) {
+      const current = values.department_positions;
+      if (Array.isArray(current) && current.some((item) => Boolean(item?.department_id))) {
+        clearedDepartmentsRef.current = current;
+      }
       setFieldValue("department_positions", []);
+      return;
+    }
+
+    if (clearedDepartmentsRef.current) {
+      setFieldValue("department_positions", clearedDepartmentsRef.current);
+      clearedDepartmentsRef.current = null;
       return;
     }
 
@@ -209,10 +184,10 @@ const MembersFormComponent = ({ disabled = false, onRegisterControls }: IProps) 
   }, [setFieldValue, values.department_positions, values.is_user]);
 
   useEffect(() => {
-    if (previousHasChildrenRef.current === has_children) return;
-    previousHasChildrenRef.current = has_children;
+    if (previousHasFamilyRef.current === hasFamily) return;
+    previousHasFamilyRef.current = hasFamily;
 
-    if (!has_children) {
+    if (!hasFamily) {
       setFieldValue("family", []);
       return;
     }
@@ -220,134 +195,65 @@ const MembersFormComponent = ({ disabled = false, onRegisterControls }: IProps) 
     if (!Array.isArray(values.family) || values.family.length === 0) {
       setFieldValue("family", initialValues.family);
     }
-  }, [has_children, setFieldValue, values.family]);
+  }, [hasFamily, setFieldValue, values.family]);
 
   useEffect(() => {
-    if (!has_children && currentStep === "family") {
-      setCurrentStep("work");
-    }
-  }, [has_children, currentStep]);
+    if (!hasFamily && currentStep === "family") setCurrentStep("work");
+  }, [hasFamily, currentStep]);
+
+  const stepErrors = useMemo(() => {
+    if (!failedAttempts) return [];
+    const fields = stepFields(step.key, isUser);
+    return flattenErrors(formik.errors).filter((item) =>
+      fields.some((field) => item.field === field || item.field.startsWith(`${field}.`))
+    );
+  }, [failedAttempts, formik.errors, isUser, step.key]);
+
+  const saveLabel = isEditMode ? "Save changes" : "Add member";
+  const busy = submitting || formik.isSubmitting;
 
   return (
-    <div>
-      <div className="mb-8">
-        <ProgressStepper
-          steps={progressSteps}
-          activeStep={currentStep}
-          onStepChange={(step) => setCurrentStep(step)}
-          ariaLabel="Member registration progress"
-          className="rounded-xl border border-lightGray bg-white p-3"
-          isStepCompleted={(step) => isStepValid(step.id)}
-        />
-      </div>
+    <div ref={topRef} className="flex scroll-mt-6 flex-col gap-6">
+      <MemberFormStepper steps={steps} current={step.key} onSelect={handleStepSelect} />
 
-      <FormLayout>
-      {currentStep === "basic" && (
-        <>
-          <FormHeader className="text-primary font-bold">Personal Information</FormHeader>
-          {activeBranchId === ALL_BRANCHES && (
-            <FullWidth>
-              <BranchSelectField
-                value={values.branch_id}
-                onChange={(v) => setFieldValue("branch_id", v)}
-                required
-                error={errors.branch_id as string | undefined}
-              />
-            </FullWidth>
-          )}
-          <FullWidth>
-            <div className="flex flex-col  w-full">
-              <ProfilePicture
-                className="h-[8rem] w-[8rem] outline-lightGray  profilePic transition-all outline outline-1 duration-1000 mb-2"
-                id="profile_picture"
-                name="profile_picture"
-                src={values.picture.src}
-                alt="Profile Picture"
-                editable={!disabled}
-                onChange={(obj) => {
-                  setFieldValue(`picture`, obj);
-                }}
-                textClass={"text-3xl text-primary"}
-              />
-              <p className="text-sm ">
-                Click on the <strong>pen icon</strong> to upload your profile image{" "}
-              </p>
-            </div>
-          </FullWidth>
-          <UserSubForm prefix="personal_info" />
-        </>
-      )}
+      <section className="flex flex-col gap-6 rounded-xl border border-lightGray bg-white p-4 sm:p-6">
+        <FormErrorSummary errors={stepErrors} focusKey={failedAttempts} />
+        {step.key === "basic" && <BasicInfoSection disabled={disabled} />}
+        {step.key === "contact" && <ContactInfoSection disabled={disabled} />}
+        {step.key === "church" && <ChurchInfoSection disabled={disabled} />}
+        {step.key === "work" && <WorkInfoSection disabled={disabled} />}
+        {step.key === "family" && <FamilyMembersEditor disabled={disabled} />}
 
-      {currentStep === "contact" && (
-        <>
-          <FormHeader className="text-primary font-bold">Contact Information</FormHeader>
-          <ContactsSubForm disabled={disabled} prefix="contact_info" />
-          <HorizontalLine />
-          <FormHeader className="text-primary font-bold">Emergency Contact</FormHeader>
-          <EmergencyContact disabled={disabled} prefix="emergency_contact" />
-        </>
-      )}
-
-      {currentStep === "church" && (
-        <>
-          <FormHeader className="text-primary font-bold">Church Information</FormHeader>
-
-          <Field
-            component={FormikSelectField}
-            label="Membership Type"
-            placeholder="Select membership type"
-            id="church_info.membership_type"
-            name="church_info.membership_type"
-            options={[
-              { label: "Online e-church family", value: "ONLINE" },
-              { label: "In-person church family", value: "IN_HOUSE" },
-            ]}
-            disabled={disabled}
-          />
-          <Field
-            component={FormikInputDiv}
-            label="Date joined"
-            id="church_info.member_since"
-            name="church_info.member_since"
-            placeholder="Select date joined"
-            type="date"
-            max={new Date().toISOString().split("T")[0]}
-            disabled={disabled}
-          />
-
-          <FullWidth>
-            <div className="flex flex-col">
-              <p className="text-dark900 mb-2">Is this member a ministry worker?</p>
-              <RadioInput name="is_user" />
-            </div>
-          </FullWidth>
-
-          {values.is_user && (
-            <DepartmentPositionSubForm disabled={disabled} prefix="department_positions" />
-          )}
-        </>
-      )}
-
-      {currentStep === "work" && (
-        <>
-          <FormHeader className="text-primary font-bold">
-            Employment / Schooling Information
-          </FormHeader>
-          <WorkInfoSubForm disabled={disabled} prefix="work_info" />
-        </>
-      )}
-
-      {currentStep === "family" && (
-        <>
-          <FormHeader className="text-primary font-bold">
-            Family Information
-          </FormHeader>
-          <ChildrenSubForm disabled={disabled} />
-        </>
-      )}
-      
-      </FormLayout>
-      
+        <div className="flex flex-wrap justify-between gap-2 border-t border-gray-200 pt-4">
+          <UiButton
+            onClick={() => goTo(steps[currentIndex - 1].key)}
+            disabled={currentIndex === 0 || busy}
+            className="px-5"
+          >
+            Back
+          </UiButton>
+          <div className="flex flex-wrap gap-2">
+            {step.skippable && (
+              <UiButton
+                tone="ghost"
+                className="text-primary hover:bg-primary/5"
+                onClick={handleSkip}
+                disabled={busy}
+              >
+                Skip for now
+              </UiButton>
+            )}
+            {isEditMode && !isLastStep && (
+              <UiButton onClick={handleSave} disabled={busy}>
+                {busy ? "Saving..." : saveLabel}
+              </UiButton>
+            )}
+            <UiButton tone="primary" onClick={handleNext} disabled={busy}>
+              {isLastStep ? (busy ? "Saving..." : saveLabel) : "Next"}
+            </UiButton>
+          </div>
+        </div>
+      </section>
     </div>
   );
 };
@@ -361,7 +267,10 @@ export interface IMembersForm extends IChildrenSubForm {
     picture: File | null;
   };
   emergency_contact: IEmergencyContact;
-  contact_info: IContactsSubForm;
+  contact_info: IContactsSubForm & {
+    /** Optional second phone number (digits; backend normalises/validates). */
+    other_number?: string;
+  };
   work_info: IWorkInfoSubForm;
   church_info: {
     member_since?: string;
@@ -378,7 +287,7 @@ const initialValues: IMembersForm = {
     src: "",
     picture: null,
   },
-  contact_info: ContactsSubForm.initialValues,
+  contact_info: { ...ContactsSubForm.initialValues, other_number: "" },
   work_info: WorkInfoSubForm.initialValues,
   emergency_contact: EmergencyContact.initialValues,
   is_user: false,
@@ -397,7 +306,10 @@ const validationSchema = {
     otherwise: (schema) => schema.optional(),
   }),
   personal_info: object(UserSubForm.validationSchema),
-  contact_info: object(ContactsSubForm.validationSchema),
+  contact_info: object({
+    ...ContactsSubForm.validationSchema,
+    other_number: string().optional(),
+  }),
   work_info: object(WorkInfoSubForm.validationSchema),
   emergency_contact: object(EmergencyContact.validationSchema),
   is_user: boolean().required("Required"),

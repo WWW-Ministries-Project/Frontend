@@ -356,7 +356,7 @@ const AllTopics = ({ topics, programId, refetchProgram }: IProps) => {
           setIsDeleteModalOpen(false);
           setTopicToDelete(null);
         }}
-        className="w-[400px]"
+        className="w-full max-w-[400px]"
       >
         <div className="p-6 space-y-4">
           <h3 className="text-lg font-semibold">Delete Topic</h3>

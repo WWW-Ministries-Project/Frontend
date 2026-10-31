@@ -1,6 +1,7 @@
 import { Modal } from "@/components/Modal";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { usePost } from "@/CustomHooks/usePost";
+import { notify } from "@/components/feedback";
 import { showNotification } from "@/pages/HomePage/utils";
 import { api, DetailedCourseType } from "@/utils";
 import { useEffect, useMemo, useState } from "react";
@@ -9,6 +10,7 @@ import { AllStudents, Student, StudentListQuery } from "../Components/AllStudent
 import { IStudentForm, StudentForm } from "../Components/StudentForm";
 import { useViewPage } from "../customHooks/useViewPage";
 import { createLmsActionTracker } from "../utils/lmsGuardrails";
+import { useSomAccess } from "../utils/useSomAccess";
 
 const DEFAULT_QUERY: StudentListQuery = {
   search: "",
@@ -19,11 +21,30 @@ const DEFAULT_QUERY: StudentListQuery = {
   take: 20,
 };
 
+const studentNoun = (count: number) => (count === 1 ? "student" : "students");
+
+const studentName = (student: Student) =>
+  student.name ||
+  [student.first_name ?? student.firstName, student.last_name ?? student.lastName]
+    .filter(Boolean)
+    .join(" ") ||
+  student.email ||
+  `Enrollment ${student.id}`;
+
+const rejectionMessage = (reason: unknown): string | undefined => {
+  if (reason && typeof reason === "object" && "message" in reason) {
+    const message = (reason as { message?: unknown }).message;
+    return typeof message === "string" && message ? message : undefined;
+  }
+  return undefined;
+};
+
 export function ViewClass() {
   const { id: classId } = useParams();
   const parsedClassId = Number(classId);
   const [query, setQuery] = useState<StudentListQuery>(DEFAULT_QUERY);
   const [bulkLoading, setBulkLoading] = useState(false);
+  const som = useSomAccess();
 
   const courseQuery = useMemo(
     () => ({
@@ -111,6 +132,49 @@ export function ViewClass() {
       count: selectedRows.length,
     });
 
+    const reportResults = (
+      results: PromiseSettledResult<unknown>[],
+      copy: { done: string; failedTitle: string; failedMessage: string }
+    ) => {
+      const total = selectedRows.length;
+      const failedRows: { row: Student; reason?: string }[] = [];
+      results.forEach((result, index) => {
+        if (result.status === "rejected") {
+          failedRows.push({
+            row: selectedRows[index],
+            reason: rejectionMessage(result.reason),
+          });
+        }
+      });
+      const ok = total - failedRows.length;
+      const retry = () =>
+        handleBulkAction(
+          failedRows.map((f) => f.row),
+          action
+        );
+
+      if (failedRows.length === 0) {
+        notify.success({ title: `${ok} ${studentNoun(ok)} ${copy.done}` });
+      } else if (ok === 0) {
+        notify.error({
+          title: copy.failedTitle,
+          message: failedRows[0]?.reason ?? "Check your connection and try again.",
+          retry,
+        });
+      } else {
+        notify.partial({
+          title: `${ok} of ${total} students ${copy.done}`,
+          message: `${failedRows.length} ${copy.failedMessage} Review them before retrying.`,
+          failed: failedRows.map(({ row, reason }) => ({
+            label: studentName(row),
+            reason,
+          })),
+          retry,
+        });
+      }
+      return ok;
+    };
+
     setBulkLoading(true);
     let successCountTotal = 0;
     try {
@@ -126,17 +190,14 @@ export function ViewClass() {
           )
         );
 
-        const successCount = results.filter((result) => result.status === "fulfilled").length;
+        const successCount = reportResults(results, {
+          done: "unenrolled",
+          failedTitle: `Couldn't unenroll ${selectedRows.length === 1 ? "the student" : "the students"}`,
+          failedMessage: "couldn't be removed.",
+        });
         successCountTotal += successCount;
         if (successCount > 0) {
           tracker.success({ metadata: { successCount } });
-          showNotification(
-            `${successCount} student${successCount > 1 ? "s" : ""} unenrolled successfully.`,
-            "success"
-          );
-        }
-        if (successCount < selectedRows.length) {
-          showNotification("Some unenroll requests failed. Please retry.", "error");
         }
       }
 
@@ -148,6 +209,7 @@ export function ViewClass() {
         };
         const nextStatus = statusMap[action];
         if (!nextStatus) return;
+        const statusLabel = nextStatus.toLowerCase();
 
         const results = await Promise.allSettled(
           selectedRows.map((student) =>
@@ -160,17 +222,14 @@ export function ViewClass() {
           )
         );
 
-        const successCount = results.filter((result) => result.status === "fulfilled").length;
+        const successCount = reportResults(results, {
+          done: `marked ${statusLabel}`,
+          failedTitle: `Couldn't mark students ${statusLabel}`,
+          failedMessage: "couldn't be updated.",
+        });
         successCountTotal += successCount;
         if (successCount > 0) {
           tracker.success({ metadata: { successCount, status: nextStatus } });
-          showNotification(
-            `${successCount} enrollment${successCount > 1 ? "s" : ""} updated to ${nextStatus}.`,
-            "success"
-          );
-        }
-        if (successCount < selectedRows.length) {
-          showNotification("Some status updates failed. Please retry.", "error");
         }
       }
 
@@ -180,7 +239,10 @@ export function ViewClass() {
       refetch();
     } catch (error) {
       tracker.failure({ error });
-      showNotification("Bulk action failed. Please retry.", "error");
+      notify.fromError(error, {
+        title: "Couldn't update the selected students",
+        retry: () => handleBulkAction(selectedRows, action),
+      });
     } finally {
       setBulkLoading(false);
     }
@@ -208,6 +270,8 @@ export function ViewClass() {
           }))
         }
         onBulkAction={handleBulkAction}
+        canEnroll={som.can("enroll_others")}
+        canEditStatus={som.can("edit_progress")}
       />
       <Modal
         open={isModalOpen}

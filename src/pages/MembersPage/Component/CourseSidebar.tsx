@@ -9,6 +9,8 @@ export interface NavItem {
   active: boolean;
   completed?:boolean;
   type?: string;
+  /** Module heading; consecutive items with the same group render under one heading. */
+  group?: string;
 }
 
 export type NavItems = NavItem[];
@@ -18,18 +20,21 @@ type CourseSidebarProps = {
   heading?: string;
   /** Called when an item is clicked. Parent should update active state. */
   onSelect?: (id: string | number) => void;
+  /** When set, a progress bar heads the list (course player). */
+  progress?: number;
 };
 
 const CourseSidebar: React.FC<CourseSidebarProps> = ({
   navItems = [],
   heading = "Topic",
   onSelect,
+  progress,
 }) => {
   
   const renderIcon = (nav: NavItem) => {
     const iconClass = cn(
       "h-6 w-6",
-      nav.active ? "text-white" : nav.completed?"text-lime-700 dark:text-lime-400":"text-primary"
+      nav.active ? "text-white" : nav.completed?"text-lime-700":"text-primary"
     );
 
     if (nav.completed) {
@@ -66,10 +71,30 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
           {heading}
         </h2>
 
-        <nav className="space-y-6" role="navigation" aria-label={heading}>
+        {progress !== undefined && (
+          <div className="mb-4">
+            <div className="flex justify-between text-xs text-primaryGray">
+              <span>Your progress</span>
+              <span className="font-semibold text-primary">{progress}%</span>
+            </div>
+            <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-lightGray/40">
+              <div
+                className="h-full rounded-full bg-primary transition-all duration-500"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        <nav className={navItems.some((n) => n.group) ? "space-y-1" : "space-y-6"} role="navigation" aria-label={heading}>
           {navItems.map((nav, index) => (
+            <React.Fragment key={nav.id}>
+            {nav.group && nav.group !== navItems[index - 1]?.group && (
+              <p className="px-2 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-wider text-primaryGray first:pt-0">
+                {nav.group}
+              </p>
+            )}
             <button
-              key={nav.id}
               type="button"
               onClick={() => onSelect && onSelect(nav.id)}
               aria-pressed={nav.active}
@@ -88,6 +113,7 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
                 </span>
               <ChevronRightIcon className="h-4 w-4" />
             </button>
+            </React.Fragment>
           ))}
         </nav>
       </div>

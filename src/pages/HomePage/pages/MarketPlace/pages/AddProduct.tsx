@@ -1,171 +1,236 @@
-import { useEffect, useMemo } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useBackNavigation } from "@/CustomHooks/useBackNavigation";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
+import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { usePictureUpload } from "@/CustomHooks/usePictureUpload";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
-import { decodeQuery, showNotification } from "@/pages/HomePage/utils";
+import {
+  decodeQuery,
+  encodeQuery,
+  showDeleteDialog,
+  showNotification,
+} from "@/pages/HomePage/utils";
 import { api } from "@/utils";
-import type {
-  ProductColour,
-  IProduct,
-} from "@/utils/api/marketPlace/interface";
+import type { IProduct, ProductColour } from "@/utils/api/marketPlace/interface";
 import { ProductForm } from "../components/forms/ProductForm";
 
+interface LocationState {
+  from?: string;
+  fromLabel?: string;
+}
+
 export function AddProduct() {
-  const { data } = useFetch(api.fetch.fetchProductTypes);
-  const { data: categories } = useFetch(api.fetch.fetchProductCategories);
   const { marketId, productId } = useParams();
-  const { handleUpload, loading } = usePictureUpload();
+  const navigate = useNavigate();
+  const back = useBackNavigation("/home/market-place");
+  const location = useLocation();
+  const { from, fromLabel } = (location.state as LocationState | null) || {};
+  const { hasAction } = useAccessControl();
+  const canDelete = hasAction("Marketplace.delete");
+  const canPublish = hasAction("Marketplace.publish_product");
 
-  const {
-    postData,
-    data: newProduct,
-    loading: isCreating,
-  } = usePost(api.post.createProduct);
-
-  const {
-    updateData: updateProduct,
-    data: updateValue,
-    loading: isUpdating,
-  } = usePut(api.put.updateProduct);
-
+  const routeMarketId = decodeQuery(String(marketId || ""));
   const decodedProductId = decodeQuery(String(productId || ""));
+  const isEdit = Boolean(decodedProductId);
+
+  const { data: types } = useFetch(api.fetch.fetchProductTypes);
+  const { data: categories } = useFetch(api.fetch.fetchProductCategories);
+  const { data: marketsRes } = useFetch(api.fetch.fetchMarkets, undefined, false, {
+    silent: true,
+  });
   const { data: product, refetch } = useFetch(
     api.fetch.fetchProductById,
-    {
-      id: decodedProductId,
-    },
+    { id: decodedProductId },
     true
   );
+  useEffect(() => {
+    if (decodedProductId) refetch();
+  }, [decodedProductId, refetch]);
 
-  const decoded_market_id = decodeQuery(String(marketId));
-  const navigate = useNavigate();
+  const { handleUpload, loading: uploading } = usePictureUpload();
+  const create = usePost(api.post.createProduct);
+  const update = usePut(api.put.updateProduct);
+  const { executeDelete, success: deleted } = useDelete(api.delete.deleteProduct);
+  const [uploadError, setUploadError] = useState("");
+  const [submitted, setSubmitted] = useState(false);
 
-  const transformGallery = async (
-    gallery: ProductColour[],
-    manage_stock: boolean
-  ): Promise<ProductColour[]> => {
-    return Promise.all(
-      gallery.map(async (item): Promise<ProductColour> => {
-        if (typeof item.image_url === "string") {
-          return item;
+  // Where to go after save / discard: the page we came from, else the
+  // market the product now belongs to.
+  const savedMarketId = useRef(routeMarketId);
+  const goBack = (targetMarket?: string) => {
+    if (from) navigate(from);
+    else
+      navigate(
+        `/home/market-place/${encodeQuery(targetMarket || routeMarketId)}`
+      );
+  };
+
+  const markets = useMemo(
+    () => (marketsRes?.data || []).map((m) => ({ label: m.name, value: m.id })),
+    [marketsRes?.data]
+  );
+  const routeMarketName = marketsRes?.data.find(
+    (m) => String(m.id) === String(routeMarketId)
+  )?.name;
+  const backLabel =
+    fromLabel === "products"
+      ? "Back to products"
+      : routeMarketName
+        ? `Back to ${routeMarketName}`
+        : "Back to market";
+
+  const productTypes = useMemo(
+    () => (types?.data || []).map((t) => ({ label: t.name, value: t.id })),
+    [types?.data]
+  );
+  const productCategories = useMemo(
+    () => (categories?.data || []).map((t) => ({ label: t.name, value: t.id })),
+    [categories?.data]
+  );
+
+  const uploadImages = async (
+    colours: ProductColour[],
+    managed: boolean
+  ): Promise<ProductColour[]> =>
+    Promise.all(
+      colours.map(async (item): Promise<ProductColour> => {
+        let imageUrl = item.image_url;
+        if (imageUrl instanceof File) {
+          const formData = new FormData();
+          formData.append("file", imageUrl);
+          const uploaded = await handleUpload(formData);
+          if (!uploaded) throw new Error("Image upload failed. Try another photo.");
+          imageUrl = uploaded;
         }
-
-        const formData = new FormData();
-        formData.append("file", item.image_url);
-
-        const uploadedUrl = await handleUpload(formData);
-
         return {
           colour: item.colour,
-          colour_name: item.colour_name,
-          image_url: String(uploadedUrl),
-          stock: manage_stock
-            ? item.stock?.map((stock) => {
-                return {
-                  size: stock.size,
-                  stock: +stock.stock,
-                };
-              }) ?? []
-            : [],
+          colour_name: item.colour_name?.trim(),
+          image_url: imageUrl || "",
+          // Sizes are kept even when stock isn't tracked: the storefront
+          // builds its size picker from these rows.
+          stock: (item.stock || []).map((s) => ({
+            size: s.size,
+            stock: managed ? Math.max(0, Number(s.stock) || 0) : 0,
+          })),
         };
       })
     );
-  };
 
-  const handleSubmit = async (product: IProduct) => {
-    const { id, ...rest } = product;
-
-    const productGallery = await transformGallery(
-      product.product_colours,
-      product.stock_managed === "yes"
-    );
-    const dataToSend = {
+  const handleSubmit = async (values: IProduct) => {
+    setUploadError("");
+    setSubmitted(true);
+    const { id, ...rest } = values;
+    let productColours: ProductColour[];
+    try {
+      productColours = await uploadImages(
+        values.product_colours,
+        values.stock_managed === "yes"
+      );
+    } catch (e) {
+      setUploadError(e instanceof Error ? e.message : "Image upload failed.");
+      return;
+    }
+    const marketForSave = String(rest.market_id || routeMarketId);
+    savedMarketId.current = marketForSave;
+    const payload: IProduct = {
       ...rest,
-      market_id: decoded_market_id,
+      name: rest.name.trim(),
+      description: rest.description || "",
+      market_id: marketForSave,
       product_type_id: Number(rest.product_type_id),
       product_category_id: Number(rest.product_category_id),
       price_amount: Number(rest.price_amount),
       price_currency: rest.price_currency || "GHC",
-      product_colours: productGallery,
+      product_colours: productColours,
     };
-    if (id) {
-      await updateProduct({ ...dataToSend, id });
-    } else {
-      await postData(dataToSend);
-    }
+    if (id) await update.updateData({ ...payload, id });
+    else await create.postData(payload);
   };
 
-  const productTypes = useMemo(() => {
-    return data?.data.map((type) => {
-      return {
-        label: type.name,
-        value: type.id,
-      };
-    });
-  }, [data?.data]);
-
-  const productCategories = useMemo(() => {
-    return categories?.data.map((type) => {
-      return {
-        label: type.name,
-        value: type.id,
-      };
-    });
-  }, [categories?.data]);
+  useEffect(() => {
+    if (create.data?.data || update.data?.data) {
+      showNotification(isEdit ? "Product updated" : "Product created", "success");
+      goBack(savedMarketId.current);
+    }
+    // goBack is recreated each render; the response objects are the trigger.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [create.data, update.data]);
 
   useEffect(() => {
-    if (newProduct?.data || updateValue?.data) {
-      showNotification(
-        productId
-          ? "Product updated successfully"
-          : "Product created successfully",
-        "success"
-      );
-      navigate(`/home/market-place/${marketId}`);
+    if (deleted) {
+      showNotification("Product deleted", "success");
+      goBack();
     }
-  }, [marketId, navigate, newProduct?.data, productId, updateValue?.data]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deleted]);
 
-  useEffect(() => {
-    if (decodedProductId) {
-      refetch();
-    }
-  }, [decodedProductId, refetch]);
+  const handleDelete = () =>
+    showDeleteDialog(
+      { id: decodedProductId, name: product?.data?.name || "this product" },
+      async () => {
+        await executeDelete({ product_id: decodedProductId });
+      }
+    );
 
-  const initailData: IProduct | undefined = useMemo(() => {
-    if (product?.data) {
-      const {
-        market: _market,
-        product_type: _product_type,
-        product_category: _product_category,
-        ...rest
-      } = product.data;
-      return {
-        ...rest,
-      };
-    }
-  }, [product?.data]);
+  const initialData: IProduct | undefined = useMemo(() => {
+    if (!product?.data) return undefined;
+    const {
+      market,
+      product_type: _type,
+      product_category: _category,
+      ...rest
+    } = product.data;
+    return {
+      ...rest,
+      description: rest.description || "",
+      status: rest.status === "published" ? "published" : "draft",
+      stock_managed: rest.stock_managed === "no" ? "no" : "yes",
+      market_id: String(rest.market_id ?? market?.id ?? routeMarketId),
+      product_type_id: rest.product_type_id ? String(rest.product_type_id) : "",
+      product_category_id: rest.product_category_id
+        ? String(rest.product_category_id)
+        : "",
+      product_colours: (rest.product_colours || []).map((c) => ({
+        colour: c.colour || "#000000",
+        colour_name: c.colour_name || "",
+        image_url: c.image_url || "",
+        stock: (c.stock || []).map((s) => ({ size: s.size, stock: s.stock })),
+      })),
+    };
+  }, [product?.data, routeMarketId]);
+
+  const apiError = submitted ? (create.error || update.error)?.message : undefined;
+
+  if (isEdit && !initialData) {
+    return (
+      <PageOutline>
+        <p className="py-12 text-center text-primaryGray">Loading product…</p>
+      </PageOutline>
+    );
+  }
 
   return (
-    <>
-      <div className="bg-primary p-5 w-full rounded-tr-md rounded-tl-md h-28 text-white">
-        <h2 className="font-bold text-2xl">
-          {productId ? "Update" : "Add New"} Product
-        </h2>
-        <p className="text-xl">Add merchandise to your marketplace</p>
-      </div>
-      <PageOutline>
+    <PageOutline>
       <ProductForm
-        initialData={initailData}
+        initialData={initialData}
+        defaultMarketId={routeMarketId}
+        isEdit={isEdit}
         onSubmit={handleSubmit}
-        loading={isCreating || isUpdating || loading}
-        productTypes={productTypes || []}
-        categories={productCategories || []}
+        loading={create.loading || update.loading || uploading}
+        productTypes={productTypes}
+        categories={productCategories}
+        markets={markets}
+        backLabel={backLabel}
+        onBack={back.hasHistory ? back.goBack : () => goBack()}
+        onDelete={isEdit && canDelete ? handleDelete : undefined}
+        canPublish={canPublish}
+        serverError={uploadError || apiError}
       />
     </PageOutline>
-    </>
   );
 }

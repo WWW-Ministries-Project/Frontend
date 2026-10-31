@@ -17,6 +17,7 @@
   --color-success: 22 101 52;
   --color-error: 185 28 28;
   --color-warning: 180 83 9;
+  --color-info: 29 78 216;
 
   --color-shadow: 8 13 45;
   --color-blur: 34 34 34;
@@ -86,6 +87,7 @@
 }
 
 [data-theme="dark"] {
+  --color-info: 96 165 250;
   --color-primary: 76 99 186;
   --color-secondary: 189 140 78;
   --color-background: 8 12 23;
@@ -223,6 +225,47 @@ body {
   color: rgb(255 255 255 / 0.9);
 }
 
+[data-theme="dark"] .text-white\/70 {
+  color: rgb(255 255 255 / 0.7);
+}
+
+[data-theme="dark"] .text-white\/75 {
+  color: rgb(255 255 255 / 0.75);
+}
+
+[data-theme="dark"] .text-white\/85 {
+  color: rgb(255 255 255 / 0.85);
+}
+
+[data-theme="dark"] .border-white\/30 {
+  border-color: rgb(255 255 255 / 0.3);
+}
+
+[data-theme="dark"] .border-white\/35 {
+  border-color: rgb(255 255 255 / 0.35);
+}
+
+[data-theme="dark"] .border-white\/50 {
+  border-color: rgb(255 255 255 / 0.5);
+}
+
+[data-theme="dark"] .border-white\/60 {
+  border-color: rgb(255 255 255 / 0.6);
+}
+
+/* Status tokens stay deep for solid fills; lift them when used as text on dark surfaces. */
+[data-theme="dark"] .text-error {
+  color: rgb(var(--color-red-700));
+}
+
+[data-theme="dark"] .text-success {
+  color: rgb(var(--color-green-700));
+}
+
+[data-theme="dark"] .text-warning {
+  color: rgb(var(--color-amber-700));
+}
+
 [data-theme="dark"] .text-black {
   color: rgb(241 245 255);
 }
@@ -354,11 +397,11 @@ body {
 }
 
 .app-icon-btn-danger {
-  border-color: #fecaca;
+  border-color: rgb(var(--color-red-200));
 }
 
 .app-icon-btn-danger:hover {
-  background: #fef2f2;
+  background: rgb(var(--color-red-50));
 }
 
 * {
@@ -541,12 +584,73 @@ input.input::placeholder {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
+/* Active tab in the module rail: one surface that slides between items and
+   flows into the content panel through two inverted corners. */
+.sidebar-tab-indicator {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3.5rem;
+  background: var(--sidebar-active-bg);
+  border-radius: 14px 0 0 14px;
+  z-index: 2;
+  pointer-events: none;
+  transition: top 460ms cubic-bezier(0.65, 0, 0.25, 1), opacity 200ms ease;
+}
+
+.sidebar-tab-indicator::before,
+.sidebar-tab-indicator::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  width: 16px;
+  height: 16px;
+}
+
+.sidebar-tab-indicator::before {
+  top: -16px;
+  background: radial-gradient(circle at 0 0, transparent 15.5px, var(--sidebar-active-bg) 16px);
+}
+
+.sidebar-tab-indicator::after {
+  bottom: -16px;
+  background: radial-gradient(circle at 0 100%, transparent 15.5px, var(--sidebar-active-bg) 16px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-tab-indicator {
+    transition: none;
+  }
+}
+
+/* Rail icon name label (SideBar). Centred on the icon, slides in from it. */
+.sidebar-tooltip {
+  transform: translateY(-50%);
+  animation: sidebar-tooltip-in 140ms ease-out;
+}
+
+@keyframes sidebar-tooltip-in {
+  from {
+    opacity: 0;
+    transform: translate(-4px, -50%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(0, -50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-tooltip {
+    animation: none;
+  }
+}
+
 .sidebar-scroll-shell {
   position: relative;
   min-height: 0;
 }
 
-.sidebar-scroll-shell::before,
 .sidebar-scroll-shell::after {
   content: "";
   position: absolute;
@@ -559,18 +663,9 @@ input.input::placeholder {
   transition: opacity 0.2s ease;
 }
 
-.sidebar-scroll-shell::before {
-  top: 0;
-  background: linear-gradient(to bottom, var(--sidebar-base-bg), transparent);
-}
-
 .sidebar-scroll-shell::after {
   bottom: 0;
   background: linear-gradient(to top, var(--sidebar-base-bg), transparent);
-}
-
-.sidebar-scroll-shell--top::before {
-  opacity: 1;
 }
 
 .sidebar-scroll-shell--bottom::after {
@@ -627,4 +722,120 @@ input.input::placeholder {
 
 .multiselect-option input {
   margin-right: 10px;
+}
+
+/* Reports: while a report is in print mode, print only its sheet (no sidebar or header). */
+@media print {
+  body.report-printing * {
+    visibility: hidden;
+  }
+  body.report-printing [data-print-root],
+  body.report-printing [data-print-root] * {
+    visibility: visible;
+  }
+  body.report-printing [data-print-root] {
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+  }
+}
+
+/* Third-party widgets ship light-only styles; map them onto theme tokens in dark mode. */
+html[data-theme="dark"] {
+  --ck-color-base-background: rgb(var(--color-white));
+  --ck-color-base-foreground: rgb(var(--color-inputBackground));
+  --ck-color-base-border: rgb(var(--color-lightGray));
+  --ck-color-text: var(--text-primary);
+  --ck-color-toolbar-background: rgb(var(--color-inputBackground));
+  --ck-color-toolbar-border: rgb(var(--color-lightGray));
+  --ck-color-button-default-hover-background: rgb(var(--color-lightGray));
+  --ck-color-button-default-active-background: rgb(var(--color-lightGray));
+  --ck-color-button-on-background: rgb(var(--color-lightGray));
+  --ck-color-button-on-hover-background: rgb(var(--color-borderGray));
+  --ck-color-button-on-color: var(--text-primary);
+  --ck-color-dropdown-panel-background: rgb(var(--color-white));
+  --ck-color-dropdown-panel-border: rgb(var(--color-lightGray));
+  --ck-color-panel-background: rgb(var(--color-white));
+  --ck-color-panel-border: rgb(var(--color-lightGray));
+  --ck-color-input-background: rgb(var(--color-inputBackground));
+  --ck-color-input-border: rgb(var(--color-lightGray));
+  --ck-color-input-text: var(--text-primary);
+  --ck-color-labeled-field-label-background: rgb(var(--color-white));
+  --ck-color-list-background: rgb(var(--color-white));
+  --ck-color-list-button-hover-background: rgb(var(--color-inputBackground));
+  --ck-color-list-button-on-background: rgb(var(--color-primary));
+  --ck-color-list-button-on-text: rgb(255 255 255);
+  --ck-color-split-button-hover-background: rgb(var(--color-lightGray));
+  --ck-color-dialog-background: rgb(var(--color-white));
+  --ck-color-dialog-form-header-border: rgb(var(--color-lightGray));
+}
+
+[data-theme="dark"] .ql-toolbar.ql-snow,
+[data-theme="dark"] .ql-container.ql-snow {
+  border-color: rgb(var(--color-lightGray));
+}
+
+[data-theme="dark"] .ql-snow .ql-stroke {
+  stroke: var(--text-secondary);
+}
+
+[data-theme="dark"] .ql-snow .ql-fill,
+[data-theme="dark"] .ql-snow .ql-stroke.ql-fill {
+  fill: var(--text-secondary);
+}
+
+[data-theme="dark"] .ql-snow .ql-picker {
+  color: var(--text-secondary);
+}
+
+[data-theme="dark"] .ql-snow .ql-picker-options,
+[data-theme="dark"] .ql-snow .ql-tooltip {
+  background-color: rgb(var(--color-white));
+  border-color: rgb(var(--color-lightGray));
+  color: var(--text-primary);
+  box-shadow: var(--shadow-card);
+}
+
+[data-theme="dark"] .ql-editor.ql-blank::before {
+  color: var(--input-placeholder);
+}
+
+[data-theme="dark"] .react-datepicker {
+  background-color: rgb(var(--color-white));
+  border-color: rgb(var(--color-lightGray));
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .react-datepicker__header {
+  background-color: rgb(var(--color-inputBackground));
+  border-bottom-color: rgb(var(--color-lightGray));
+}
+
+[data-theme="dark"] .react-datepicker__current-month,
+[data-theme="dark"] .react-datepicker-time__header,
+[data-theme="dark"] .react-datepicker-year-header,
+[data-theme="dark"] .react-datepicker__day-name,
+[data-theme="dark"] .react-datepicker__day,
+[data-theme="dark"] .react-datepicker__time-name {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .react-datepicker__day:hover,
+[data-theme="dark"] .react-datepicker__month-text:hover,
+[data-theme="dark"] .react-datepicker__time-list-item:hover {
+  background-color: rgb(var(--color-lightGray)) !important;
+}
+
+[data-theme="dark"] .react-datepicker__day--disabled,
+[data-theme="dark"] .react-datepicker__day--outside-month {
+  color: rgb(var(--color-mainGray));
+}
+
+[data-theme="dark"] .react-datepicker__time-container .react-datepicker__time {
+  background-color: rgb(var(--color-white));
+}
+
+[data-theme="dark"] .react-datepicker__triangle::before,
+[data-theme="dark"] .react-datepicker__triangle::after {
+  border-bottom-color: rgb(var(--color-inputBackground)) !important;
 }

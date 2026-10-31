@@ -6,6 +6,7 @@ import { api, formatDatefull } from "@/utils";
 import { useNavigate } from "react-router-dom";
 import { usePut } from "@/CustomHooks/usePut";
 import { showNotification } from "@/pages/HomePage/utils";
+import { useSomAccess } from "@/pages/HomePage/pages/MinistrySchool/utils/useSomAccess";
 
 interface Submission {
      id: string;
@@ -36,6 +37,7 @@ const AssignmentManager = ({ cohortId, assignments, setSelectedAssignment: _setS
     const [selectedAssignment, setLocalSelectedAssignment] = React.useState<AssignmentTopic | null>(null);
     const [dueDate, setDueDate] = React.useState("");
     const [isDeactivateModalOpen, setIsDeactivateModalOpen] = React.useState(false);
+    const canManageAssignments = useSomAccess().can("manage_assignments");
 
     const {
         updateData: activateAssignment,
@@ -95,22 +97,22 @@ const AssignmentManager = ({ cohortId, assignments, setSelectedAssignment: _setS
                                 assignments.map((topic) => (
                                   <div
                                     key={topic.id}
-                                    className="flex items-center gap-6 border border-lightGray rounded-xl justify-between p-4 w-full bg-white"
+                                    className="flex w-full flex-col gap-4 rounded-xl border border-lightGray bg-white p-4 tablet:flex-row tablet:items-center tablet:justify-between tablet:gap-6"
                                   >
-                                    <div>
-                                      <div className="flex items-center gap-3">
-                                        <h3 className="font-medium text-lg text-primary">{topic.title}</h3>
+                                    <div className="min-w-0">
+                                      <div className="flex flex-wrap items-center gap-3">
+                                        <h3 className="min-w-0 break-words font-medium text-lg text-primary">{topic.title}</h3>
                                         <Badge
                                           className={`text-xs border normal-case text-white ${
                                             topic.isActive
-                                              ? "border-green-500 bg-green-400 dark:border-green-400"
+                                              ? "border-green-500 bg-green-400"
                                               : "border-gray-400 bg-gray-400"
                                           }`}
                                         >
                                           {topic.isActive ? "Active" : "Inactive"}
                                         </Badge>
                                       </div>
-                                      <div className="flex gap-4 text-sm text-primaryGray">
+                                      <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-primaryGray">
                                         <div>
                                           Due: {topic?.dueDate ? formatDatefull(topic.dueDate) : "N/A"}
                                         </div>
@@ -119,24 +121,26 @@ const AssignmentManager = ({ cohortId, assignments, setSelectedAssignment: _setS
                                       </div>
                                     </div>
                   
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex shrink-0 flex-wrap items-center gap-3">
                                       {topic.isActive ? (
                                         <>
-                                          <Button
-                                            variant="secondary"
-                                            value="Deactivate"
-                                            onClick={() => {
-                                              setLocalSelectedAssignment(topic);
-                                              setIsDeactivateModalOpen(true);
-                                            }}
-                                          />
+                                          {canManageAssignments && (
+                                            <Button
+                                              variant="secondary"
+                                              value="Deactivate"
+                                              onClick={() => {
+                                                setLocalSelectedAssignment(topic);
+                                                setIsDeactivateModalOpen(true);
+                                              }}
+                                            />
+                                          )}
                                           <Button
                                             variant="primary"
                                             value="Grade"
                                             onClick={() => navigate(`grades/${topic.topicId}`)}
                                           />
                                         </>
-                                      ) : (
+                                      ) : canManageAssignments ? (
                                         <Button
                                           variant="primary"
                                           value="Activate"
@@ -146,7 +150,7 @@ const AssignmentManager = ({ cohortId, assignments, setSelectedAssignment: _setS
                                             setIsModalOpen(true);
                                           }}
                                         />
-                                      )}
+                                      ) : null}
                                     </div>
                                   </div>
                                 ))

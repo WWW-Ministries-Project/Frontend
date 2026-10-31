@@ -128,6 +128,54 @@ export interface ICheckOut {
   payment_type?: "hubtel" | "paystack";
   billing: IUserDetails;
   items: ICartItem[];
+  /** Defaults to "pickup" server-side when omitted. */
+  fulfilment_method?: FulfilmentMethod;
+  /** Required when fulfilment_method is "delivery". */
+  delivery_address?: string;
+}
+
+export type FulfilmentMethod = "pickup" | "delivery";
+
+/** GET orders/delivery-config */
+export interface IDeliveryConfig {
+  delivery_enabled: boolean;
+  delivery_fee: number;
+  pickup_location: string;
+}
+
+/** PUT orders/bulk-update-status */
+export interface IBulkOrderStatusPayload {
+  ids: (number | string)[];
+  payment_status?: "pending" | "success" | "failed";
+  delivery_status?: "pending" | "shipped" | "delivered" | "cancelled";
+}
+
+export interface IBulkOrderStatusResult {
+  updated: number[];
+  skipped: { id: number; reason: string }[];
+}
+
+/** GET orders/marketplace-overview */
+export interface IMarketplaceOverview {
+  period: { from: string; to: string };
+  revenue: number;
+  paid_orders: number;
+  orders: number;
+  cancelled: number;
+  average_order: number;
+  items_sold: number;
+  to_fulfil: number;
+  awaiting_payment: number;
+  low_stock_variants: number;
+  trend: { date: string; revenue: number }[];
+  top_products: {
+    product_id: number;
+    name: string;
+    market_name: string;
+    image_url: string;
+    units: number;
+    revenue: number;
+  }[];
 }
 
 export interface CheckOutResponse {
@@ -152,6 +200,8 @@ export interface IOrders extends ICartItem, IUserDetails {
   order_id?: string | number;
   reference?: string;
   total_amount?: number | string;
+  /** Stored order total incl. delivery fee (items subtotal + delivery_fee). */
+  order_total?: number;
   created_at?: string;
   order_created_at?: string;
   ordered_at?: string;
@@ -216,6 +266,10 @@ export interface IOrderDetail {
   reference: string;
   items: IOrderItem[];
   billing_details?: IOrderBillingDetails | null;
+  fulfilment_method?: FulfilmentMethod;
+  delivery_address?: string | null;
+  delivery_fee?: number;
+  placed_by_staff_id?: number | null;
 }
 
 export type OrderItemEditPayload = {
@@ -263,6 +317,8 @@ export interface ICreateOrderForMemberPayload {
   payment_type?: "paystack" | "hubtel";
   return_url?: string;
   cancellation_url?: string;
+  fulfilment_method?: FulfilmentMethod;
+  delivery_address?: string;
 }
 
 export interface IProductSlice {

@@ -23,9 +23,21 @@ export type EventOnlineLink = {
   url: string;
 };
 
+export type EventReminderRow = {
+  id: number;
+  event_id: number;
+  remind_at: string;
+  offset_minutes: number;
+  method: string;
+  status: string;
+  created_at: string;
+};
+
 export type EventResponseType = {
   id: number;
   name: string;
+  /** Same value as `name`; the public endpoint returns both. */
+  event_name?: string | null;
   start_date: string;
   end_date: string;
   recurrence_end_date?: string | null;

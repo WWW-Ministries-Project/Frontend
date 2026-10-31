@@ -1,218 +1,166 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import EmptyState from "@/components/EmptyState";
-import { HeaderControls } from "@/components/HeaderControls";
-import { Modal } from "@/components/Modal";
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { useDelete } from "@/CustomHooks/useDelete";
 import { useFetch } from "@/CustomHooks/useFetch";
-import { usePost } from "@/CustomHooks/usePost";
-import { usePut } from "@/CustomHooks/usePut";
-import useWindowSize from "@/CustomHooks/useWindowSize";
-import {
-  encodeQuery,
-  showDeleteDialog,
-  showNotification,
-} from "@/pages/HomePage/utils";
+import { encodeQuery, showDeleteDialog, showNotification } from "@/pages/HomePage/utils";
 import { api } from "@/utils";
-import { IMarket } from "@/utils/api/marketPlace/interface";
+import type { IMarket } from "@/utils/api/marketPlace/interface";
 import PageOutline from "../../Components/PageOutline";
-import GridComponent from "../../Components/reusable/GridComponent";
-import TabSelection from "../../Components/reusable/TabSelection";
 import { MarketCard } from "./components/cards/MarketCard";
-import { AddMarketForm } from "./components/forms/AddMarketForm";
-import { useStore } from "@/store/useStore";
-import { useBranchStore, ALL_BRANCHES } from "@/store/useBranchStore";
+import { MarketFormModal, type MarketModalMode } from "./components/markets/MarketFormModal";
+import { statsByMarket } from "./components/markets/marketStats";
+import { PageHeader, PillTabs } from "./components/markets/ui";
+import { btnPrimary } from "./components/markets/styles";
+import { useProductsByMarkets } from "./components/Products/useProductsByMarkets";
+import {
+  getMarketState,
+  groupOrderRows,
+  type MarketState,
+} from "./utils/marketplaceModel";
+
+const TABS: MarketState[] = ["Active", "Upcoming", "Ended"];
 
 export function MarketPlace() {
-  const [openModal, setOpenModal] = useState(false);
-  const [editData, setEditData] = useState<IMarket | null>(null);
-  const [duplicateSourceId, setDuplicateSourceId] = useState<string | null>(
-    null
-  );
-  const TABS = {
-    active: "Active",
-    upcoming: "Upcoming",
-    ended: "Ended",
-  };
-  const [tab, setTab] = useState<string>(TABS.active);
-  const { data: markets, refetch } = useFetch(api.fetch.fetchMarkets);
-  const { screenWidth } = useWindowSize();
-  const {
-    postData,
-    data: newMarket,
-    loading: isSubmitting,
-  } = usePost(api.post.createMarket);
-  const {
-    updateData: updateMarket,
-    data: updateValue,
-    loading: isUpdating,
-  } = usePut(api.put.updateMarket);
-  const {
-    postData: duplicateMarket,
-    data: duplicatedMarket,
-    loading: isDuplicating,
-  } = usePost(api.post.duplicateMarket);
-  const { executeDelete, success } = useDelete(api.delete.deleteMarket);
-  const { events } = useStore();
-  const { activeBranchId } = useBranchStore();
-
-  const handleOpenModal = () => {
-    setEditData(null);
-    setDuplicateSourceId(null);
-    setOpenModal(true);
-  };
-  const handleCloseModal = () => {
-    setOpenModal(false);
-    setDuplicateSourceId(null);
-  };
-
-  const handleAddMarket = async (market: IMarket) => {
-    const { id, event_id, event_name: _event_name, branch_id, ...rest } = market;
-
-    if (activeBranchId === ALL_BRANCHES && !branch_id) {
-      showNotification("Please select a branch", "error");
-      return;
-    }
-
-    const branchPayload = branch_id !== "" && branch_id !== undefined ? { branch_id: Number(branch_id) } : {};
-
-    if (id) {
-      await updateMarket({ ...rest, ...branchPayload, id, event_id: +event_id }, { id });
-    } else if (duplicateSourceId) {
-      await duplicateMarket({
-        ...rest,
-        ...branchPayload,
-        event_id: +event_id,
-        source_market_id: duplicateSourceId,
-      });
-    } else {
-      await postData({ ...rest, ...branchPayload, event_id: +event_id });
-    }
-  };
-
-  useEffect(() => {
-    if (newMarket) {
-      showNotification("Market created successfully", "success");
-      refetch();
-      handleCloseModal();
-    }
-
-    if (updateValue) {
-      showNotification("Market updated successfully", "success");
-      refetch();
-      handleCloseModal();
-    }
-
-    if (success) {
-      showNotification("Market deleted successfully", "success");
-      refetch();
-    }
-
-    if (duplicatedMarket) {
-      showNotification(
-        `Market duplicated successfully with ${duplicatedMarket.data.products_count} product(s)`,
-        "success"
-      );
-      refetch();
-      handleCloseModal();
-      setDuplicateSourceId(null);
-    }
-  }, [newMarket, refetch, updateValue, success, duplicatedMarket]);
-
-  const handleEdit = (market: IMarket) => {
-    setEditData(market);
-    setDuplicateSourceId(null);
-    setOpenModal(true);
-  };
-
-  const handleDuplicate = (market: IMarket) => {
-    setEditData({ ...market, id: "", name: `${market.name} (Copy)` });
-    setDuplicateSourceId(market.id);
-    setOpenModal(true);
-  };
-
-  const handleDelete = (id: string, name: string) => {
-    showDeleteDialog({ id, name }, async () => {
-      await executeDelete({ id: id });
-    });
-  };
-
-  const filteredMarkets = useMemo(() => {
-    return markets?.data.filter(
-      (market) =>
-        getMarketStatus({
-          start_date: market.start_date,
-          end_date: market.end_date,
-        }) === tab.toLowerCase()
-    );
-  }, [tab, markets?.data]);
-
   const navigate = useNavigate();
+  const { hasAction } = useAccessControl();
+  const canManageMarkets = hasAction("Marketplace.manage_markets");
+  const canDeleteMarkets = hasAction("Marketplace.delete");
+  const [tab, setTab] = useState<MarketState>("Active");
+  const [modal, setModal] = useState<MarketModalMode | null>(null);
 
-  const openShop = (id: string) => {
-    navigate(encodeQuery(id));
-  };
+  const { data: marketsRes, refetch } = useFetch(api.fetch.fetchMarkets);
+  const { data: ordersRes, refetch: refetchOrders } = useFetch(
+    api.fetch.fetchAllOrders,
+    undefined,
+    false,
+    { silent: true }
+  );
+  const markets = marketsRes?.data;
+  const { byMarket } = useProductsByMarkets(markets);
+
+  const { executeDelete, success: deleted } = useDelete(api.delete.deleteMarket);
+  useEffect(() => {
+    if (deleted) {
+      showNotification("Market deleted", "success");
+      refetch();
+    }
+  }, [deleted, refetch]);
+
+  const stats = useMemo(
+    () => statsByMarket(groupOrderRows(ordersRes?.data)),
+    [ordersRes?.data]
+  );
+
+  const counts = useMemo(() => {
+    const c: Record<MarketState, number> = { Active: 0, Upcoming: 0, Ended: 0 };
+    (markets || []).forEach((m) => {
+      c[getMarketState(m)] += 1;
+    });
+    return c;
+  }, [markets]);
+
+  const visible = useMemo(
+    () => (markets || []).filter((m) => getMarketState(m) === tab),
+    [markets, tab]
+  );
+
+  const handleSaved = useCallback(() => {
+    refetch();
+    refetchOrders();
+  }, [refetch, refetchOrders]);
+  const closeModal = useCallback(() => setModal(null), []);
+
+  const openMarket = (m: IMarket) => navigate(`/home/market-place/${encodeQuery(m.id)}`);
+
+  const handleDelete = (m: IMarket) =>
+    showDeleteDialog({ id: m.id, name: m.name }, async () => {
+      await executeDelete({ id: m.id });
+    });
+
   return (
     <PageOutline>
-      <HeaderControls
-        title="Marketplace Management"
-        subtitle="Manage your market here"
-        screenWidth={screenWidth}
-        btnName="Create market"
-        handleClick={handleOpenModal}
-      />
-      <div className="w-fit mb-3">
-        <TabSelection
-          tabs={["Upcoming", "Active", "Ended"]}
-          selectedTab={tab}
-          onTabSelect={(tab) => setTab(tab)}
+      <div className="flex flex-col gap-6 text-primary">
+        <PageHeader
+          title="Markets"
+          subtitle="Event storefronts and their selling windows"
+          actions={
+            canManageMarkets && (
+              <button
+                type="button"
+                className={btnPrimary}
+                onClick={() => setModal({ kind: "create" })}
+              >
+                Create market
+              </button>
+            )
+          }
         />
-      </div>
-      <GridComponent
-        columns={[]}
-        data={filteredMarkets || []}
-        displayedCount={6}
-        filter=""
-        setFilter={() => {}}
-        renderRow={({ original }) => (
-          <MarketCard
-            key={original.id}
-            market={original}
-            handleEdit={handleEdit}
-            handleDuplicate={handleDuplicate}
-            handleDelete={handleDelete}
-            openMarket={openShop}
-          />
-        )}
-      />
-      {filteredMarkets?.length === 0 && (
-        <EmptyState scope="page" msg={"No markets found"} />
-      )}
 
-      <Modal open={openModal} onClose={handleCloseModal}>
-        <AddMarketForm
-          onClose={handleCloseModal}
-          editData={editData}
-          onSubmit={handleAddMarket}
-          loading={isSubmitting || isUpdating || isDuplicating}
-          events={events}
-          isDuplicate={Boolean(duplicateSourceId)}
-        />
-      </Modal>
+        <div className="flex flex-col gap-4">
+          <PillTabs
+            tabs={TABS.map((t) => ({ label: t, count: counts[t] }))}
+            value={tab}
+            onChange={setTab}
+          />
+
+          {markets && visible.length === 0 ? (
+            <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-lightGray bg-white px-6 py-12 text-center">
+              <h2 className="text-lg font-semibold">
+                No {tab.toLowerCase()} markets
+              </h2>
+              <p className="text-primaryGray">
+                Create a market to open a storefront for an event.
+              </p>
+              {canManageMarkets && (
+                <button
+                  type="button"
+                  className={`${btnPrimary} mt-2`}
+                  onClick={() => setModal({ kind: "create" })}
+                >
+                  Create market
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,320px),1fr))] gap-4">
+              {visible.map((m) => {
+                const s = stats.get(String(m.id));
+                const products = byMarket[String(m.id)];
+                return (
+                  <MarketCard
+                    key={m.id}
+                    market={m}
+                    products={products?.length}
+                    orders={ordersRes ? (s?.orders ?? 0) : undefined}
+                    revenue={ordersRes ? (s?.revenue ?? 0) : undefined}
+                    canManage={canManageMarkets}
+                    canDelete={canDeleteMarkets}
+                    onOpen={openMarket}
+                    onEdit={(market) => setModal({ kind: "edit", market })}
+                    onDuplicate={(market) => setModal({ kind: "duplicate", market })}
+                    onDelete={handleDelete}
+                  />
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <MarketFormModal mode={modal} onClose={closeModal} onSaved={handleSaved} />
     </PageOutline>
   );
 }
 
+/**
+ * Lower-case market status kept for existing callers (member storefront).
+ * Uses the shared model, so the end date is inclusive.
+ */
+// eslint-disable-next-line react-refresh/only-export-components -- imported by the member storefront
 export const getMarketStatus = (status: {
   start_date: string;
   end_date: string;
-}) => {
-  const now = new Date().getTime();
-  const start = new Date(status.start_date).getTime();
-  const end = new Date(status.end_date).getTime();
-
-  if (now < start) return "upcoming";
-  if (now >= start && now <= end) return "active";
-  return "ended";
-};
+}): "upcoming" | "active" | "ended" =>
+  getMarketState(status).toLowerCase() as "upcoming" | "active" | "ended";

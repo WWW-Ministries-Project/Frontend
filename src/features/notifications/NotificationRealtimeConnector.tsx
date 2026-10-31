@@ -33,11 +33,13 @@ type CrossTabMessageType =
   | "connected"
   | "disconnected"
   | "notification"
+  | "notification_updated"
   | "unread_count"
   | "read_all"
   | "cleared"
   | "deleted"
   | "session_changed"
+  | "rides_changed"
   | "snapshot";
 
 type CrossTabMessage = {
@@ -46,6 +48,10 @@ type CrossTabMessage = {
   timestamp: number;
   payload?: unknown;
 };
+
+/** Tells open Ride to church pages (`app:rides-changed`) to refetch. */
+const dispatchRidesChanged = (payload: unknown) =>
+  window.dispatchEvent(new CustomEvent("app:rides-changed", { detail: payload }));
 
 type NotificationSnapshot = {
   timestamp: number;
@@ -101,11 +107,13 @@ const parseCrossTabMessage = (value: unknown): CrossTabMessage | null => {
     type !== "connected" &&
     type !== "disconnected" &&
     type !== "notification" &&
+    type !== "notification_updated" &&
     type !== "unread_count" &&
     type !== "read_all" &&
     type !== "cleared" &&
     type !== "deleted" &&
     type !== "session_changed" &&
+    type !== "rides_changed" &&
     type !== "snapshot"
   ) {
     return null;
@@ -164,6 +172,9 @@ export const NotificationRealtimeConnector = () => {
   const setConnected = useInAppNotificationStore((state) => state.setConnected);
   const ingestNotificationPayload = useInAppNotificationStore(
     (state) => state.ingestNotificationPayload
+  );
+  const applyNotificationUpdate = useInAppNotificationStore(
+    (state) => state.applyNotificationUpdate
   );
   const applyUnreadCountPayload = useInAppNotificationStore(
     (state) => state.applyUnreadCountPayload
@@ -449,10 +460,17 @@ export const NotificationRealtimeConnector = () => {
 
       switch (name) {
         case "notification":
-        case "notification_updated":
           ingestNotificationPayload(body, "realtime");
           applyUnreadCountPayload(body);
           publishCrossTab("notification", body);
+          publishCrossTab("unread_count", body);
+          return;
+        case "notification_updated":
+          // A read/unread receipt, not a new notification: reconcile in place,
+          // no sound/toast/insert. Follower tabs get the update-only variant.
+          applyNotificationUpdate(body);
+          applyUnreadCountPayload(body);
+          publishCrossTab("notification_updated", body);
           publishCrossTab("unread_count", body);
           return;
         case "unread_count":
@@ -477,6 +495,11 @@ export const NotificationRealtimeConnector = () => {
         case "session.changed":
           handleSessionChanged();
           publishCrossTab("session_changed");
+          return;
+        case "rides.changed":
+          // A ride this member is on changed; open ride pages refetch.
+          dispatchRidesChanged(body);
+          publishCrossTab("rides_changed", body);
           return;
         case "session.revoked":
           // Logout clears the session in every tab; nothing to relay.
@@ -658,6 +681,11 @@ export const NotificationRealtimeConnector = () => {
         return;
       }
 
+      if (message.type === "notification_updated") {
+        applyNotificationUpdate(message.payload);
+        return;
+      }
+
       if (message.type === "unread_count") {
         applyUnreadCountPayload(message.payload);
         return;
@@ -680,6 +708,11 @@ export const NotificationRealtimeConnector = () => {
 
       if (message.type === "session_changed") {
         handleSessionChanged();
+        return;
+      }
+
+      if (message.type === "rides_changed") {
+        dispatchRidesChanged(message.payload);
         return;
       }
 
@@ -807,6 +840,7 @@ export const NotificationRealtimeConnector = () => {
   }, [
     applyClearAllFromServer,
     applyDeletedFromServer,
+    applyNotificationUpdate,
     applyReadAllFromServer,
     applyUnreadCountPayload,
     fetchNotifications,

@@ -1,7 +1,7 @@
+import { useBackNavigation } from "@/CustomHooks/useBackNavigation";
 import learning from "@/assets/banner/learning.svg";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { ReactNode } from "react";
-import { useNavigate } from "react-router-dom";
 
 type BannerSize = "default" | "compact";
 
@@ -18,7 +18,7 @@ export const Banner = ({
   isAdmin = false,
   size = "default",
 }: BannerProps) => {
-  const navigate = useNavigate();
+  const back = useBackNavigation("/member/dashboard");
   const compact = size === "compact";
 
   return (
@@ -74,7 +74,7 @@ export const Banner = ({
         {!isAdmin && (
           <div className={`${compact ? "mb-2" : "mb-4"} flex w-full justify-start`}>
             <button
-              onClick={() => navigate(-1)}
+              onClick={back.goBack}
               className={`flex items-center gap-2 text-white/90 transition hover:text-white ${
                 compact ? "text-xs md:text-sm" : "text-sm"
               }`}

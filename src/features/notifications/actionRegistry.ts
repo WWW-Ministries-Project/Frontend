@@ -316,6 +316,54 @@ export const NOTIFICATION_ACTION_REGISTRY: NotificationActionDefinition[] = [
     toastForHighPriorityOnly: false,
   },
   {
+    type: "department_report.submitted",
+    entityType: "department_report",
+    description: "Department report submitted to leadership.",
+    actionUrlTemplate: "/home/reports/department",
+    defaultPriority: "HIGH",
+    toastForHighPriorityOnly: false,
+  },
+  {
+    type: "department_report.approved",
+    entityType: "department_report",
+    description: "Department report approved by leadership.",
+    actionUrlTemplate: "/home/reports/department",
+    defaultPriority: "MEDIUM",
+    toastForHighPriorityOnly: false,
+  },
+  {
+    type: "department_report.returned",
+    entityType: "department_report",
+    description: "Department report returned for changes.",
+    actionUrlTemplate: "/home/reports/department",
+    defaultPriority: "HIGH",
+    toastForHighPriorityOnly: false,
+  },
+  {
+    type: "department_report.reminder",
+    entityType: "department_report",
+    description: "Department report is due or overdue.",
+    actionUrlTemplate: "/home/reports/department",
+    defaultPriority: "HIGH",
+    toastForHighPriorityOnly: false,
+  },
+  {
+    type: "department_report.comment_added",
+    entityType: "department_report",
+    description: "New comment on a department report.",
+    actionUrlTemplate: "/home/reports/department",
+    defaultPriority: "MEDIUM",
+    toastForHighPriorityOnly: false,
+  },
+  {
+    type: "department_report.request_decided",
+    entityType: "department_report",
+    description: "Leadership decided on a request.",
+    actionUrlTemplate: "/home/reports/department",
+    defaultPriority: "MEDIUM",
+    toastForHighPriorityOnly: false,
+  },
+  {
     type: "financial.approval_requested",
     entityType: "financial",
     description: "Financial record submitted for approver review.",
@@ -409,6 +457,17 @@ export const NOTIFICATION_ACTION_REGISTRY: NotificationActionDefinition[] = [
     description: "Added: notification delivery pipeline failure for admins.",
     actionUrlTemplate: "/home/notifications",
     defaultPriority: "CRITICAL",
+    toastForHighPriorityOnly: true,
+  },
+  // A sermon was auto-imported from YouTube; take the manager to the sermon
+  // list to review or edit it. SermonManager edits inline, so there is no
+  // per-id edit route — the list route is the correct target.
+  {
+    type: "sermon.ingested",
+    entityType: "sermon",
+    description: "A new sermon was imported from YouTube and may need review.",
+    actionUrlTemplate: "/home/communication/sermons",
+    defaultPriority: "MEDIUM",
     toastForHighPriorityOnly: true,
   },
 ];

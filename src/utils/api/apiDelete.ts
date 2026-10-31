@@ -20,6 +20,13 @@ export class ApiDeletionCalls {
     return this.apiExecution.deleteData(path, query);
   }
 
+  clearAiTaskState = (taskKey: string): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.deleteData(
+      `ai/tasks/state/${encodeURIComponent(taskKey)}`,
+      {}
+    );
+  };
+
   deleteMember = (query: QueryType): Promise<ApiResponse<void>> => {
     return this.deleteFromApi<void>("user/delete-user", query);
   };
@@ -36,6 +43,11 @@ export class ApiDeletionCalls {
   /** Delete this occurrence and all following ones. Query: { series_id, from_date } */
   deleteEventSeriesFrom = (query: QueryType): Promise<ApiResponse<void>> => {
     return this.deleteFromApi<void>("event/delete-series-from", query);
+  };
+
+  /** Cancels one pending reminder. Query: { id } */
+  cancelEventReminder = (query: QueryType): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("event/reminders", query);
   };
 
   deleteUniqueEvent = (query: QueryType): Promise<ApiResponse<void>> => {
@@ -74,6 +86,34 @@ export class ApiDeletionCalls {
 
   deleteCohort = (query: QueryType): Promise<ApiResponse<void>> => {
     return this.deleteFromApi<void>(`program/cohort`, query);
+  };
+
+  deleteProgramModule = (query: QueryType): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("program/module", query);
+  };
+
+  removeAssignmentExtension = (query: QueryType): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("program/assignment-extension", query);
+  };
+
+  deleteBankQuestion = (query: QueryType): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("program/question-bank", query);
+  };
+
+  deleteRubric = (query: QueryType): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("program/rubric", query);
+  };
+
+  deleteLmsSession = (query: QueryType): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("program/session", query);
+  };
+
+  removeProgramInstructor = (query: QueryType): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("program/program-instructor", query);
+  };
+
+  deleteLibraryItem = (query: QueryType): Promise<ApiResponse<void>> => {
+    return this.deleteFromApi<void>("program/library-item", query);
   };
 
   deleteCourse = (query: QueryType): Promise<ApiResponse<void>> => {
@@ -176,6 +216,18 @@ export class ApiDeletionCalls {
     }
 
     return this.apiExecution.deleteData(`appointment/reasons/${reasonId}`);
+  };
+
+  deleteStaffTimeOff = (query: QueryType): Promise<ApiResponse<void>> => {
+    const timeOffId = query?.id;
+
+    if (!timeOffId) {
+      throw new Error("Time off id is required for delete");
+    }
+
+    return this.apiExecution.deleteData(
+      `appointment/availability/time-off/${timeOffId}`
+    );
   };
 
   // Delete Church Attendance Record

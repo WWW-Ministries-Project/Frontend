@@ -190,7 +190,7 @@ const focusRing =
   "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2";
 
 const FieldError = ({ id, children }: { id: string; children: ReactNode }) => (
-  <p id={id} role="alert" className="text-sm text-red-600 dark:text-red-400">
+  <p id={id} role="alert" className="text-sm text-red-600">
     {children}
   </p>
 );

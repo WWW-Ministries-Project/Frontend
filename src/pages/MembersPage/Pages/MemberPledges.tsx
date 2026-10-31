@@ -35,11 +35,11 @@ const isRetryable = (status: string): boolean =>
 
 const statusClass = (status: string): string => {
   if (status === "success")
-    return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300";
+    return "bg-green-100 text-green-700";
   if (status === "pending")
-    return "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300";
+    return "bg-amber-100 text-amber-700";
   if (status === "failed" || status === "abandoned")
-    return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300";
+    return "bg-red-100 text-red-700";
   return "bg-lightGray text-primaryGray";
 };
 
@@ -317,7 +317,7 @@ const MemberPledges = () => {
                   </div>
 
                   {row.status === "completed" ? (
-                    <p className="text-sm font-medium text-green-700 dark:text-green-400">
+                    <p className="text-sm font-medium text-green-700">
                       Fully redeemed. Thank you.
                     </p>
                   ) : row.can_be_paid_online ? (
@@ -329,7 +329,7 @@ const MemberPledges = () => {
                       }}
                     />
                   ) : (
-                    <p className="text-sm text-amber-700 dark:text-amber-400">
+                    <p className="text-sm text-amber-700">
                       Online payment is not available for this pledge yet.
                       Please contact the church office.
                     </p>
@@ -399,7 +399,7 @@ const MemberPledges = () => {
                             </button>
                             <button
                               type="button"
-                              className="text-sm font-medium text-red-600 underline disabled:opacity-50 dark:text-red-400"
+                              className="text-sm font-medium text-red-600 underline disabled:opacity-50"
                               disabled={pendingAction === row.reference}
                               onClick={() => remove(row)}
                             >

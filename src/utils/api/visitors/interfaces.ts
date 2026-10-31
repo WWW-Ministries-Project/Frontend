@@ -62,6 +62,7 @@ export type VisitType = {
   visitorId: number | string;
   date: string;
   eventName?: string;
+  eventType?: string;
   eventId?: string;
   notes?: string;
   createdAt: string;
@@ -75,7 +76,7 @@ export type VisitPayloadType = {
 };
 
 export type FollowUpType = {
-  id: string;
+  id: string | number;
   date: string;
   type: string;
   status: string;
@@ -85,9 +86,57 @@ export type FollowUpType = {
 export type FollowUpPayloadType = {
   date: string;
   type: string;
-  assignedTo: string;
+  assignedTo: string | number;
   notes: string;
-  visitorId: string;
+  visitorId: string | number;
+  /** Ignored on create (always "pending"); a missing status on update resets it. */
+  status?: string;
+};
+
+/** Raw `visit` row from `GET visitor/visits` (eventId is the event_mgt id). */
+export type RawVisitType = {
+  id: number;
+  visitorId: number | null;
+  date: string;
+  eventId: number | null;
+  notes?: string | null;
+};
+
+/** Raw `follow_up` row from `GET visitor/followups` (assignedTo is a user id). */
+export type RawFollowUpType = {
+  id: number;
+  visitorId: number | null;
+  date: string;
+  type: string;
+  status: string;
+  notes?: string | null;
+  assignedTo: number | null;
+};
+
+/** Body for `POST visitor/visitors` and `PUT visitor/visitor?id=`. */
+export type VisitorPayloadType = {
+  branch_id?: number;
+  personal_info: {
+    title: string;
+    first_name: string;
+    last_name: string;
+    other_name: string;
+    gender: string;
+  };
+  contact_info: {
+    email: string;
+    phone: { country_code: string; number: string };
+    resident_country: string;
+    state_region: string;
+    city: string;
+    address: string;
+  };
+  visit: { date: string; eventId?: string; howHeard: string };
+  consentToContact: boolean;
+  membershipWish: boolean;
+  responsibleMembers: number[];
+  isClergy: boolean;
+  clergy_info: { churchName: string; churchLocation: string; churchRole: string };
 };
 
 export type VisitorDetailsType = VisitorType & {

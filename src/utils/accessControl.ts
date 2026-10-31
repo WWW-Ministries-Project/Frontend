@@ -1,3 +1,6 @@
+import type { NavGroup } from "@/routes/sideNavGroups";
+import { isScopeValue, normalizeActionOverrides, type ScopeValue } from "./permissionCatalog";
+
 export type PermissionValue =
   | "No_Access"
   | "Can_View"
@@ -7,7 +10,8 @@ export type AccessAction = "view" | "manage" | "admin";
 export type PermissionMap = Record<string, unknown>;
 export type LegacyPermissionMap = Record<string, boolean>;
 export type ExclusionsMap = Record<string, number[]>;
-export type ScopeMode = "assigned_departments";
+/** `assigned_departments` is what roles saved before the scope picker stored. */
+export type ScopeMode = ScopeValue | "assigned_departments";
 export type ScopesMap = Record<string, ScopeMode>;
 
 export const CANONICAL_PERMISSION_DOMAINS = [
@@ -40,6 +44,8 @@ export const CANONICAL_PERMISSION_DOMAINS = [
   "Sermons",
   "Promotions",
   "Messaging",
+  "Reports",
+  "Rides",
 ] as const;
 
 export type PermissionDomain = (typeof CANONICAL_PERMISSION_DOMAINS)[number];
@@ -62,6 +68,8 @@ type PermissionRequirementObject = {
 export type PermissionRequirement =
   | string
   | PermissionRequirementObject
+  /** Any one of these is enough. */
+  | (string | PermissionRequirementObject)[]
   | undefined
   | null;
 
@@ -107,6 +115,8 @@ const DOMAIN_ALIASES: Record<PermissionDomain, string[]> = {
   Sermons: ["Sermons", "Sermon"],
   Promotions: ["Promotions", "Promotion"],
   Messaging: ["Messaging"],
+  Reports: ["Reports", "Report"],
+  Rides: ["Rides", "Ride to church", "Ride"],
 };
 
 // Domains added after access levels were already saved fall back to a broader
@@ -124,6 +134,17 @@ const DOMAIN_FALLBACKS: Partial<Record<PermissionDomain, PermissionDomain[]>> = 
   // administers Community keeps managing mobile banners until Promotions is
   // set explicitly. Announcements stays as a secondary fallback.
   Promotions: ["Community", "Announcements"],
+  // Department reports and the executive summary shipped after access levels
+  // were saved, so Settings administrators keep access until Reports is set.
+  // Mirrors PERMISSION_KEY_ALIASES in the Backend's authorization.ts.
+  Reports: ["Settings", "Access_rights"],
+  // Ride to church borrowed Membership management before it had a domain.
+  // Mirrors PERMISSION_KEY_ALIASES in the Backend's authorization.ts.
+  Rides: ["Membership_Management", "Members"],
+  // AI shipped after access levels were saved, so Settings/Access-rights
+  // administrators keep access until AI is set explicitly. Mirrors
+  // PERMISSION_KEY_ALIASES in the Backend's authorization.ts.
+  AI: ["Settings", "Access_rights"],
 };
 
 /** Domains that are no longer offered in the access-level editor but may
@@ -147,7 +168,7 @@ type DomainMeta = {
   key: PermissionDomain;
   label: string;
   description: string;
-  group: "People" | "Operations" | "Engagement" | "Administration";
+  group: NavGroup;
   required: boolean;
 };
 
@@ -178,7 +199,7 @@ export const ACCESS_LEVEL_DOMAINS: DomainMeta[] = [
     key: "Appointments",
     label: "Appointments",
     description: "Bookings, availability and counseling schedules",
-    group: "People",
+    group: "Ministry & engagement",
     required: false,
   },
   {
@@ -192,7 +213,7 @@ export const ACCESS_LEVEL_DOMAINS: DomainMeta[] = [
     key: "Positions",
     label: "Positions",
     description: "Roles and role hierarchy definitions",
-    group: "People",
+    group: "Administration",
     required: true,
   },
   {
@@ -213,35 +234,35 @@ export const ACCESS_LEVEL_DOMAINS: DomainMeta[] = [
     key: "Program",
     label: "Programs",
     description: "Program setup and enrollment administration",
-    group: "Engagement",
+    group: "Ministry & engagement",
     required: true,
   },
   {
     key: "School_of_ministry",
     label: "School of Ministry",
     description: "Curriculum, cohorts and learning workflows",
-    group: "Engagement",
+    group: "Ministry & engagement",
     required: false,
   },
   {
     key: "Events",
     label: "Events",
     description: "Event planning and participation records",
-    group: "Engagement",
+    group: "Ministry & engagement",
     required: true,
   },
   {
     key: "Church_Attendance",
     label: "Church Attendance",
     description: "Attendance sessions and attendance records",
-    group: "Engagement",
+    group: "People",
     required: false,
   },
   {
     key: "Theme",
     label: "Theme",
     description: "Communication themes and annual planning content",
-    group: "Engagement",
+    group: "Ministry & engagement",
     required: false,
   },
   {
@@ -249,35 +270,35 @@ export const ACCESS_LEVEL_DOMAINS: DomainMeta[] = [
     label: "Community",
     description:
       "Members' feed, important church messages and moderation of reported content",
-    group: "Engagement",
+    group: "Ministry & engagement",
     required: false,
   },
   {
     key: "Sermons",
     label: "Sermons",
     description: "Sermon series and video links for members",
-    group: "Engagement",
+    group: "Ministry & engagement",
     required: false,
   },
   {
     key: "Promotions",
     label: "Promotions",
     description: "Promotional banners on the mobile app home screen",
-    group: "Engagement",
+    group: "Ministry & engagement",
     required: false,
   },
   {
     key: "Messaging",
     label: "Messaging",
     description: "Welcome, birthday and church-wide SMS, email and in-app messages",
-    group: "Engagement",
+    group: "Ministry & engagement",
     required: false,
   },
   {
     key: "Life Center",
     label: "Life Center",
     description: "Life center administration and soul winning data",
-    group: "Engagement",
+    group: "People",
     required: true,
   },
   {
@@ -291,21 +312,21 @@ export const ACCESS_LEVEL_DOMAINS: DomainMeta[] = [
     key: "Financials",
     label: "Financials",
     description: "Financial setup and record management",
-    group: "Administration",
+    group: "Operations",
     required: false,
   },
   {
     key: "Giving",
     label: "Giving Options",
     description: "Giving options and the accounts their payments are routed to",
-    group: "Administration",
+    group: "Operations",
     required: false,
   },
   {
     key: "Pledges",
     label: "Pledges",
     description: "Pledge campaigns, pledgers and redemptions",
-    group: "Administration",
+    group: "Operations",
     required: false,
   },
   {
@@ -314,6 +335,20 @@ export const ACCESS_LEVEL_DOMAINS: DomainMeta[] = [
     description: "Role templates and access-level configuration",
     group: "Administration",
     required: true,
+  },
+  {
+    key: "Reports",
+    label: "Reports",
+    description: "Executive summary and department report sign-off (admin approves and returns)",
+    group: "Overview",
+    required: false,
+  },
+  {
+    key: "Rides",
+    label: "Ride to church",
+    description: "Ride offers, safety reports, blocks and pickup points",
+    group: "People",
+    required: false,
   },
   {
     key: "Settings",
@@ -407,7 +442,12 @@ const VALID_ACCESS_VALUES = new Set<PermissionValue>([
   "Can_Manage",
   "Super_Admin",
 ]);
-const VALID_SCOPE_VALUES = new Set<ScopeMode>(["assigned_departments"]);
+const isScopeMode = (value: string): value is ScopeMode =>
+  value === "assigned_departments" || isScopeValue(value);
+
+/** Scopes that limit a role to the caller's departments. */
+export const isDepartmentScope = (scope: ScopeMode | null | undefined) =>
+  scope === "assigned_departments" || scope === "department" || scope === "department_member";
 
 const normalizeLookupToken = (value: string) =>
   value.trim().toLowerCase().replace(/[\s_-]+/g, "");
@@ -500,8 +540,8 @@ const normalizeScopes = (value: unknown): ScopesMap => {
         return normalized;
       }
 
-      const scope = rawScope.trim() as ScopeMode;
-      if (!VALID_SCOPE_VALUES.has(scope)) {
+      const scope = rawScope.trim();
+      if (!isScopeMode(scope)) {
         return normalized;
       }
 
@@ -532,6 +572,12 @@ export const normalizePermissionPayload = (
       if (Object.keys(scopes).length > 0) {
         normalized.Scopes = scopes;
       }
+      continue;
+    }
+
+    if (rawKey === "Actions") {
+      // Kept even when empty: a missing key marks a role saved before actions.
+      normalized.Actions = normalizeActionOverrides(rawValue);
       continue;
     }
 
@@ -633,7 +679,7 @@ export const resolveScope = (
 
   const resolvedDomain = String(resolveDomain(domain));
   const scope = scopes[resolvedDomain];
-  return scope && VALID_SCOPE_VALUES.has(scope) ? scope : null;
+  return scope && isScopeMode(scope) ? scope : null;
 };
 
 const parseLegacyRequirement = (
@@ -670,6 +716,12 @@ export const hasRequiredAccess = (
   legacyPermissions: LegacyPermissionMap | null | undefined = {}
 ): boolean => {
   if (!requirement) return true;
+
+  if (Array.isArray(requirement)) {
+    return requirement.some((item) =>
+      hasRequiredAccess(item, permissions, legacyPermissions)
+    );
+  }
 
   if (typeof requirement === "object") {
     return canAccess(permissions, requirement.domain, requirement.action);
@@ -718,6 +770,12 @@ const toActionRequirement = (
   targetAction: "manage" | "admin"
 ): PermissionRequirement => {
   if (!requirement) return requirement;
+
+  if (Array.isArray(requirement)) {
+    return requirement.map(
+      (item) => toActionRequirement(item, targetAction) as string | PermissionRequirementObject
+    );
+  }
 
   if (typeof requirement === "object") {
     if (requirement.action === "admin") return requirement;

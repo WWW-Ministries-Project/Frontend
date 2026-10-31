@@ -1,5 +1,95 @@
 // import { LearningUnitType } from "@/pages/HomePage/pages/MinistrySchool/Components/LearningUnit";
 
+// ---------------------------------------------------------------------------
+// LMS phase 1: modules, grading model, due-date rules (Backend PR #488)
+// ---------------------------------------------------------------------------
+
+export type GradingMode = "PASS_FAIL" | "WEIGHTED";
+export type GradingCategory = "quiz" | "essay" | "exam";
+export type GradingWeights = { quiz: number; essay: number; exam: number; attendance: number };
+export type CompletionRules = {
+  requireGrade: boolean;
+  requireAllUnits: boolean;
+  /** Minimum attendance %, or null when not required. */
+  minAttendance: number | null;
+};
+export type ProgramGrading = {
+  programId: number;
+  grading_mode: GradingMode;
+  pass_mark: number;
+  grading_weights: GradingWeights;
+  completion_rules: CompletionRules;
+  auto_certificate: boolean;
+};
+
+export type Weekday = "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
+export type DueRule = { week: number; mode: "day" | "after"; day?: Weekday; days?: number };
+
+export type ModuleTopic = {
+  id: number;
+  name: string;
+  order_number: number | null;
+  moduleId: number | null;
+  LearningUnit: {
+    id: number;
+    type: string;
+    due_rule: DueRule | null;
+    grading_category: GradingCategory | null;
+  } | null;
+};
+
+export type ProgramModule = {
+  id: number;
+  programId: number;
+  title: string;
+  description: string | null;
+  order_number: number;
+  weeks: number | null;
+  topics: ModuleTopic[];
+};
+
+export type ProgramModulesResponse = { modules: ProgramModule[]; unassigned: ModuleTopic[] };
+
+export type ModulePayload = { programId?: number; title?: string; description?: string | null; weeks?: number | null };
+
+export type CohortScheduleRow = {
+  topicId: number;
+  learningUnitId: number;
+  name: string;
+  moduleId: number | null;
+  type: string;
+  category: GradingCategory | null;
+  rule: DueRule | null;
+  ruleLabel: string;
+  ruleDueDate: string | null;
+  overrideDueDate: string | null;
+  effectiveDueDate: string | null;
+  isActive: boolean;
+  closedAt: string | null;
+  extensions: {
+    id: number;
+    enrollmentId: number;
+    learnerName: string;
+    dueDate: string;
+    reason: string | null;
+  }[];
+};
+
+export type CohortSchedule = {
+  cohortId: number;
+  cohortName: string;
+  startDate: string;
+  rows: CohortScheduleRow[];
+};
+
+export type ExtensionPayload = {
+  cohortId: number;
+  topicId: number;
+  enrollmentId: number;
+  dueDate: string;
+  reason?: string;
+};
+
 export type ProgramsPayloadType = {
   title: string;
   description: string;
@@ -365,6 +455,7 @@ export type Topic = {
   type?: LearningUnitType;
   url?: string;
   programId?: number;
+  moduleId?: number | null;
   learningUnit?: LearningUnit;
   LearningUnit?: LearningUnit;
   completed?: boolean;
@@ -462,3 +553,538 @@ export interface CertificateData {
   verificationUrl: string;
   qrCodeDataUrl: string;
 }
+
+// ---------------------------------------------------------------------------
+// GET program/programs-full-details
+// ---------------------------------------------------------------------------
+
+export type SomCompletionStatus = "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED";
+export type ClassFormat = "In_Person" | "Online" | "Hybrid";
+
+export type SomPerson = {
+  id: number;
+  name: string | null;
+  email?: string | null;
+  member_id?: string | null;
+  user_info?: {
+    first_name?: string | null;
+    last_name?: string | null;
+    primary_number?: string | null;
+    photo?: string | null;
+  } | null;
+};
+
+export type SomEnrollment = {
+  id: number;
+  user_id: number;
+  course_id: number;
+  enrolledAt: string;
+  completed: boolean | null;
+  completedAt: string | null;
+  user: SomPerson | null;
+  progress: {
+    id: number;
+    topicId: number;
+    score: number | null;
+    status: string;
+    completed: boolean | null;
+    completedAt: string | null;
+  }[];
+  completion_status: SomCompletionStatus;
+  completion_percent: number;
+  completed_topics: number;
+  total_topics: number;
+};
+
+export type SomClass = {
+  id: number;
+  name: string;
+  capacity: number;
+  enrolled: number;
+  schedule: string;
+  classFormat: ClassFormat | null;
+  location?: string | null;
+  meetingLink?: string | null;
+  cohortId: number;
+  instructor: SomPerson | null;
+  enrollments: SomEnrollment[];
+};
+
+export type SomCohort = {
+  id: number;
+  name: string;
+  startDate: string;
+  status: string;
+  description: string;
+  duration: string;
+  applicationDeadline: string;
+  programId: number;
+  courses: SomClass[];
+};
+
+export type SomInstructor = SomPerson & {
+  courses: { id: number; name: string; cohort_id: number; cohort_name: string }[];
+};
+
+export type SomMemberEnrollment = {
+  enrollment_id: number;
+  course_id: number;
+  course_name: string;
+  cohort_id: number;
+  cohort_name: string;
+  instructor: { id: number; name: string | null; email: string | null } | null;
+  enrolled_at: string | null;
+  completed_at: string | null;
+  completion_status: SomCompletionStatus;
+  completion_percent: number;
+  completed_topics: number;
+  total_topics: number;
+};
+
+export type SomEnrolledMember = SomPerson & {
+  user_id: number | null;
+  full_name: string;
+  status: "completed" | "in_progress" | "not_started";
+  cohort: { id: number; name: string } | null;
+  class: { id: number; name: string } | null;
+  date_enrolled: string | null;
+  date_completed: string | null;
+  completion_percentage: number;
+  enrollments: SomMemberEnrollment[];
+};
+
+export type SomProgramFull = {
+  id: number;
+  title: string;
+  description: string;
+  member_required: boolean;
+  leader_required: boolean;
+  ministry_required: boolean;
+  branch_id?: number | null;
+  createdAt: string;
+  topics: { id: number; name: string; order_number: number | null; LearningUnit: { type: string } | null }[];
+  prerequisitePrograms: { prerequisiteId: number; prerequisite: { id: number; title: string } }[];
+  cohorts: SomCohort[];
+  instructors: SomInstructor[];
+  enrolled_members: SomEnrolledMember[];
+  enrollment_summary: {
+    total_topics: number;
+    total_cohorts: number;
+    total_courses: number;
+    total_enrollments: number;
+    total_enrolled_members: number;
+    completed_members: number;
+    in_progress_members: number;
+    not_started_members: number;
+  };
+};
+
+// ---------------------------------------------------------------------------
+// LMS phase 2: question bank, rubrics, gradebook, certificates (Backend PR #489)
+// ---------------------------------------------------------------------------
+
+export type QuestionType = "MULTIPLE_CHOICE" | "TRUE_FALSE" | "SHORT_ANSWER" | "ESSAY";
+export type Difficulty = "EASY" | "MEDIUM" | "HARD";
+export type QuestionOption = { id: string; text: string };
+
+export type BankQuestion = {
+  id: number;
+  type: QuestionType;
+  prompt: string;
+  options: QuestionOption[] | null;
+  correct_option_id: string | null;
+  tags: string[] | null;
+  difficulty: Difficulty;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type BankQuestionPayload = {
+  type: QuestionType;
+  prompt: string;
+  options?: QuestionOption[];
+  correct_option_id?: string | null;
+  tags?: string[];
+  difficulty?: Difficulty;
+};
+
+export type RubricCriterion = { id: string; label: string; weight: number };
+export type RubricLevel = { id: string; label: string; factor: number };
+export type Rubric = {
+  id: number;
+  title: string;
+  criteria: RubricCriterion[];
+  levels: RubricLevel[];
+  usedBy?: number;
+  updatedAt: string;
+};
+export type RubricPayload = { title: string; criteria: RubricCriterion[]; levels?: RubricLevel[] };
+
+export type GradeCellStatus = "graded" | "needs_grading" | "missing" | "open" | "excused" | "overridden";
+
+export type GradebookCell = {
+  topicId: number;
+  status: GradeCellStatus;
+  score: number | null;
+  passed: boolean | null;
+  submissionId: number | null;
+  counted: number | null;
+  note: string | null;
+  extendedTo: string | null;
+};
+
+export type GradebookColumn = {
+  topicId: number;
+  learningUnitId: number;
+  name: string;
+  moduleId: number | null;
+  type: string;
+  category: GradingCategory | null;
+  passMark: number;
+  hasRubric: boolean;
+  isActive: boolean;
+  dueDate: string | null;
+};
+
+export type GradebookRow = {
+  enrollmentId: number;
+  userId: number | null;
+  name: string;
+  classId: number;
+  className: string;
+  classFormat: ClassFormat | null;
+  attendance: number | null;
+  cells: GradebookCell[];
+  finalGrade: number | null;
+  missing: number;
+  needsGrading: number;
+  failedUnits: number;
+  status: "Completed" | "At risk" | "On track";
+  reasons: string[];
+};
+
+export type Gradebook = {
+  cohort: { id: number; name: string; startDate: string };
+  program: { id: number; title: string };
+  grading: {
+    mode: GradingMode;
+    passMark: number;
+    weights: GradingWeights;
+    completion: CompletionRules;
+    /** False until session attendance is recorded; its weight is then left out. */
+    attendanceTracked: boolean;
+  };
+  columns: GradebookColumn[];
+  rows: GradebookRow[];
+  totals: { learners: number; atRisk: number; needsGrading: number; missing: number };
+};
+
+export type GradeOverridePayload = {
+  topicId: number;
+  enrollmentIds: number[];
+  score?: number | null;
+  excused?: boolean;
+  clear?: boolean;
+  note?: string;
+};
+
+export type GradingSubmission = {
+  id: number;
+  attempt: number;
+  status: string;
+  submittedAt: string;
+  fileUrl: string | null;
+  content: string | null;
+  score: number | null;
+  feedback: string | null;
+  rubricScores: Record<string, string> | null;
+  learnerName: string;
+  className: string;
+  enrollmentId: number;
+  unit: { id: number; type: string; topicId: number; name: string; prompt: string | null; passMark: number };
+  rubric: Rubric | null;
+};
+
+export type ProgramCertificates = {
+  issued: { id: number; certificateNumber: string; issuedAt: string; userId: number; name: string }[];
+  eligible: { userId: number; name: string; cohort: string; className: string }[];
+};
+
+// ---------------------------------------------------------------------------
+// LMS phases 3+4: sessions, attendance, announcements, applications,
+// instructors, content library, reports (Backend PR #490)
+// ---------------------------------------------------------------------------
+
+export type SessionMode = "IN_PERSON" | "ONLINE" | "HYBRID";
+export type AttendanceStatus = "PRESENT" | "LATE" | "ABSENT" | "EXCUSED";
+
+export type LmsSession = {
+  id: number;
+  cohortId: number;
+  courseId: number | null;
+  title: string;
+  starts_at: string;
+  ends_at: string | null;
+  mode: SessionMode;
+  location: string | null;
+  meeting_link: string | null;
+  week: number | null;
+  cancelled: boolean;
+  notes: string | null;
+  cohort: { id: number; name: string; program: { id: number; title: string } };
+  course: { id: number; name: string; instructor: string | null } | null;
+  expected: number;
+  recorded: number;
+  tally: Record<AttendanceStatus, number>;
+};
+
+export type SessionPayload = {
+  cohortId?: number;
+  courseId?: number | null;
+  title?: string;
+  starts_at?: string;
+  ends_at?: string | null;
+  mode?: SessionMode;
+  location?: string | null;
+  meeting_link?: string | null;
+  week?: number | null;
+  cancelled?: boolean;
+  notes?: string | null;
+};
+
+export type SessionAttendance = {
+  session: Omit<LmsSession, "cohort" | "course" | "expected" | "recorded" | "tally">;
+  learners: {
+    enrollmentId: number;
+    name: string;
+    classId: number;
+    className: string;
+    status: AttendanceStatus | null;
+    note: string | null;
+  }[];
+};
+
+export type AnnouncementAudience = "COHORT" | "CLASS" | "AT_RISK";
+export type LmsAnnouncement = {
+  id: number;
+  cohortId: number;
+  courseId: number | null;
+  course: { id: number; name: string } | null;
+  audience: AnnouncementAudience;
+  title: string;
+  body: string;
+  channels: { inApp: boolean; email: boolean; sms: boolean };
+  recipient_count: number;
+  dispatch_id: number | null;
+  scheduled_for: string | null;
+  sent_by: number | null;
+  sentByName: string | null;
+  createdAt: string;
+  delivery: { id: number; status: "SCHEDULED" | "QUEUED" | "SENT" | "CANCELLED" | "FAILED"; counts: unknown } | null;
+};
+
+export type AnnouncementPayload = {
+  cohortId: number;
+  courseId?: number | null;
+  audience: AnnouncementAudience;
+  title: string;
+  body: string;
+  channels: { inApp: boolean; email: boolean; sms: boolean };
+  scheduledFor?: string | null;
+};
+
+export type ApplicationStatus = "PENDING" | "APPROVED" | "DECLINED";
+export type LmsApplication = {
+  id: number;
+  status: ApplicationStatus;
+  reasons: string[];
+  note: string | null;
+  createdAt: string;
+  decidedAt: string | null;
+  enrollmentId: number | null;
+  user: { id: number; name: string; email: string | null };
+  program: { id: number; title: string };
+  cohort: { id: number; name: string } | null;
+  course: { id: number; name: string; enrolled: number; capacity: number } | null;
+};
+
+export type ApplyResult =
+  | { status: "ENROLLED"; enrollmentId: number | null; reasons: string[] }
+  | { status: "PENDING"; applicationId: number; reasons: string[] };
+
+export type InstructorAbilities = {
+  can_grade: boolean;
+  can_attendance: boolean;
+  can_message: boolean;
+  can_edit_curriculum: boolean;
+};
+
+export type ProgramInstructor = InstructorAbilities & {
+  /** null when the person teaches a class but is not on the roster (default abilities). */
+  id: number | null;
+  userId: number;
+  name: string;
+  email: string | null;
+  onRoster: boolean;
+  classes: { id: number; name: string; cohortId: number; cohortName: string }[];
+};
+
+export type InstructorOverview = {
+  userId: number;
+  name: string;
+  email: string | null;
+  programs: { id: number; title: string }[];
+  classes: {
+    id: number;
+    name: string;
+    format: ClassFormat | null;
+    cohortId: number;
+    cohortName: string;
+    programTitle: string;
+    live: boolean;
+  }[];
+  liveClasses: number;
+  learners: number;
+  toGrade: number;
+  avgGradingHours: number | null;
+  gradedCount: number;
+  formats: ClassFormat[];
+};
+
+export type LibraryType = "VIDEO" | "PDF" | "SLIDES" | "DOCUMENT" | "LINK" | "IMAGE";
+export type LibraryItem = {
+  id: number;
+  title: string;
+  type: LibraryType;
+  url: string;
+  size_bytes: number | null;
+  duration_minutes: number | null;
+  pages: number | null;
+  tags: string[] | null;
+  usedBy: number;
+  createdAt: string;
+  updatedAt: string;
+};
+export type LibraryItemPayload = {
+  title?: string;
+  type?: LibraryType;
+  url?: string;
+  size_bytes?: number | null;
+  duration_minutes?: number | null;
+  pages?: number | null;
+  tags?: string[];
+};
+
+export type LmsReports = {
+  totals: { programs: number; enrollments: number; completed: number };
+  completionByProgram: { programId: number; title: string; enrolled: number; completed: number; rate: number | null }[];
+  attendanceByMode: { mode: SessionMode; records: number; rate: number | null }[];
+  passRateByType: { category: GradingCategory; graded: number; rate: number | null }[];
+  gradingTurnaround: { graded: number; avgHours: number | null; medianHours: number | null; within4Days: number | null };
+  enrollmentsByMonth: { month: string; count: number }[];
+};
+
+// ---------------------------------------------------------------------------
+// Learner portal (member-facing). Shapes mirror Backend
+// src/modules/programs/lms/learnerService.ts — every endpoint reads only the
+// signed-in member's own enrollments.
+// ---------------------------------------------------------------------------
+
+export type LearnerAssessment = {
+  topicId: number;
+  name: string;
+  type: string;
+  category: GradingCategory | null;
+  moduleTitle: string | null;
+  passMark: number;
+  isActive: boolean;
+  dueDate: string | null;
+  status: GradeCellStatus;
+  score: number | null;
+  passed: boolean | null;
+  submissionId: number | null;
+  feedback: string | null;
+  gradedAt: string | null;
+};
+
+export type LearnerEnrollment = {
+  enrollmentId: number;
+  enrolledAt: string;
+  completed: boolean;
+  completedAt: string | null;
+  program: { id: number; title: string; description: string };
+  cohort: { id: number; name: string; startDate: string; duration: string; status: string };
+  class: {
+    id: number;
+    name: string;
+    format: string | null;
+    schedule: string;
+    location: string | null;
+    meetingLink: string | null;
+    instructor: { id: number; name: string | null } | null;
+  };
+  progress: { completed: number; total: number; percent: number };
+  nextTopic: { id: number; name: string; type: string | null; moduleTitle: string | null } | null;
+  grading: { mode: GradingMode; passMark: number; weights: GradingWeights };
+  finalGrade: number | null;
+  standing: "Completed" | "At risk" | "On track" | null;
+  attendance: number | null;
+  assessments: LearnerAssessment[];
+};
+
+export type LearnerSession = {
+  id: number;
+  title: string;
+  startsAt: string;
+  endsAt: string | null;
+  mode: SessionMode;
+  location: string | null;
+  meetingLink: string | null;
+  week: number | null;
+  cancelled: boolean;
+  notes: string | null;
+  programTitle: string;
+  cohortName: string;
+  className: string | null;
+  instructorName: string | null;
+  attendance: AttendanceStatus | null;
+};
+
+export type LearnerAnnouncement = {
+  id: number;
+  title: string;
+  body: string;
+  audience: AnnouncementAudience;
+  sentAt: string;
+  sentByName: string | null;
+  programTitle: string;
+  cohortName: string;
+  className: string | null;
+};
+
+export type LearnerSubmission = {
+  topicId: number;
+  programId: number;
+  name: string;
+  moduleTitle: string | null;
+  type: string;
+  prompt: string | null;
+  maxAttempts: number | null;
+  attemptsUsed: number;
+  progress: { score: number; status: "PASS" | "FAIL" | "PENDING" } | null;
+  submission: {
+    id: number;
+    attempt: number;
+    status: "SUBMITTED" | "RESUBMITTED" | "GRADED" | "RETURNED";
+    submittedAt: string;
+    fileUrl: string | null;
+    score: number | null;
+    feedback: string | null;
+    gradedAt: string | null;
+    gradedByName: string | null;
+  } | null;
+  /** Quiz answers; `correct` is null until the learner passed or used every attempt. */
+  quiz: { prompt: string; yours: string | null; correct: string | null; isCorrect: boolean }[] | null;
+  rubric: { label: string; level: string | null; factor: number | null; weight: number }[] | null;
+  rubricScore: number | null;
+};

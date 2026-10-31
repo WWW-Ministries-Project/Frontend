@@ -47,7 +47,10 @@ interface CreatePostModalProps {
   open: boolean;
   onClose: () => void;
   onCreated: (post: CommunityPost) => void;
-  canManage: boolean;
+  /** Community.post_church_wide: offers the church "Message" type. */
+  canPostChurchWide: boolean;
+  /** Community.pin_important: offers "Mark as important". */
+  canPinImportant: boolean;
   departments: CommunityDepartment[];
   viewerName: string;
   /** Preset audience, e.g. "Post to Media Department" from a department feed. */
@@ -64,7 +67,8 @@ export const CreatePostModal = ({
   open,
   onClose,
   onCreated,
-  canManage,
+  canPostChurchWide,
+  canPinImportant,
   departments,
   viewerName,
   initialAudience,
@@ -134,8 +138,8 @@ export const CreatePostModal = ({
   }, [memberQuery, view]);
 
   const typeOptions = useMemo<CommunityPostType[]>(
-    () => (canManage ? [...MEMBER_POST_TYPES, "MESSAGE"] : MEMBER_POST_TYPES),
-    [canManage]
+    () => (canPostChurchWide ? [...MEMBER_POST_TYPES, "MESSAGE"] : MEMBER_POST_TYPES),
+    [canPostChurchWide]
   );
 
   const department = departments.find(
@@ -242,7 +246,7 @@ export const CreatePostModal = ({
         ? { memberIds: selectedMembers.map((member) => member.id) }
         : {}),
       isAnonymous,
-      ...(canManage && important ? { isImportant: true } : {}),
+      ...(canPinImportant && important ? { isImportant: true } : {}),
       ...(images.length ? { imageUrls: images } : {}),
     };
 
@@ -554,7 +558,7 @@ export const CreatePostModal = ({
               </div>
             </section>
 
-            {canManage ? (
+            {canPinImportant ? (
               <label className="flex items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
                 <span>
                   <span className="block text-sm font-medium text-primary">

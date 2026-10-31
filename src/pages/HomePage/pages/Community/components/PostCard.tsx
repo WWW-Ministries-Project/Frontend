@@ -142,15 +142,15 @@ export const PostCard = ({
         "rounded-2xl border bg-white p-4 shadow-sm transition-colors sm:p-5",
         highlighted
           ? "border-amber-400 ring-2 ring-amber-200"
-          : post.isImportant
+          : post.isImportant || post.isPinned
             ? "border-amber-300"
             : "border-lightGray"
       )}
     >
-      {post.isImportant ? (
+      {post.isImportant || post.isPinned ? (
         <div className="-mx-4 -mt-4 mb-4 flex items-center gap-2 rounded-t-2xl border-b border-amber-200 bg-amber-50 px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-amber-800 sm:-mx-5 sm:-mt-5 sm:px-5">
           <MapPinIcon className="h-4 w-4" />
-          Important · From church leadership
+          {post.isPinned ? "Pinned" : "Important"} · From church leadership
         </div>
       ) : null}
 

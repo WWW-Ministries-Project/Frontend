@@ -1,557 +1,563 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Field, Form, Formik, FormikHelpers } from "formik";
-import * as Yup from "yup";
-import {
-  ArrowDownIcon,
-  ArrowUpIcon,
-  ChatBubbleLeftEllipsisIcon,
-  InformationCircleIcon,
-  PencilSquareIcon,
-  TrashIcon,
-} from "@heroicons/react/24/outline";
-import { Button } from "@/components";
-import { HeaderControls } from "@/components/HeaderControls";
-import { FormikInputDiv } from "@/components/FormikInputDiv";
-import PageOutline from "@/pages/HomePage/Components/PageOutline";
+import { useEffect, useMemo, useState } from "react";
+
+import { InlineAlert, describeError, notify } from "@/components/feedback";
 import { useFetch } from "@/CustomHooks/useFetch";
-import { usePost } from "@/CustomHooks/usePost";
-import { usePut } from "@/CustomHooks/usePut";
-import { useDelete } from "@/CustomHooks/useDelete";
-import { useRouteAccess } from "@/context/RouteAccessContext";
-import { showDeleteDialog, showNotification } from "@/pages/HomePage/utils";
-import { api } from "@/utils";
-import { cn } from "@/utils/cn";
-import { normalizeAppointmentReasons } from "@/utils/api/appointment/bookingUtils";
-import {
+import { confirmAction } from "@/pages/HomePage/utils/helperFunctions";
+import { api } from "@/utils/api/apiCalls";
+import type {
+  AppointmentChannel,
+  AppointmentNotificationAudience,
+  AppointmentNotificationEvent,
   AppointmentReason,
-  CreateAppointmentReasonPayload,
+  AppointmentSettings as Settings,
 } from "@/utils/api/appointment/interfaces";
 
-interface ReasonFormValues {
-  label: string;
-  description: string;
-}
+import PageOutline from "../../../Components/PageOutline";
+import { ChipToggle, CommDialog, FieldHint, ToggleSwitch } from "../../ChurchCommunication/ui/commUi";
+import { Field, PageHeading, PillTabs, SelectInput, TextArea, TextInput, UiButton } from "../../MembershipManagement/components/membershipUi";
+import { CHANNELS, NOTIFICATION_AUDIENCES, NOTIFICATION_EVENTS, plural } from "../utils/appointmentModel";
+import { useAppointmentsData } from "../utils/useAppointmentsData";
 
-const reasonSchema = Yup.object({
-  label: Yup.string()
-    .trim()
-    .min(2, "Label must be at least 2 characters")
-    .max(120, "Label cannot exceed 120 characters")
-    .required("Label is required"),
-  description: Yup.string()
-    .trim()
-    .max(255, "Description cannot exceed 255 characters"),
-});
+type Tab = "reasons" | "rules" | "notif";
+type RuleKey = Exclude<keyof Settings, "notifications">;
 
-const emptyReason: ReasonFormValues = { label: "", description: "" };
+const H = (value: number, label: string) => ({ value: String(value), label });
 
-// The backend answers duplicates/validation with `{ message }`; axios wraps it.
-const errorMessage = (error: unknown, fallback: string): string => {
-  if (typeof error === "object" && error !== null && "response" in error) {
-    const message = (error as { response?: { data?: { message?: unknown } } })
-      .response?.data?.message;
-    if (typeof message === "string" && message.trim()) return message;
-  }
-  if (error instanceof Error && error.message) return error.message;
-  return fallback;
-};
+const RULES: { key: RuleKey; label: string; help: string; options: { value: string; label: string }[] }[] = [
+  {
+    key: "replyDeadlineHours",
+    label: "Reply deadline",
+    help: "How long the person has to accept, suggest a time or decline. After that, admins are alerted.",
+    options: [H(4, "4 hours"), H(12, "12 hours"), H(24, "24 hours"), H(48, "48 hours")],
+  },
+  {
+    key: "unansweredAfterHours",
+    label: "If nobody replies",
+    help: "What happens to a request nobody answers, counted from when it was made.",
+    options: [H(48, "Offer other people after 48 h"), H(72, "Offer other people after 72 h"), H(0, "Keep waiting")],
+  },
+  {
+    key: "minNoticeHours",
+    label: "Minimum notice",
+    help: "How soon a member can book ahead of a session.",
+    options: [H(2, "2 hours"), H(12, "12 hours"), H(24, "1 day"), H(48, "2 days")],
+  },
+  {
+    key: "bookAheadDays",
+    label: "Book up to",
+    help: "How far into the future members can book.",
+    options: [H(14, "2 weeks"), H(30, "30 days"), H(60, "60 days"), H(90, "90 days")],
+  },
+  {
+    key: "reminderHours",
+    label: "Reminder before the appointment",
+    help: "Sent to both sides.",
+    options: [H(2, "2 hours before"), H(24, "1 day before"), H(48, "2 days before")],
+  },
+  {
+    key: "cancelCutoffHours",
+    label: "Members can cancel until",
+    help: "After this, they’re asked to call the office instead.",
+    options: [H(2, "2 hours before"), H(12, "12 hours before"), H(24, "1 day before")],
+  },
+];
 
-const toPayload = (values: ReasonFormValues): CreateAppointmentReasonPayload => ({
-  label: values.label.trim(),
-  description: values.description.trim() || null,
-});
-
-const ReasonForm = ({
-  initialValues,
-  submitLabel,
-  loading,
-  onSubmit,
-  onCancel,
-  idPrefix,
-}: {
-  initialValues: ReasonFormValues;
-  submitLabel: string;
-  loading: boolean;
-  onSubmit: (
-    values: ReasonFormValues,
-    helpers: FormikHelpers<ReasonFormValues>
-  ) => void;
-  onCancel?: () => void;
-  idPrefix: string;
-}) => (
-  <Formik
-    initialValues={initialValues}
-    validationSchema={reasonSchema}
-    onSubmit={onSubmit}
-  >
-    {({ values }) => (
-      <Form className="space-y-3" noValidate>
-        <Field
-          component={FormikInputDiv}
-          label="Label *"
-          name="label"
-          id={`${idPrefix}-label`}
-          placeholder="e.g. Marriage & family"
-          className="w-full"
-        />
-        <div>
-          <Field
-            component={FormikInputDiv}
-            type="textarea"
-            label="Description (optional)"
-            name="description"
-            id={`${idPrefix}-description`}
-            placeholder="Shown under the label to help members choose"
-            className="w-full"
-          />
-          <p className="mt-1 text-right text-xs text-primaryGray">
-            {values.description.trim().length}/255
-          </p>
-        </div>
-        <div className="flex justify-end gap-2">
-          {onCancel && (
-            <Button
-              value="Cancel"
-              type="button"
-              variant="secondary"
-              onClick={onCancel}
-            />
-          )}
-          <Button
-            value={submitLabel}
-            type="submit"
-            variant="primary"
-            loading={loading}
-            disabled={loading}
-          />
-        </div>
-      </Form>
-    )}
-  </Formik>
-);
-
-const ActiveSwitch = ({
-  checked,
-  disabled,
-  onChange,
-  label,
-}: {
-  checked: boolean;
-  disabled: boolean;
-  onChange: (next: boolean) => void;
-  label: string;
-}) => (
-  <button
-    type="button"
-    role="switch"
-    aria-checked={checked}
-    aria-label={label}
-    disabled={disabled}
-    onClick={() => onChange(!checked)}
-    className={cn(
-      "inline-flex items-center gap-2 rounded-full text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
-    )}
-  >
-    <span
-      className={cn(
-        "relative inline-flex h-6 w-11 flex-shrink-0 rounded-full transition-colors",
-        checked ? "bg-primary" : "bg-lightGray"
-      )}
-    >
-      <span
-        className={cn(
-          "absolute top-0.5 h-5 w-5 rounded-full border border-gray-300 bg-white shadow transition-transform",
-          checked ? "translate-x-[22px]" : "translate-x-0.5"
-        )}
-      />
-    </span>
-    <span className={checked ? "text-primary" : "text-primaryGray"}>
-      {checked ? "Active" : "Inactive"}
-    </span>
-  </button>
-);
+/** Sample push/SMS copy for the preview panel. */
+const preview = (event: AppointmentNotificationEvent, sla: number) =>
+  ({
+    new: {
+      who: "the person booked",
+      title: "New appointment request",
+      body: `Yaw Boateng · Counselling · Wed 21 Oct, 4:30 PM. Reply within ${sla} h.`,
+      acts: ["Accept", "Other options"],
+      sms: "WWM: Yaw Boateng asked to meet you Wed 21 Oct, 4:30 PM (Counselling). Reply in the app.",
+    },
+    nudge: {
+      who: "the person booked",
+      title: "Yaw is still waiting",
+      body: "Reply to Yaw Boateng’s request for Wed 21 Oct before the deadline.",
+      acts: ["Accept", "Other options"],
+      sms: "WWM reminder: Yaw Boateng is waiting for your reply.",
+    },
+    overdue: {
+      who: "admins",
+      title: "Reply overdue",
+      body: `Yaw Boateng has waited ${sla} h for Pastor Samuel Addo. Remind, reassign or reply for them.`,
+      acts: ["Open"],
+      sms: "WWM: Yaw Boateng’s request to Pastor Samuel Addo is overdue.",
+    },
+    accepted: {
+      who: "the member",
+      title: "Appointment confirmed",
+      body: "Pastor Samuel Addo will see you Wed 21 Oct, 4:30 PM at the church office.",
+      acts: ["Add to calendar"],
+      sms: "WWM: Confirmed. Pastor Samuel Addo, Wed 21 Oct 4:30 PM, church office.",
+    },
+    suggested: {
+      who: "the member",
+      title: "New time suggested",
+      body: "Pastor Samuel Addo can do Thu 22 Oct, 5:00 PM instead.",
+      acts: ["Accept", "Pick another"],
+      sms: "WWM: Pastor Samuel Addo suggested Thu 22 Oct 5:00 PM. Accept or pick another in the app.",
+    },
+    declined: {
+      who: "the member",
+      title: "Request not accepted",
+      body: "Pastor Samuel Addo can’t take this one. Rev. Mrs Comfort Osei has times this week.",
+      acts: ["See who’s free"],
+      sms: "WWM: Pastor Samuel Addo can’t meet on Wed 21 Oct. Book someone else in the app.",
+    },
+    cancelled: {
+      who: "the person booked",
+      title: "Appointment cancelled",
+      body: "Yaw Boateng cancelled Wed 21 Oct, 4:30 PM. The slot is free again.",
+      acts: [],
+      sms: "WWM: Yaw Boateng cancelled Wed 21 Oct 4:30 PM.",
+    },
+    reminder: {
+      who: "both sides",
+      title: "Tomorrow at 4:30 PM",
+      body: "Counselling with Yaw Boateng at the church office.",
+      acts: ["Directions"],
+      sms: "WWM reminder: Counselling tomorrow 4:30 PM at the church office.",
+    },
+    outcome: {
+      who: "the person booked",
+      title: "How did it go with Yaw?",
+      body: "Record the outcome for Wed 21 Oct.",
+      acts: ["Completed", "No-show"],
+      sms: "WWM: Did Yaw Boateng attend on Wed 21 Oct? Reply in the app.",
+    },
+  })[event];
 
 const AppointmentSettings = () => {
-  const { canManageCurrentRoute } = useRouteAccess();
+  const data = useAppointmentsData();
+  const { settings, bookings } = data;
+  // Booking rules, notifications and reasons: Appointments › configure (Full).
+  const isAdmin = data.access.canConfigure;
+  const [tab, setTab] = useState<Tab>("reasons");
 
-  const {
-    data: reasonsResponse,
-    loading: reasonsLoading,
-    error: reasonsError,
-    refetch,
-  } = useFetch(api.fetch.fetchManageAppointmentReasons);
+  /* -------------------------------- reasons ------------------------------- */
 
-  const [items, setItems] = useState<AppointmentReason[]>([]);
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [addFormKey, setAddFormKey] = useState(0);
-  const lastUpdate = useRef<"edit" | "toggle" | null>(null);
+  const reasonsQuery = useFetch(api.fetch.fetchManageAppointmentReasons);
+  const [reasons, setReasons] = useState<AppointmentReason[]>([]);
+  useEffect(() => {
+    const raw = reasonsQuery.data?.data;
+    if (Array.isArray(raw)) setReasons(raw.slice().sort((a, b) => a.sort_order - b.sort_order));
+  }, [reasonsQuery.data]);
+  const [reasonDialog, setReasonDialog] = useState<{ id: number | null; label: string; description: string } | null>(null);
+  const [reasonErrors, setReasonErrors] = useState<string[]>([]);
+  const [busy, setBusy] = useState(false);
 
-  const fetchedReasons = useMemo(
-    () => normalizeAppointmentReasons(reasonsResponse?.data),
-    [reasonsResponse]
+  const usesOf = (reason: AppointmentReason) => bookings.filter((b) => b.reason === reason.label).length;
+  const fail = (title: string, error: unknown) =>
+    notify.error({ title, message: describeError(error, { preferServerMessage: true }).message });
+
+  const move = async (index: number, dir: -1 | 1) => {
+    const next = reasons.slice();
+    [next[index], next[index + dir]] = [next[index + dir], next[index]];
+    const previous = reasons;
+    setReasons(next);
+    try {
+      await api.put.reorderAppointmentReasons({ ids: next.map((r) => r.id) });
+    } catch (error) {
+      setReasons(previous);
+      fail("Couldn’t reorder the reasons", error);
+    }
+  };
+
+  const setActive = async (reason: AppointmentReason, active: boolean) => {
+    try {
+      await api.put.updateAppointmentReason({ is_active: active }, { id: reason.id });
+      await reasonsQuery.refetch();
+      notify.success(
+        active
+          ? { title: `${reason.label} shown`, message: "Members can pick it when booking." }
+          : {
+              title: `${reason.label} hidden`,
+              message: "Members can’t pick it. Past bookings keep it.",
+              undo: async () => {
+                await api.put.updateAppointmentReason({ is_active: true }, { id: reason.id });
+                await reasonsQuery.refetch();
+              },
+              undoneTitle: `${reason.label} shown`,
+            }
+      );
+    } catch (error) {
+      fail("Couldn’t update the reason", error);
+    }
+  };
+
+  const remove = (reason: AppointmentReason) => {
+    const uses = usesOf(reason);
+    if (uses) {
+      notify.info({
+        title: `${reason.label} is used by ${plural(uses, "booking")}`,
+        message: "Hide it instead so past bookings keep their reason.",
+        action: { label: "Hide it", onClick: () => setActive(reason, false) },
+      });
+      return;
+    }
+    confirmAction({
+      title: `Delete “${reason.label}”?`,
+      points: ["It’s removed from the booking form.", "This can’t be undone."],
+      confirmLabel: "Delete reason",
+      cancelLabel: "Keep it",
+      tone: "danger",
+      onConfirm: async () => {
+        await api.delete.deleteAppointmentReason({ id: reason.id });
+        await reasonsQuery.refetch();
+        notify.success({ title: "Reason deleted", message: reason.label });
+      },
+    });
+  };
+
+  const saveReason = async () => {
+    if (!reasonDialog) return;
+    const label = reasonDialog.label.trim();
+    const list: string[] = [];
+    if (label.length < 2) list.push("Give the reason a label of at least 2 characters.");
+    if (reasons.some((r) => r.label.toLowerCase() === label.toLowerCase() && r.id !== reasonDialog.id))
+      list.push(`There’s already a reason called “${label}”.`);
+    setReasonErrors(list);
+    if (list.length) return;
+    setBusy(true);
+    try {
+      const payload = { label, description: reasonDialog.description.trim() || null };
+      if (reasonDialog.id) await api.put.updateAppointmentReason(payload, { id: reasonDialog.id });
+      else await api.post.createAppointmentReason({ ...payload, is_active: true });
+      await reasonsQuery.refetch();
+      notify.success({ title: reasonDialog.id ? "Reason updated" : "Reason added", message: label });
+      setReasonDialog(null);
+    } catch (error) {
+      setReasonErrors([describeError(error, { preferServerMessage: true }).message]);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  /* --------------------------------- rules -------------------------------- */
+
+  const [draft, setDraft] = useState<Partial<Record<RuleKey, number>>>({});
+  const dirty = RULES.some((r) => draft[r.key] !== undefined && draft[r.key] !== settings[r.key]);
+  const saveRules = async () => {
+    setBusy(true);
+    try {
+      await api.put.updateAppointmentSettings(draft);
+      await data.refetchSettings();
+      notify.success({
+        title: "Booking rules saved",
+        message: `Reply deadline is now ${draft.replyDeadlineHours ?? settings.replyDeadlineHours} hours.`,
+      });
+      setDraft({});
+    } catch (error) {
+      fail("Couldn’t save the booking rules", error);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  /* ----------------------------- notifications ---------------------------- */
+
+  const [selected, setSelected] = useState<AppointmentNotificationEvent>("new");
+  const [matrix, setMatrix] = useState(settings.notifications);
+  useEffect(() => setMatrix(settings.notifications), [settings.notifications]);
+
+  const toggleChannel = async (
+    event: AppointmentNotificationEvent,
+    who: AppointmentNotificationAudience,
+    channel: AppointmentChannel
+  ) => {
+    const current = matrix[event][who];
+    const nextList = current.includes(channel) ? current.filter((c) => c !== channel) : [...current, channel];
+    const next = { ...matrix, [event]: { ...matrix[event], [who]: nextList } };
+    const previous = matrix;
+    setMatrix(next);
+    try {
+      await api.put.updateAppointmentSettings({ notifications: next });
+    } catch (error) {
+      setMatrix(previous);
+      fail("Couldn’t save the notification choice", error);
+    }
+  };
+
+  const pv = preview(selected, settings.replyDeadlineHours);
+  const nowChannels = useMemo(
+    () =>
+      NOTIFICATION_AUDIENCES.filter((a) => matrix[selected][a.key].length)
+        .map((a) => `${a.short}: ${matrix[selected][a.key].map((c) => CHANNELS.find((x) => x.key === c)?.label).join(", ")}`)
+        .join(" · "),
+    [matrix, selected]
   );
 
-  useEffect(() => {
-    setItems(fetchedReasons);
-  }, [fetchedReasons]);
-
-  const {
-    data: createResponse,
-    error: createError,
-    loading: createLoading,
-    postData: createReason,
-  } = usePost(api.post.createAppointmentReason);
-  const {
-    data: updateResponse,
-    error: updateError,
-    loading: updateLoading,
-    updateData: updateReason,
-  } = usePut(api.put.updateAppointmentReason);
-  const {
-    data: reorderResponse,
-    error: reorderError,
-    loading: reorderLoading,
-    updateData: reorderReasons,
-  } = usePut(api.put.reorderAppointmentReasons);
-  const {
-    executeDelete,
-    success: deleteSuccess,
-    error: deleteError,
-  } = useDelete(api.delete.deleteAppointmentReason);
-
-  useEffect(() => {
-    if (!createResponse) return;
-    showNotification("Reason added.", "success", "Booking reasons");
-    setAddFormKey((key) => key + 1);
-    refetch();
-  }, [createResponse, refetch]);
-
-  useEffect(() => {
-    if (!createError) return;
-    showNotification(errorMessage(createError, "Unable to add reason."), "error");
-  }, [createError]);
-
-  useEffect(() => {
-    if (!updateResponse) return;
-    if (lastUpdate.current === "edit") {
-      showNotification("Reason updated.", "success", "Booking reasons");
-      setEditingId(null);
-    }
-    lastUpdate.current = null;
-    refetch();
-  }, [updateResponse, refetch]);
-
-  useEffect(() => {
-    if (!updateError) return;
-    lastUpdate.current = null;
-    showNotification(errorMessage(updateError, "Unable to update reason."), "error");
-    refetch();
-  }, [updateError, refetch]);
-
-  useEffect(() => {
-    if (!reorderResponse) return;
-    refetch();
-  }, [reorderResponse, refetch]);
-
-  useEffect(() => {
-    if (!reorderError) return;
-    showNotification(errorMessage(reorderError, "Unable to reorder reasons."), "error");
-    refetch();
-  }, [reorderError, refetch]);
-
-  useEffect(() => {
-    if (!deleteSuccess) return;
-    showNotification("Reason deleted.", "success", "Booking reasons");
-    refetch();
-  }, [deleteSuccess, refetch]);
-
-  useEffect(() => {
-    if (!deleteError) return;
-    showNotification(errorMessage(deleteError, "Unable to delete reason."), "error");
-  }, [deleteError]);
-
-  const handleCreate = (
-    values: ReasonFormValues,
-    helpers: FormikHelpers<ReasonFormValues>
-  ) => {
-    if (!canManageCurrentRoute) return;
-    createReason({ ...toPayload(values), is_active: true });
-    helpers.setSubmitting(false);
-  };
-
-  const handleEdit = (
-    reason: AppointmentReason,
-    values: ReasonFormValues,
-    helpers: FormikHelpers<ReasonFormValues>
-  ) => {
-    if (!canManageCurrentRoute) return;
-    lastUpdate.current = "edit";
-    updateReason(toPayload(values), { id: String(reason.id) });
-    helpers.setSubmitting(false);
-  };
-
-  const handleToggle = (reason: AppointmentReason, next: boolean) => {
-    if (!canManageCurrentRoute) return;
-    setItems((current) =>
-      current.map((item) =>
-        item.id === reason.id ? { ...item, is_active: next } : item
-      )
-    );
-    lastUpdate.current = "toggle";
-    updateReason({ is_active: next }, { id: String(reason.id) });
-  };
-
-  const handleMove = (index: number, direction: -1 | 1) => {
-    if (!canManageCurrentRoute) return;
-    const target = index + direction;
-    if (target < 0 || target >= items.length) return;
-
-    const next = [...items];
-    [next[index], next[target]] = [next[target], next[index]];
-    setItems(next);
-    reorderReasons({ ids: next.map((item) => item.id) });
-  };
-
-  const handleDelete = (reason: AppointmentReason) => {
-    if (!canManageCurrentRoute) return;
-    showDeleteDialog({ id: reason.id, name: reason.label }, (id) =>
-      executeDelete({ id: String(id) })
-    );
-  };
-
-  const activeCount = items.filter((item) => item.is_active).length;
-  const showInitialLoading = reasonsLoading && items.length === 0;
-  const showError = Boolean(reasonsError) && items.length === 0;
+  /* -------------------------------- render -------------------------------- */
 
   return (
-    <div>
-      <PageOutline>
-        <HeaderControls
-          title="Settings"
-          subtitle="Configure how members book appointments"
-        />
+    <PageOutline className="flex flex-col gap-6">
+      <PageHeading title="Appointment settings" subtitle="Booking reasons, rules and who gets notified." />
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <section
-            aria-labelledby="booking-reasons-heading"
-            className="app-card space-y-4 lg:col-span-2"
-          >
-            <div className="space-y-1">
-              <h2
-                id="booking-reasons-heading"
-                className="text-lg font-semibold text-primary"
-              >
-                Booking reasons
-              </h2>
-              <p className="text-sm text-primaryGray">
-                Members pick one of these on step 1 of booking ("What would you
-                like to talk about?"). Only active reasons are shown, in this
-                order.
-                {items.length > 0 &&
-                  ` ${activeCount} of ${items.length} active.`}
-              </p>
+      {data.settingsMissing && tab !== "reasons" && (
+        <InlineAlert tone="warning" title="Showing the default rules">
+          The saved settings couldn’t be loaded, so these are the defaults. Changes may not save until the server is updated.
+        </InlineAlert>
+      )}
+
+      <PillTabs
+        ariaLabel="Settings sections"
+        value={tab}
+        onChange={setTab}
+        className="self-start"
+        tabs={[
+          { key: "reasons", label: "Booking reasons" },
+          { key: "rules", label: "Booking rules" },
+          { key: "notif", label: "Notifications" },
+        ]}
+      />
+
+      {tab === "reasons" && (
+        <section className="overflow-hidden rounded-xl border border-lightGray bg-white">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 px-5 py-4">
+            <div>
+              <h2 className="text-base font-semibold text-primary">Booking reasons</h2>
+              <p className="text-sm text-gray-600">Members pick one on step 1 of booking. Order here is the order they see.</p>
             </div>
-
-            <div className="flex gap-3 rounded-lg border border-lightGray bg-lightGray/20 p-3 text-sm text-primaryGray">
-              <InformationCircleIcon
-                className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary"
-                aria-hidden="true"
-              />
-              <p>
-                Members always also see a built-in{" "}
-                <span className="font-medium text-primary">
-                  "Something else — tell us in your own words"
-                </span>{" "}
-                option as the last choice, so you don't need to add a
-                catch-all reason. If no reasons are active, members see three
-                defaults (Marriage &amp; family, Spiritual guidance, Ministry
-                &amp; serving).
-              </p>
-            </div>
-
-            {showInitialLoading ? (
-              <div className="space-y-3" aria-busy="true" aria-live="polite">
-                <span className="sr-only">Loading booking reasons…</span>
-                {[0, 1, 2].map((key) => (
-                  <div
-                    key={key}
-                    className="h-16 animate-pulse rounded-lg bg-lightGray/40"
-                  />
-                ))}
-              </div>
-            ) : showError ? (
-              <div
-                role="alert"
-                className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+            {isAdmin && (
+              <UiButton
+                tone="primary"
+                className="w-full sm:w-auto"
+                onClick={() => {
+                  setReasonErrors([]);
+                  setReasonDialog({ id: null, label: "", description: "" });
+                }}
               >
-                <p className="font-medium">Couldn't load booking reasons.</p>
-                <p className="mt-1">
-                  {errorMessage(reasonsError, "Please try again.")}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => refetch()}
-                  className="mt-3 rounded-lg border border-red-300 px-3 py-1.5 font-medium hover:bg-red-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
-                >
-                  Try again
-                </button>
-              </div>
-            ) : items.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-lightGray px-5 py-8 text-center">
-                <ChatBubbleLeftEllipsisIcon
-                  className="mx-auto h-10 w-10 text-primaryGray"
-                  aria-hidden="true"
-                />
-                <p className="mt-3 font-medium text-primary">
-                  No booking reasons yet
-                </p>
-                <p className="mt-1 text-sm text-primaryGray">
-                  Members currently see the three default reasons plus
-                  "Something else". Add your own to replace the defaults.
-                </p>
-              </div>
-            ) : (
-              <ol className="space-y-3" aria-label="Booking reasons in order">
-                {items.map((reason, index) => {
-                  const isEditing = editingId === reason.id;
-
-                  return (
-                    <li
-                      key={reason.id}
-                      className={cn(
-                        "rounded-lg border border-lightGray bg-white p-4",
-                        !reason.is_active && "bg-lightGray/20"
-                      )}
-                    >
-                      {isEditing ? (
-                        <ReasonForm
-                          idPrefix={`reason-${reason.id}`}
-                          initialValues={{
-                            label: reason.label,
-                            description: reason.description ?? "",
-                          }}
-                          submitLabel="Save"
-                          loading={updateLoading}
-                          onSubmit={(values, helpers) =>
-                            handleEdit(reason, values, helpers)
-                          }
-                          onCancel={() => setEditingId(null)}
-                        />
-                      ) : (
-                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                          {canManageCurrentRoute && (
-                            <div className="flex gap-1 sm:flex-col">
-                              <button
-                                type="button"
-                                className="app-icon-btn disabled:cursor-not-allowed disabled:opacity-40"
-                                aria-label={`Move "${reason.label}" up`}
-                                disabled={index === 0 || reorderLoading}
-                                onClick={() => handleMove(index, -1)}
-                              >
-                                <ArrowUpIcon className="h-4 w-4" />
-                              </button>
-                              <button
-                                type="button"
-                                className="app-icon-btn disabled:cursor-not-allowed disabled:opacity-40"
-                                aria-label={`Move "${reason.label}" down`}
-                                disabled={
-                                  index === items.length - 1 || reorderLoading
-                                }
-                                onClick={() => handleMove(index, 1)}
-                              >
-                                <ArrowDownIcon className="h-4 w-4" />
-                              </button>
-                            </div>
-                          )}
-
-                          <div className="min-w-0 flex-1">
-                            <p
-                              className={cn(
-                                "break-words font-medium",
-                                reason.is_active
-                                  ? "text-primary"
-                                  : "text-primaryGray"
-                              )}
-                            >
-                              {reason.label}
-                            </p>
-                            {reason.description ? (
-                              <p className="mt-0.5 break-words text-sm text-primaryGray">
-                                {reason.description}
-                              </p>
-                            ) : (
-                              <p className="mt-0.5 text-sm italic text-primaryGray/70">
-                                No description
-                              </p>
-                            )}
-                          </div>
-
-                          <div className="flex items-center gap-3">
-                            <ActiveSwitch
-                              checked={reason.is_active}
-                              disabled={!canManageCurrentRoute || updateLoading}
-                              label={`Show "${reason.label}" to members`}
-                              onChange={(next) => handleToggle(reason, next)}
-                            />
-                            {canManageCurrentRoute && (
-                              <>
-                                <button
-                                  type="button"
-                                  className="app-icon-btn"
-                                  aria-label={`Edit "${reason.label}"`}
-                                  onClick={() => setEditingId(reason.id)}
-                                >
-                                  <PencilSquareIcon className="h-4 w-4 text-gray-700" />
-                                </button>
-                                <button
-                                  type="button"
-                                  className="app-icon-btn app-icon-btn-danger"
-                                  aria-label={`Delete "${reason.label}"`}
-                                  onClick={() => handleDelete(reason)}
-                                >
-                                  <TrashIcon className="h-4 w-4 text-red-600" />
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </li>
-                  );
-                })}
-              </ol>
+                Add reason
+              </UiButton>
             )}
+          </div>
+          {reasons.map((reason, index) => (
+            <div
+              key={reason.id}
+              className="flex flex-wrap items-center gap-3 border-b border-gray-200 px-5 py-3 last:border-b-0"
+              style={{ opacity: reason.is_active ? 1 : 0.6 }}
+            >
+              {isAdmin && (
+                <div className="flex flex-col gap-0.5">
+                  {[
+                    { dir: -1 as const, label: "Move up", glyph: "↑", disabled: index === 0 },
+                    { dir: 1 as const, label: "Move down", glyph: "↓", disabled: index === reasons.length - 1 },
+                  ].map((b) => (
+                    <button
+                      key={b.label}
+                      type="button"
+                      aria-label={`${b.label}: ${reason.label}`}
+                      disabled={b.disabled}
+                      onClick={() => move(index, b.dir)}
+                      className="h-6 w-8 rounded-md border border-lightGray bg-white text-primary disabled:opacity-40"
+                    >
+                      {b.glyph}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <div className="min-w-0 flex-[1_1_220px]">
+                <p className="text-sm font-semibold text-primary">{reason.label}</p>
+                {reason.description && <p className="text-sm text-gray-500">{reason.description}</p>}
+              </div>
+              <span className="text-xs text-gray-500">{plural(usesOf(reason), "booking")}</span>
+              {isAdmin && (
+                <>
+                  <ToggleSwitch
+                    on={reason.is_active}
+                    onChange={(next) => setActive(reason, next)}
+                    label={`Show ${reason.label} to members`}
+                  />
+                  <div className="flex gap-1">
+                    <UiButton
+                      size="sm"
+                      onClick={() => {
+                        setReasonErrors([]);
+                        setReasonDialog({ id: reason.id, label: reason.label, description: reason.description ?? "" });
+                      }}
+                    >
+                      Edit
+                    </UiButton>
+                    <UiButton size="sm" tone="ghost" className="text-red-700 hover:text-red-700" onClick={() => remove(reason)}>
+                      Delete
+                    </UiButton>
+                  </div>
+                </>
+              )}
+            </div>
+          ))}
+          {!reasons.length && (
+            <p className="px-5 py-6 text-sm text-gray-500">
+              {reasonsQuery.data ? "No reasons yet. Members will only see “Something else”." : "Loading reasons…"}
+            </p>
+          )}
+        </section>
+      )}
+
+      {tab === "rules" && (
+        <section className="flex max-w-[880px] flex-col gap-5 rounded-xl border border-lightGray bg-white p-5">
+          {RULES.map((rule) => (
+            <div
+              key={rule.key}
+              className="flex flex-wrap items-center gap-x-6 gap-y-2 border-b border-gray-200 pb-4"
+            >
+              <div className="min-w-0 flex-[1_1_300px]">
+                <p className="text-sm font-semibold text-primary">{rule.label}</p>
+                <p className="text-sm text-gray-500">{rule.help}</p>
+              </div>
+              <SelectInput
+                aria-label={rule.label}
+                disabled={!isAdmin}
+                value={String(draft[rule.key] ?? settings[rule.key])}
+                onChange={(e) => setDraft({ ...draft, [rule.key]: Number(e.target.value) })}
+                options={
+                  rule.options.some((o) => o.value === String(settings[rule.key]))
+                    ? rule.options
+                    : [...rule.options, H(settings[rule.key], String(settings[rule.key]))]
+                }
+                className="w-full sm:w-[220px]"
+              />
+            </div>
+          ))}
+          <div className="flex flex-wrap items-center justify-end gap-3">
+            <span className="flex-1 text-xs text-gray-500">Changes apply to new requests.</span>
+            {dirty && (
+              <>
+                <UiButton tone="ghost" className="text-primary" onClick={() => setDraft({})} disabled={busy}>
+                  Discard
+                </UiButton>
+                <UiButton tone="primary" onClick={saveRules} disabled={busy}>
+                  {busy ? "Saving…" : "Save rules"}
+                </UiButton>
+              </>
+            )}
+          </div>
+        </section>
+      )}
+
+      {tab === "notif" && (
+        <div className="flex flex-wrap items-start gap-6">
+          <section className="min-w-0 flex-[1_1_560px] overflow-hidden rounded-xl border border-lightGray bg-white">
+            <div className="border-b border-gray-200 px-5 py-4">
+              <h2 className="text-base font-semibold text-primary">Who hears about what</h2>
+              <p className="text-sm text-gray-600">Pick channels for each event. Select a row to preview it.</p>
+            </div>
+            {NOTIFICATION_EVENTS.map((event) => (
+              <div
+                key={event.key}
+                onClick={() => setSelected(event.key)}
+                className={`flex cursor-pointer flex-col gap-3 border-b border-gray-200 px-5 py-4 last:border-b-0 ${
+                  selected === event.key ? "bg-inputBackground" : "bg-white"
+                }`}
+              >
+                <div>
+                  <p className="text-sm font-semibold text-primary">{event.label}</p>
+                  <p className="text-xs text-gray-500">{event.when}</p>
+                </div>
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,150px),1fr))] gap-3">
+                  {NOTIFICATION_AUDIENCES.map((who) => (
+                    <div key={who.key} className="flex flex-col gap-1.5">
+                      <span className="text-xs font-semibold text-gray-500">{who.label}</span>
+                      <div className="flex flex-wrap gap-1" onClick={(e) => e.stopPropagation()}>
+                        {CHANNELS.map((channel) => {
+                          const on = matrix[event.key][who.key].includes(channel.key);
+                          return isAdmin ? (
+                            <ChipToggle key={channel.key} on={on} onClick={() => toggleChannel(event.key, who.key, channel.key)}>
+                              <span className="sr-only">{on ? "Turn off " : "Turn on "}</span>
+                              {channel.label}
+                              <span className="sr-only">{` for ${who.label}, ${event.label}`}</span>
+                            </ChipToggle>
+                          ) : on ? (
+                            <span key={channel.key} className="rounded-full bg-primary px-3 py-1 text-xs font-semibold text-white">
+                              {channel.label}
+                            </span>
+                          ) : null;
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
           </section>
 
-          {canManageCurrentRoute && (
-            <section
-              aria-labelledby="add-reason-heading"
-              className="app-card h-fit space-y-4"
-            >
-              <div className="space-y-1">
-                <h2
-                  id="add-reason-heading"
-                  className="text-lg font-semibold text-primary"
-                >
-                  Add a reason
-                </h2>
-                <p className="text-sm text-primaryGray">
-                  New reasons are active and added to the end of the list.
-                </p>
+          <aside className="flex w-full min-w-0 flex-[1_1_320px] flex-col gap-3 rounded-xl border border-lightGray bg-white p-5 xl:sticky xl:top-4 xl:max-w-[400px]">
+            <h2 className="text-base font-semibold text-primary">What {pv.who} sees</h2>
+            <p className="text-xs text-gray-500">
+              {NOTIFICATION_EVENTS.find((e) => e.key === selected)?.label}
+              {nowChannels ? ` · ${nowChannels}` : " · nobody is notified"}
+            </p>
+            <div className="flex flex-col gap-3 rounded-2xl bg-background p-4">
+              <p className="text-xs font-semibold text-gray-500">PUSH · LOCK SCREEN</p>
+              <div className="flex gap-3 rounded-xl bg-white p-3 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+                <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-primary text-xs font-semibold text-white">
+                  W
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-primary">{pv.title}</p>
+                  <p className="text-sm text-gray-600">{pv.body}</p>
+                  {pv.acts.length > 0 && (
+                    <div className="mt-2 flex gap-2">
+                      {pv.acts.map((a) => (
+                        <span key={a} className="flex-1 rounded-lg bg-gray-100 px-2 py-1.5 text-center text-xs font-semibold text-primary">
+                          {a}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
-              <ReasonForm
-                key={addFormKey}
-                idPrefix="new-reason"
-                initialValues={emptyReason}
-                submitLabel="Add reason"
-                loading={createLoading}
-                onSubmit={handleCreate}
-              />
-            </section>
-          )}
+              <p className="text-xs font-semibold text-gray-500">SMS</p>
+              <p className="max-w-[95%] self-start rounded-2xl rounded-bl border border-gray-200 bg-white px-3 py-2 text-sm text-primary">
+                {pv.sms}
+              </p>
+            </div>
+            <p className="text-xs text-gray-500">
+              Push buttons work from the lock screen. Every SMS links to the request so they can reply without opening the app first.
+            </p>
+          </aside>
         </div>
-      </PageOutline>
-    </div>
+      )}
+
+      {reasonDialog && (
+        <CommDialog
+          open
+          onClose={() => setReasonDialog(null)}
+          busy={busy}
+          width={560}
+          title={reasonDialog.id ? "Edit reason" : "Add reason"}
+          subtitle="Shown on step 1 of the booking form."
+          errors={reasonErrors}
+          buttons={[
+            { label: "Cancel", onClick: () => setReasonDialog(null) },
+            { label: reasonDialog.id ? "Save changes" : "Add reason", onClick: saveReason, tone: "primary" },
+          ]}
+        >
+          <Field label="Label *">
+            <TextInput
+              value={reasonDialog.label}
+              onChange={(e) => setReasonDialog({ ...reasonDialog, label: e.target.value })}
+              placeholder="Marriage and family"
+              maxLength={120}
+            />
+          </Field>
+          <div className="flex flex-col gap-1">
+            <Field label="Description">
+              <TextArea
+                value={reasonDialog.description}
+                onChange={(e) => setReasonDialog({ ...reasonDialog, description: e.target.value })}
+                placeholder="Shown under the label to help members choose"
+                maxLength={255}
+              />
+            </Field>
+            <FieldHint>{reasonDialog.description.length} / 255</FieldHint>
+          </div>
+        </CommDialog>
+      )}
+    </PageOutline>
   );
 };
 

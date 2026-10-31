@@ -1,360 +1,503 @@
-import { HeaderControls } from "@/components/HeaderControls";
-import PageOutline from "../../Components/PageOutline";
-import { useEffect, useMemo, useState } from "react";
-import { Appointment, BookedSession } from "@/utils/api/appointment/interfaces";
-import AllAppointmentsLayout from "./Layout/AllAppointmentsLayout";
-import { Modal } from "@/components/Modal";
-import AppointmentBookingForm from "@/pages/MembersPage/Component/AppointmentBookingForm";
-import { useFetch } from "@/CustomHooks/useFetch";
-import { useDelete } from "@/CustomHooks/useDelete";
-import { usePut } from "@/CustomHooks/usePut";
-import { api } from "@/utils";
-import {
-  normalizeAppointmentRecord,
-  toBookedSession,
-  toStringValue,
-} from "@/utils/api/appointment/bookingUtils";
-import { useStore } from "@/store/useStore";
-import { showDeleteDialog, showNotification } from "@/pages/HomePage/utils";
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-const toInputDate = (value?: string): string => {
-  if (!value) return "";
-  return value.split("T")[0];
+import { describeError, notify } from "@/components/feedback";
+
+import PageOutline from "../../Components/PageOutline";
+import { ListEmpty } from "../ChurchCommunication/ui/commUi";
+import { WIDE_TABLE_MIN, useViewportWidth } from "../ChurchCommunication/ui/commUtils";
+import {
+  CellText,
+  Field,
+  FilterPanel,
+  FilterToggleButton,
+  GridTable,
+  PageHeading,
+  Pill,
+  PillTabs,
+  SearchInput,
+  SelectInput,
+  TextInput,
+  UiButton,
+} from "../MembershipManagement/components/membershipUi";
+import { BookDialog, CancelDialog, DeclineDialog, SuggestTimeDialog } from "./Components/AppointmentDialogs";
+import { AppointmentDrawer, type DrawerDialog } from "./Components/AppointmentDrawer";
+import { KpiButton } from "./Components/appointmentUi";
+import {
+  type ApptBooking,
+  CLOSED_STATUSES,
+  STATUS_META,
+  SUB_TONE_CLASS,
+  addDays,
+  ago,
+  awayOn,
+  dayLabel,
+  downloadCsv,
+  dur,
+  firstName,
+  fmtD,
+  groupByDay,
+  hrs,
+  iso,
+  isOverdue,
+  median,
+  needsOutcome,
+  pc,
+  pillOf,
+  plural,
+  slotOf,
+  statusSub,
+  t12,
+} from "./utils/appointmentModel";
+import { useAppointmentsData } from "./utils/useAppointmentsData";
+
+type Tab = "pending" | "requester" | "upcoming" | "outcome" | "past" | "all";
+
+const TABS: { key: Tab; label: string; counted: boolean }[] = [
+  { key: "pending", label: "Awaiting reply", counted: true },
+  { key: "requester", label: "Waiting on requester", counted: true },
+  { key: "upcoming", label: "Upcoming", counted: true },
+  { key: "outcome", label: "Needs outcome", counted: true },
+  { key: "past", label: "Past", counted: false },
+  { key: "all", label: "All", counted: false },
+];
+
+const EMPTY: Record<Tab, string> = {
+  pending: "Every request has been answered.",
+  requester: "No suggested times are waiting on requesters.",
+  upcoming: "No confirmed appointments coming up.",
+  outcome: "Every past appointment has an outcome.",
+  past: "No past appointments match.",
+  all: "No appointments match.",
 };
 
+const PAGE_LIMIT = 60;
+const NO_FILTERS = { att: "", reason: "", from: "", to: "" };
+
 const AppointmentManager = () => {
-  const membersOptions = useStore((state) => state.membersOptions);
+  const navigate = useNavigate();
+  const data = useAppointmentsData();
+  const { bookings, now, settings, access, personOf } = data;
+  const sla = settings.replyDeadlineHours;
+  const wide = useViewportWidth() >= WIDE_TABLE_MIN;
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedAppointment, setSelectedAppointment] =
-    useState<Appointment | undefined>(undefined);
+  const [tab, setTab] = useState<Tab>("pending");
+  const [query, setQuery] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState(NO_FILTERS);
+  const [drawer, setDrawer] = useState<{ id: string; reassign: boolean } | null>(null);
+  const [dialog, setDialog] = useState<{ kind: DrawerDialog | "book"; id?: string } | null>(null);
 
-  const [attendeeFilter, setAttendeeFilter] = useState("");
-  const [requesterFilter, setRequesterFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [dateFilter, setDateFilter] = useState("");
-  const [statusUpdatingAppointmentId, setStatusUpdatingAppointmentId] =
-    useState<string | null>(null);
-  const [statusUpdatingTarget, setStatusUpdatingTarget] = useState<
-    boolean | null
-  >(null);
+  const byId = (id?: string) => bookings.find((b) => b.id === id);
+  const openDrawer = (booking: ApptBooking, reassign = false) => setDrawer({ id: booking.id, reassign });
 
-  const membersLookup = useMemo(
-    () =>
-      membersOptions.reduce<Record<string, string>>((acc, option) => {
-        acc[String(option.value)] = option.label;
-        return acc;
-      }, {}),
-    [membersOptions]
+  /* ------------------------------ filtering ------------------------------ */
+
+  const reasonOptions = useMemo(
+    () => Array.from(new Set(bookings.map((b) => b.reason))).sort((a, b) => a.localeCompare(b)),
+    [bookings]
   );
 
-  const {
-    data: bookingsResponse,
-    loading,
-    refetch,
-  } = useFetch(api.fetch.fetchAppointmentBookings, undefined, true);
-
-  const {
-    executeDelete,
-    success: deleteSuccess,
-    error: deleteError,
-  } = useDelete(api.delete.deleteAppointmentBooking);
-
-  const {
-    data: statusUpdateResponse,
-    error: statusUpdateError,
-    updateData: updateAppointmentStatus,
-  } = usePut(api.put.updateAppointmentStatus);
-
-  useEffect(() => {
-    refetch();
-  }, [refetch]);
-
-  const appointments = useMemo(() => {
-    if (!Array.isArray(bookingsResponse?.data)) return [];
-
-    return bookingsResponse.data
-      .map((item) => normalizeAppointmentRecord(item, membersLookup))
-      .filter((item): item is Appointment => item !== null);
-  }, [bookingsResponse, membersLookup]);
-
-  const filteredAppointments = useMemo(() => {
-    return appointments.filter((appointment) => {
-      const matchesAttendee =
-        !attendeeFilter || appointment.staffId === attendeeFilter;
-      const matchesRequester =
-        !requesterFilter ||
-        toStringValue(appointment.requesterId).trim() === requesterFilter;
-      const appointmentStatus = toStringValue(appointment.status)
-        .toUpperCase()
-        .trim();
-      const matchesStatus = !statusFilter || appointmentStatus === statusFilter;
-      const matchesDate =
-        !dateFilter || toInputDate(appointment.date) === toInputDate(dateFilter);
-
-      return matchesAttendee && matchesRequester && matchesStatus && matchesDate;
-    });
-  }, [appointments, attendeeFilter, requesterFilter, statusFilter, dateFilter]);
-
-  const attendeeFilterOptions = useMemo(
-    () =>
-      appointments.reduce<{ value: string; label: string }[]>((acc, appointment) => {
-        if (!appointment.staffId) return acc;
-
-        const exists = acc.some((option) => option.value === appointment.staffId);
-        if (exists) return acc;
-
-        acc.push({
-          value: appointment.staffId,
-          label: appointment.staffName || "Unknown Staff",
-        });
-
-        return acc;
-      }, []),
-    [appointments]
-  );
-
-  const requesterFilterOptions = useMemo(
-    () =>
-      appointments.reduce<{ value: string; label: string }[]>((acc, appointment) => {
-        const requesterId = toStringValue(appointment.requesterId).trim();
-        if (!requesterId) return acc;
-
-        const exists = acc.some((option) => option.value === requesterId);
-        if (exists) return acc;
-
-        acc.push({
-          value: requesterId,
-          label: appointment.requesterName || appointment.fullName || "Unknown Requester",
-        });
-
-        return acc;
-      }, []),
-    [appointments]
-  );
-
-  const statusFilterOptions = useMemo(
-    () =>
-      appointments.reduce<string[]>((acc, appointment) => {
-        const status = toStringValue(appointment.status).toUpperCase().trim();
-
-        if (!status || acc.includes(status)) return acc;
-
-        acc.push(status);
-        return acc;
-      }, []),
-    [appointments]
-  );
-
-  const bookedSessions = useMemo<BookedSession[]>(() => {
-    return appointments
-      .map((appointment) => toBookedSession(appointment))
-      .filter((session): session is BookedSession => session !== null);
-  }, [appointments]);
-
-  useEffect(() => {
-    if (!deleteSuccess) return;
-
-    showNotification("Appointment deleted successfully", "success");
-    refetch();
-  }, [deleteSuccess, refetch]);
-
-  useEffect(() => {
-    if (!deleteError) return;
-
-    showNotification(deleteError.message || "Unable to delete appointment", "error");
-  }, [deleteError]);
-
-  useEffect(() => {
-    if (!statusUpdateResponse) return;
-
-    showNotification(
-      statusUpdatingTarget
-        ? "Appointment confirmed successfully"
-        : "Appointment marked as unconfirmed",
-      "success"
+  const base = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return bookings.filter(
+      (b) =>
+        (!filters.att || b.attendeeId === filters.att) &&
+        (!filters.reason || b.reason === filters.reason) &&
+        (!filters.from || b.date >= filters.from) &&
+        (!filters.to || b.date <= filters.to) &&
+        (!q || b.requester.toLowerCase().includes(q) || b.reason.toLowerCase().includes(q))
     );
-    setStatusUpdatingAppointmentId(null);
-    setStatusUpdatingTarget(null);
-    refetch();
-  }, [refetch, statusUpdateResponse, statusUpdatingTarget]);
+  }, [bookings, filters, query]);
 
-  useEffect(() => {
-    if (!statusUpdateError) return;
+  const byTab = useMemo<Record<Tab, ApptBooking[]>>(
+    () => ({
+      pending: base.filter((b) => b.status === "PENDING"),
+      requester: base.filter((b) => b.status === "RESCHEDULED"),
+      upcoming: base.filter((b) => b.status === "CONFIRMED" && !needsOutcome(b, now)),
+      outcome: base.filter((b) => needsOutcome(b, now)),
+      past: base.filter((b) => CLOSED_STATUSES.includes(b.status)),
+      all: base,
+    }),
+    [base, now]
+  );
 
-    showNotification(
-      statusUpdateError.message || "Unable to update appointment status",
-      "error"
-    );
-    setStatusUpdatingAppointmentId(null);
-    setStatusUpdatingTarget(null);
-  }, [statusUpdateError]);
+  const list = byTab[tab];
+  const desc = tab === "past" || tab === "all" || tab === "outcome";
+  const shown = desc
+    ? list
+        .slice()
+        .sort((a, b) => b.date.localeCompare(a.date))
+        .slice(0, PAGE_LIMIT)
+    : list;
+  const groups = groupByDay(shown, desc);
 
-  const handleBookAppointment = () => {
-    setSelectedAppointment(undefined);
-    setIsModalOpen(true);
-  };
+  /* --------------------------------- KPIs -------------------------------- */
 
-  const handleDelete = (appointment: Appointment) => {
-    if (!appointment.id) {
-      showNotification("Unable to delete appointment: missing booking id", "error");
-      return;
+  const today = iso(now);
+  const overdue = bookings.filter((b) => isOverdue(b, sla, now) && !awayOn(personOf(b), b.date));
+  const onLeave = bookings.filter((b) => b.status === "PENDING" && awayOn(personOf(b), b.date));
+  const outcomeDue = bookings.filter((b) => needsOutcome(b, now));
+  const stale = bookings.filter((b) => b.status === "RESCHEDULED" && b.respondedAt && hrs(b.respondedAt, now) > 48);
+  const pending = bookings.filter((b) => b.status === "PENDING");
+  const todays = bookings.filter((b) => b.status === "CONFIRMED" && b.date === today);
+  const next = todays
+    .filter((b) => !needsOutcome(b, now))
+    .sort((a, b) => a.start.localeCompare(b.start))[0];
+  const week = bookings.filter((b) => b.status === "CONFIRMED" && b.date >= today && b.date <= addDays(today, 6));
+  const monthAgo = new Date(now.getTime() - 30 * 864e5).toISOString();
+  const replies = bookings
+    .filter((b) => b.respondedAt && b.createdAt && b.createdAt >= monthAgo)
+    .map((b) => hrs(b.createdAt, b.respondedAt as string));
+  const within = pc(replies.filter((h) => h <= sla).length, replies.length);
+
+  /* ------------------------------- actions ------------------------------- */
+
+  const remind = async (booking: ApptBooking) => {
+    try {
+      await data.act(booking, { action: "remind" });
+      notify.success({
+        title: `Reminder sent to ${personOf(booking).name}`,
+        message: "By push and SMS. You’ll see it here when they reply.",
+      });
+    } catch (error) {
+      notify.error({ title: "Couldn’t send the reminder", message: describeError(error, { preferServerMessage: true }).message });
     }
+  };
 
-    showDeleteDialog(
-      {
-        id: appointment.id,
-        name: appointment.purpose || "appointment",
-      },
-      (id) => executeDelete({ id: String(id) })
+  const attention = [
+    ...overdue
+      .slice()
+      .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+      .map((b) => {
+        const person = personOf(b);
+        return {
+          key: b.id,
+          title: `${b.requester} has waited ${dur(hrs(b.createdAt, now))} for ${person.name}`,
+          text: `${b.reason} · ${fmtD(b.date)}, ${t12(b.start)}${b.remindedAt ? ` · reminded ${ago(b.remindedAt, now)}` : ""}`,
+          actions: [
+            ...(access.forOthers("send_reminders", b.attendeeId)
+              ? [{ label: b.remindedAt ? "Remind again" : `Remind ${firstName(person.name)}`, onClick: () => remind(b) }]
+              : []),
+            ...(access.forOthers("reassign", b.attendeeId)
+              ? [{ label: "Reassign", onClick: () => openDrawer(b, true) }]
+              : []),
+            access.onBooking("respond", b.attendeeId)
+              ? { label: access.isMine(b.attendeeId) ? "Reply" : "Reply for them", onClick: () => openDrawer(b), primary: true }
+              : { label: "View", onClick: () => openDrawer(b) },
+          ],
+        };
+      }),
+    ...onLeave.map((b) => {
+      const person = personOf(b);
+      const away = awayOn(person, b.date);
+      return {
+        key: b.id,
+        title: `${person.name} is on leave, but ${b.requester} booked them`,
+        text: `${b.reason} · ${fmtD(b.date)}.${away ? ` ${away.note} until ${fmtD(away.to)}.` : ""}`,
+        actions: [access.forOthers("reassign", b.attendeeId) ? { label: "Reassign", onClick: () => openDrawer(b, true), primary: true } : { label: "View", onClick: () => openDrawer(b) }],
+      };
+    }),
+    ...(outcomeDue.length
+      ? [
+          {
+            key: "outcome",
+            title: `${plural(outcomeDue.length, "past appointment")} ${outcomeDue.length === 1 ? "has" : "have"} no outcome`,
+            text: "Mark them completed or no-show so attendance and analytics stay accurate.",
+            actions: [{ label: "Review", onClick: () => setTab("outcome") }],
+          },
+        ]
+      : []),
+    ...stale.map((b) => ({
+      key: b.id,
+      title: `${b.requester} hasn’t answered the new time`,
+      text: `${personOf(b).name} suggested ${b.proposal ? `${fmtD(b.proposal.date)}, ${t12(b.proposal.start)} ` : ""}${b.respondedAt ? ago(b.respondedAt, now) : ""}.${b.phone ? ` Call ${b.phone} or confirm for them.` : ""}`,
+      actions: [{ label: "View", onClick: () => openDrawer(b) }],
+    })),
+  ];
+
+  const exportCsv = () => {
+    downloadCsv("appointments.csv", [
+      ["Requester", "Phone", "With", "Reason", "Date", "Time", "Status", "Requested", "Replied"],
+      ...list.map((b) => [
+        b.requester,
+        b.phone,
+        personOf(b).name,
+        b.reason,
+        b.date,
+        b.start,
+        STATUS_META[b.status].label,
+        b.createdAt,
+        b.respondedAt ?? "",
+      ]),
+    ]);
+    notify.success({ title: `Exported ${plural(list.length, "appointment")}` });
+  };
+
+  const filterCount = Object.values(filters).filter(Boolean).length;
+  const drawerBooking = byId(drawer?.id);
+  const dialogBooking = byId(dialog?.id);
+  const closeDialog = () => setDialog(null);
+
+  const subLine = (booking: ApptBooking) => {
+    const sub = statusSub(booking, personOf(booking), sla, now);
+    return <span className={`text-xs ${SUB_TONE_CLASS[sub.tone]}`}>{sub.text}</span>;
+  };
+
+  const statusCell = (booking: ApptBooking) => {
+    const pill = pillOf(booking, sla, now);
+    return (
+      <div className="flex flex-col items-start gap-1">
+        <Pill tone={pill.tone}>{pill.label}</Pill>
+        {subLine(booking)}
+      </div>
     );
   };
 
-  const handleToggleConfirmation = (
-    appointment: Appointment,
-    isConfirmed: boolean
-  ) => {
-    if (!appointment.id) {
-      showNotification("Unable to update appointment: missing booking id", "error");
-      return;
-    }
-
-    const appointmentId = String(appointment.id);
-    setStatusUpdatingAppointmentId(appointmentId);
-    setStatusUpdatingTarget(isConfirmed);
-    updateAppointmentStatus({ isConfirmed }, { id: appointmentId });
-  };
-
-  const resetFilters = () => {
-    setAttendeeFilter("");
-    setRequesterFilter("");
-    setStatusFilter("");
-    setDateFilter("");
-  };
+  /* -------------------------------- render ------------------------------- */
 
   return (
-    <PageOutline>
-      <HeaderControls
-        title="Appointment Manager"
-        subtitle="Manage all appointments scheduled within the system"
-        btnName="Add Appointment"
-        screenWidth={typeof window !== "undefined" ? window.innerWidth : 0}
-        handleClick={handleBookAppointment}
+    <PageOutline className="flex flex-col gap-6">
+      <PageHeading
+        title="Appointments"
+        subtitle="Every request across pastors and counsellors, and whether it’s been answered."
+        actions={
+          <>
+            <FilterToggleButton open={showFilters} count={filterCount} onClick={() => setShowFilters((v) => !v)} />
+            {access.canExport && (
+              <UiButton onClick={exportCsv} disabled={!list.length}>
+                Export CSV
+              </UiButton>
+            )}
+            {access.can("book_for_others") && access.scope !== "own" && (
+              <UiButton tone="primary" onClick={() => setDialog({ kind: "book" })}>
+                Book appointment
+              </UiButton>
+            )}
+          </>
+        }
       />
 
-      <div className="flex flex-wrap gap-4 my-4">
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-gray-600">Attendee</label>
-          <select
-            className="border rounded px-3 py-2 text-sm min-w-[180px]"
-            value={attendeeFilter}
-            onChange={(event) => setAttendeeFilter(event.target.value)}
-          >
-            <option value="">All Attendees</option>
-            {attendeeFilterOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-gray-600">Requester</label>
-          <select
-            className="border rounded px-3 py-2 text-sm min-w-[180px]"
-            value={requesterFilter}
-            onChange={(event) => setRequesterFilter(event.target.value)}
-          >
-            <option value="">All Requesters</option>
-            {requesterFilterOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-gray-600">Status</label>
-          <select
-            className="border rounded px-3 py-2 text-sm min-w-[160px]"
-            value={statusFilter}
-            onChange={(event) => setStatusFilter(event.target.value)}
-          >
-            <option value="">All Statuses</option>
-            {statusFilterOptions.map((status) => (
-              <option key={status} value={status}>
-                {status}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-gray-600">Date</label>
-          <input
-            type="date"
-            className="border rounded px-3 py-2 text-sm"
-            value={dateFilter}
-            onChange={(event) => setDateFilter(event.target.value)}
-          />
-        </div>
-
-        <div className="flex items-end">
-          <button
-            type="button"
-            className="text-sm px-4 py-2 border rounded hover:bg-gray-50"
-            onClick={resetFilters}
-          >
-            Reset Filters
-          </button>
-        </div>
-      </div>
-
-      {loading ? (
-        <div className="text-sm text-gray-600 py-4">Loading appointments...</div>
-      ) : filteredAppointments.length === 0 ? (
-        <div className="text-sm text-gray-600 py-4">
-          No appointments found for the selected filters.
-        </div>
-      ) : (
-        <AllAppointmentsLayout
-          Appointments={{ all: filteredAppointments }}
-          onEdit={(appointment) => {
-            setSelectedAppointment(appointment);
-            setIsModalOpen(true);
+      {showFilters && (
+        <FilterPanel
+          title="Refine appointments"
+          helper="Filters combine with the search and tabs."
+          onReset={() => {
+            setFilters(NO_FILTERS);
+            setQuery("");
           }}
-          onDelete={handleDelete}
-          onToggleConfirmation={handleToggleConfirmation}
-          showConfirmationActions
-          isStatusUpdating={(appointmentId) =>
-            Boolean(appointmentId) &&
-            statusUpdatingAppointmentId === String(appointmentId)
-          }
-        />
+          resetDisabled={!filterCount && !query}
+        >
+          <Field label="With">
+            <SelectInput
+              value={filters.att}
+              onChange={(e) => setFilters({ ...filters, att: e.target.value })}
+              options={[{ value: "", label: "Everyone" }, ...data.staff.map((s) => ({ value: s.id, label: s.name }))]}
+            />
+          </Field>
+          <Field label="Reason">
+            <SelectInput
+              value={filters.reason}
+              onChange={(e) => setFilters({ ...filters, reason: e.target.value })}
+              options={[{ value: "", label: "All reasons" }, ...reasonOptions.map((r) => ({ value: r, label: r }))]}
+            />
+          </Field>
+          <Field label="From">
+            <TextInput type="date" value={filters.from} onChange={(e) => setFilters({ ...filters, from: e.target.value })} />
+          </Field>
+          <Field label="To">
+            <TextInput type="date" value={filters.to} onChange={(e) => setFilters({ ...filters, to: e.target.value })} />
+          </Field>
+        </FilterPanel>
       )}
 
-      <Modal
-        open={isModalOpen}
-        className="max-w-4xl"
-        onClose={() => {
-          setIsModalOpen(false);
-          setSelectedAppointment(undefined);
-        }}
-      >
-        <AppointmentBookingForm
-          appointment={selectedAppointment}
-          bookedSessions={bookedSessions}
-          onSuccess={() => {
-            refetch();
-          }}
-          onClose={() => {
-            setIsModalOpen(false);
-            setSelectedAppointment(undefined);
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,200px),1fr))] gap-4">
+        <KpiButton
+          label="Awaiting reply"
+          value={pending.length}
+          sub={overdue.length ? `${overdue.length} overdue (over ${sla} h)` : "None overdue"}
+          subTone={overdue.length ? "danger" : "success"}
+          alert={overdue.length > 0}
+          onClick={() => setTab("pending")}
+        />
+        <KpiButton
+          label="Today"
+          value={todays.length}
+          sub={next ? `Next: ${t12(next.start)} with ${personOf(next).name}` : "Nothing else today"}
+          onClick={() => setTab("upcoming")}
+        />
+        <KpiButton label="Next 7 days" value={week.length} sub="Confirmed appointments" onClick={() => setTab("upcoming")} />
+        <KpiButton
+          label="Typical reply time"
+          value={replies.length ? dur(median(replies)) : "—"}
+          sub={replies.length ? `${within}% within ${sla} h · last 30 days` : "No replies in the last 30 days"}
+          subTone={replies.length && within < 80 ? "warning" : "muted"}
+          onClick={() => navigate("/home/appointments/analytics")}
+        />
+      </div>
+
+      {attention.length > 0 && (
+        <section className="overflow-hidden rounded-xl border border-amber-200 bg-white">
+          <div className="flex flex-col gap-1 border-b border-amber-200 bg-amber-50 px-5 py-4">
+            <h2 className="text-base font-semibold text-primary">Needs your attention</h2>
+            <p className="text-sm text-gray-700">
+              Requests nobody has answered within {sla} hours come here, and you’re alerted by push and email.
+            </p>
+          </div>
+          {attention.map((item) => (
+            <div
+              key={item.key}
+              className="flex flex-wrap items-center gap-3 border-b border-gray-200 px-5 py-4 last:border-b-0"
+            >
+              <div className="flex min-w-0 flex-[1_1_280px] flex-col gap-0.5">
+                <p className="text-sm font-semibold text-primary">{item.title}</p>
+                <p className="text-sm text-gray-600">{item.text}</p>
+              </div>
+              <div className="flex w-full flex-wrap gap-2 sm:w-auto">
+                {item.actions.map((action) => (
+                  <UiButton
+                    key={action.label}
+                    size="sm"
+                    tone={"primary" in action && action.primary ? "primary" : "secondary"}
+                    onClick={action.onClick}
+                    className="flex-auto sm:flex-none"
+                  >
+                    {action.label}
+                  </UiButton>
+                ))}
+              </div>
+            </div>
+          ))}
+        </section>
+      )}
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <PillTabs
+          ariaLabel="Appointment status"
+          value={tab}
+          onChange={setTab}
+          tabs={TABS.map((t) => ({ key: t.key, label: t.label, count: t.counted && byTab[t.key].length ? byTab[t.key].length : null }))}
+        />
+        <SearchInput
+          value={query}
+          onChange={setQuery}
+          placeholder="Search requester or reason"
+          ariaLabel="Search appointments"
+          className="max-w-full sm:max-w-[360px]"
+        />
+      </div>
+
+      <p className="text-sm text-gray-600">
+        {plural(list.length, "appointment")}
+        {desc && list.length > PAGE_LIMIT ? `, showing the latest ${PAGE_LIMIT}` : ""}. Select one to see its history and act on it.
+      </p>
+
+      {groups.map((group) => (
+        <div key={group.day} className="flex flex-col gap-3">
+          <h2 className="flex items-baseline gap-2 text-base font-semibold text-primary">
+            {dayLabel(group.day, now)}
+            <span className="text-sm font-normal text-gray-500">{plural(group.items.length, "appointment")}</span>
+          </h2>
+          {wide ? (
+            <GridTable
+              rows={group.items}
+              getRowId={(b) => b.id}
+              onRowClick={(b) => openDrawer(b)}
+              minWidth="940px"
+              actionsWidth="96px"
+              renderActions={(b) => (
+                <UiButton size="sm" onClick={() => openDrawer(b)}>
+                  View
+                </UiButton>
+              )}
+              columns={[
+                {
+                  key: "time",
+                  header: "Time",
+                  width: "110px",
+                  render: (b) => <CellText strong main={t12(slotOf(b).start)} sub={`${personOf(b).duration} min`} />,
+                },
+                {
+                  key: "req",
+                  header: "Requester",
+                  width: "minmax(200px,1.5fr)",
+                  render: (b) => <CellText strong main={b.requester} sub={b.phone} />,
+                },
+                {
+                  key: "with",
+                  header: "With",
+                  width: "minmax(180px,1.3fr)",
+                  render: (b) => <CellText main={personOf(b).name} sub={personOf(b).role} />,
+                },
+                {
+                  key: "reason",
+                  header: "Reason",
+                  width: "minmax(160px,1.1fr)",
+                  render: (b) => <p className="text-gray-600">{b.reason}</p>,
+                },
+                {
+                  key: "status",
+                  header: "Status",
+                  width: "minmax(200px,1.4fr)",
+                  render: (b) => statusCell(b),
+                },
+              ]}
+            />
+          ) : (
+            <div className="flex flex-col gap-3">
+              {group.items.map((b) => (
+                <button
+                  key={b.id}
+                  type="button"
+                  onClick={() => openDrawer(b)}
+                  className="flex flex-col gap-2 rounded-xl border border-lightGray bg-white p-4 text-left text-primary"
+                >
+                  <div className="flex w-full items-start gap-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold">{b.requester}</p>
+                      <p className="text-xs text-gray-500">
+                        {t12(slotOf(b).start)} · {b.reason}
+                      </p>
+                    </div>
+                    <Pill tone={pillOf(b, sla, now).tone}>{pillOf(b, sla, now).label}</Pill>
+                  </div>
+                  <p className="text-sm text-gray-600">With {personOf(b).name}</p>
+                  {subLine(b)}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
+
+      {!list.length && <ListEmpty>{data.bookingsLoaded ? EMPTY[tab] : "Loading appointments…"}</ListEmpty>}
+
+      {drawerBooking && (
+        <AppointmentDrawer
+          key={drawerBooking.id + String(drawer?.reassign)}
+          booking={drawerBooking}
+          data={data}
+          startReassigning={drawer?.reassign}
+          onClose={() => setDrawer(null)}
+          onDialog={(kind) => {
+            setDrawer(null);
+            setDialog({ kind, id: drawerBooking.id });
           }}
         />
-      </Modal>
+      )}
+      {dialog?.kind === "suggest" && dialogBooking && <SuggestTimeDialog booking={dialogBooking} data={data} onClose={closeDialog} />}
+      {dialog?.kind === "decline" && dialogBooking && <DeclineDialog booking={dialogBooking} data={data} onClose={closeDialog} />}
+      {dialog?.kind === "cancel" && dialogBooking && <CancelDialog booking={dialogBooking} data={data} onClose={closeDialog} />}
+      {dialog?.kind === "book" && (
+        <BookDialog
+          data={data}
+          onClose={closeDialog}
+          onBooked={() => {
+            closeDialog();
+            setTab("upcoming");
+          }}
+        />
+      )}
     </PageOutline>
   );
 };

@@ -1,22 +1,22 @@
-import { pictureInstance as axiosPic } from "@/axiosInstance";
-import { Actions } from "@/components/ui";
+import { useBackNavigation } from "@/CustomHooks/useBackNavigation";
 import { useFetch } from "@/CustomHooks/useFetch";
-import { usePost } from "@/CustomHooks/usePost";
-import { usePut } from "@/CustomHooks/usePut";
 import { decodeQuery, encodeQuery } from "@/pages/HomePage/utils";
 import { api } from "@/utils/api/apiCalls";
 import { validateFamilyPayload } from "@/utils/familyRelations";
-import { normalizeOptionalOtherNames } from "@/utils/memberPayload";
-import { validateUploadFile } from "@/utils/uploadValidation";
-import { Formik, FormikProps, FormikTouched } from "formik";
-import { useEffect, useMemo, useRef } from "react";
+import {
+  normalizeOptionalOtherNames,
+  sanitizeMemberDepartmentPositions,
+} from "@/utils/memberPayload";
+import { saveThenAttachImage } from "@/utils/uploadImage";
+import { Formik } from "formik";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useOutletContext } from "react-router-dom";
 import { object } from "yup";
-import { baseUrl } from "../../../../Authentication/utils/helpers";
 import { IMembersForm, MembersForm } from "../Components/MembersForm";
 import { mapUserData } from "../utils";
 import { showNotification } from "@/pages/HomePage/utils";
 import { ALL_BRANCHES, useBranchStore } from "@/store/useBranchStore";
+import PageOutline from "@/pages/HomePage/Components/PageOutline";
 
 type ManageMemberLocationState = {
   afterSubmitPath?: string;
@@ -24,37 +24,6 @@ type ManageMemberLocationState = {
   prefillSourceLabel?: string;
   sourceSoulWonId?: string | number;
   sourceVisitorId?: string | number;
-};
-
-const mapErrorsToTouched = (errors: unknown): unknown => {
-  if (Array.isArray(errors)) {
-    return errors.map((item) => mapErrorsToTouched(item));
-  }
-
-  if (errors && typeof errors === "object") {
-    return Object.entries(errors as Record<string, unknown>).reduce<
-      Record<string, unknown>
-    >((acc, [key, value]) => {
-      acc[key] = mapErrorsToTouched(value);
-      return acc;
-    }, {});
-  }
-
-  return true;
-};
-
-const hasValidationErrors = (errors: unknown): boolean => {
-  if (Array.isArray(errors)) {
-    return errors.some((item) => hasValidationErrors(item));
-  }
-
-  if (errors && typeof errors === "object") {
-    return Object.values(errors as Record<string, unknown>).some((value) =>
-      hasValidationErrors(value)
-    );
-  }
-
-  return Boolean(errors);
 };
 
 export function ManageMember() {
@@ -78,19 +47,7 @@ export function ManageMember() {
     { user_id: id + "" },
     true
   );
-  const { postData, loading, data } = usePost(api.post.createMember);
-  const {
-    updateData,
-    loading: updateLoading,
-    data: updatedData,
-  } = usePut(api.put.updateMember);
-
-  const stepControls = useRef<{
-    goNext: () => void;
-    goBack: () => void;
-    isLastStep: boolean;
-    focusFirstErrorStep: (errors: unknown) => void;
-  } | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     if (id) refetch();
@@ -107,32 +64,10 @@ export function ManageMember() {
     }
   }, [member?.data, prefillMemberForm]);
 
-  useEffect(() => {
-    if (data || updatedData) {
-      if (typeof outletContext?.refetchMembers === "function") {
-        outletContext.refetchMembers();
-      }
-
-      if (updatedData) {
-        const editedMemberId = member?.data?.id ?? id;
-
-        if (editedMemberId !== undefined && editedMemberId !== null) {
-          navigate(`/home/members/${encodeQuery(editedMemberId)}`, {
-            state: { task: "update" },
-          });
-          return;
-        }
-      }
-
-      navigate(afterSubmitPath ?? "/home/members", {
-        state: { task: data ? "add" : "update" },
-      });
-    }
-  }, [afterSubmitPath, data, id, member?.data?.id, navigate, outletContext, updatedData]);
-
-  const handleCancel = () => {
-    navigate(-1);
-  };
+  const back = useBackNavigation(
+    isEditMode && id ? `/home/members/${encodeQuery(id)}` : afterSubmitPath || "/home/membership"
+  );
+  const handleCancel = back.goBack;
 
   async function handleSubmit(values: IMembersForm) {
     const { activeBranchId } = useBranchStore.getState();
@@ -150,133 +85,161 @@ export function ManageMember() {
       return;
     }
 
-    let dataToSend = normalizeOptionalOtherNames(values);
+    // Hold the new file aside so the record is saved WITHOUT it first — a failed
+    // save then can't leave an orphaned image in the bucket.
+    const pendingImage = values.picture?.picture;
+    // When a new file is pending, `values.picture.src` is a local blob URL, so
+    // the save keeps the record's existing photo (edit) or none (create); the
+    // real link is attached only after the upload succeeds. With no new file we
+    // keep whatever src is already on the form (the saved photo in edit mode).
+    const existingPhotoSrc =
+      pendingImage instanceof File
+        ? isEditMode
+          ? member?.data?.photo ?? ""
+          : ""
+        : values.picture?.src ?? "";
+
+    const basePayload = sanitizeMemberDepartmentPositions(
+      normalizeOptionalOtherNames({
+        ...values,
+        picture: { src: existingPhotoSrc, picture: null },
+      })
+    );
+
+    const branchPart =
+      basePayload.branch_id !== "" ? { branch_id: basePayload.branch_id } : {};
+
+    // Attach the uploaded link to a record that already exists.
+    const attachPhoto = (link: string, userId: number | string) =>
+      api.put
+        .updateMember({ picture: { src: link, picture: null } }, {
+          user_id: String(userId),
+        })
+        .then(() => undefined);
+
+    const warnImageFailed = () =>
+      showNotification(
+        "Member saved, but the profile image couldn't be uploaded. You can add it by editing the member.",
+        "warning",
+        "Profile image"
+      );
 
     try {
-      const uploadedFile = values.picture?.picture;
+      setSubmitting(true);
 
-      if (uploadedFile instanceof File) {
-        const validation = validateUploadFile(uploadedFile, {
-          allowedMimeTypes: ["image/jpeg", "image/png", "image/webp", "image/gif"],
-        });
-
-        if (!validation.valid) {
-          throw new Error(validation.message || "Invalid profile image selected.");
-        }
-
-        const formData = new FormData();
-        formData.append("file", uploadedFile);
-
-        const response = await axiosPic.post(`${baseUrl}upload`, formData);
-
-        if (response?.status === 200) {
-          dataToSend = {
-            ...dataToSend,
-            picture: { src: response.data.result.link, picture: null },
-          };
-        } else {
-          throw new Error("Image upload failed");
-        }
-      }
-
-      // Send data regardless of whether an image was uploaded
       if (id) {
         const memberId = member?.data?.id;
         if (!memberId) {
           throw new Error("Member id is missing");
         }
-        await updateData(
-          { ...dataToSend, ...(dataToSend.branch_id !== "" ? { branch_id: dataToSend.branch_id } : {}) },
-          { user_id: String(memberId) }
-        );
-      } else {
-        await postData({
-          ...dataToSend,
-          ...(dataToSend.branch_id !== "" ? { branch_id: dataToSend.branch_id } : {}),
-          ...(sourceSoulWonId ? { source_soul_won_id: sourceSoulWonId } : {}),
-          ...(sourceVisitorId
-            ? { source_visitor_id: String(sourceVisitorId) }
-            : {}),
+
+        await saveThenAttachImage({
+          file: pendingImage,
+          save: () =>
+            api.put.updateMember({ ...basePayload, ...branchPart }, {
+              user_id: String(memberId),
+            }),
+          attach: (link) => attachPhoto(link, memberId),
+          onImageError: warnImageFailed,
         });
+
+        if (typeof outletContext?.refetchMembers === "function") {
+          outletContext.refetchMembers();
+        }
+        navigate(`/home/members/${encodeQuery(memberId)}`, {
+          state: { task: "update" },
+        });
+        return;
       }
+
+      const created = await saveThenAttachImage({
+        file: pendingImage,
+        // Members added from the admin portal are confirmed by default.
+        save: () =>
+          api.post.createMember<{ parent?: { id?: number; name?: string } }>({
+            ...basePayload,
+            ...branchPart,
+            status: "CONFIRMED",
+            ...(sourceSoulWonId ? { source_soul_won_id: sourceSoulWonId } : {}),
+            ...(sourceVisitorId
+              ? { source_visitor_id: String(sourceVisitorId) }
+              : {}),
+          }),
+        attach: (link, res) => {
+          const newId = res?.data?.parent?.id;
+          return newId ? attachPhoto(link, newId) : Promise.resolve();
+        },
+        onImageError: warnImageFailed,
+      });
+
+      if (typeof outletContext?.refetchMembers === "function") {
+        outletContext.refetchMembers();
+      }
+
+      const parent = created?.data?.parent;
+      navigate(afterSubmitPath ?? "/home/members", {
+        state: {
+          task: "add",
+          member: parent ? { id: parent.id, name: parent.name } : undefined,
+        },
+      });
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Unable to save member details.";
       showNotification(message, "error");
+    } finally {
+      setSubmitting(false);
     }
   }
 
-  const handleSubmitWithValidation = async (formik: FormikProps<IMembersForm>) => {
-    const errors = await formik.validateForm();
-
-    if (hasValidationErrors(errors)) {
-      formik.setTouched(
-        mapErrorsToTouched(errors) as FormikTouched<IMembersForm>,
-        false
-      );
-      stepControls.current?.focusFirstErrorStep(errors);
-      showNotification(
-        "Please complete all required fields before submitting.",
-        "error"
-      );
-      return;
-    }
-
-    await formik.submitForm();
-  };
+  const memberRecord = member?.data;
+  const memberName = memberRecord
+    ? [memberRecord.first_name, memberRecord.last_name].filter(Boolean).join(" ")
+    : "";
+  const title = isEditMode ? (memberName ? `Edit ${memberName}` : "Edit member") : "Add member";
+  const backLabel = `Back to ${back.label}`;
+  const crumbs = [
+    { label: "Home", link: "/home" },
+    { label: "Members", link: "/home/members" },
+    { label: isEditMode ? "Edit member" : "Add member" },
+  ];
 
   return (
-    <div className="p-4">
-      <section className="mx-auto p-6 container lg:w-5/6 bg-white rounded-xl">
-        <div className="flex flex-col gap-1 items-center tablet:items-start">
-          <div className="font-bold text-xl">Member Information</div>
-          <div className="text text-[#8F95B2] mb-4">
-            Fill the form below with the member information
-          </div>
-          {prefillSourceLabel ? (
-            <div className="mb-2 rounded-lg border border-lightGray bg-lightGray/40 px-4 py-3 text-sm text-primary">
-              Prefilled from {prefillSourceLabel}. Complete the remaining required details and save.
-            </div>
-          ) : null}
+    <PageOutline crumbs={crumbs}>
+      <div className="mx-auto flex w-full max-w-[1100px] flex-col gap-6">
+        <div className="flex flex-col gap-2">
+          <button
+            type="button"
+            onClick={handleCancel}
+            className="self-start text-sm text-gray-600 transition-colors hover:text-primary"
+          >
+            ← {backLabel}
+          </button>
+          <h1 className="text-2xl font-semibold leading-8 text-primary">{title}</h1>
+          <p className="text-base leading-6 text-gray-600">
+            {isEditMode
+              ? "Update the details below and save when you’re done."
+              : "Register a new member. Members added here are confirmed by default."}
+          </p>
         </div>
+        {prefillSourceLabel ? (
+          <p
+            role="status"
+            className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700"
+          >
+            Prefilled from {prefillSourceLabel}. Check the details and complete the remaining steps.
+          </p>
+        ) : null}
         <Formik
           enableReinitialize={true}
           initialValues={initialValue}
           onSubmit={(values) => handleSubmit(values)}
           validationSchema={validationSchema}
         >
-          {(formik: FormikProps<IMembersForm>) => (
-            <>
-              <MembersForm
-                onRegisterControls={(controls) => {
-                  stepControls.current = controls;
-                }}
-              />
-
-              <section className="w-full py-5 sticky bottom-0 bg-white">
-                <Actions
-                  goBack={() => stepControls.current?.goBack()}
-                  goNext={
-                    !isEditMode && stepControls.current?.isLastStep
-                      ? undefined
-                      : () => stepControls.current?.goNext()
-                  }
-                  onCancel={handleCancel}
-                  onSubmit={
-                    isEditMode
-                      ? () => handleSubmitWithValidation(formik)
-                      : stepControls.current?.isLastStep
-                      ? () => handleSubmitWithValidation(formik)
-                      : undefined
-                  }
-                  loading={loading || updateLoading}
-                />
-              </section>
-            </>
-          )}
+          <MembersForm isEditMode={isEditMode} submitting={submitting} />
         </Formik>
-      </section>
-    </div>
+      </div>
+    </PageOutline>
   );
 }
 

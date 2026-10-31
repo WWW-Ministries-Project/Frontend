@@ -10,6 +10,7 @@ import { useFetch } from "@/CustomHooks/useFetch";
 import { api } from "@/utils";
 import { ApiResponse } from "@/utils/interfaces";
 import { showNotification } from "@/pages/HomePage/utils";
+import { useSomAccess } from "@/pages/HomePage/pages/MinistrySchool/utils/useSomAccess";
 
 
 interface Submission {
@@ -228,6 +229,9 @@ const GradingPanel = () => {
   const [_editingGrade, _setEditingGrade] = useState("");
   const [gradingSubmissionIds, setGradingSubmissionIds] = useState<string[]>([]);
   const [isBulkGrading, setIsBulkGrading] = useState(false);
+  // Grading needs School_of_ministry.grade (instructors have it for their own
+  // programs; the API checks which programs and the roster's grading ability).
+  const canGrade = useSomAccess().can("grade");
 
   const setSubmissionGradingState = useCallback((submissionId: string, isGrading: boolean) => {
     setGradingSubmissionIds((current) => {
@@ -355,11 +359,11 @@ const GradingPanel = () => {
       header: "Status",
       cell: ({ row }) =>
         row.original.status === "pending" ? (
-          <span className="inline-flex rounded-full bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-600 dark:bg-amber-900/30 dark:text-amber-300">
+          <span className="inline-flex rounded-full bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-600">
             Pending
           </span>
         ) : (
-          <span className="inline-flex rounded-full bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-600 dark:bg-green-900/30 dark:text-green-300">
+          <span className="inline-flex rounded-full bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-600">
             Graded
           </span>
         ),
@@ -370,6 +374,10 @@ const GradingPanel = () => {
       cell: ({ row }) => {
         const submission = row.original;
         const isSaving = gradingSubmissionIds.includes(submission.id);
+
+        if (!canGrade) {
+          return <span className="font-semibold">{formatGradeLabel(submission)}</span>;
+        }
 
         if (_editingId === submission.id) {
           return (
@@ -437,7 +445,7 @@ const GradingPanel = () => {
         );
       },
     },
-  ], [_editingId, _editingGrade, gradingSubmissionIds, gradeSubmission, handleInlineGrade]);
+  ], [_editingId, _editingGrade, gradingSubmissionIds, gradeSubmission, handleInlineGrade, canGrade]);
 
   const filteredSubmissions = useMemo(() => {
     if (!assignment) return [];
@@ -495,11 +503,11 @@ const GradingPanel = () => {
                 {totalCount} submissions
               </span>
               <span className="flex items-center gap-1">
-                <ClockIcon className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                <ClockIcon className="h-4 w-4 text-amber-600" />
                 {pendingCount} pending
               </span>
               <span className="flex items-center gap-1">
-                <CheckIcon className="h-4 w-4 text-green-600 dark:text-green-400" />
+                <CheckIcon className="h-4 w-4 text-green-600" />
                 {gradedCount} graded
               </span>
             </div>
@@ -556,8 +564,8 @@ const GradingPanel = () => {
           <TableComponent
             data={filteredSubmissions}
             columns={columns}
-            enableSelection={_editingId === null && !isBulkGrading}
-            bulkActions={_editingId === null ? QUICK_GRADES.map((g) => ({
+            enableSelection={canGrade && _editingId === null && !isBulkGrading}
+            bulkActions={canGrade && _editingId === null ? QUICK_GRADES.map((g) => ({
               label: `${g}%`,
               value: String(g),
             })) : []}

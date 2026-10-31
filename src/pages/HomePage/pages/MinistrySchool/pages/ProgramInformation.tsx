@@ -1,4 +1,5 @@
 import { Badge } from "@/components/Badge";
+import { FieldMessage } from "@/components/feedback";
 import { showNotification } from "@/pages/HomePage/utils";
 import { ApiCreationCalls } from "@/utils/api/apiPost";
 import { FormEvent, useMemo, useState } from "react";
@@ -11,6 +12,19 @@ const ProgramInformation = () => {
   const apiPost = useMemo(() => new ApiCreationCalls(), []);
 
   const classOptions = currentApplicant?.courses ?? [];
+
+  const isClassFull = (option: { capacity: number; enrolled: number }) =>
+    option.capacity > 0 && option.enrolled >= option.capacity;
+  const selectedClassOption = classOptions.find((option) => option.id === selectedClassId);
+  const selectedClassIsFull = Boolean(selectedClassOption && isClassFull(selectedClassOption));
+  const alternativeClass = selectedClassIsFull
+    ? classOptions.find(
+        (option) => option.id !== selectedClassId && option.capacity > 0 && !isClassFull(option)
+      )
+    : undefined;
+  const alternativeSeats = alternativeClass
+    ? alternativeClass.capacity - alternativeClass.enrolled
+    : 0;
 
   const getFormatBadgeClass = (format: string) => {
     switch (format) {
@@ -47,10 +61,8 @@ const ProgramInformation = () => {
       return;
     }
 
-    if (selectedClass.capacity > 0 && selectedClass.enrolled >= selectedClass.capacity) {
-      showNotification("This class is full. Select another class.", "error");
-      return;
-    }
+    // A full class shows a field message and disables submit.
+    if (isClassFull(selectedClass)) return;
 
     setSubmitting(true);
     try {
@@ -205,12 +217,20 @@ const ProgramInformation = () => {
               );
             })}
           </div>
+          {selectedClassIsFull && (
+            <FieldMessage id="class-picker-message" className="mt-2">
+              This class is full.
+              {alternativeClass
+                ? ` ${alternativeClass.name} has ${alternativeSeats} ${alternativeSeats === 1 ? "seat" : "seats"} left.`
+                : ""}
+            </FieldMessage>
+          )}
         </section>
 
         <div className="flex justify-end border-t border-lightGray pt-4">
           <button
             type="submit"
-            disabled={!selectedClassId || submitting}
+            disabled={!selectedClassId || selectedClassIsFull || submitting}
             className="rounded-md bg-primary px-6 py-2.5 text-sm font-medium text-white transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {submitting ? "Submitting..." : "Submit Application"}

@@ -1,513 +1,390 @@
-import { Button } from "@/components";
-import { Badge } from "@/components/Badge";
-import EmptyState from "@/components/EmptyState";
-import { Modal } from "@/components/Modal";
-import { FormHeader, FormLayout } from "@/components/ui";
-import { useFetch } from "@/CustomHooks/useFetch";
-import { InputDiv } from "@/pages/HomePage/Components/reusable/InputDiv";
-import { SelectField } from "@/pages/HomePage/Components/reusable/SelectField";
-import { showNotification } from "@/pages/HomePage/utils";
-import { buildBranchQuery, useBranchStore } from "@/store/useBranchStore";
-import { api } from "@/utils";
-import type { JoinRequestRow, JoinRequestStatus } from "@/utils";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-const STATUS_TABS: { label: string; value: JoinRequestStatus }[] = [
-  { label: "Pending", value: "PENDING" },
-  { label: "Approved", value: "APPROVED" },
-  { label: "Declined", value: "DECLINED" },
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
+import { useFetch } from "@/CustomHooks/useFetch";
+import {
+  BulkBar,
+  CellText,
+  GridColumn,
+  GridTable,
+  Pill,
+  PillTabs,
+  SelectOption,
+  UiButton,
+} from "@/pages/HomePage/pages/MembershipManagement/components/membershipUi";
+import {
+  daysAgoLabel,
+  formatDate,
+} from "@/pages/HomePage/pages/MembershipManagement/components/membershipUiUtils";
+import {
+  ApproveJoinDialog,
+  ApproveJoinValues,
+} from "@/pages/HomePage/pages/MembershipManagement/components/manager/ApproveJoinDialog";
+import { DeclineReasonDialog } from "@/pages/HomePage/pages/MembershipManagement/components/manager/DeclineReasonDialog";
+import {
+  ManagerEmpty,
+  ManagerSection,
+  ShowMoreRows,
+} from "@/pages/HomePage/pages/MembershipManagement/components/manager/ManagerSection";
+import { useRowLimit } from "@/pages/HomePage/pages/MembershipManagement/components/manager/useRowLimit";
+import {
+  errorText,
+  matchesQuery,
+} from "@/pages/HomePage/pages/MembershipManagement/components/manager/managerHelpers";
+import { joinRequestDetails } from "@/pages/HomePage/pages/MembershipManagement/components/departments/departmentShared";
+import { useManagerData } from "@/pages/HomePage/pages/MembershipManagement/components/manager/useManagerData";
+import useSettingsStore from "@/pages/HomePage/pages/Settings/utils/settingsStore";
+import { encodeQuery, showNotification } from "@/pages/HomePage/utils";
+import { buildBranchQuery, useBranchStore } from "@/store/useBranchStore";
+import { api } from "@/utils/api/apiCalls";
+import type {
+  JoinRequestRow,
+  JoinRequestStatus,
+} from "@/utils/api/departmentJoinRequests/interfaces";
+
+const STATUS_TABS: { key: JoinRequestStatus; label: string }[] = [
+  { key: "PENDING", label: "Pending" },
+  { key: "APPROVED", label: "Approved" },
+  { key: "DECLINED", label: "Declined" },
 ];
 
-const formatDate = (value?: string | null) =>
-  value
-    ? new Date(value).toLocaleDateString(undefined, {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      })
-    : "—";
-
-const statusBadgeClass = (status: JoinRequestStatus) => {
-  switch (status) {
-    case "APPROVED":
-      return "border-success/20 bg-success/10 text-success";
-    case "DECLINED":
-      return "border-error/20 bg-error/10 text-error";
-    default:
-      return "border-warning/20 bg-warning/10 text-warning";
-  }
-};
+const responseMessage = (response: unknown, fallback: string) =>
+  (response as { data?: { message?: string } } | undefined)?.data?.message || fallback;
 
 export const JoinDepartmentRequests = () => {
-  const { activeBranchId } = useBranchStore();
-  const [statusFilter, setStatusFilter] = useState<JoinRequestStatus>("PENDING");
+  const navigate = useNavigate();
+  const { joinRequests, joinsLoading, refetchJoins, members, refetchMembers } =
+    useManagerData();
+  const [status, setStatus] = useState<JoinRequestStatus>("PENDING");
+  const [query, setQuery] = useState("");
+  const [selected, setSelected] = useState<string[]>([]);
+  const [approveIds, setApproveIds] = useState<number[]>([]);
+  const [declineIds, setDeclineIds] = useState<number[]>([]);
 
-  const query = useMemo(
-    () => ({ ...(buildBranchQuery(activeBranchId) ?? {}), status: statusFilter }),
-    [activeBranchId, statusFilter]
-  );
-
-  const { data, loading, refetch } = useFetch(api.fetch.fetchJoinRequests, query);
-  const requests = data?.data ?? [];
-
-  // Positions per department (for the confirm dropdown).
-  const branchQuery = useMemo(
-    () => buildBranchQuery(activeBranchId),
-    [activeBranchId]
-  );
-  const { data: openDeptData } = useFetch(
+  // Positions per department for the approve dialog.
+  const activeBranchId = useBranchStore((state) => state.activeBranchId);
+  const branchQuery = useMemo(() => buildBranchQuery(activeBranchId), [activeBranchId]);
+  const { data: openDepartments } = useFetch(
     api.fetch.fetchOpenDepartmentsToJoin,
-    branchQuery
+    branchQuery,
+    false,
+    { silent: true }
   );
-  const positionsByDept = useMemo(() => {
-    const map = new Map<number, { label: string; value: string }[]>();
-    (openDeptData?.data ?? []).forEach((department) => {
-      map.set(
-        department.id,
-        (department.position ?? []).map((position) => ({
-          label: position.name,
-          value: String(position.id),
-        }))
-      );
+  const storePositionOptions = useSettingsStore((state) => state.positionOptions);
+  const positionsFor = (departmentId?: number): SelectOption[] => {
+    if (!departmentId) return [];
+    const open = (openDepartments?.data ?? []).find((dept) => dept.id === departmentId);
+    if (open && open.position.length > 0) {
+      return open.position.map((position) => ({
+        value: String(position.id),
+        label: position.name,
+      }));
+    }
+    return (storePositionOptions[departmentId] ?? []).map((option) => ({
+      value: String(option.value),
+      label: String(option.label),
+    }));
+  };
+
+  const memberCodes = useMemo(
+    () => new Map(members.map((member) => [String(member.id), member.member_id])),
+    [members]
+  );
+
+  const statusCounts = useMemo(() => {
+    const counts: Record<JoinRequestStatus, number> = { PENDING: 0, APPROVED: 0, DECLINED: 0 };
+    joinRequests.forEach((request) => {
+      counts[request.status] = (counts[request.status] ?? 0) + 1;
     });
-    return map;
-  }, [openDeptData]);
+    return counts;
+  }, [joinRequests]);
 
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
-  const [confirmTarget, setConfirmTarget] = useState<JoinRequestRow | null>(null);
-  const [declineTarget, setDeclineTarget] = useState<JoinRequestRow | null>(null);
-  const [bulkMode, setBulkMode] = useState<"approve" | "decline" | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-
-  // Confirm form
-  const [positionId, setPositionId] = useState<string>("");
-  const [startDate, setStartDate] = useState<string>("");
-  const [instructions, setInstructions] = useState<string>("");
-  // Decline form
-  const [declineReason, setDeclineReason] = useState<string>("");
-
-  const pendingRequests = requests.filter(
-    (request) => request.status === "PENDING"
+  const rows = useMemo(
+    () =>
+      joinRequests.filter(
+        (request) =>
+          request.status === status &&
+          matchesQuery(query, [
+            request.member_name,
+            request.department_name,
+            request.phone_number,
+            memberCodes.get(String(request.member_id)),
+          ])
+      ),
+    [joinRequests, status, query, memberCodes]
   );
-  const allSelected =
-    pendingRequests.length > 0 &&
-    selectedIds.length === pendingRequests.length;
+  const { visible, remaining, showMore } = useRowLimit(rows, `${status}|${query}`);
+  const { hasAction } = useAccessControl();
+  // The list holds what the API lets the caller see. Without View pipelines
+  // that is only departments they head, where they may always decide.
+  const canDecide =
+    hasAction("Membership_Management.decide_join_request") ||
+    !hasAction("Membership_Management.view_pipelines");
+  const selectable = canDecide && status === "PENDING";
 
-  const resetForms = () => {
-    setPositionId("");
-    setStartDate("");
-    setInstructions("");
-    setDeclineReason("");
+  useEffect(() => {
+    const ids = new Set(rows.map((request) => String(request.id)));
+    setSelected((previous) => {
+      const next = previous.filter((id) => ids.has(id));
+      return next.length === previous.length ? previous : next;
+    });
+  }, [rows]);
+
+  const byId = useMemo(
+    () => new Map(joinRequests.map((request) => [request.id, request])),
+    [joinRequests]
+  );
+  const approveTargets = approveIds
+    .map((id) => byId.get(id))
+    .filter((request): request is JoinRequestRow => Boolean(request));
+
+  const switchStatus = (next: JoinRequestStatus) => {
+    setStatus(next);
+    setSelected([]);
   };
 
-  const closeModals = () => {
-    setConfirmTarget(null);
-    setDeclineTarget(null);
-    setBulkMode(null);
-    resetForms();
-  };
-
-  const toggleSelect = (id: number) => {
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((value) => value !== id) : [...prev, id]
+  const toggleRow = (id: string) =>
+    setSelected((previous) =>
+      previous.includes(id) ? previous.filter((value) => value !== id) : [...previous, id]
     );
+  const toggleAll = () => {
+    const ids = visible.map((request) => String(request.id));
+    const allOn = ids.length > 0 && ids.every((id) => selected.includes(id));
+    setSelected(allOn ? [] : ids);
   };
 
-  const toggleSelectAll = () => {
-    setSelectedIds(allSelected ? [] : pendingRequests.map((r) => r.id));
+  const afterDecision = async () => {
+    setSelected([]);
+    await Promise.all([refetchJoins(), refetchMembers()]);
   };
 
-  const afterAction = async (message: string) => {
-    showNotification(message, "success");
-    closeModals();
-    setSelectedIds([]);
-    await refetch();
-  };
+  // Bulk approval takes one position for all requests, so it is only offered
+  // when every selected request is for the same department.
+  const approveDepartments = Array.from(
+    new Set(approveTargets.map((request) => request.department_id))
+  );
+  const sharedDepartment =
+    approveDepartments.length === 1 ? approveDepartments[0] : undefined;
 
-  const handleError = (error: unknown, fallback: string) => {
-    const message =
-      (error as { response?: { data?: { message?: string } } })?.response?.data
-        ?.message || fallback;
-    showNotification(message, "error");
-  };
-
-  // ---- Single confirm ----
-  const submitConfirm = async () => {
-    if (!confirmTarget) return;
-    setSubmitting(true);
+  const submitApprove = async (values: ApproveJoinValues) => {
+    const positionId = values.positionId ? Number(values.positionId) : undefined;
+    const common = {
+      start_date: values.startDate || undefined,
+      instructions: values.instructions || undefined,
+    };
     try {
-      const response = await api.put.approveJoinRequest({
-        id: confirmTarget.id,
-        position_id: positionId ? Number(positionId) : undefined,
-        start_date: startDate || undefined,
-        instructions: instructions.trim() || undefined,
-      });
-      await afterAction(
-        (response as { message?: string })?.message || "Request approved."
-      );
+      if (approveIds.length === 1) {
+        const response = await api.put.approveJoinRequest({
+          id: approveIds[0],
+          position_id: positionId,
+          ...common,
+        });
+        showNotification(responseMessage(response, "Request approved"));
+      } else {
+        const response = await api.post.bulkJoinRequestAction({
+          ids: approveIds,
+          action: "approve",
+          position_id: sharedDepartment ? positionId : undefined,
+          ...common,
+        });
+        const results = (response.data ?? []) as { ok?: boolean; message?: string }[];
+        const failed = results.filter((result) => result.ok === false);
+        const ok = results.length ? results.length - failed.length : approveIds.length;
+        showNotification(
+          failed.length
+            ? `${ok} approved · ${failed.length} failed. ${failed[0]?.message ?? ""}`.trim()
+            : `${ok} requests approved`,
+          failed.length ? "error" : "success"
+        );
+      }
+      await afterDecision();
+      return true;
     } catch (error) {
-      handleError(error, "Unable to approve request.");
-    } finally {
-      setSubmitting(false);
+      showNotification(errorText(error, "Unable to approve."), "error");
+      return false;
     }
   };
 
-  // ---- Single decline ----
-  const submitDecline = async () => {
-    if (!declineTarget) return;
-    setSubmitting(true);
+  const submitDecline = async (reason: string) => {
     try {
-      const response = await api.put.declineJoinRequest({
-        id: declineTarget.id,
-        decline_reason: declineReason.trim() || undefined,
-      });
-      await afterAction(
-        (response as { message?: string })?.message || "Request declined."
-      );
+      if (declineIds.length === 1) {
+        const response = await api.put.declineJoinRequest({
+          id: declineIds[0],
+          decline_reason: reason,
+        });
+        showNotification(responseMessage(response, "Request declined"));
+      } else {
+        const response = await api.post.bulkJoinRequestAction({
+          ids: declineIds,
+          action: "decline",
+          decline_reason: reason,
+        });
+        const results = (response.data ?? []) as { ok?: boolean; message?: string }[];
+        const failed = results.filter((result) => result.ok === false);
+        const ok = results.length ? results.length - failed.length : declineIds.length;
+        showNotification(
+          failed.length
+            ? `${ok} declined · ${failed.length} failed. ${failed[0]?.message ?? ""}`.trim()
+            : `${ok} requests declined`,
+          failed.length ? "error" : "success"
+        );
+      }
+      await afterDecision();
+      return true;
     } catch (error) {
-      handleError(error, "Unable to decline request.");
-    } finally {
-      setSubmitting(false);
+      showNotification(errorText(error, "Unable to decline."), "error");
+      return false;
     }
   };
 
-  // ---- Bulk ----
-  const submitBulk = async () => {
-    if (!bulkMode || selectedIds.length === 0) return;
-    setSubmitting(true);
-    try {
-      const response = await api.post.bulkJoinRequestAction({
-        ids: selectedIds,
-        action: bulkMode,
-        ...(bulkMode === "approve"
-          ? {
-              start_date: startDate || undefined,
-              instructions: instructions.trim() || undefined,
-            }
-          : { decline_reason: declineReason.trim() || undefined }),
-      });
-      await afterAction(
-        (response as { message?: string })?.message ||
-          `Requests ${bulkMode === "approve" ? "approved" : "declined"}.`
-      );
-    } catch (error) {
-      handleError(error, "Unable to process bulk action.");
-    } finally {
-      setSubmitting(false);
-    }
+  const details = (request: JoinRequestRow) => {
+    const { main, sub } = joinRequestDetails(request);
+    return <CellText main={main} sub={sub} />;
   };
 
-  const confirmPositionOptions = confirmTarget
-    ? positionsByDept.get(confirmTarget.department_id ?? -1) ?? []
-    : [];
+  const columns: GridColumn<JoinRequestRow>[] = [
+    {
+      key: "member",
+      header: "Member",
+      width: "minmax(200px,2fr)",
+      render: (request) => (
+        <CellText
+          strong
+          main={request.member_name || "—"}
+          sub={memberCodes.get(String(request.member_id)) || undefined}
+        />
+      ),
+    },
+    {
+      key: "department",
+      header: "Department",
+      width: "1.2fr",
+      render: (request) => <CellText main={request.department_name || "—"} />,
+    },
+    {
+      key: "requested",
+      header: "Requested",
+      width: "1.1fr",
+      render: (request) => (
+        <CellText
+          main={formatDate(request.requested_at)}
+          sub={daysAgoLabel(request.requested_at)}
+        />
+      ),
+    },
+    { key: "details", header: "Details", width: "1.6fr", render: details },
+  ];
+
+  const singleApprove = approveTargets.length === 1 ? approveTargets[0] : null;
 
   return (
-    <section className="space-y-4">
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h2 className="text-lg font-semibold text-primary">
-            Join Department Requests
-          </h2>
-          <p className="text-sm text-primaryGray">
-            Review requests members have raised to join a department or ministry.
-          </p>
-        </div>
-
-        <div className="flex flex-wrap gap-2 rounded-lg border border-lightGray p-1">
-          {STATUS_TABS.map((tab) => (
-            <button
-              key={tab.value}
-              type="button"
-              onClick={() => {
-                setStatusFilter(tab.value);
-                setSelectedIds([]);
-              }}
-              className={`rounded-lg px-3 py-1.5 text-sm transition ${
-                statusFilter === tab.value
-                  ? "bg-lightGray font-semibold text-primary"
-                  : "text-primary/80 hover:bg-lightGray/60"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {statusFilter === "PENDING" && selectedIds.length > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">
-          <p className="text-sm font-medium text-primary">
-            {selectedIds.length} selected
-          </p>
-          <div className="flex gap-2">
-            <Button
-              value="Confirm Selected"
-              onClick={() => setBulkMode("approve")}
-            />
-            <Button
-              value="Decline Selected"
-              variant="secondary"
-              onClick={() => setBulkMode("decline")}
-            />
-          </div>
-        </div>
-      )}
-
-      {loading ? (
-        <p className="py-10 text-center text-sm text-primaryGray">Loading…</p>
-      ) : requests.length === 0 ? (
-        <EmptyState
-          scope="section"
-          msg="No requests found"
-          description="There are no join requests for this status."
+    <ManagerSection
+      title="Requests to join a department"
+      description="Members ask to serve from their portal. Approve with a position and start date, or decline with a reason."
+      query={query}
+      onQueryChange={setQuery}
+      toggle={
+        <PillTabs
+          ariaLabel="Filter"
+          value={status}
+          onChange={switchStatus}
+          tabs={STATUS_TABS.map((tab) => ({ ...tab, count: statusCounts[tab.key] }))}
         />
-      ) : (
-        <div className="overflow-x-auto rounded-2xl border border-lightGray">
-          <table className="w-full min-w-[720px] text-left text-sm">
-            <thead className="bg-lightGray/40 text-xs uppercase tracking-wide text-primaryGray">
-              <tr>
-                {statusFilter === "PENDING" && (
-                  <th className="px-4 py-3">
-                    <input
-                      type="checkbox"
-                      aria-label="Select all"
-                      checked={allSelected}
-                      onChange={toggleSelectAll}
-                    />
-                  </th>
-                )}
-                <th className="px-4 py-3">Date</th>
-                <th className="px-4 py-3">Member</th>
-                <th className="px-4 py-3">Phone</th>
-                <th className="px-4 py-3">Department</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {requests.map((request) => (
-                <tr
-                  key={request.id}
-                  className="border-t border-lightGray/70 hover:bg-lightGray/20"
-                >
-                  {statusFilter === "PENDING" && (
-                    <td className="px-4 py-3">
-                      <input
-                        type="checkbox"
-                        aria-label={`Select ${request.member_name ?? "request"}`}
-                        checked={selectedIds.includes(request.id)}
-                        onChange={() => toggleSelect(request.id)}
-                      />
-                    </td>
-                  )}
-                  <td className="px-4 py-3 text-primaryGray">
-                    {formatDate(request.requested_at)}
-                  </td>
-                  <td className="px-4 py-3 font-medium text-primary">
-                    {request.member_name || "—"}
-                  </td>
-                  <td className="px-4 py-3 text-primaryGray">
-                    {request.phone_number || "—"}
-                  </td>
-                  <td className="px-4 py-3 text-primaryGray">
-                    {request.department_name || "—"}
-                  </td>
-                  <td className="px-4 py-3">
-                    <Badge className={`px-3 py-1 text-xs ${statusBadgeClass(request.status)}`}>
-                      {request.status.charAt(0) +
-                        request.status.slice(1).toLowerCase()}
-                    </Badge>
-                  </td>
-                  <td className="px-4 py-3">
-                    {request.status === "PENDING" ? (
-                      <div className="flex justify-end gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setConfirmTarget(request)}
-                          className="inline-flex min-h-9 items-center rounded-lg border border-success/30 px-3 py-1.5 text-xs font-medium text-success transition hover:bg-success/5"
-                        >
-                          Confirm
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setDeclineTarget(request)}
-                          className="inline-flex min-h-9 items-center rounded-lg border border-error/30 px-3 py-1.5 text-xs font-medium text-error transition hover:bg-error/5"
-                        >
-                          Decline
-                        </button>
-                      </div>
-                    ) : request.status === "DECLINED" && request.decline_reason ? (
-                      <p className="text-right text-xs italic text-primaryGray">
-                        {request.decline_reason}
-                      </p>
-                    ) : (
-                      <p className="text-right text-xs text-primaryGray">—</p>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      }
+    >
+      {selectable && selected.length > 0 && (
+        <BulkBar
+          label={`${selected.length} ${selected.length === 1 ? "request" : "requests"} selected`}
+          onClear={() => setSelected([])}
+          actions={[
+            { label: "Approve selected", onClick: () => setApproveIds(selected.map(Number)) },
+            {
+              label: "Decline selected",
+              danger: true,
+              onClick: () => setDeclineIds(selected.map(Number)),
+            },
+          ]}
+        />
       )}
 
-      {/* Single confirm modal */}
-      <Modal
-        open={Boolean(confirmTarget)}
-        persist={false}
-        onClose={closeModals}
-      >
-        <FormHeader>
-          <div>
-            <p className="text-lg font-semibold">Confirm Join Request</p>
-            <p className="mt-1 text-sm text-white/80">
-              Add {confirmTarget?.member_name} to {confirmTarget?.department_name}
-              .
-            </p>
-          </div>
-        </FormHeader>
-        <div className="space-y-6 p-6">
-          <FormLayout $columns={1}>
-            <SelectField
-              id="position"
-              label="Position"
-              value={positionId}
-              options={confirmPositionOptions}
-              placeholder={
-                confirmPositionOptions.length
-                  ? "Select position"
-                  : "No positions configured for this department"
-              }
-              onChange={(_, value) => setPositionId(value ? String(value) : "")}
-            />
-            <InputDiv
-              id="start_date"
-              type="date"
-              label="Start Date"
-              value={startDate}
-              onChange={(_, value) => setStartDate(String(value))}
-            />
-            <InputDiv
-              id="instructions"
-              type="textarea"
-              label="Instructions (optional)"
-              value={instructions}
-              placeholder="Any onboarding note for the member."
-              onChange={(_, value) => setInstructions(String(value))}
-            />
-          </FormLayout>
-          <div className="flex justify-end gap-3 border-t border-lightGray pt-4">
-            <Button value="Cancel" variant="ghost" onClick={closeModals} />
-            <Button
-              value="Confirm & Add"
-              onClick={submitConfirm}
-              loading={submitting}
-            />
-          </div>
-        </div>
-      </Modal>
+      {rows.length > 0 || (joinsLoading && joinRequests.length === 0) ? (
+        <>
+          <GridTable
+            columns={columns}
+            rows={visible}
+            getRowId={(request) => String(request.id)}
+            selectable={selectable}
+            selectedIds={selected}
+            onToggleRow={toggleRow}
+            onToggleAll={toggleAll}
+            onRowClick={(request) => {
+              if (request.member_id) navigate(`/home/members/${encodeQuery(request.member_id)}`);
+            }}
+            minWidth="900px"
+            loading={joinsLoading}
+            renderActions={(request) =>
+              request.status === "PENDING" ? (
+                !canDecide ? (
+                  <Pill tone="neutral">Pending</Pill>
+                ) : (
+                <>
+                  <UiButton tone="primary" size="sm" onClick={() => setApproveIds([request.id])}>
+                    Approve
+                  </UiButton>
+                  <UiButton tone="danger" size="sm" onClick={() => setDeclineIds([request.id])}>
+                    Decline
+                  </UiButton>
+                </>
+                )
+              ) : request.status === "APPROVED" ? (
+                <Pill tone="success">Approved</Pill>
+              ) : (
+                <Pill tone="danger">Declined</Pill>
+              )
+            }
+          />
+          <ShowMoreRows remaining={remaining} onClick={showMore} />
+        </>
+      ) : (
+        <ManagerEmpty
+          query={query}
+          onResetQuery={() => setQuery("")}
+          title={`No ${status.toLowerCase()} requests`}
+          text="Join requests will show here as members send them."
+        />
+      )}
 
-      {/* Single decline modal */}
-      <Modal
-        open={Boolean(declineTarget)}
-        persist={false}
-        onClose={closeModals}
-      >
-        <FormHeader>
-          <div>
-            <p className="text-lg font-semibold">Decline Join Request</p>
-            <p className="mt-1 text-sm text-white/80">
-              Let {declineTarget?.member_name} know why their request was
-              declined.
-            </p>
-          </div>
-        </FormHeader>
-        <div className="space-y-6 p-6">
-          <FormLayout $columns={1}>
-            <InputDiv
-              id="decline_reason"
-              type="textarea"
-              label="Justification"
-              value={declineReason}
-              placeholder="Reason for declining this request."
-              onChange={(_, value) => setDeclineReason(String(value))}
-            />
-          </FormLayout>
-          <div className="flex justify-end gap-3 border-t border-lightGray pt-4">
-            <Button value="Cancel" variant="ghost" onClick={closeModals} />
-            <Button
-              value="Decline Request"
-              variant="secondary"
-              onClick={submitDecline}
-              loading={submitting}
-              disabled={!declineReason.trim()}
-            />
-          </div>
-        </div>
-      </Modal>
+      <ApproveJoinDialog
+        open={approveIds.length > 0}
+        title={
+          singleApprove
+            ? `Approve ${singleApprove.member_name || "request"}`
+            : `Approve ${approveIds.length} requests`
+        }
+        subtitle={
+          singleApprove
+            ? `Add them to ${singleApprove.department_name || "the department"}. They will be notified with the details below.`
+            : "Each member will be added to the department they asked to join."
+        }
+        positionOptions={sharedDepartment ? positionsFor(sharedDepartment) : null}
+        positionNote={
+          sharedDepartment
+            ? undefined
+            : "These requests are for different departments, so set positions from each member's profile later."
+        }
+        onClose={() => setApproveIds([])}
+        onSubmit={submitApprove}
+      />
 
-      {/* Bulk modal */}
-      <Modal open={Boolean(bulkMode)} persist={false} onClose={closeModals}>
-        <FormHeader>
-          <div>
-            <p className="text-lg font-semibold">
-              {bulkMode === "approve"
-                ? "Confirm Selected Requests"
-                : "Decline Selected Requests"}
-            </p>
-            <p className="mt-1 text-sm text-white/80">
-              This will apply to {selectedIds.length} request(s).
-            </p>
-          </div>
-        </FormHeader>
-        <div className="space-y-6 p-6">
-          <FormLayout $columns={1}>
-            {bulkMode === "approve" ? (
-              <>
-                <p className="text-sm text-primaryGray">
-                  Positions differ per department, so set them individually
-                  later if needed. A shared start date and instructions can be
-                  applied now.
-                </p>
-                <InputDiv
-                  id="bulk_start_date"
-                  type="date"
-                  label="Start Date (optional)"
-                  value={startDate}
-                  onChange={(_, value) => setStartDate(String(value))}
-                />
-                <InputDiv
-                  id="bulk_instructions"
-                  type="textarea"
-                  label="Instructions (optional)"
-                  value={instructions}
-                  onChange={(_, value) => setInstructions(String(value))}
-                />
-              </>
-            ) : (
-              <InputDiv
-                id="bulk_decline_reason"
-                type="textarea"
-                label="Justification"
-                value={declineReason}
-                placeholder="Reason for declining these requests."
-                onChange={(_, value) => setDeclineReason(String(value))}
-              />
-            )}
-          </FormLayout>
-          <div className="flex justify-end gap-3 border-t border-lightGray pt-4">
-            <Button value="Cancel" variant="ghost" onClick={closeModals} />
-            <Button
-              value={bulkMode === "approve" ? "Confirm All" : "Decline All"}
-              variant={bulkMode === "approve" ? "default" : "secondary"}
-              onClick={submitBulk}
-              loading={submitting}
-              disabled={bulkMode === "decline" && !declineReason.trim()}
-            />
-          </div>
-        </div>
-      </Modal>
-    </section>
+      <DeclineReasonDialog
+        open={declineIds.length > 0}
+        count={declineIds.length}
+        audience="member"
+        onClose={() => setDeclineIds([])}
+        onSubmit={submitDecline}
+      />
+    </ManagerSection>
   );
 };
 

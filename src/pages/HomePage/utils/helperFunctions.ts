@@ -1,9 +1,13 @@
+import { notify, recentApiErrorToast } from "@/components/feedback/notify";
 import {
   useDialogStore,
   useLoaderStore,
   useNotificationStore,
 } from "../store/globalComponentsStore";
-import type { AlertDetailSection } from "../store/globalComponentsStore";
+import type {
+  AlertDetailSection,
+  ConfirmDialogOptions,
+} from "../store/globalComponentsStore";
 
 type DialogValue = {
   id: string | number;
@@ -18,44 +22,80 @@ export const maxMinValueForDate = () => {
   return { minDate, maxDate };
 };
 
-export const showDeleteDialog = <T extends DialogValue>(
-  val: T,
-  handleDelete: (id: string | number) => void
-) => {
+const isPromise = (value: unknown): value is Promise<unknown> =>
+  !!value && typeof (value as Promise<unknown>).then === "function";
+
+/**
+ * Opens the global confirm dialog. If `onConfirm` returns a promise the
+ * dialog shows a spinner, closes on success and shows the error inside on
+ * failure.
+ */
+export const confirmAction = (options: ConfirmDialogOptions) => {
   const dialogStore = useDialogStore.getState();
   dialogStore.setDialog({
-    name: val.name,
+    ...options,
     showModal: true,
     onConfirm: () => {
-      handleDelete(val.id);
+      const result = options.onConfirm();
+      if (isPromise(result)) return result;
       dialogStore.dialogDataReset();
     },
-    onCancel: dialogStore.dialogDataReset,
+    onCancel: () => {
+      options.onCancel?.();
+      dialogStore.dialogDataReset();
+    },
+  });
+};
+
+export const showDeleteDialog = <T extends DialogValue>(
+  val: T,
+  handleDelete: (id: string | number) => void | Promise<unknown>,
+  options?: Partial<Omit<ConfirmDialogOptions, "onConfirm">>
+) => {
+  confirmAction({
+    title: `Delete ${val.name}?`,
+    confirmLabel: "Delete",
+    tone: "danger",
+    ...options,
+    onConfirm: () => handleDelete(val.id),
   });
 };
 
 export const showConfirmDialog = (
   title: string,
-  onConfirm: () => void,
-  options?: { message?: string; confirmLabel?: string }
+  onConfirm: () => void | Promise<unknown>,
+  options?: Partial<Omit<ConfirmDialogOptions, "title" | "onConfirm">>
 ) => {
-  const dialogStore = useDialogStore.getState();
-  dialogStore.setDialog({
+  confirmAction({
     title,
-    message: options?.message,
-    confirmLabel: options?.confirmLabel,
-    showModal: true,
-    onConfirm: () => {
-      onConfirm();
-      dialogStore.dialogDataReset();
-    },
-    onCancel: dialogStore.dialogDataReset,
+    confirmLabel: "Confirm",
+    tone: "default",
+    points: [],
+    ...options,
+    onConfirm,
   });
 };
 
+// Legacy titles that only restate the tone; the message makes a better title.
+const GENERIC_TITLES = new Set([
+  "error",
+  "success",
+  "action",
+  "action failed",
+  "action completed",
+  "failed",
+  "warning",
+  "info",
+  "notice",
+]);
+
+/**
+ * Legacy wrapper kept during migration. Prefer `notify` from
+ * "@/components/feedback" for new code.
+ */
 export const showNotification = (
   message: string,
-  type: "success" | "error" = "success",
+  type: "success" | "error" | "info" | "warning" = "success",
   optionsOrOnClose?:
     | {
         title?: string;
@@ -83,15 +123,27 @@ export const showNotification = (
     durationMs = optionsOrOnClose.durationMs;
   }
 
-  const notification = useNotificationStore.getState().setNotification;
-  notification({
-    message,
-    show: true,
-    onClose,
-    type,
-    title,
+  const useTitle = !!title && !GENERIC_TITLES.has(title.trim().toLowerCase());
+
+  // The request already raised an error toast; fold this copy into it.
+  const recent = type === "error" ? recentApiErrorToast() : undefined;
+  if (recent) {
+    const text = message.trim();
+    const repeatsServer = text === recent.message || text === recent.title;
+    useNotificationStore.getState().patch(recent.id, {
+      source: undefined,
+      ...(repeatsServer ? {} : { title: useTitle ? (title as string) : text }),
+      ...(useTitle && !repeatsServer ? { message: text } : {}),
+    });
+    return;
+  }
+
+  notify[type]({
+    title: useTitle ? (title as string) : message,
+    message: useTitle ? message : undefined,
     details,
-    durationMs,
+    onClose,
+    duration: durationMs,
   });
 };
 

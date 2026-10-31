@@ -111,7 +111,21 @@ export interface MessageDispatch {
   } | null;
   createdBy: number | null;
   createdByName?: string | null;
+  /** "Whole church", a department name, "Departments (3)" or "4 people". List only. */
+  audienceLabel?: string | null;
   createdAt: string;
+}
+
+export type DispatchFilter = "all" | "scheduled" | "sent" | "failed";
+
+export interface MessagingOverview {
+  days: number;
+  messagesSent: number;
+  delivered: number;
+  failed: number;
+  /** Percent with one decimal, or null when nothing was attempted. */
+  deliveryRate: number | null;
+  smsSegmentsUsed: number;
 }
 
 export interface CreateGeneralMessageDto {

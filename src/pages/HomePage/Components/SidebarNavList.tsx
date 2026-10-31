@@ -1,9 +1,11 @@
 import type { AppRoute } from "@/routes/appRoutes";
+import { Fragment } from "react";
 import { sidebarIcons } from "../utils";
 import { SidebarItem } from "./SidebarItem";
 
 interface Props {
-  items: AppRoute[];
+  /** Sections of the rail; a divider is drawn between them. */
+  groups: AppRoute[][];
   show: boolean;
   openMenus: Record<string, boolean>;
   activeTabNames: Record<string, boolean>;
@@ -14,7 +16,7 @@ interface Props {
 }
 
 export const SidebarNavList = ({
-  items,
+  groups,
   show,
   openMenus,
   activeTabNames,
@@ -25,25 +27,32 @@ export const SidebarNavList = ({
 }: Props) => {
   return (
     <>
-      {items.map((item) => {
-        const IconComponent = sidebarIcons[item.name];
-        if (!IconComponent) return null;
+      {groups.map((group, groupIndex) => (
+        <Fragment key={group[0]?.name ?? groupIndex}>
+          {groupIndex > 0 && (
+            <div aria-hidden="true" className="mx-3 my-2 h-px bg-lightGray" />
+          )}
+          {group.map((item) => {
+            const IconComponent = sidebarIcons[item.name];
+            if (!IconComponent) return null;
 
-        return (
-          <SidebarItem
-            key={`${item.name}-${item.path}`}
-            item={item}
-            IconComponent={IconComponent}
-            isActive={activeTabNames[item.name] || false}
-            isExpanded={show}
-            openMenus={openMenus}
-            toggleSubMenu={onToggleSubMenu}
-            onNavigate={onNavigate}
-            onParentMenuActivate={onParentMenuActivate}
-            iconClassName={iconClassName}
-          />
-        );
-      })}
+            return (
+              <SidebarItem
+                key={`${item.name}-${item.path}`}
+                item={item}
+                IconComponent={IconComponent}
+                isActive={activeTabNames[item.name] || false}
+                isExpanded={show}
+                openMenus={openMenus}
+                toggleSubMenu={onToggleSubMenu}
+                onNavigate={onNavigate}
+                onParentMenuActivate={onParentMenuActivate}
+                iconClassName={iconClassName}
+              />
+            );
+          })}
+        </Fragment>
+      ))}
     </>
   );
 };

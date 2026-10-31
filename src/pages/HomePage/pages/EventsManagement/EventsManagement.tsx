@@ -1,675 +1,599 @@
-import { useDelete } from "@/CustomHooks/useDelete";
-import { useFetch } from "@/CustomHooks/useFetch";
-import { usePaginationQueryParams } from "@/CustomHooks/usePaginationQueryParams";
-import { api } from "@/utils/api/apiCalls";
-import { QueryType } from "@/utils/interfaces";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
+
+import { notify } from "@/components/feedback";
+import { useFetch } from "@/CustomHooks/useFetch";
+import PageOutline from "@/pages/HomePage/Components/PageOutline";
+import { confirmAction } from "@/pages/HomePage/utils/helperFunctions";
+import { api } from "@/utils/api/apiCalls";
+import { cn } from "@/utils/cn";
+
+import EventDetailDrawer from "./Components/EventDetailDrawer";
+import { Dot, EmptyBox, PageHeading, Pill, type PillTone, SearchInput, Segmented, UiButton } from "./Components/eventsUi";
+import ScheduleEventEditor, { type ScheduleEditorMode } from "./Components/ScheduleEventEditor";
 import SeriesScopeModal, { type SeriesScope } from "./Components/SeriesScopeModal";
-import useWindowSize from "../../../../CustomHooks/useWindowSize";
-import PageOutline from "../../Components/PageOutline";
-import GridComponent from "../../Components/reusable/GridComponent";
-import { PaginationComponent } from "../../Components/reusable/PaginationComponent";
-import { showDeleteDialog, showNotification } from "../../utils";
-import { EventsCard } from "./Components/EventsCard";
-import { EventsManagerHeader } from "./Components/EventsManagerHeader";
-import { eventColumns } from "./utils/eventHelpers";
-// import { EventType } from "./utils/eventInterfaces"; // Added proper type definition
-import EmptyState from "@/components/EmptyState";
-import { HeaderControls } from "@/components/HeaderControls";
-import { useStore } from "@/store/useStore";
-import Calendar from "./Components/Calenda";
-import { eventType } from "./utils/eventInterfaces";
-import { CalendarEvent } from "./Components/calenda/utils/CalendaHelpers";
+import { useEventsAccess } from "./utils/useEventsAccess";
+import {
+  addDays,
+  attendanceFor,
+  audienceLabel,
+  clockLabel,
+  coversDay,
+  type EventRecord,
+  fmtLongDay,
+  fmtShortDay,
+  lastDayOfMonth,
+  MONTHS,
+  monthKeyOf,
+  monthTitle,
+  plural,
+  repeatLabel,
+  type ScheduledEvent,
+  shiftMonth,
+  sortBySchedule,
+  statusOf,
+  TYPE_TABS,
+  type TypeFilter,
+  todayKey,
+  toScheduled,
+  typeColor,
+  typeLabel,
+  WEEKDAYS,
+  weekdayOf,
+} from "./utils/eventsModel";
+import { useHeadcounts } from "./utils/useEventsData";
+import useSettingsStore from "../Settings/utils/settingsStore";
 
-const SHOW_UPCOMING_STORAGE_KEY = "eventsShowUpcoming_v2";
+type View = "list" | "month";
+const VIEW_KEY = "eventsScheduleView_v3";
 
-type MonthYearFilter = { month: number; year: number };
-type GroupMode = "date" | "type";
-
-const getCurrentMonthSelection = () => {
-  const now = new Date();
-  return {
-    month: now.getMonth() + 1,
-    year: now.getFullYear(),
-    date: new Date(now.getFullYear(), now.getMonth(), 1),
-  };
-};
-
-const getEventSortTimestamp = (event: Pick<eventType, "start_date" | "start_time">) => {
-  if (!event.start_date) {
-    return Number.POSITIVE_INFINITY;
+const readView = (): View => {
+  try {
+    return localStorage.getItem(VIEW_KEY) === "month" ? "month" : "list";
+  } catch {
+    return "list";
   }
-
-  const dateTime = event.start_time
-    ? new Date(`${event.start_date}T${event.start_time}`)
-    : new Date(event.start_date);
-  const timestamp = dateTime.getTime();
-
-  return Number.isNaN(timestamp) ? Number.POSITIVE_INFINITY : timestamp;
 };
 
-const compareEventsBySchedule = (a: eventType, b: eventType) => {
-  const aTimestamp = getEventSortTimestamp(a);
-  const bTimestamp = getEventSortTimestamp(b);
-
-  if (aTimestamp !== bTimestamp) {
-    if (!Number.isFinite(aTimestamp)) return 1;
-    if (!Number.isFinite(bTimestamp)) return -1;
-    return aTimestamp - bTimestamp;
-  }
-
-  const nameComparison = String(a.event_name || "").localeCompare(
-    String(b.event_name || "")
-  );
-
-  if (nameComparison !== 0) {
-    return nameComparison;
-  }
-
-  return String(a.id ?? "").localeCompare(String(b.id ?? ""));
+const STATUS_PILL: Record<string, [string, PillTone]> = {
+  live: ["Happening now", "success"],
+  ended: ["Ended", "neutral"],
+  upcoming: ["Upcoming", "info"],
 };
 
-const compareEventsByReportPageOrder = (a: eventType, b: eventType) => {
-  const aDate = new Date(a.start_date || "").getTime();
-  const bDate = new Date(b.start_date || "").getTime();
-
-  if (Number.isNaN(aDate) && Number.isNaN(bDate)) return 0;
-  if (Number.isNaN(aDate)) return 1;
-  if (Number.isNaN(bDate)) return -1;
-
-  return aDate - bDate;
-};
+type RowEvent = ScheduledEvent & { status: ReturnType<typeof statusOf> };
 
 const EventsManagement = () => {
-  const navigate = useNavigate();
-  const DEFAULT_EVENTS_PAGE_SIZE = 99;
-  const { page, take, setPage } = usePaginationQueryParams(
-    DEFAULT_EVENTS_PAGE_SIZE
-  );
-
-  /*api calls */
-  const { refetch } = useFetch(api.fetch.fetchEvents, {}, false);
-  const { screenWidth } = useWindowSize();
-  const { executeDelete } = useDelete(api.delete.deleteEvent);
-
-  // const [events, setEvents] = useState<eventType[]>([]);
-  const { events, setEvents } = useStore((state) => ({
-    events: state.events,
-    setEvents: state.setEvents,
+  const [params, setParams] = useSearchParams();
+  const today = todayKey();
+  const access = useEventsAccess();
+  const canManageEvents = access.create;
+  const { departments, positions } = useSettingsStore((state) => ({
+    departments: state.departments,
+    positions: state.positions,
   }));
-  const [showSearch, setShowSearch] = useState(false);
-  const [showFilter, setShowFilter] = useState(false);
-  const [filterDate, setFilterDate] = useState<Date | null>(
-    () => getCurrentMonthSelection().date
-  );
-  const [filterEvents, setFilterEvents] = useState<string>("");
-  const [selectedEventId, setSelectedEventId] = useState("");
-  const [availableEvents, setAvailableEvents] = useState<eventType[]>([]);
-  const [totalEvents, setTotalEvents] = useState(0);
-  const [showOptions, setShowOptions] = useState<string | number | null>(null);
 
-  // ── Series scope modal state ──────────────────────────────────────────────
-  type SeriesModalState =
-    | { open: false }
-    | { open: true; action: "edit" | "delete"; event: CalendarEvent };
-  const [seriesModal, setSeriesModal] = useState<SeriesModalState>({ open: false });
-  const [tableView, setTableView] = useState<boolean>(() => {
-    try {
-      return JSON.parse(localStorage.getItem("tableView") || "false");
-    } catch {
-      return false;
-    }
-  });
-
-  const [showUpcoming, setShowUpcoming] = useState<boolean>(() => {
-    try {
-      const storedValue = localStorage.getItem(SHOW_UPCOMING_STORAGE_KEY);
-      if (storedValue === null) {
-        return true;
-      }
-
-      const parsedValue = JSON.parse(storedValue);
-      return typeof parsedValue === "boolean" ? parsedValue : true;
-    } catch {
-      return true;
-    }
-  });
+  const month = /^\d{4}-\d{2}$/.test(params.get("month") ?? "") ? String(params.get("month")) : monthKeyOf(today);
+  const eventFilter = params.get("event") ?? "";
+  const [view, setView] = useState<View>(readView);
+  const [type, setType] = useState<TypeFilter>("all");
+  const [query, setQuery] = useState("");
+  const [showPast, setShowPast] = useState(false);
+  const [selDay, setSelDay] = useState(month === monthKeyOf(today) ? today : `${month}-01`);
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [editor, setEditor] = useState<ScheduleEditorMode | null>(null);
+  const [deleteScope, setDeleteScope] = useState<ScheduledEvent | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem(
-      SHOW_UPCOMING_STORAGE_KEY,
-      JSON.stringify(showUpcoming)
-    );
-  }, [showUpcoming]);
-
-  const [groupMode, setGroupMode] = useState<GroupMode>("date");
-  const [activeDateFilter, setActiveDateFilter] = useState<MonthYearFilter>(
-    () => {
-      const { month, year } = getCurrentMonthSelection();
-      return { month, year };
+    try {
+      localStorage.setItem(VIEW_KEY, view);
+    } catch {
+      /* private mode */
     }
-  );
+  }, [view]);
 
-  const [openAccordions, setOpenAccordions] = useState<
-    Record<string, boolean>
-  >({});
-
-  const normalizeEvents = useCallback((data: unknown[]): eventType[] => {
-    return data.map((event) => {
-      const normalizedEvent = event as eventType & { name?: string };
-      return {
-        ...normalizedEvent,
-        event_name: normalizedEvent.event_name ?? normalizedEvent.name ?? "",
-        event_name_id: normalizedEvent.event_name_id ?? normalizedEvent.id ?? "",
-      };
-    });
-  }, []);
-
-  const fetchEventsPage = useCallback(
-    async (
-      pageNumber: number,
-      pageSize: number,
-      monthYearFilter: MonthYearFilter,
-      eventId: string
-    ) => {
-      const query: QueryType = {
-        page: pageNumber,
-        page_size: pageSize,
-        take: pageSize,
-        month: monthYearFilter.month,
-        year: monthYearFilter.year,
-      };
-
-      if (eventId) {
-        query.event_id = eventId;
-      }
-
-      const response = await refetch(query);
-      const result = response?.data ?? [];
-      const normalized = Array.isArray(result) ? normalizeEvents(result) : [];
-
-      setEvents(normalized);
-      setTotalEvents(response?.meta?.total ?? normalized.length);
-
-      return normalized.length;
+  const setParam = useCallback(
+    (key: string, value: string | null) => {
+      setParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          if (value) next.set(key, value);
+          else next.delete(key);
+          return next;
+        },
+        { replace: true }
+      );
     },
-    [normalizeEvents, refetch, setEvents]
+    [setParams]
   );
 
-  useEffect(() => {
-    void fetchEventsPage(page, take, activeDateFilter, selectedEventId);
-  }, [activeDateFilter, fetchEventsPage, page, selectedEventId, take]);
+  const goMonth = (next: string) => {
+    setParam("month", next === monthKeyOf(today) ? null : next);
+    setSelDay(next === monthKeyOf(today) ? today : `${next}-01`);
+  };
 
-  useEffect(() => {
-    let isActive = true;
+  /* --------------------------------- Data --------------------------------- */
 
-    const loadAvailableEvents = async () => {
-      try {
-        const response = await api.fetch.fetchEvents({
-          page: 1,
-          page_size: 500,
-          take: 500,
-          month: activeDateFilter.month,
-          year: activeDateFilter.year,
-        });
-        const result = response?.data ?? [];
-        const normalized = Array.isArray(result) ? normalizeEvents(result) : [];
+  const fetchQuery = useMemo(
+    () => ({ month: Number(month.slice(5, 7)), year: Number(month.slice(0, 4)), page: 1, take: 500 }),
+    [month]
+  );
+  const { data, refetch } = useFetch(api.fetch.fetchEvents, fetchQuery);
+  const { headcounts } = useHeadcounts();
 
-        if (!isActive) {
-          return;
-        }
+  const monthEvents = useMemo(() => {
+    const list = Array.isArray(data?.data) ? (data!.data as unknown as EventRecord[]) : [];
+    return list.map(toScheduled).filter((event) => event.date).sort(sortBySchedule);
+  }, [data]);
 
-        setAvailableEvents(normalized);
-      } catch {
-        if (isActive) {
-          setAvailableEvents([]);
-        }
+  const filterName = useMemo(() => {
+    if (!eventFilter) return "";
+    return monthEvents.find((event) => event.eventNameId === eventFilter)?.name ?? "this event";
+  }, [eventFilter, monthEvents]);
+
+  const q = query.trim().toLowerCase();
+  const filtered = useMemo(
+    () =>
+      monthEvents.filter(
+        (event) =>
+          (type === "all" || event.type === type) &&
+          (!eventFilter || event.eventNameId === eventFilter) &&
+          (!q || `${event.name} ${event.location}`.toLowerCase().includes(q))
+      ),
+    [eventFilter, monthEvents, q, type]
+  );
+
+  const isCurrentMonth = month === monthKeyOf(today);
+  const hidingPast = isCurrentMonth && !showPast;
+  const shown = useMemo(
+    () => (hidingPast ? filtered.filter((event) => event.endDate >= today) : filtered),
+    [filtered, hidingPast, today]
+  );
+  const pastCount = filtered.length - shown.length;
+
+  const days = useMemo(() => {
+    const groups: { date: string; items: RowEvent[] }[] = [];
+    shown.forEach((event) => {
+      let group = groups.find((item) => item.date === event.date);
+      if (!group) {
+        group = { date: event.date, items: [] };
+        groups.push(group);
       }
-    };
+      group.items.push({ ...event, status: statusOf(event) });
+    });
+    return groups;
+  }, [shown]);
 
-    void loadAvailableEvents();
+  const filtersOn = Boolean(q || type !== "all" || eventFilter);
+  const emptyText = filtered.length
+    ? "Nothing else this month."
+    : filtersOn
+      ? "No events match these filters."
+      : `Nothing scheduled for ${MONTHS[Number(month.slice(5, 7)) - 1]} yet.`;
 
-    return () => {
-      isActive = false;
-    };
-  }, [activeDateFilter, normalizeEvents]);
+  /* -------------------------------- Actions ------------------------------- */
 
-  // Deleted the effect that synced data → events to avoid overwriting filtered results
+  const openNew = (date?: string) => {
+    const fallback = isCurrentMonth ? addDays(today, 1) : `${month}-01`;
+    const pick = date && date >= today ? date : fallback;
+    setOpenId(null);
+    setEditor({ kind: "new", prefill: { date: pick, eventNameId: eventFilter || undefined } });
+  };
 
-  // Handle screen width changes
-  useEffect(() => {
-    if (screenWidth <= 540) {
-      setTableView(false);
-      document.getElementById("switch")?.classList.add("hidden");
+  const runDelete = async (event: ScheduledEvent, scope: SeriesScope) => {
+    const seriesId = event.seriesId;
+    if (scope === "this" || !seriesId) {
+      await api.delete.deleteEvent({ id: event.id });
+    } else if (scope === "following") {
+      await api.delete.deleteEventSeriesFrom({ series_id: seriesId, from_date: event.date });
     } else {
-      document.getElementById("switch")?.classList.remove("hidden");
+      await api.delete.deleteEventSeries({ series_id: seriesId });
     }
-  }, [screenWidth, tableView]);
-
-  // Navigation handler
-  const handleNavigation = useCallback(
-    (path: string) => {
-      navigate(path);
-    },
-    [navigate]
-  );
-
-  // Filter handler
-  const handleFilter = useCallback(
-    (val: { year: number; month: number; date: Date }) => {
-      setFilterDate(val.date);
-      setSelectedEventId("");
-      setActiveDateFilter({ month: val.month, year: val.year });
-      setPage(1);
-    },
-    [setPage]
-  );
-
-  const handleEventFilterChange = useCallback(
-    (value: string) => {
-      setSelectedEventId(value);
-      setPage(1);
-    },
-    [setPage]
-  );
-
-  // Search handler
-  const handleSearchChange = useCallback((val: string) => {
-    setFilterEvents(val);
-  }, []);
-
-  const handleResetFilters = useCallback(() => {
-    const currentMonth = getCurrentMonthSelection();
-
-    // reset UI state
-    setFilterEvents("");
-    setFilterDate(currentMonth.date);
-    setSelectedEventId("");
-    setGroupMode("date");
-    setOpenAccordions({});
-    setShowUpcoming(true);
-    setActiveDateFilter({
-      month: currentMonth.month,
-      year: currentMonth.year,
+    notify.success({
+      title: scope === "this" || !seriesId ? "Event deleted" : "Events deleted",
+      message:
+        scope === "all" && seriesId
+          ? `Every date of ${event.name} was removed. Registrations for them were removed too.`
+          : scope === "following" && seriesId
+            ? `${event.name} was removed from ${fmtShortDay(event.date)} onward.`
+            : `${event.name} on ${fmtShortDay(event.date)} was removed.`,
     });
-
-    // clear persisted filters
-    localStorage.removeItem(SHOW_UPCOMING_STORAGE_KEY);
-    setPage(1);
-  }, [setPage]);
-
-  // Toggle view handler
-  const handleToggleView = useCallback((view: boolean) => {
-    setTableView(view);
-    localStorage.setItem("tableView", JSON.stringify(view));
-  }, []);
-
-  // Show options handler
-  const handleShowOptions = useCallback((eventId: string | number) => {
-    setShowOptions((prevId) => (prevId === eventId ? null : eventId));
-  }, []);
-
-  // ── Core single-event delete (unchanged) ─────────────────────────────────
-  const handleDelete = useCallback(
-    async (id: string | number) => {
-      await executeDelete({ id: String(id) })
-        .then(() => {
-          showNotification("Event deleted successfully");
-          return fetchEventsPage(page, take, activeDateFilter, selectedEventId);
-        })
-        .then((currentPageItemCount) => {
-          if (currentPageItemCount === 0 && page > 1) {
-            setPage(page - 1);
-          }
-        })
-        .catch(() => {
-          showNotification("Event could not be deleted", "error");
-        });
-    },
-    [activeDateFilter, executeDelete, fetchEventsPage, page, selectedEventId, setPage, take]
-  );
-
-  // ── Series-scope delete: called after user picks a scope in the modal ─────
-  const handleSeriesDelete = useCallback(
-    async (event: CalendarEvent, scope: SeriesScope) => {
-      const seriesId = (event as any).recurrence_series_id as string | undefined;
-      const fromDate = event.start_date;
-
-      try {
-        if (scope === "this" || !seriesId) {
-          await executeDelete({ id: String(event.id) });
-        } else if (scope === "following") {
-          await api.delete.deleteEventSeriesFrom({ series_id: seriesId, from_date: fromDate });
-        } else {
-          await api.delete.deleteEventSeries({ series_id: seriesId });
-        }
-
-        showNotification("Event deleted successfully");
-        const count = await fetchEventsPage(page, take, activeDateFilter, selectedEventId);
-        if (count === 0 && page > 1) setPage(page - 1);
-      } catch {
-        showNotification("Event could not be deleted", "error");
-      }
-    },
-    [activeDateFilter, executeDelete, fetchEventsPage, page, selectedEventId, setPage, take]
-  );
-
-  // ── Delete entry-point: show scope modal if recurring, else normal dialog ─
-  const handleDeleteModal = useCallback(
-    (event: CalendarEvent) => {
-      const seriesId = (event as any).recurrence_series_id as string | undefined;
-      if (seriesId) {
-        setSeriesModal({ open: true, action: "delete", event });
-      } else {
-        showDeleteDialog(
-          { id: event.id, name: event.name ?? event.event_name ?? "Event" },
-          handleDelete
-        );
-      }
-    },
-    [handleDelete]
-  );
-
-  // ── Edit entry-point: show scope modal if recurring, else navigate directly ─
-  const handleEditEvent = useCallback(
-    (event: CalendarEvent) => {
-      const seriesId = (event as any).recurrence_series_id as string | undefined;
-      if (seriesId) {
-        setSeriesModal({ open: true, action: "edit", event });
-      } else {
-        navigate(`/home/manage-event?event_id=${event.id}`);
-      }
-    },
-    [navigate]
-  );
-
-  // ── Handles the user's choice in the scope modal ──────────────────────────
-  const handleSeriesModalConfirm = useCallback(
-    async (scope: SeriesScope) => {
-      if (!seriesModal.open) return;
-      const { action, event } = seriesModal;
-      setSeriesModal({ open: false });
-
-      if (action === "delete") {
-        await handleSeriesDelete(event, scope);
-      } else {
-        // Edit: navigate to the edit form with scope encoded in the URL
-        const params = new URLSearchParams({ event_id: String(event.id) });
-        if (scope !== "this") {
-          params.set("edit_scope", scope);
-          params.set("series_id", (event as any).recurrence_series_id ?? "");
-          params.set("series_from_date", event.start_date);
-        }
-        navigate(`/home/manage-event?${params.toString()}`);
-      }
-    },
-    [handleSeriesDelete, navigate, seriesModal]
-  );
-
-  const handleOpenEventDetails = useCallback(
-    (event: CalendarEvent) => {
-      navigate(`/home/events/events/view-event?event_id=${event.id}`);
-    },
-    [navigate]
-  );
-
-  const isPresentOrUpcomingEvent = (event: eventType) => {
-    if (!event.start_date) return false;
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const eventDate = new Date(event.start_date);
-    eventDate.setHours(0, 0, 0, 0);
-
-    return eventDate >= today;
+    setOpenId(null);
+    await refetch();
   };
 
-  // Filtered events based on search and year filter
-  const filteredEvents = useMemo(() => {
-    return [...events]
-      .filter((event) => {
-        if (showUpcoming) {
-          return isPresentOrUpcomingEvent(event);
-        }
-        return true;
-      })
-      .filter((event) =>
-        event?.event_name?.toLowerCase().includes(filterEvents.toLowerCase())
-      )
-      .sort(compareEventsByReportPageOrder);
-  }, [events, filterEvents, showUpcoming]);
-
-  const groupedEvents = useMemo(() => {
-    const groups = new Map<string, eventType[]>();
-
-    filteredEvents.forEach((event) => {
-      let key = "";
-
-      if (groupMode === "date") {
-        if (event.start_date) {
-          const date = new Date(event.start_date);
-          key = date.toLocaleString("default", {
-            month: "long",
-            year: "numeric",
-          });
-        } else {
-          key = "Unknown Month";
-        }
-      } else {
-        key = event.event_type || "Other";
-      }
-
-      if (!groups.has(key)) {
-        groups.set(key, []);
-      }
-
-      groups.get(key)?.push(event);
-    });
-
-    const groupedEntries = Array.from(groups.entries());
-    if (groupMode === "type") {
-      return groupedEntries.sort(([a], [b]) => a.localeCompare(b));
+  const askDelete = (event: ScheduledEvent) => {
+    if (event.seriesId) {
+      setDeleteScope(event);
+      return;
     }
-    return groupedEntries;
-  }, [filteredEvents, groupMode]);
-
-  useEffect(() => {
-    if (groupMode !== "date") return;
-    if (!groupedEvents.length) return;
-
-    const [mostRecent] = groupedEvents;
-
-    setOpenAccordions({
-      [mostRecent[0]]: true,
+    confirmAction({
+      title: `Delete ${event.name} on ${fmtShortDay(event.date)}?`,
+      points: event.registrations
+        ? [`${plural(event.registrations, "registration")} will be removed.`, "It disappears from the calendar and member app."]
+        : ["It disappears from the calendar and member app."],
+      confirmLabel: "Delete event",
+      tone: "danger",
+      onConfirm: () => runDelete(event, "this"),
     });
-  }, [groupMode, groupedEvents]);
-
-  const toggleAccordion = (key: string) => {
-    setOpenAccordions((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
   };
 
-  const eventOptions = useMemo(() => {
-    return [...availableEvents]
-      .sort(compareEventsBySchedule)
-      .map((event) => {
-        const startDate = new Date(event.start_date || "");
-        const hasValidDate = !Number.isNaN(startDate.getTime());
-        const formattedDate = hasValidDate
-          ? startDate.toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            })
-          : "";
+  const confirmScopedDelete = async (scope: SeriesScope) => {
+    if (!deleteScope) return;
+    setDeleting(true);
+    try {
+      await runDelete(deleteScope, scope);
+      setDeleteScope(null);
+    } catch (error) {
+      notify.fromError(error, { title: "Couldn't delete the event" });
+    } finally {
+      setDeleting(false);
+    }
+  };
 
-        return {
-          value: String(event.id),
-          label: formattedDate
-            ? `${event.event_name || "Event"} (${formattedDate})`
-            : String(event.event_name || "Event"),
-        };
+  const openEvent = monthEvents.find((event) => event.id === openId) ?? null;
+
+  /* -------------------------------- Calendar ------------------------------ */
+
+  const cells = useMemo(() => {
+    const first = `${month}-01`;
+    const last = lastDayOfMonth(month);
+    const lead = weekdayOf(first);
+    const list: { key: string; inMonth: boolean; events: ScheduledEvent[] }[] = [];
+    for (let index = 0; index < 42; index += 1) {
+      const key = addDays(first, index - lead);
+      if (index >= 35 && key > last) break;
+      if (index % 7 === 0 && key > last) break;
+      list.push({
+        key,
+        inMonth: key >= first && key <= last,
+        events: filtered.filter((event) => coversDay(event, key)),
       });
-  }, [availableEvents]);
+    }
+    return list;
+  }, [filtered, month]);
 
-  const calendarEvents = useMemo<CalendarEvent[]>(() => {
-    return filteredEvents.map((event) => ({
-      ...event,
-      qr_code: event.qr_code ?? undefined,
-    }));
-  }, [filteredEvents]);
+  const dayEvents = filtered.filter((event) => coversDay(event, selDay));
+
+  /* --------------------------------- Render ------------------------------- */
+
+  const rowMeta = (event: ScheduledEvent) => {
+    const audience = audienceLabel(event.raw, departments, positions);
+    const repeat = repeatLabel(event, monthEvents);
+    return [
+      event.location || "No location",
+      event.onlinePlatforms.length ? `Online on ${event.onlinePlatforms.join(", ")}` : "",
+      audience,
+      repeat,
+      event.multiDay ? `Until ${fmtShortDay(event.endDate)}` : "",
+    ]
+      .filter(Boolean)
+      .join(" · ");
+  };
 
   return (
-    <PageOutline>
-      {/* Series scope modal — renders above everything else */}
-      {seriesModal.open && (
-        <SeriesScopeModal
-          action={seriesModal.action}
-          eventName={seriesModal.event.event_name ?? seriesModal.event.name}
-          onConfirm={handleSeriesModalConfirm}
-          onCancel={() => setSeriesModal({ open: false })}
+    <PageOutline className="flex flex-col gap-4">
+      <div className="mb-2">
+        <PageHeading
+          title="Scheduled events"
+          subtitle="Every dated gathering on the church calendar. Members see these in the app."
+          actions={
+            canManageEvents ? (
+              <UiButton tone="primary" onClick={() => openNew()}>
+                Schedule event
+              </UiButton>
+            ) : undefined
+          }
         />
-      )}
-      <HeaderControls
-        title={`Events (${totalEvents || filteredEvents.length})`}
-        tableView={tableView}
-        handleViewMode={handleToggleView}
-        showFilter={showFilter}
-        setShowFilter={setShowFilter}
-        hasSearch={true}
-        hasFilter={!tableView}
-        showSearch={showSearch}
-        setShowSearch={setShowSearch}
-        handleClick={() => handleNavigation("/home/manage-event")}
-        screenWidth={screenWidth}
-        btnName="Schedule Event"
-        
-      />
-      <div className="flex items-center gap-2 mb-3">
-        <label className="flex items-center gap-2 text-sm cursor-pointer">
-          <input
-            type="checkbox"
-            checked={showUpcoming}
-            onChange={(e) => setShowUpcoming(e.target.checked)}
-            className="accent-primary"
-          />
-          Show present & upcoming events
-        </label>
       </div>
-      {!tableView && (
-        <div className="flex items-center gap-2 mb-4">
-          <span className="text-sm text-gray-600">Group by:</span>
+
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+        <div className="flex items-center gap-2">
           <button
-            onClick={() => setGroupMode("date")}
-            className={`px-3 py-1 rounded text-sm ${
-              groupMode === "date" ? "bg-primary text-white" : "bg-gray-100"
-            }`}
+            type="button"
+            aria-label="Previous month"
+            onClick={() => goMonth(shiftMonth(month, -1))}
+            className="h-10 w-10 rounded-lg border border-lightGray bg-white text-base text-primary hover:bg-gray-100"
           >
-            Event Date
+            ‹
+          </button>
+          <h2 aria-live="polite" className="min-w-[148px] text-center text-xl font-semibold leading-7 text-primary">
+            {monthTitle(month)}
+          </h2>
+          <button
+            type="button"
+            aria-label="Next month"
+            onClick={() => goMonth(shiftMonth(month, 1))}
+            className="h-10 w-10 rounded-lg border border-lightGray bg-white text-base text-primary hover:bg-gray-100"
+          >
+            ›
           </button>
           <button
-            onClick={() => setGroupMode("type")}
-            className={`px-3 py-1 rounded text-sm ${
-              groupMode === "type" ? "bg-primary text-white" : "bg-gray-100"
-            }`}
+            type="button"
+            onClick={() => goMonth(monthKeyOf(today))}
+            className="min-h-10 rounded-lg px-3 py-2 text-sm font-medium text-primary hover:bg-primary/5"
           >
-            Event Type
+            Today
           </button>
         </div>
-      )}
-      <div className={`flex gap-4 pb-4 ${!tableView ? "" : ""}`}>
-        {/* Events Manager Header */}
-        <EventsManagerHeader
-          onNavigate={handleNavigation}
-          onFilter={handleFilter}
-          onEventChange={handleEventFilterChange}
-          viewfilter={!tableView}
-          filterEvents={filterEvents}
-          filterDate={filterDate}
-          selectedEventId={selectedEventId}
-          eventOptions={eventOptions}
-          onSearch={handleSearchChange}
-          showSearch={showSearch}
-          showFilter={showFilter}
-          onResetFilters={handleResetFilters}
+        <Segmented
+          ariaLabel="View"
+          size="lg"
+          items={[
+            { key: "list", label: "List" },
+            { key: "month", label: "Calendar" },
+          ]}
+          value={view}
+          onChange={setView}
         />
       </div>
 
-      {/* Conditional Rendering of Events */}
-      {!tableView ? (
-        filteredEvents.length > 0 ? (
-          <div className="space-y-4">
-            {groupedEvents.map(([groupKey, events]) => {
-              const isOpen = openAccordions[groupKey] ?? false;
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+        <Segmented ariaLabel="Type" items={TYPE_TABS} value={type} onChange={setType} scroll />
+        <SearchInput
+          value={query}
+          onChange={setQuery}
+          placeholder="Search events or places"
+          ariaLabel="Search events"
+          className="max-w-[340px] flex-[1_1_240px]"
+        />
+      </div>
 
-              return (
-                <div key={groupKey} className=" rounded-md">
-                  <button
-                    onClick={() => toggleAccordion(groupKey)}
-                    className="w-full flex justify-between items-center px-4 py-3 bg-gray-50 font-medium"
-                  >
-                    <span>
-                      {groupKey} ({events.length})
-                    </span>
-                    <span>{isOpen ? "−" : "+"}</span>
-                  </button>
+      {eventFilter && (
+        <div className="flex flex-wrap items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 py-2 pl-4 pr-2">
+          <span className="flex-1 text-sm font-medium text-blue-700">Showing {filterName} only</span>
+          <UiButton size="sm" onClick={() => setParam("event", null)}>
+            Show all events
+          </UiButton>
+        </div>
+      )}
 
-                  {isOpen && (
-                    <div className="p-4">
-                      <GridComponent
-                        columns={eventColumns}
-                        data={events}
-                        displayedCount={screenWidth <= 540 ? 10 : 24}
-                        columnFilters={[]}
-                        setColumnFilters={() => {}}
-                        renderRow={(row) => (
-                          <EventsCard
-                            event={row.original}
-                            key={row.original.id}
-                            onNavigate={handleNavigation}
-                            onDelete={handleDeleteModal}
-                            onEdit={handleEditEvent}
-                            showOptions={showOptions === row.original.id}
-                            onShowOptions={() => handleShowOptions(row.original.id)}
-                            onSelect={handleOpenEventDetails}
-                          />
-                        )}
-                        filter={filterEvents}
-                        setFilter={setFilterEvents}
-                      />
-                    </div>
-                  )}
+      {view === "list" ? (
+        <>
+          {hidingPast && pastCount > 0 && (
+            <button
+              type="button"
+              onClick={() => setShowPast(true)}
+              className="self-start text-sm text-gray-600 underline"
+            >
+              Show {plural(pastCount, "earlier event")} this month
+            </button>
+          )}
+          {isCurrentMonth && showPast && (
+            <button
+              type="button"
+              onClick={() => setShowPast(false)}
+              className="self-start text-sm text-gray-600 underline"
+            >
+              Hide past events
+            </button>
+          )}
+
+          {days.map((group) => {
+            const tag = group.date === today ? "Today" : group.date === addDays(today, 1) ? "Tomorrow" : "";
+            return (
+              <div key={group.date} className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base font-semibold text-primary">{fmtLongDay(group.date)}</h3>
+                  {tag && <Pill tone="info">{tag}</Pill>}
                 </div>
-              );
-            })}
-          </div>
-        ) : (
-          <EmptyState
-            scope="page"
-            className="w-[20rem] mx-auto"
-            msg="😞 Sorry, No events yet"
-          />
-        )
+                <div className="overflow-hidden rounded-xl border border-lightGray bg-white shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+                  {group.items.map((event) => {
+                    const attendance = event.status === "ended" ? attendanceFor(event, headcounts) : null;
+                    const showReg = event.requiresRegistration && event.status !== "ended";
+                    const regWidth = event.capacity
+                      ? Math.min(100, (event.registrations / event.capacity) * 100)
+                      : 100;
+                    return (
+                      <button
+                        key={event.id}
+                        type="button"
+                        onClick={() => setOpenId(event.id)}
+                        className="flex min-h-16 w-full flex-wrap items-center gap-x-4 gap-y-2 border-b border-gray-200 bg-white px-4 py-3 text-left text-sm text-primary last:border-b-0 hover:bg-lightGray/20"
+                      >
+                        <span className="flex flex-[0_0_76px] flex-col">
+                          <span className="font-semibold">{clockLabel(event.start) || "—"}</span>
+                          <span className="text-xs text-gray-500">{clockLabel(event.end)}</span>
+                        </span>
+                        <span className="flex min-w-0 flex-[1_1_240px] flex-col gap-0.5">
+                          <span className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
+                            <Dot color={typeColor(event.type)} />
+                            <span className="font-semibold">{event.name}</span>
+                            <span className="text-xs text-gray-500">{typeLabel(event.type)}</span>
+                            {event.status === "live" && <Pill tone={STATUS_PILL.live[1]}>{STATUS_PILL.live[0]}</Pill>}
+                          </span>
+                          <span className="text-xs text-gray-600">{rowMeta(event)}</span>
+                        </span>
+                        {showReg && (
+                          <span className="flex flex-[0_0_140px] flex-col gap-1">
+                            <span className="text-xs text-gray-600">
+                              {event.capacity
+                                ? `${event.registrations} / ${event.capacity} registered`
+                                : `${event.registrations} registered`}
+                            </span>
+                            <span className="h-1.5 overflow-hidden rounded-full bg-gray-100">
+                              <span className="block h-full bg-primary" style={{ width: `${regWidth}%` }} />
+                            </span>
+                          </span>
+                        )}
+                        {attendance !== null && (
+                          <span className="flex-none text-xs text-gray-600">
+                            {attendance.toLocaleString()} attended
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+
+          {shown.length === 0 && (
+            <EmptyBox
+              title={emptyText}
+              action={
+                canManageEvents ? (
+                  <UiButton onClick={() => openNew()}>Schedule event</UiButton>
+                ) : undefined
+              }
+            />
+          )}
+        </>
       ) : (
-        <Calendar
-          events={calendarEvents}
-          onDelete={handleDeleteModal}
-          onEdit={handleEditEvent}
-          onShowOptions={handleShowOptions}
-          showOptions={showOptions}
-          onViewEvent={handleOpenEventDetails}
+        <>
+          <div className="overflow-hidden rounded-xl border border-lightGray bg-white shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
+            <div className="grid grid-cols-7 bg-lightGray">
+              {WEEKDAYS.map((day) => (
+                <span key={day} className="p-2 text-center text-xs font-semibold text-primary">
+                  <span className="laptop:hidden">{day[0]}</span>
+                  <span className="hidden laptop:inline">{day.slice(0, 3)}</span>
+                </span>
+              ))}
+            </div>
+            <div className="grid grid-cols-7 gap-px bg-gray-200">
+              {cells.map((cell) => {
+                const selected = cell.key === selDay;
+                const isToday = cell.key === today;
+                return (
+                  <div
+                    key={cell.key}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`${fmtLongDay(cell.key)}, ${plural(cell.events.length, "event")}`}
+                    aria-pressed={selected}
+                    onClick={() => setSelDay(cell.key)}
+                    onKeyDown={(keyEvent) => {
+                      if (keyEvent.key === "Enter" || keyEvent.key === " ") {
+                        keyEvent.preventDefault();
+                        setSelDay(cell.key);
+                      }
+                    }}
+                    className={cn(
+                      "flex min-h-[52px] min-w-0 cursor-pointer flex-col items-stretch gap-0.5 p-1 laptop:min-h-[112px]",
+                      selected ? "bg-inputBackground shadow-[inset_0_0_0_1px_#080D2D]" : "bg-white",
+                      !cell.inMonth && "opacity-40"
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "flex h-6 min-w-6 items-center justify-center self-start rounded-full px-1 text-xs font-semibold",
+                        isToday ? "bg-primary text-white" : "text-primary"
+                      )}
+                    >
+                      {Number(cell.key.slice(8, 10))}
+                    </span>
+                    <div className="hidden min-w-0 flex-col gap-0.5 laptop:flex">
+                      {cell.events.slice(0, 2).map((event) => (
+                        <button
+                          key={event.id}
+                          type="button"
+                          onClick={(clickEvent) => {
+                            clickEvent.stopPropagation();
+                            setSelDay(cell.key);
+                            setOpenId(event.id);
+                          }}
+                          className="flex min-w-0 items-center gap-1 rounded bg-inputBackground px-1 py-0.5 text-left text-xs text-primary hover:bg-gray-200"
+                        >
+                          <Dot size={6} color={typeColor(event.type)} />
+                          <span className="truncate">
+                            {clockLabel(event.start).replace(" ", "").toLowerCase()} {event.name}
+                          </span>
+                        </button>
+                      ))}
+                      {cell.events.length > 2 && (
+                        <span className="px-1 text-xs text-gray-600">+{cell.events.length - 2} more</span>
+                      )}
+                    </div>
+                    {cell.events.length > 0 && (
+                      <span className="flex flex-wrap justify-center gap-0.5 laptop:hidden">
+                        {cell.events.slice(0, 4).map((event) => (
+                          <Dot key={event.id} size={6} color={typeColor(event.type)} />
+                        ))}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h3 className="text-base font-semibold text-primary">{fmtLongDay(selDay)}</h3>
+              {canManageEvents && <UiButton onClick={() => openNew(selDay)}>+ Add on this day</UiButton>}
+            </div>
+            {dayEvents.length === 0 ? (
+              <p className="text-sm text-gray-500">Nothing scheduled.</p>
+            ) : (
+              <div className="overflow-hidden rounded-xl border border-lightGray bg-white">
+                {dayEvents.map((event) => {
+                  const status = statusOf(event);
+                  return (
+                    <button
+                      key={event.id}
+                      type="button"
+                      onClick={() => setOpenId(event.id)}
+                      className="flex w-full items-center gap-4 border-b border-gray-200 bg-white px-4 py-3 text-left text-sm text-primary last:border-b-0 hover:bg-lightGray/20"
+                    >
+                      <span className="flex-[0_0_76px] font-semibold">{clockLabel(event.start) || "—"}</span>
+                      <span className="flex min-w-0 flex-1 flex-col">
+                        <span className="flex items-center gap-2">
+                          <Dot color={typeColor(event.type)} />
+                          <span className="truncate font-semibold">{event.name}</span>
+                        </span>
+                        <span className="truncate text-xs text-gray-600">{event.location || "No location"}</span>
+                      </span>
+                      {status === "live" && <Pill tone="success">Happening now</Pill>}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
+      {openEvent && (
+        <EventDetailDrawer
+          event={openEvent}
+          siblings={monthEvents}
+          attendance={attendanceFor(openEvent, headcounts)}
+          canEdit={access.edit}
+          canDelete={access.delete}
+          onClose={() => setOpenId(null)}
+          onEdit={(event) => {
+            setOpenId(null);
+            setEditor({ kind: "edit", id: event.id });
+          }}
+          onDelete={askDelete}
         />
       )}
 
-      {totalEvents > take && (
-        <PaginationComponent
-          total={totalEvents}
-          take={take}
-          onPageChange={(newPage) => setPage(newPage)}
+      {editor && (
+        <ScheduleEventEditor
+          mode={editor}
+          onClose={() => setEditor(null)}
+          onSaved={({ date }) => {
+            setEditor(null);
+            if (date && monthKeyOf(date) !== month) {
+              goMonth(monthKeyOf(date));
+            } else {
+              if (date) setSelDay(date);
+              void refetch();
+            }
+          }}
+        />
+      )}
+
+      {deleteScope && (
+        <SeriesScopeModal
+          action="delete"
+          eventName={deleteScope.name}
+          loading={deleting}
+          onCancel={() => setDeleteScope(null)}
+          onConfirm={(scope) => void confirmScopedDelete(scope)}
         />
       )}
     </PageOutline>

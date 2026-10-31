@@ -1,184 +1,161 @@
-import { useCallback, useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useBackNavigation } from "@/CustomHooks/useBackNavigation";
+import { useCallback, useMemo, useState } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
-import { Cog6ToothIcon } from "@heroicons/react/24/outline";
-
-import EmptyState from "@/components/EmptyState";
-import { HeaderControls } from "@/components/HeaderControls";
-import { useDelete } from "@/CustomHooks/useDelete";
+import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { useFetch } from "@/CustomHooks/useFetch";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
-import GridComponent from "@/pages/HomePage/Components/reusable/GridComponent";
-import SlantTabs from "@/pages/HomePage/Components/reusable/SlantTabs";
+import TabSelection from "@/pages/HomePage/Components/reusable/TabSelection";
+import { decodeQuery } from "@/pages/HomePage/utils";
+import { api } from "@/utils";
+import type { IMarket } from "@/utils/api/marketPlace/interface";
+import { OrdersPanel } from "@/pages/HomePage/pages/MarketPlace/components/Orders/OrdersPanel";
+import { MarketFormModal, type MarketModalMode } from "../components/markets/MarketFormModal";
+import { EMPTY_STATS, statsByMarket } from "../components/markets/marketStats";
+import { StatTile } from "../components/markets/ui";
+import { backLink, btnPrimary, btnSecondary, card } from "../components/markets/styles";
+import { ProductsPanel } from "../components/Products/ProductsPanel";
+import { StatusPill } from "../components/StatusPill";
 import {
-  decodeQuery,
-  encodeQuery,
-  showDeleteDialog,
-  showNotification,
-} from "@/pages/HomePage/utils";
-import { api, IProductType, IProductTypeResponse } from "@/utils";
-import { ProductDetailsCard } from "../components/cards/ProductDetailsCard";
-import { ConfigurationsDrawer } from "../components/ConfigurationsDrawer";
-import { MarketHeader } from "../components/MarketHeader";
-import { Modal } from "@/components/Modal";
-import { ProductOverview } from "../components/ProductOverview";
-import { MarketOrders } from "../components/Orders/MarketOrders";
+  formatDate,
+  formatMoney,
+  getMarketState,
+  groupOrderRows,
+  marketStatePill,
+} from "../utils/marketplaceModel";
+
+type InnerTab = "Products" | "Orders";
 
 export function MarketDetails() {
-  const [tab, setTab] = useState("Products");
-  const [drawerOpen, setDrawerOpen] = useState(false);
-
   const navigate = useNavigate();
-  const { id: marketId } = useParams();
-  const id = decodeQuery(String(marketId));
+  const back = useBackNavigation("/home/market-place/markets");
+  const [params] = useSearchParams();
+  const { id: encodedId } = useParams();
+  const id = decodeQuery(String(encodedId));
+  const { hasAction } = useAccessControl();
+  const canManageMarkets = hasAction("Marketplace.manage_markets");
+  const canManageCatalog = hasAction("Marketplace.manage_catalog");
 
-  const { data: market } = useFetch(api.fetch.fetchMarketById, {
-    id,
+  const [tab, setTab] = useState<InnerTab>(
+    params.get("tab")?.toLowerCase() === "orders" ? "Orders" : "Products"
+  );
+  const [modal, setModal] = useState<MarketModalMode | null>(null);
+
+  const { data: marketRes, refetch: refetchMarket } = useFetch(
+    api.fetch.fetchMarketById,
+    { id }
+  );
+  const { data: productsRes } = useFetch(api.fetch.fetchProductsByMarket, {
+    market_id: id,
   });
-
-  const { data: producttypes, refetch: refetchProductTypes } = useFetch(
-    api.fetch.fetchProductTypes
+  const { data: ordersRes } = useFetch(
+    api.fetch.fetchOrdersByMarket,
+    { market_id: id },
+    false,
+    { silent: true }
   );
 
-  const { data: productCategories, refetch: refetchProductCategories } =
-    useFetch(api.fetch.fetchProductCategories);
+  const market = marketRes?.data as
+    | (IMarket & { event?: { event_name?: string; name?: string } })
+    | undefined;
+  const eventName = market?.event_name || market?.event?.event_name || market?.event?.name;
 
-  const { data: products, refetch } = useFetch(
-    api.fetch.fetchProductsByMarket,
-    {
-      market_id: id,
-    }
-  );
+  const stats = useMemo(() => {
+    if (!ordersRes) return null;
+    return statsByMarket(groupOrderRows(ordersRes.data)).get(String(id)) ?? EMPTY_STATS;
+  }, [ordersRes, id]);
 
-  const { executeDelete, success } = useDelete(api.delete.deleteProduct);
+  const closeModal = useCallback(() => setModal(null), []);
+  const addProduct = () => navigate(`/home/market-place/${encodedId}/create-product`);
 
-  const [categories, setCategories] = useState<IProductType[]>([]);
-  const [types, setTypes] = useState<IProductType[]>([]);
-  const [open, setOpen] = useState(false);
-  const [currentProduct, setCurrentProduct] =
-    useState<IProductTypeResponse | null>(null);
-
-  useEffect(() => {
-    if (productCategories?.data) {
-      setCategories(productCategories.data);
-    }
-
-    if (producttypes?.data) {
-      setTypes(producttypes?.data);
-    }
-
-    if (success) {
-      showNotification("Product deleted successfully", "success");
-      refetch();
-    }
-  }, [productCategories?.data, producttypes?.data, success]);
-
-  const editProduct = (id: string) => {
-    navigate("edit-product/" + encodeQuery(id));
-  };
-
-  const handleRefetch = useCallback((section: "type" | "category") => {
-    if (section === "type") {
-      refetchProductTypes();
-    } else {
-      refetchProductCategories();
-    }
-  }, []);
-
-  const handleDelete = useCallback(async (id: string, name: string) => {
-    showDeleteDialog({ id, name }, async () => {
-      await executeDelete({ product_id: id });
-    });
-  }, []);
-
-  const handleView = (product: IProductTypeResponse) => {
-    setCurrentProduct(product);
-    setOpen(true);
-  };
-
-  const handleCloseModal = ()=>{
-    setCurrentProduct(null)
-    setOpen(false)
-  }
+  const state = market ? getMarketState(market) : null;
+  const dash = "—";
 
   return (
-    <PageOutline className="p-0">
-      <MarketHeader market={market?.data} />
-      <div className="app-page-padding">
-        <div className="w-fit mb-3">
-          <SlantTabs
-            tabs={[`Products`, "Orders"]}
+    <PageOutline>
+      <div className="flex flex-col gap-4 text-primary">
+        <button
+          type="button"
+          className={backLink}
+          onClick={back.goBack}
+        >
+          ← Back to {back.label}
+        </button>
+
+        <div
+          className={`${card} flex flex-wrap items-start justify-between gap-4 p-6`}
+        >
+          <div className="flex min-w-0 max-w-[720px] flex-col gap-1.5">
+            <div className="flex flex-wrap items-center gap-3">
+              <h1 className="text-2xl font-semibold leading-8">
+                {market?.name || "Market"}
+              </h1>
+              {state && <StatusPill status={marketStatePill(state)} />}
+            </div>
+            {market && (
+              <p className="text-sm text-primaryGray">
+                {[
+                  eventName,
+                  `${formatDate(market.start_date)} – ${formatDate(market.end_date)}`,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </p>
+            )}
+            {market?.description && (
+              <p className="text-base text-gray-700">{market.description}</p>
+            )}
+          </div>
+          {(canManageMarkets || canManageCatalog) && (
+            <div className="flex flex-wrap gap-2">
+              {canManageMarkets && (
+                <button
+                  type="button"
+                  className={btnSecondary}
+                  disabled={!market}
+                  onClick={() => market && setModal({ kind: "edit", market })}
+                >
+                  Edit market
+                </button>
+              )}
+              {canManageCatalog && (
+                <button type="button" className={btnPrimary} onClick={addProduct}>
+                  Add product
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-4">
+          <StatTile label="Products" value={productsRes ? productsRes.data.length : dash} />
+          <StatTile label="Orders" value={stats ? stats.orders : dash} />
+          <StatTile label="Units sold" value={stats ? stats.units : dash} />
+          <StatTile label="Revenue" value={stats ? formatMoney(stats.revenue) : dash} />
+          <StatTile label="To fulfil" value={stats ? stats.toFulfil : dash} />
+        </div>
+
+        <div className="w-fit">
+          <TabSelection<InnerTab>
+            tabs={["Products", "Orders"]}
             selectedTab={tab}
-            onTabSelect={(tab) => setTab(tab)}
+            onTabSelect={setTab}
           />
         </div>
-        <div className="flex items-end justify-end "></div>
-        {tab === "Products" && (
-          <HeaderControls
-            title={tab}
-            btnName="Add Product"
-            screenWidth={window.innerWidth}
-            handleClick={() => navigate("create-product")}
-            customIcon={
-              <div
-                onClick={() => setDrawerOpen(true)}
-                className="size-12 border rounded-lg flex items-center justify-center cursor-pointer hover:shadow-sm"
-              >
-                <Cog6ToothIcon className="w-10" />
-              </div>
-            }
-          />
-        )}
 
-        {tab === "Orders" ? (
-          <>
-            <MarketOrders />
-          </>
+        {tab === "Products" ? (
+          <ProductsPanel
+            marketId={id}
+            marketName={market?.name}
+            products={productsRes ? productsRes.data : null}
+            orders={ordersRes ? ordersRes.data : null}
+          />
         ) : (
-          <>
-            <GridComponent
-              columns={[]}
-              data={products?.data || []}
-              displayedCount={100}
-              filter={""}
-              setFilter={() => {}}
-              renderRow={(row) => (
-                <ProductDetailsCard
-                  product={row.original}
-                  key={row.original.id}
-                  handleDelete={handleDelete}
-                  handleEdit={(id) => editProduct(id)}
-                  handleView={handleView}
-                />
-              )}
-            />
-
-            {products?.data.length === 0 && (
-              <EmptyState scope="section" msg="No products found" />
-            )}
-          </>
+          <OrdersPanel marketId={id} />
         )}
-
-        {tab !== "Orders" && (
-          <ConfigurationsDrawer
-            isOpen={drawerOpen}
-            onClose={() => setDrawerOpen(false)}
-            categories={categories}
-            types={types}
-            refetch={handleRefetch}
-          />
-        )}
-
-        <Modal
-          open={open}
-          onClose={handleCloseModal}
-          persist={false}
-        >
-          {currentProduct && (
-            <ProductOverview product={currentProduct} onEdit={editProduct} onClose={handleCloseModal} />
-          )}
-        </Modal>
       </div>
+
+      <MarketFormModal mode={modal} onClose={closeModal} onSaved={refetchMarket} />
     </PageOutline>
   );
 }

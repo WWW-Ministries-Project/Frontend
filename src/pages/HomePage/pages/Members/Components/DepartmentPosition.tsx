@@ -1,128 +1,164 @@
-import { Button } from "@/components";
-import { FormikInputDiv } from "@/components/FormikInputDiv";
-import FormikSelectField from "@/components/FormikSelect";
-import { FullWidth } from "@/components/ui";
-import HorizontalLine from "@/pages/HomePage/Components/reusable/HorizontalLine";
-import { Field, FieldArray, getIn, useFormikContext } from "formik";
-import { Fragment, useMemo } from "react";
+import { FieldArray, getIn, useFormikContext } from "formik";
+import { useMemo } from "react";
 import { array, object, string } from "yup";
+
+import {
+  Field,
+  SelectInput,
+  UiButton,
+} from "@/pages/HomePage/pages/MembershipManagement/components/membershipUi";
+
 import useSettingsStore from "../../Settings/utils/settingsStore";
+import { FormTextField } from "./form/formFields";
+import { useFieldError } from "./form/formUtils";
+
+const emptyRow = (): IDepartmentPositionSubForm => ({
+  department_id: "",
+  position_id: "",
+  start_date: "",
+  end_date: "",
+});
+
+const DepartmentRow = ({
+  name,
+  row,
+  canRemove,
+  onRemove,
+  disabled,
+}: {
+  name: string;
+  row: IDepartmentPositionSubForm;
+  canRemove: boolean;
+  onRemove: () => void;
+  disabled?: boolean;
+}) => {
+  const { setFieldValue, setFieldTouched } = useFormikContext<object>();
+  const { departmentsOptions, positionOptions } = useSettingsStore();
+  const departmentError = useFieldError(`${name}.department_id`);
+  const positions = row.department_id
+    ? (positionOptions[Number(row.department_id)] ?? [])
+    : [];
+  const noPositions = Boolean(row.department_id) && positions.length === 0;
+
+  return (
+    <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,220px),1fr))] items-start gap-3 rounded-lg border border-gray-200 p-4">
+      <Field label="Department *" error={departmentError}>
+        <SelectInput
+          id={`${name}.department_id`}
+          value={row.department_id ?? ""}
+          disabled={disabled}
+          hasError={Boolean(departmentError)}
+          aria-invalid={Boolean(departmentError)}
+          onBlur={() => setFieldTouched(`${name}.department_id`, true)}
+          onChange={(event) => {
+            setFieldValue(`${name}.department_id`, event.target.value);
+            // Positions belong to a department, so a department change resets it.
+            setFieldValue(`${name}.position_id`, "");
+          }}
+          options={[
+            { value: "", label: "Select department" },
+            ...(departmentsOptions || []).map((option) => ({
+              value: String(option.value),
+              label: option.label,
+            })),
+          ]}
+        />
+      </Field>
+      <Field label="Position (optional)">
+        <SelectInput
+          id={`${name}.position_id`}
+          value={row.position_id ?? ""}
+          disabled={disabled || !row.department_id || noPositions}
+          onChange={(event) =>
+            setFieldValue(`${name}.position_id`, event.target.value)
+          }
+          options={[
+            {
+              value: "",
+              label: !row.department_id
+                ? "Select department first"
+                : noPositions
+                  ? "No positions in this department"
+                  : "No position",
+            },
+            ...positions.map((option) => ({
+              value: String(option.value),
+              label: option.label,
+            })),
+          ]}
+        />
+      </Field>
+      <FormTextField
+        name={`${name}.start_date`}
+        label="Start date (optional)"
+        type="date"
+        max=""
+        disabled={disabled}
+      />
+      <FormTextField
+        name={`${name}.end_date`}
+        label="End date (optional)"
+        type="date"
+        max=""
+        disabled={disabled}
+      />
+      <div className="col-span-full flex justify-end">
+        <UiButton
+          tone="danger"
+          size="sm"
+          onClick={onRemove}
+          disabled={disabled || !canRemove}
+        >
+          Remove
+        </UiButton>
+      </div>
+    </div>
+  );
+};
 
 const DepartmentPositionSubFormComponent = ({
   disabled,
-  prefix,
+  prefix = "department_positions",
 }: {
   disabled?: boolean;
   prefix?: string;
 }) => {
   const { values: entire } = useFormikContext<object>();
-  const values: IDepartmentPositionSubForm[] = useMemo(
-    () => getIn(entire, prefix || "department_positions") || initialValues,
-    [entire, prefix]
+  const rows: IDepartmentPositionSubForm[] = useMemo(
+    () => getIn(entire, prefix) || initialValues,
+    [entire, prefix],
   );
 
-  const { departmentsOptions, positionOptions } = useSettingsStore();
-
   return (
-    <FieldArray name={prefix || "department_positions"}>
-      {({ push, remove }) => (
-        <>
-          {values.map((_, index) => {
-            const optionsAvailable = !(
-              values[index].department_id &&
-              positionOptions[Number(values[index].department_id)]?.length === 0
-            );
-            return (
-              <Fragment key={index}>
-                {values.length > 1 && (
-                  <FullWidth $justify="right">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        remove(index);
-                      }}
-                      className="text-red-600 hover:text-red-800 text-sm"
-                      disabled={disabled}
-                    >
-                      Remove
-                    </button>
-                  </FullWidth>
-                )}
-
-                <>
-                  <Field
-                    component={FormikSelectField}
-                    label="Ministry/Department"
-                    id={`department_positions.${index}.department_id`}
-                    name={`department_positions.${index}.department_id`}
-                    placeholder="Select department"
-                    options={departmentsOptions || []}
-                    disabled={disabled}
-                  />
-                  <div>
-                    <Field
-                      component={FormikSelectField}
-                      label="Position"
-                      id={`department_positions.${index}.position_id`}
-                      name={`department_positions.${index}.position_id`}
-                      placeholder="Please select department first"
-                      options={
-                        positionOptions[Number(values[index].department_id)] ||
-                        []
-                      }
-                      disabled={
-                        disabled ||
-                        !optionsAvailable ||
-                        !values[index].department_id
-                      }
-                    />
-                    {!optionsAvailable && (
-                      <p className="text-sm text-mainGray pl-1">
-                        No position available for selected department
-                      </p>
-                    )}
-                  </div>
-                  <Field
-                    component={FormikInputDiv}
-                    label="Start Date (Optional)"
-                    type="date"
-                    id={`department_positions.${index}.start_date`}
-                    name={`department_positions.${index}.start_date`}
-                    disabled={disabled}
-                  />
-                  <Field
-                    component={FormikInputDiv}
-                    label="End Date (Optional)"
-                    type="date"
-                    id={`department_positions.${index}.end_date`}
-                    name={`department_positions.${index}.end_date`}
-                    disabled={disabled}
-                  />
-                  {index !== values.length - 1 && <HorizontalLine />}
-                </>
-              </Fragment>
-            );
-          })}
-
-          <FullWidth $justify="right">
-            <Button
-              variant="ghost"
-              type="button"
-              onClick={() => {
-                push({
-                  department_id: "",
-                  position_id: "",
-                  start_date: "",
-                  end_date: "",
-                });
-              }}
+    <div className="flex flex-col gap-3">
+      <h2 className="text-xl font-bold leading-7 text-gray-800">
+        Departments &amp; positions
+      </h2>
+      <FieldArray name={prefix}>
+        {({ push, remove }) => (
+          <>
+            {rows.map((row, index) => (
+              <DepartmentRow
+                key={index}
+                name={`${prefix}.${index}`}
+                row={row}
+                canRemove={rows.length > 1}
+                onRemove={() => remove(index)}
+                disabled={disabled}
+              />
+            ))}
+            <UiButton
+              tone="ghost"
+              className="self-start text-primary hover:bg-primary/5"
+              onClick={() => push(emptyRow())}
               disabled={disabled}
-              value=" Add Another Ministry/Department & Position"
-            />
-          </FullWidth>
-        </>
-      )}
-    </FieldArray>
+            >
+              + Add another department
+            </UiButton>
+          </>
+        )}
+      </FieldArray>
+    </div>
   );
 };
 
@@ -145,7 +181,7 @@ const validationSchema = array()
   .of(
     object().shape({
       department_id: string().required("Department is required"),
-      position_id: string().required("Position is required"),
+      position_id: string(),
       start_date: string().nullable(),
       end_date: string()
         .nullable()
@@ -156,9 +192,9 @@ const validationSchema = array()
             const startDate = this.parent?.start_date;
             if (!value || !startDate) return true;
             return new Date(value) >= new Date(startDate);
-          }
+          },
         ),
-    })
+    }),
   )
   .min(1);
 
@@ -167,5 +203,5 @@ export const DepartmentPositionSubForm = Object.assign(
   {
     initialValues,
     validationSchema,
-  }
+  },
 );

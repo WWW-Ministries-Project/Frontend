@@ -10,6 +10,7 @@ import { ThemeProvider } from "./context/ThemeContext";
 import "./index.css";
 import "flag-icons/css/flag-icons.min.css";
 import { RenderRoutes } from "./routes/RenderRoutes.jsx";
+import { NavHistoryTracker } from "./CustomHooks/useBackNavigation";
 
 if (import.meta.env.PROD) {
   registerSW({
@@ -23,6 +24,7 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
       <RouterProvider router={router} />
     </React.StrictMode> */}
     <BrowserRouter>
+      <NavHistoryTracker />
       {/* <RenderRoutes  /> */}
       <AuthWrapper>
         <>

@@ -32,7 +32,7 @@ const Textarea: React.FC<TextareaProps> = ({
     <div className="flex flex-col">
       {label && <label className="mb-2 font-semibold">{label}</label>}
       <textarea
-        className="w-full mt-1 px-1 rounded-lg border border-[#EEF2F4] py-1 placeholder:text-xs focus:outline-none"
+        className="w-full mt-1 px-1 rounded-lg border border-gray-100 py-1 placeholder:text-xs focus:outline-none"
         value={text}
         placeholder={placeholder}
         rows={rows}

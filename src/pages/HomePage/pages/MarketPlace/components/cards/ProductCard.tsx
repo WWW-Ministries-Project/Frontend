@@ -1,74 +1,125 @@
+import type { MouseEvent } from "react";
+
 import type { IProductTypeResponse } from "@/utils/api/marketPlace/interface";
+import { cn } from "@/utils/cn";
+
+import { colourLabel, formatMoney, productStock, TONE_CLASSES } from "../../utils/marketplaceModel";
+import { ProductTile } from "../storefront/ProductTile";
+import {
+  colourImage,
+  defaultColourIndex,
+  isSingleVariant,
+  productBadge,
+  swatchHex,
+} from "../storefront/storefrontModel";
 
 interface IProps {
   product: IProductTypeResponse;
   handleViewProduct: (id: string) => void;
+  /** Called for single-variant products when the CTA is pressed. */
+  onQuickAdd?: (product: IProductTypeResponse) => void;
+  /** "compact" drops the market line, colour dots, badge and CTA (related grid). */
+  variant?: "full" | "compact";
 }
 
-const isOutOfStock = (product: IProductTypeResponse) => {
-  if (product.stock_managed !== "yes") return false;
+export const ProductCard = ({
+  product,
+  handleViewProduct,
+  onQuickAdd,
+  variant = "full",
+}: IProps) => {
   const colours = product.product_colours ?? [];
-  if (!colours.length) return false;
-  return colours.every((colour) => {
-    const stock = colour.stock ?? [];
-    return stock.length > 0 && stock.every((s) => Number(s.stock) <= 0);
-  });
-};
+  const lead = colours[defaultColourIndex(product)];
+  const hex = swatchHex(lead);
+  const soldOut = productStock(product) <= 0;
+  const single = isSingleVariant(product);
+  const canQuickAdd = single && Boolean(onQuickAdd);
+  const badge = productBadge(product);
+  const open = () => handleViewProduct(`${product.id}`);
+  const compact = variant === "compact";
 
-export const ProductCard = ({ product, handleViewProduct }: IProps) => {
-  const outOfStock = isOutOfStock(product);
-  const swatches = Array.from(
-    new Set((product.product_colours ?? []).map((colour) => colour.colour))
-  ).filter(Boolean);
-  const visibleSwatches = swatches.slice(0, 4);
-  const extraSwatchCount = swatches.length - visibleSwatches.length;
+  const cta = soldOut ? "Sold out" : canQuickAdd ? "Add to cart" : "Choose options";
+
+  const handleCta = (e: MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    if (soldOut) return;
+    if (canQuickAdd && onQuickAdd) onQuickAdd(product);
+    else open();
+  };
 
   return (
-    <button
-      type="button"
-      onClick={() => handleViewProduct(`${product.id}`)}
-      className="group w-full rounded-xl bg-white text-left shadow-sm transition-shadow duration-300 hover:shadow-md"
+    <div
+      role="link"
+      tabIndex={0}
+      onClick={open}
+      onKeyDown={(e) => {
+        if (e.target !== e.currentTarget) return;
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          open();
+        }
+      }}
+      aria-label={`${product.name}, ${formatMoney(product.price_amount)}`}
+      className="flex cursor-pointer flex-col gap-3 rounded-xl border border-lightGray bg-white p-2.5 text-primary transition-shadow duration-150 hover:shadow-[0_10px_24px_rgb(var(--color-shadow)_/_0.10)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
     >
-      <div className="relative overflow-hidden rounded-t-xl bg-inputBackground">
-        <img
-          src={`${product?.product_colours?.[0]?.image_url}`}
-          alt={`${product.name} product image`}
-          className="aspect-square w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-        />
-        {outOfStock && (
-          <span className="absolute top-2 left-2 rounded-md bg-primary/90 px-2 py-1 text-xs font-semibold text-white">
-            Out of stock
+      <ProductTile
+        hex={hex}
+        imageUrl={colourImage(lead)}
+        alt={product.name}
+        label={product.product_type?.name}
+        className="rounded-lg"
+      >
+        {!compact && badge && (
+          <span
+            className={cn(
+              "absolute left-2 top-2 rounded-md border px-2 py-0.5 text-xs font-semibold",
+              TONE_CLASSES[badge.tone]
+            )}
+          >
+            {badge.label}
           </span>
         )}
-      </div>
+      </ProductTile>
 
-      <div className="space-y-1.5 p-3">
-        {product.product_category?.name && (
-          <p className="text-xs font-medium uppercase tracking-wide text-primaryGray">
-            {product.product_category.name}
-          </p>
-        )}
-        <h2 className="line-clamp-1 text-sm font-semibold text-primary">
-          {product.name}
-        </h2>
-        <p className="text-base font-bold text-primary">
-          {product.price_currency || "GHC"} {Number(product.price_amount).toFixed(2)}
-        </p>
-        {visibleSwatches.length > 0 && (
-          <div className="flex items-center gap-1 pt-0.5">
-            {visibleSwatches.map((colour, index) => (
-              <span
-                key={`${colour}-${index}`}
-                className="h-4 w-4 rounded-full border border-lightGray"
-                style={{ backgroundColor: colour }}
-              />
-            ))}
-            {extraSwatchCount > 0 && (
-              <span className="text-[11px] text-primaryGray">+{extraSwatchCount}</span>
+      {compact ? (
+        <div className="flex flex-col gap-0.5 px-1 pb-1">
+          <p className="text-base font-semibold">{product.name}</p>
+          <span className="font-semibold">{formatMoney(product.price_amount)}</span>
+        </div>
+      ) : (
+        <div className="flex flex-1 flex-col gap-0.5 px-1">
+          {product.market?.name && (
+            <p className="text-xs text-primaryGray">{product.market.name}</p>
+          )}
+          <p className="text-base font-semibold leading-[22px]">{product.name}</p>
+          <div className="mt-1 flex items-center justify-between gap-2">
+            <span className="font-semibold">{formatMoney(product.price_amount)}</span>
+            {colours.length > 0 && (
+              <div className="flex flex-wrap justify-end gap-1">
+                {colours.slice(0, 6).map((c, i) => (
+                  <span
+                    key={`${c.colour}-${i}`}
+                    title={colourLabel(c)}
+                    className="h-3 w-3 rounded-full shadow-[0_0_0_1px_rgb(var(--color-lightGray))]"
+                    style={{ background: swatchHex(c) }}
+                  />
+                ))}
+              </div>
             )}
           </div>
-        )}
-      </div>
-    </button>
+        </div>
+      )}
+
+      {!compact && (
+        <button
+          type="button"
+          onClick={handleCta}
+          disabled={soldOut}
+          className="min-h-10 rounded-lg border border-lightGray bg-white text-sm font-medium text-primary transition-colors hover:border-primary hover:bg-primary hover:text-white disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:border-lightGray disabled:hover:bg-white disabled:hover:text-primary"
+        >
+          {cta}
+        </button>
+      )}
+    </div>
   );
 };

@@ -1,5 +1,5 @@
 import { Button } from "@/components";
-import { ContactInput, IContactInput } from "@/components/ContactInput";
+import { PhoneField, type IContactInput } from "@/components/subform/PhoneField";
 import { FormikInputDiv } from "@/components/FormikInputDiv";
 import FormikSelectField from "@/components/FormikSelect";
 import { Field, Form, Formik } from "formik";
@@ -75,7 +75,7 @@ const RegisterMember: React.FC<RegisterMemberProps> = ({
             />
             {/* <InputDiv type='text' id='phone_number' label="Phone Number" placeholder='Enter phone number' value={memberDetails.phone_number} onChange={handleChange}  /> */}
 
-            <ContactInput
+            <PhoneField
               label="Phone number *"
               placeholder="Enter your phone number"
               // value={memberDetails.phone_number}
@@ -125,7 +125,7 @@ const initialValues: IRegisterMember = {
   other_name: "",
   gender: "",
   new_member: true,
-  phone: ContactInput.initialValues,
+  phone: PhoneField.initialValues,
 };
 
 const validationSchema = object().shape({
@@ -133,7 +133,7 @@ const validationSchema = object().shape({
   last_name: string().required("Last name is required"),
   other_name: string(),
   gender: string().required("Gender is required"),
-  phone: object().shape(ContactInput.validationSchema),
+  phone: object().shape(PhoneField.validationSchema),
 });
 
 export default RegisterMember;

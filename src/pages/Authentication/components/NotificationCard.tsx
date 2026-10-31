@@ -17,7 +17,7 @@ const NotificationCard = (props: IProps) => {
       role="status"
       aria-live="polite"
     >
-      <div className="overflow-hidden rounded-2xl border border-lightGray bg-white shadow-[0_20px_45px_-30px_rgba(8,13,45,0.6)]">
+      <div className="overflow-hidden rounded-2xl border border-lightGray bg-white shadow-[0_20px_45px_-30px_rgb(var(--color-shadow)_/_0.6)]">
         <div className="px-6 py-8">
           <div className="mb-6 flex justify-center">
             <img src={props.src} alt={props.imageAlt || ""} />

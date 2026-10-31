@@ -1,1837 +1,611 @@
-import { Button } from "@/components";
+import { ReportsRouteAccess } from "../components/ReportsRouteAccess";
+import { useBackNavigation } from "@/CustomHooks/useBackNavigation";
+import { useMemo, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+
+import { notify } from "@/components/feedback";
 import { useFetch } from "@/CustomHooks/useFetch";
-import SlantTabs from "@/pages/HomePage/Components/reusable/SlantTabs";
-import { ensureAnalyticsChartsRegistered } from "@/pages/HomePage/pages/Analytics/chartSetup";
-import PageOutline from "@/pages/HomePage/Components/PageOutline";
-import { showNotification } from "@/pages/HomePage/utils";
-import { api, downloadBlobFile, relativePath } from "@/utils";
+import { api, downloadBlobFile } from "@/utils";
+import type { ApiResponse } from "@/utils/interfaces";
 import type {
+  EventReportChurchAttendance,
+  EventReportDepartment,
   EventReportDetail,
+  EventReportOverviewItem,
   EventReportServiceSummaryFormat,
 } from "@/utils/api/eventReports/interfaces";
-import type { AttendanceTimingSettingsConfig } from "@/utils/api/settings/attendanceTimingInterfaces";
-import type { ApiResponse } from "@/utils/interfaces";
-import { DateTime } from "luxon";
-import { useEffect, useMemo, useState } from "react";
-import { Bar, Doughnut } from "react-chartjs-2";
-import { useLocation, useParams } from "react-router-dom";
+import { cn } from "@/utils/cn";
 
-type UnknownRecord = Record<string, unknown>;
+import {
+  ApprovalTrail,
+  Banner,
+  BandButton,
+  CommentsCard,
+  DialogShell,
+  FlagsCard,
+  HighlightsCard,
+  KpiGrid,
+  PageEmpty,
+  Pill,
+  ReportBand,
+  SectionGrid,
+  SelectInput,
+  SkeletonGrid,
+  TextArea,
+  UiButton,
+} from "../components/reportsUi";
+import type { PillTone } from "../components/reportsUi";
+import { EVENT_TYPE_LABEL, eventStatusPill, eventTypeOf, fmtClock, fmtEventDate, fmtEventTime } from "../utils/eventReportFormat";
+import { deltaOf, fmtDateTime, nf } from "../utils/reportFormat";
+import type { ReportFlag, ReportKpi, ReportSection } from "../utils/reportTypes";
+import { AM, BL, BZ, GN, NV, RD, SF } from "../utils/reportTypes";
 
-type TimingStatus = "EARLY" | "ON_TIME" | "LATE" | "ABSENT" | "UNCLASSIFIED";
-type TimingStatusFilter = "ALL" | "EARLY" | "ON_TIME" | "LATE" | "ABSENT";
-type RelativeDirectionFilter = "ALL" | "BEFORE" | "AFTER";
+type Tab = "overview" | "depts" | "attendance" | "review";
+type Timing = "Early" | "On time" | "Late" | "Absent";
 
-type DepartmentAttendee = {
-  id: string;
-  name: string;
-  arrivalTime: string;
-  arrivalAt: string;
-  reportedTime: string;
-  relativeToStart: string;
-  attendanceStatus: TimingStatus | "";
-  userId: string;
-};
-
-type DepartmentSection = {
-  id: string;
-  name: string;
-  headName: string;
-  attendees: DepartmentAttendee[];
-  totalMembers: number;
-  presentMembers: number;
-  absentMembers: number;
-  attendancePercentage: number;
-};
-
-type AttendanceTotals = {
-  adultMale: number;
-  adultFemale: number;
-  childrenMale: number;
-  childrenFemale: number;
-  youthMale: number;
-  youthFemale: number;
-  visitors: number;
-  visitingPastors: number;
-  totalWithoutVisitors: number;
-  totalAttendance: number;
-};
-
-type DepartmentInsightRow = {
-  id: string;
-  name: string;
-  departmentId: string;
-  departmentName: string;
-  arrivalTime: string;
-  reportedAtLabel: string;
-  relativeToStartLabel: string;
-  minutesFromStart: number | null;
-  timingStatus: TimingStatus;
-  arrivalSortValue: number | null;
-};
-
-type DepartmentDataSectionView = DepartmentSection & {
-  visibleAttendees: DepartmentAttendee[];
-  visibleCount: number;
-};
-
-type AttendanceTimingRuleMinutes = {
-  early: number;
-  onTime: number;
-  late: number;
-};
-
-const reportViewTabs = ["Data", "Insight"] as const;
-type ReportViewTab = (typeof reportViewTabs)[number];
-
-const reportSectionTabs = ["Department Overview", "Church Attendance"] as const;
-type ReportSectionTab = (typeof reportSectionTabs)[number];
-
-const countFormatter = new Intl.NumberFormat("en-US", {
-  minimumFractionDigits: 0,
-  maximumFractionDigits: 0,
-});
-
-const percentFormatter = new Intl.NumberFormat("en-US", {
-  minimumFractionDigits: 0,
-  maximumFractionDigits: 1,
-});
-
-const DEFAULT_ATTENDANCE_TIMING_RULE_MINUTES = 15;
-
-const DEFAULT_ATTENDANCE_TIMING_CONFIG: AttendanceTimingSettingsConfig = {
-  early: {
-    value: DEFAULT_ATTENDANCE_TIMING_RULE_MINUTES,
-    unit: "MINUTES",
-    minutes: DEFAULT_ATTENDANCE_TIMING_RULE_MINUTES,
-  },
-  on_time: {
-    value: DEFAULT_ATTENDANCE_TIMING_RULE_MINUTES,
-    unit: "MINUTES",
-    minutes: DEFAULT_ATTENDANCE_TIMING_RULE_MINUTES,
-  },
-  late: {
-    value: DEFAULT_ATTENDANCE_TIMING_RULE_MINUTES,
-    unit: "MINUTES",
-    minutes: DEFAULT_ATTENDANCE_TIMING_RULE_MINUTES,
-  },
-  effective_from: null,
-  updated_at: null,
-  updated_by: null,
-};
-
-ensureAnalyticsChartsRegistered();
-
-const toRecord = (value: unknown): UnknownRecord =>
-  value && typeof value === "object" && !Array.isArray(value)
-    ? (value as UnknownRecord)
-    : {};
-
-const toArray = (value: unknown): unknown[] => (Array.isArray(value) ? value : []);
-
-const toStringValue = (value: unknown): string => {
-  if (typeof value === "string") {
-    return value.trim();
-  }
-
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return String(value);
-  }
-
-  return "";
-};
-
-const toNumberValue = (value: unknown): number => {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string" && value.trim() !== "") {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : 0;
-  }
-
-  return 0;
-};
-
-const toOptionalNumberValue = (value: unknown): number | null => {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string" && value.trim() !== "") {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : null;
-  }
-
+const TIMING_TONE: Record<Timing, PillTone> = { Early: "success", "On time": "info", Late: "warning", Absent: "danger" };
+const timingOf = (raw: string | null | undefined): Timing | null => {
+  const v = String(raw || "").toLowerCase().replace(/[\s-]/g, "_");
+  if (v === "early") return "Early";
+  if (v === "on_time" || v === "ontime") return "On time";
+  if (v === "late") return "Late";
+  if (v === "absent") return "Absent";
   return null;
 };
 
-const firstNonEmptyString = (...values: unknown[]) => {
-  for (const value of values) {
-    const normalized = toStringValue(value);
-    if (normalized) return normalized;
-  }
-
-  return "";
+const ACTION_LABEL: Record<string, string> = {
+  GENERATED: "Report generated",
+  APPROVED: "Approved",
+  RETURNED: "Returned for changes",
+  RESUBMITTED: "Resubmitted for approval",
+  STEP_APPROVED: "Approved at their step",
 };
 
-const normalizeDateOnly = (value: unknown): string => {
-  const raw = toStringValue(value);
-  if (!raw) return "";
+const n = (v: number | null | undefined) => Number(v || 0);
 
-  const datePrefixMatch = raw.match(/^(\d{4}-\d{2}-\d{2})/);
-  if (datePrefixMatch) {
-    return datePrefixMatch[1];
-  }
-
-  const parsed = DateTime.fromISO(raw);
-  if (parsed.isValid) {
-    return parsed.toFormat("yyyy-LL-dd");
-  }
-
-  const fallback = DateTime.fromJSDate(new Date(raw));
-  return fallback.isValid ? fallback.toFormat("yyyy-LL-dd") : "";
+/** Normalised headcount, tolerant of the older and newer backend field names. */
+const headcount = (c: (EventReportChurchAttendance & Record<string, unknown>) | null | undefined) => {
+  const am = n(c?.adult_male), af = n(c?.adult_female);
+  const ym = n(c?.youth_male), yf = n(c?.youth_female);
+  const cm = n(c?.children_male), cf = n(c?.children_female);
+  const vm = n(c?.visitors_male), vf = n(c?.visitors_female);
+  const visitorsOnly = vm + vf || n(c?.visitors);
+  const pm = n(c?.visitor_clergy_male), pf = n(c?.visitor_clergy_female);
+  const clergy = pm + pf || n(c?.visitor_clergy_total) || n(c?.visiting_pastors);
+  const members = am + af + ym + yf + cm + cf;
+  return { am, af, ym, yf, cm, cf, vm, vf, visitors: visitorsOnly, pm, pf, clergy, members, total: members + visitorsOnly + clergy };
 };
 
-const formatDate = (value: unknown): string => {
-  const raw = toStringValue(value);
-  if (!raw) return "—";
-
-  const parsed = DateTime.fromISO(raw);
-  if (parsed.isValid) {
-    return parsed.toFormat("dd LLL yyyy");
-  }
-
-  const fallback = DateTime.fromJSDate(new Date(raw));
-  return fallback.isValid ? fallback.toFormat("dd LLL yyyy") : raw;
-};
-
-const formatDateTime = (value: unknown): string => {
-  const raw = toStringValue(value);
-  if (!raw) return "—";
-
-  const parsed = DateTime.fromISO(raw);
-  if (parsed.isValid) {
-    return parsed.toFormat("dd LLL yyyy, HH:mm");
-  }
-
-  const fallback = DateTime.fromJSDate(new Date(raw));
-  return fallback.isValid ? fallback.toFormat("dd LLL yyyy, HH:mm") : raw;
-};
-
-const formatArrivalTime = (value: unknown): string => {
-  const raw = toStringValue(value);
-  if (!raw) return "—";
-
-  const parsed = DateTime.fromISO(raw);
-  if (parsed.isValid) {
-    return parsed.toFormat("HH:mm");
-  }
-
-  if (/^\d{2}:\d{2}/.test(raw)) {
-    return raw.slice(0, 5);
-  }
-
-  return raw;
-};
-
-const normalizeTimeOnly = (value: unknown): string => {
-  const raw = toStringValue(value);
-  if (!raw) return "";
-
-  const parsed = DateTime.fromISO(raw);
-  if (parsed.isValid) {
-    return parsed.toFormat("HH:mm:ss");
-  }
-
-  if (/^\d{2}:\d{2}:\d{2}$/.test(raw)) {
-    return raw;
-  }
-
-  if (/^\d{2}:\d{2}$/.test(raw)) {
-    return `${raw}:00`;
-  }
-
-  return "";
-};
-
-const buildEventStartDateTime = (dateValue: unknown, timeValue: unknown) => {
-  const date = normalizeDateOnly(dateValue);
-  const time = normalizeTimeOnly(timeValue);
-
-  if (!date || !time) return null;
-
-  const parsed = DateTime.fromISO(`${date}T${time}`);
-  return parsed.isValid ? parsed : null;
-};
-
-const formatMinutesDistance = (minutes: number): string => {
-  const absoluteMinutes = Math.abs(Math.round(minutes));
-  const hours = Math.floor(absoluteMinutes / 60);
-  const remainingMinutes = absoluteMinutes % 60;
-
-  if (hours > 0 && remainingMinutes > 0) {
-    return `${hours}h ${remainingMinutes}m`;
-  }
-
-  if (hours > 0) {
-    return `${hours}h`;
-  }
-
-  return `${remainingMinutes}m`;
-};
-
-const normalizeTimingRuleMinutes = (
-  value: unknown,
-  fallback = DEFAULT_ATTENDANCE_TIMING_RULE_MINUTES
-) => {
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed) || parsed <= 0) {
-    return fallback;
-  }
-
-  return parsed;
-};
-
-const getTimingStatus = (
-  minutesFromStart: number | null,
-  rules: AttendanceTimingRuleMinutes
-): TimingStatus => {
-  if (minutesFromStart === null) return "UNCLASSIFIED";
-  if (minutesFromStart <= -rules.early) return "EARLY";
-  if (minutesFromStart >= rules.late) return "LATE";
-  if (Math.abs(minutesFromStart) <= rules.onTime) return "ON_TIME";
-  return "ON_TIME";
-};
-
-const formatRelativeToStart = (minutesFromStart: number | null): string => {
-  if (minutesFromStart === null) {
-    return "Event start time unavailable";
-  }
-
-  if (minutesFromStart === 0) {
-    return "At start time";
-  }
-
-  const direction = minutesFromStart < 0 ? "before" : "after";
-  return `${formatMinutesDistance(minutesFromStart)} ${direction} start`;
-};
-
-const normalizeTimingStatusValue = (value: unknown): TimingStatus | null => {
-  const status = toStringValue(value).replace(/[\s-]+/g, "_").toUpperCase();
-
-  if (status === "EARLY") return "EARLY";
-  if (status === "ON_TIME" || status === "ONTIME") return "ON_TIME";
-  if (status === "LATE") return "LATE";
-  if (status === "ABSENT") return "ABSENT";
-
-  return null;
-};
-
-const timingStatusLabelMap: Record<TimingStatus, string> = {
-  EARLY: "Early",
-  ON_TIME: "On Time",
-  LATE: "Late",
-  ABSENT: "Absent",
-  UNCLASSIFIED: "Unclassified",
-};
-
-const getTimingBadgeClasses = (status: TimingStatus) => {
-  if (status === "EARLY") return "bg-[#DBEAFE] text-[#1D4ED8]";
-  if (status === "ON_TIME") return "bg-[#D2F4EA] text-[#039855]";
-  if (status === "LATE") return "bg-[#FFF0D5] text-[#B54708]";
-  if (status === "ABSENT") return "bg-[#FEE4E2] text-[#B42318]";
-  return "bg-[#EDEFF5] text-lighterBlack";
-};
-
-const buildDepartmentAttendeeLookupKey = (
-  departmentId: string,
-  attendee: Pick<DepartmentAttendee, "id" | "userId" | "name">
-) => `${departmentId}::${attendee.userId || attendee.id || attendee.name}`;
-
-const normalizeAttendeeRecord = (value: unknown): DepartmentAttendee | null => {
-  const record = toRecord(value);
-  const userRecord = toRecord(record.user);
-  const userInfo = toRecord(userRecord.user_info);
-  const nestedUser = toRecord(userInfo.user);
-
-  const attendeeName = firstNonEmptyString(
-    record.name,
-    record.full_name,
-    record.member_name,
-    record.memberName,
-    record.user_name,
-    userInfo.name,
-    nestedUser.name,
-    userRecord.name
-  );
-
-  if (!attendeeName) {
-    return null;
-  }
-
-  const arrivalRaw = firstNonEmptyString(
-    record.arrival_time,
-    record.arrivalTime,
-    record.checked_in_at,
-    record.checkedInAt,
-    record.created_at,
-    record.createdAt
-  );
-
+const deptStats = (departments: EventReportDepartment[]) => {
+  const rows = departments.flatMap((d) => d.attendees || []);
+  const count = (t: Timing) => rows.filter((r) => timingOf(r.status) === t).length;
+  const total = departments.reduce((a, d) => a + n(d.total_members), 0);
+  const present = departments.reduce((a, d) => a + n(d.present_members), 0);
+  const early = count("Early"), onTime = count("On time"), late = count("Late");
+  const arrived = early + onTime + late;
   return {
-    id: firstNonEmptyString(record.id, `${attendeeName}-${arrivalRaw}`),
-    name: attendeeName,
-    arrivalTime: formatArrivalTime(arrivalRaw),
-    arrivalAt: arrivalRaw,
-    reportedTime: firstNonEmptyString(record.reported_time, record.reportedTime),
-    relativeToStart: firstNonEmptyString(
-      record.relative_to_start,
-      record.relativeToStart
-    ),
-    attendanceStatus:
-      normalizeTimingStatusValue(record.status ?? record.attendance_status) || "",
-    userId: firstNonEmptyString(
-      record.user_id,
-      record.userId,
-      nestedUser.id,
-      userInfo.id,
-      userRecord.id
-    ),
+    total,
+    present,
+    pct: total ? Math.round((present / total) * 100) : 0,
+    onTimePct: arrived ? Math.round(((early + onTime) / arrived) * 100) : 0,
+    early,
+    onTime,
+    late,
+    absent: count("Absent") || Math.max(0, total - present),
   };
 };
 
-const normalizeDepartmentSection = (value: unknown): DepartmentSection | null => {
-  const record = toRecord(value);
-  const departmentRecord = toRecord(record.department);
-  const headRecord = toRecord(
-    record.head ??
-      record.department_head ??
-      record.departmentHead ??
-      record.hod ??
-      record.department_head_info
-  );
-
-  const id = firstNonEmptyString(
-    record.department_id,
-    record.departmentId,
-    record.id,
-    departmentRecord.id
-  );
-  const name = firstNonEmptyString(
-    record.department_name,
-    record.departmentName,
-    record.name,
-    departmentRecord.name
-  );
-
-  if (!id && !name) {
-    return null;
-  }
-
-  const attendees = toArray(
-    record.attendees ?? record.members ?? record.department_members
-  )
-    .map((attendee) => normalizeAttendeeRecord(attendee))
-    .filter((attendee): attendee is DepartmentAttendee => Boolean(attendee));
-
-  const totalMembers =
-    toOptionalNumberValue(
-      record.total_members ??
-        record.totalMembers ??
-        record.member_count ??
-        record.memberCount
-    ) ?? attendees.length;
-  const derivedPresentMembers = attendees.filter(
-    (attendee) => attendee.attendanceStatus !== "ABSENT"
-  ).length;
-  const presentMembers =
-    toOptionalNumberValue(record.present_members ?? record.presentMembers) ??
-    derivedPresentMembers;
-  const absentMembers =
-    toOptionalNumberValue(record.absent_members ?? record.absentMembers) ??
-    Math.max(totalMembers - presentMembers, 0);
-  const attendancePercentage =
-    toOptionalNumberValue(
-      record.attendance_percentage ?? record.attendancePercentage
-    ) ?? (totalMembers > 0 ? (presentMembers / totalMembers) * 100 : 0);
-
-  return {
-    id: id || name,
-    name: name || "Unknown Department",
-    headName: firstNonEmptyString(
-      record.head_name,
-      record.headName,
-      record.hod_name,
-      record.hodName,
-      headRecord.name,
-      "No head assigned"
-    ),
-    attendees,
-    totalMembers,
-    presentMembers,
-    absentMembers,
-    attendancePercentage,
-  };
-};
-
-const normalizeAttendanceTotals = (value: unknown): AttendanceTotals => {
-  const record = toRecord(value);
-  const visitors = toNumberValue(
-    record.visitors ??
-      record.visitors_total ??
-      record.visitorsTotal ??
-      record.visitor_total ??
-      record.visitorTotal
-  );
-  const visitingPastors = toNumberValue(
-    record.visiting_pastors ??
-      record.visitingPastors ??
-      record.visitor_clergy_total ??
-      record.visitorClergyTotal
-  );
-  const totalWithoutVisitors =
-    toNumberValue(record.adult_male ?? record.adultMale) +
-    toNumberValue(record.adult_female ?? record.adultFemale) +
-    toNumberValue(record.children_male ?? record.childrenMale) +
-    toNumberValue(record.children_female ?? record.childrenFemale) +
-    toNumberValue(record.youth_male ?? record.youthMale) +
-    toNumberValue(record.youth_female ?? record.youthFemale);
-
-  return {
-    adultMale: toNumberValue(record.adult_male ?? record.adultMale),
-    adultFemale: toNumberValue(record.adult_female ?? record.adultFemale),
-    childrenMale: toNumberValue(record.children_male ?? record.childrenMale),
-    childrenFemale: toNumberValue(record.children_female ?? record.childrenFemale),
-    youthMale: toNumberValue(record.youth_male ?? record.youthMale),
-    youthFemale: toNumberValue(record.youth_female ?? record.youthFemale),
-    visitors,
-    visitingPastors,
-    totalWithoutVisitors,
-    totalAttendance: totalWithoutVisitors + visitors + visitingPastors,
-  };
-};
+const deptPct = (d: EventReportDepartment) =>
+  d.attendance_percentage != null ? Math.round(d.attendance_percentage) : n(d.total_members) ? Math.round((n(d.present_members) / n(d.total_members)) * 100) : 0;
 
 const EventReportDetails = () => {
-  const { id } = useParams();
+  const { id = "" } = useParams<{ id: string }>();
   const location = useLocation();
+  const navigate = useNavigate();
+  const search = new URLSearchParams(location.search);
+  const eventDate = search.get("eventDate") || "";
+  const nameFromQuery = search.get("eventName") || "";
 
-  const [selectedDate, setSelectedDate] = useState("");
-  const [activeReportViewTab, setActiveReportViewTab] =
-    useState<ReportViewTab>("Data");
-  const [activeReportSectionTab, setActiveReportSectionTab] =
-    useState<ReportSectionTab>("Department Overview");
-  const [openDepartments, setOpenDepartments] = useState<Record<string, boolean>>(
-    {}
+  const query = useMemo(() => ({ event_id: id, ...(eventDate ? { event_date: eventDate } : {}) }), [id, eventDate]);
+  const { data, loading, error, refetch } = useFetch<ApiResponse<EventReportDetail | null>>(
+    api.fetch.fetchEventReportDetails,
+    query,
+    !id,
+    { silent: true }
   );
-  const [insightDepartmentFilter, setInsightDepartmentFilter] = useState("ALL");
-  const [insightTimingStatusFilter, setInsightTimingStatusFilter] =
-    useState<TimingStatusFilter>("ALL");
-  const [insightRelativeDirection, setInsightRelativeDirection] =
-    useState<RelativeDirectionFilter>("ALL");
-  const [insightRelativeHours, setInsightRelativeHours] = useState("2");
-  const [dataSearchTerm, setDataSearchTerm] = useState("");
-  const [downloadFormat, setDownloadFormat] =
-    useState<EventReportServiceSummaryFormat | "">("");
+  const report = data?.data ?? null;
+  const eventName = report?.event_name || nameFromQuery;
 
-  const reportEventId = String(id || "");
-  const searchParams = useMemo(
-    () => new URLSearchParams(location.search),
-    [location.search]
-  );
-  const eventNameFromQuery = searchParams.get("eventName") || "";
-  const eventDateFromQuery = normalizeDateOnly(searchParams.get("eventDate") || "");
+  // Other occurrences of the same event: same event id on other dates, or other events with the same name.
+  const siblingsQuery = useMemo(() => ({ date_scope: "all", ...(eventName ? { search: eventName } : {}) }), [eventName]);
+  const siblings = useFetch<ApiResponse<EventReportOverviewItem[]>>(api.fetch.fetchEventReportsOverview, siblingsQuery, !eventName, { silent: true });
+  const occurrences = useMemo(() => {
+    const list = new Map<string, { event_id: string; event_date: string }>();
+    (report?.available_dates || []).forEach((d) => list.set(`${id}::${d.slice(0, 10)}`, { event_id: id, event_date: d.slice(0, 10) }));
+    (Array.isArray(siblings.data?.data) ? siblings.data!.data : [])
+      .filter((r) => r.event_name === eventName)
+      .forEach((r) => list.set(`${r.event_id}::${r.event_date.slice(0, 10)}`, { event_id: String(r.event_id), event_date: r.event_date.slice(0, 10) }));
+    if (report) list.set(`${id}::${report.event_date.slice(0, 10)}`, { event_id: id, event_date: report.event_date.slice(0, 10) });
+    return Array.from(list.values()).sort((a, b) => b.event_date.localeCompare(a.event_date));
+  }, [report, siblings.data, eventName, id]);
 
-  const reportDetailsQuery = useMemo<Record<string, string | number>>(() => {
-    const query: Record<string, string | number> = {
-      event_id: reportEventId,
-    };
-    const reportDate = selectedDate || eventDateFromQuery;
+  const currentDate = report?.event_date.slice(0, 10) || eventDate;
+  const previous = occurrences.find((o) => o.event_date < currentDate);
+  const prevQuery = useMemo(() => (previous ? { event_id: previous.event_id, event_date: previous.event_date } : undefined), [previous]);
+  const prev = useFetch<ApiResponse<EventReportDetail | null>>(api.fetch.fetchEventReportDetails, prevQuery, !previous, { silent: true });
+  const prevReport = previous ? prev.data?.data ?? null : null;
 
-    if (reportDate) {
-      query.event_date = reportDate;
-    }
+  const [tab, setTab] = useState<Tab>("overview");
+  const [deptF, setDeptF] = useState("ALL");
+  const [timeF, setTimeF] = useState<"ALL" | Timing>("ALL");
+  const [openDepts, setOpenDepts] = useState<Record<string, boolean>>({});
+  const [busy, setBusy] = useState<string | null>(null);
+  const [returnOpen, setReturnOpen] = useState(false);
+  const [note, setNote] = useState("");
 
-    return query;
-  }, [eventDateFromQuery, reportEventId, selectedDate]);
-
-  const {
-    data: reportDetailsResponse,
-    loading,
-    error,
-  } = useFetch<ApiResponse<EventReportDetail | null>>(
-    api.fetch.fetchEventReportDetails as (
-      query?: Record<string, string | number>
-    ) => Promise<ApiResponse<EventReportDetail | null>>,
-    reportDetailsQuery,
-    !reportEventId
-  );
-
-  const { data: attendanceTimingConfigResponse } = useFetch<
-    ApiResponse<AttendanceTimingSettingsConfig>
-  >(api.fetch.fetchAttendanceTimingConfig);
-
-  const reportDetails = useMemo(
-    () => toRecord(reportDetailsResponse?.data),
-    [reportDetailsResponse]
-  );
-
-  const availableDates = useMemo(() => {
-    const dateSet = new Set<string>();
-    const primaryDate = normalizeDateOnly(
-      firstNonEmptyString(reportDetails.event_date, reportDetails.eventDate)
-    );
-
-    if (eventDateFromQuery) dateSet.add(eventDateFromQuery);
-    if (primaryDate) dateSet.add(primaryDate);
-
-    toArray(reportDetails.available_dates ?? reportDetails.availableDates).forEach(
-      (value) => {
-        const normalizedDate = normalizeDateOnly(value);
-        if (normalizedDate) {
-          dateSet.add(normalizedDate);
-        }
-      }
-    );
-
-    return Array.from(dateSet).sort((left, right) => right.localeCompare(left));
-  }, [eventDateFromQuery, reportDetails]);
-
-  useEffect(() => {
-    if (selectedDate) return;
-    if (!availableDates.length) return;
-
-    if (eventDateFromQuery && availableDates.includes(eventDateFromQuery)) {
-      setSelectedDate(eventDateFromQuery);
-      return;
-    }
-
-    setSelectedDate(availableDates[0]);
-  }, [availableDates, eventDateFromQuery, selectedDate]);
-
-  const effectiveReportDate =
-    selectedDate ||
-    eventDateFromQuery ||
-    normalizeDateOnly(firstNonEmptyString(reportDetails.event_date, reportDetails.eventDate));
-
-  const eventName = firstNonEmptyString(
-    eventNameFromQuery,
-    reportDetails.event_name,
-    reportDetails.eventName,
-    `Event ${reportEventId}`
-  );
-
-  const eventType = firstNonEmptyString(
-    reportDetails.event_type,
-    reportDetails.eventType
-  );
-  const eventLocation = firstNonEmptyString(reportDetails.location, reportDetails.venue);
-  const eventStartTime = firstNonEmptyString(
-    reportDetails.start_time,
-    reportDetails.startTime
-  );
-  const eventEndTime = firstNonEmptyString(reportDetails.end_time, reportDetails.endTime);
-  const generatedAt = firstNonEmptyString(
-    reportDetails.generated_at,
-    reportDetails.generatedAt,
-    reportDetails.created_at,
-    reportDetails.createdAt
-  );
-  const eventStartDateTime = useMemo(
-    () => buildEventStartDateTime(effectiveReportDate, eventStartTime),
-    [effectiveReportDate, eventStartTime]
-  );
-
-  const attendanceTimingConfig = useMemo(
-    () => attendanceTimingConfigResponse?.data || DEFAULT_ATTENDANCE_TIMING_CONFIG,
-    [attendanceTimingConfigResponse]
-  );
-
-  const attendanceTimingRuleMinutes = useMemo<AttendanceTimingRuleMinutes>(
-    () => ({
-      early: normalizeTimingRuleMinutes(attendanceTimingConfig.early?.minutes),
-      onTime: normalizeTimingRuleMinutes(
-        attendanceTimingConfig.on_time?.minutes
-      ),
-      late: normalizeTimingRuleMinutes(attendanceTimingConfig.late?.minutes),
-    }),
-    [attendanceTimingConfig]
-  );
-
-  const departmentSections = useMemo(
-    () =>
-      toArray(
-        reportDetails.departments ??
-          reportDetails.department_overview ??
-          reportDetails.departmentOverview
-      )
-        .map((item) => normalizeDepartmentSection(item))
-        .filter((item): item is DepartmentSection => Boolean(item))
-        .sort((left, right) => left.name.localeCompare(right.name)),
-    [reportDetails]
-  );
-
-  const attendanceTotals = useMemo(
-    () =>
-      normalizeAttendanceTotals(
-        reportDetails.church_attendance ??
-          reportDetails.churchAttendance ??
-          reportDetails.attendance
-      ),
-    [reportDetails]
-  );
-
-  const departmentInsightRows = useMemo<DepartmentInsightRow[]>(() => {
-    return departmentSections
-      .flatMap((department) =>
-        department.attendees.map((attendee) => {
-          const arrivalRaw = attendee.arrivalAt || attendee.arrivalTime;
-          let arrivalDateTime = DateTime.fromISO(arrivalRaw);
-
-          if (!arrivalDateTime.isValid) {
-            const fallbackTime = normalizeTimeOnly(arrivalRaw);
-            const fallbackDateTime =
-              effectiveReportDate && fallbackTime
-                ? buildEventStartDateTime(effectiveReportDate, fallbackTime)
-                : null;
-
-            if (fallbackDateTime) {
-              arrivalDateTime = fallbackDateTime;
-            }
-          }
-
-          const arrivalSortValue = arrivalDateTime.isValid
-            ? arrivalDateTime.toMillis()
-            : null;
-          const minutesFromStart =
-            eventStartDateTime && arrivalDateTime.isValid
-              ? Math.round(arrivalDateTime.diff(eventStartDateTime, "minutes").minutes)
-              : null;
-
-          return {
-            id: buildDepartmentAttendeeLookupKey(department.id, attendee),
-            name: attendee.name,
-            departmentId: department.id,
-            departmentName: department.name,
-            arrivalTime: attendee.reportedTime || attendee.arrivalTime,
-            reportedAtLabel: arrivalDateTime.isValid
-              ? arrivalDateTime.toFormat("dd LLL yyyy, HH:mm")
-              : "",
-            relativeToStartLabel:
-              attendee.relativeToStart ||
-              (attendee.attendanceStatus === "ABSENT"
-                ? "—"
-                : formatRelativeToStart(minutesFromStart)),
-            minutesFromStart,
-            timingStatus:
-              attendee.attendanceStatus ||
-              getTimingStatus(minutesFromStart, attendanceTimingRuleMinutes),
-            arrivalSortValue,
-          };
-        })
-      )
-      .sort((left, right) => {
-        if (left.arrivalSortValue !== null && right.arrivalSortValue !== null) {
-          return left.arrivalSortValue - right.arrivalSortValue;
-        }
-
-        if (left.arrivalSortValue !== null) return -1;
-        if (right.arrivalSortValue !== null) return 1;
-
-        return left.name.localeCompare(right.name);
-      });
-  }, [
-    attendanceTimingRuleMinutes,
-    departmentSections,
-    effectiveReportDate,
-    eventStartDateTime,
-  ]);
-
-  const departmentInsightRowsByAttendeeKey = useMemo(() => {
-    return departmentInsightRows.reduce<Map<string, DepartmentInsightRow>>(
-      (map, row) => {
-        map.set(row.id, row);
-        return map;
-      },
-      new Map<string, DepartmentInsightRow>()
-    );
-  }, [departmentInsightRows]);
-
-  const departmentFilterOptions = useMemo(
-    () =>
-      departmentSections
-        .map((department) => ({
-          id: department.id,
-          name: department.name,
-        }))
-        .sort((left, right) => left.name.localeCompare(right.name)),
-    [departmentSections]
-  );
-
-  const insightRelativeHoursValue = useMemo(
-    () => Math.max(toNumberValue(insightRelativeHours), 0),
-    [insightRelativeHours]
-  );
-
-  const filteredDepartmentInsightRows = useMemo(() => {
-    return departmentInsightRows.filter((row) => {
-      if (
-        insightDepartmentFilter !== "ALL" &&
-        row.departmentId !== insightDepartmentFilter
-      ) {
-        return false;
-      }
-
-      if (
-        insightTimingStatusFilter !== "ALL" &&
-        row.timingStatus !== insightTimingStatusFilter
-      ) {
-        return false;
-      }
-
-      if (insightRelativeDirection === "ALL") {
-        return true;
-      }
-
-      if (row.minutesFromStart === null) {
-        return false;
-      }
-
-      const thresholdMinutes = insightRelativeHoursValue * 60;
-      if (insightRelativeDirection === "BEFORE") {
-        return row.minutesFromStart <= -thresholdMinutes;
-      }
-
-      return row.minutesFromStart >= thresholdMinutes;
-    });
-  }, [
-    departmentInsightRows,
-    insightDepartmentFilter,
-    insightRelativeDirection,
-    insightRelativeHoursValue,
-    insightTimingStatusFilter,
-  ]);
-
-  const departmentInsightSummary = useMemo(
-    () =>
-      filteredDepartmentInsightRows.reduce(
-        (summary, row) => {
-          if (row.timingStatus === "EARLY") summary.early += 1;
-          if (row.timingStatus === "ON_TIME") summary.onTime += 1;
-          if (row.timingStatus === "LATE") summary.late += 1;
-          if (row.timingStatus === "ABSENT") summary.absent += 1;
-          if (row.timingStatus === "UNCLASSIFIED") summary.unclassified += 1;
-          return summary;
-        },
-        {
-          early: 0,
-          onTime: 0,
-          late: 0,
-          absent: 0,
-          unclassified: 0,
-        }
-      ),
-    [filteredDepartmentInsightRows]
-  );
-
-  const normalizedDataSearchTerm = dataSearchTerm.trim().toLowerCase();
-
-  const dataDepartmentSections = useMemo<DepartmentDataSectionView[]>(() => {
-    return departmentSections
-      .map((department) => {
-        if (!normalizedDataSearchTerm) {
-          return {
-            ...department,
-            visibleAttendees: department.attendees,
-            visibleCount: department.attendees.length,
-          };
-        }
-
-        const departmentMatches = department.name
-          .toLowerCase()
-          .includes(normalizedDataSearchTerm);
-        const visibleAttendees = departmentMatches
-          ? department.attendees
-          : department.attendees.filter((attendee) =>
-              attendee.name.toLowerCase().includes(normalizedDataSearchTerm)
-            );
-
-        if (!departmentMatches && visibleAttendees.length === 0) {
-          return null;
-        }
-
-        return {
-          ...department,
-          visibleAttendees,
-          visibleCount: visibleAttendees.length,
-        };
-      })
-      .filter((department): department is DepartmentDataSectionView =>
-        Boolean(department)
-      );
-  }, [departmentSections, normalizedDataSearchTerm]);
-
-  useEffect(() => {
-    if (!departmentSections.length) return;
-
-    setOpenDepartments((current) => {
-      if (Object.keys(current).length > 0) return current;
-      return {
-        [departmentSections[0].id]: true,
-      };
-    });
-  }, [departmentSections]);
-
-  useEffect(() => {
-    if (!normalizedDataSearchTerm || dataDepartmentSections.length === 0) return;
-
-    setOpenDepartments((current) => {
-      const next = { ...current };
-      dataDepartmentSections.forEach((department) => {
-        next[department.id] = true;
-      });
-      return next;
-    });
-  }, [dataDepartmentSections, normalizedDataSearchTerm]);
-
-  const departmentPresenceSeries = useMemo(() => {
-    const sortedDepartments = [...departmentSections].sort(
-      (left, right) => right.attendancePercentage - left.attendancePercentage
-    );
-
-    return {
-      labels: sortedDepartments.map((department) => department.name),
-      values: sortedDepartments.map((department) =>
-        Number(department.attendancePercentage.toFixed(1))
-      ),
-      colors: sortedDepartments.map((department) => {
-        if (department.attendancePercentage >= 75) return "#16A34A";
-        if (department.attendancePercentage >= 40) return "#F59E0B";
-        return "#DC2626";
-      }),
-    };
-  }, [departmentSections]);
-
-  const departmentCoverageSummary = useMemo(() => {
-    const totalMembers = departmentSections.reduce(
-      (total, department) => total + department.totalMembers,
-      0
-    );
-    const presentMembers = departmentSections.reduce(
-      (total, department) => total + department.presentMembers,
-      0
-    );
-    const absentMembers = Math.max(totalMembers - presentMembers, 0);
-
-    return {
-      totalMembers,
-      presentMembers,
-      absentMembers,
-      attendancePercentage:
-        totalMembers > 0 ? (presentMembers / totalMembers) * 100 : 0,
-    };
-  }, [departmentSections]);
-
-  const churchAttendanceSeries = useMemo(
-    () => ({
-      labels: [
-        "Adult Male",
-        "Adult Female",
-        "Children Male",
-        "Children Female",
-        "Youth Male",
-        "Youth Female",
-        "Visitors",
-        "Visiting Pastors",
-      ],
-      values: [
-        attendanceTotals.adultMale,
-        attendanceTotals.adultFemale,
-        attendanceTotals.childrenMale,
-        attendanceTotals.childrenFemale,
-        attendanceTotals.youthMale,
-        attendanceTotals.youthFemale,
-        attendanceTotals.visitors,
-        attendanceTotals.visitingPastors,
-      ],
-    }),
-    [attendanceTotals]
-  );
-
-  const churchAttendanceMix = useMemo(
-    () => ({
-      labels: ["Members", "Visitors", "Visiting Pastors"],
-      values: [
-        attendanceTotals.totalWithoutVisitors,
-        attendanceTotals.visitors,
-        attendanceTotals.visitingPastors,
-      ],
-    }),
-    [attendanceTotals]
-  );
-
-  const horizontalBarOptions = useMemo(
-    () => ({
-      responsive: true,
-      maintainAspectRatio: false,
-      indexAxis: "y" as const,
-      plugins: {
-        legend: {
-          display: false,
-        },
-      },
-      scales: {
-        x: {
-          beginAtZero: true,
-          max: 100,
-          ticks: {
-            callback: (value: string | number) => `${value}%`,
-          },
-        },
-      },
-    }),
-    []
-  );
-
-  const barChartOptions = useMemo(
-    () => ({
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          display: false,
-        },
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          ticks: {
-            precision: 0,
-          },
-        },
-      },
-    }),
-    []
-  );
-
-  const doughnutOptions = useMemo(
-    () => ({
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: "bottom" as const,
-        },
-      },
-    }),
-    []
-  );
-
-  const handleDownloadServiceSummary = async (
-    format: EventReportServiceSummaryFormat
-  ) => {
-    if (!effectiveReportDate) {
-      showNotification("A report date is required before downloading.", "error");
-      return;
-    }
-
-    setDownloadFormat(format);
-
-    try {
-      const file = await api.post.downloadEventReportServiceSummary(
-        {
-          event_id: reportEventId,
-          event_date: effectiveReportDate,
-        },
-        format
-      );
-      downloadBlobFile(file.blob, file.fileName);
-    } catch (error: unknown) {
-      const responseData = (
-        error as { response?: { data?: { message?: string; error?: string } } }
-      )?.response?.data;
-      const backendMessage = responseData?.message || responseData?.error || "";
-      showNotification(
-        backendMessage ||
-          (error instanceof Error
-            ? error.message
-            : "Unable to download the service summary report."),
-        "error"
-      );
-    } finally {
-      setDownloadFormat("");
-    }
+  const goTo = (o: { event_id: string; event_date: string }) => {
+    const params = new URLSearchParams({ eventDate: o.event_date });
+    if (eventName) params.set("eventName", eventName);
+    // Another date of the same event: swap in place so Back still leaves the report.
+    navigate(`/home/reports/event-reports/${o.event_id}?${params.toString()}`, { replace: true });
+    setTab("overview");
   };
+  const { goBack: back, label: backLabel } = useBackNavigation("/home/reports/event-reports");
 
-  const crumbs = [
-    { label: "Home", link: relativePath.home.main },
-    {
-      label: "Reports",
-      link: `${relativePath.home.main}/${relativePath.home.reports.eventReports}`,
-    },
-    {
-      label: "Event Reports",
-      link: `${relativePath.home.main}/${relativePath.home.reports.eventReports}`,
-    },
-    { label: "Event Report Details", link: "" },
-  ];
-
-  if (!reportEventId) {
+  if (!report) {
     return (
-      <PageOutline crumbs={crumbs}>
-        <p className="rounded-lg bg-red-50 px-4 py-6 text-sm text-red-700">
-          Invalid report event identifier.
-        </p>
-      </PageOutline>
+      <section className="flex flex-col gap-6 p-4 sm:p-6">
+        <button type="button" onClick={back} className="self-start bg-transparent p-0 text-sm text-gray-600 hover:text-primary">
+          ← {backLabel}
+        </button>
+        {loading || (!error && id) ? (
+          <SkeletonGrid count={6} min={200} height={120} />
+        ) : (
+          <PageEmpty
+            badge="NOT FOUND"
+            title="Couldn't load this event report"
+            text="It may not have been generated for this date yet."
+            action={<UiButton onClick={() => refetch(query)}>Try again</UiButton>}
+          />
+        )}
+      </section>
     );
   }
 
+  const selector = { event_id: id, event_date: currentDate };
+  const statusLabel = report.report?.status_label || "Pending approval";
+  const status = eventStatusPill(statusLabel);
+  const can = report.permissions || { can_approve: false, can_return: false, can_resubmit: false, can_comment: false };
+  const type = eventTypeOf(report.event_type);
+  const departments = report.departments || [];
+  const ca = headcount(report.church_attendance as never);
+  const pca = prevReport ? headcount(prevReport.church_attendance as never) : null;
+  const ds = deptStats(departments);
+  const pds = prevReport ? deptStats(prevReport.departments || []) : null;
+  const vsLabel = previous ? `vs ${fmtEventDate(previous.event_date).replace(/^\w+, /, "")}` : undefined;
+  const start = fmtClock(report.start_time);
+
+  /* --------------------------------- overview -------------------------------- */
+  const kpis: ReportKpi[] = [
+    { label: "Total attendance", value: nf(ca.total), format: "n", good: "up", delta: pca ? deltaOf(ca.total, pca.total) : null },
+    { label: "Members", value: nf(ca.members), format: "n", good: "up", delta: pca ? deltaOf(ca.members, pca.members) : null },
+    { label: "Visitors", value: nf(ca.visitors), format: "n", good: "up", delta: pca ? deltaOf(ca.visitors, pca.visitors) : null, sub: ca.vm + ca.vf ? `${ca.vf} women · ${ca.vm} men` : undefined },
+    { label: "Visiting clergy", value: nf(ca.clergy), format: "n" },
+    { label: "Workers present", value: `${ds.pct}%`, format: "pct", good: "up", delta: pds ? deltaOf(ds.pct, pds.pct, true) : null, sub: `${ds.present} of ${ds.total} workers` },
+    { label: "Workers on time", value: `${ds.onTimePct}%`, format: "pct", good: "up", sub: "Early or on time at clock-in" },
+  ];
+
+  const low = departments.filter((d) => n(d.total_members) > 0 && deptPct(d) < 60);
+  const flags: ReportFlag[] = [
+    ...low.map((d) => ({
+      severity: "act" as const,
+      text: `${d.department_name} had only ${deptPct(d)}% of its workers present (${n(d.present_members)} of ${n(d.total_members)})`,
+      link: `View ${d.department_name}`,
+      onOpen: () => {
+        setTab("depts");
+        setDeptF(String(d.department_id));
+        setTimeF("ALL");
+      },
+    })),
+    ...(ds.early + ds.onTime + ds.late > 0 && ds.late / (ds.early + ds.onTime + ds.late) > 0.2
+      ? [
+          {
+            severity: "watch" as const,
+            text: `${ds.late} workers clocked in late (${Math.round((ds.late / (ds.early + ds.onTime + ds.late)) * 100)}% of those present)`,
+            link: "View late arrivals",
+            onOpen: () => {
+              setTab("depts");
+              setDeptF("ALL");
+              setTimeF("Late");
+            },
+          },
+        ]
+      : []),
+  ];
+
+  const best = departments.slice().sort((a, b) => deptPct(b) - deptPct(a))[0];
+  const change = pca && pca.total ? Math.round(((ca.total - pca.total) / pca.total) * 1000) / 10 : null;
+  const highlights = [
+    `${nf(ca.total)} people attended${change !== null && vsLabel ? `, ${change >= 0 ? "up" : "down"} ${Math.abs(change)}% on ${vsLabel.slice(3)}` : ""}.`,
+    ...(ds.total ? [`${ds.present} of ${ds.total} workers served (${ds.pct}%).${best ? ` ${best.department_name} had the best turnout at ${deptPct(best)}%.` : ""}`] : []),
+    ...(ds.early + ds.onTime + ds.late ? [`${ds.onTimePct}% of workers who came clocked in early or on time.`] : []),
+    `${nf(ca.visitors)} visitors${ca.clergy ? ` and ${ca.clergy} visiting clergy were` : " were"} recorded.`,
+  ];
+
+  const pctColor = (p: number) => (p >= 75 ? GN : p >= 60 ? AM : RD);
+  const overviewSections: ReportSection[] = [
+    {
+      kind: "hbars",
+      id: "presence",
+      title: "Department presence",
+      sub: "Share of each department’s workers present",
+      max: 100,
+      rows: departments
+        .slice()
+        .sort((a, b) => deptPct(b) - deptPct(a))
+        .map((d) => ({ label: d.department_name, value: deptPct(d), display: `${deptPct(d)}% · ${n(d.present_members)} of ${n(d.total_members)}`, color: pctColor(deptPct(d)) })),
+    },
+    {
+      kind: "segments",
+      id: "mix",
+      title: "Attendance mix",
+      sub: `Everyone counted at the ${EVENT_TYPE_LABEL[type].toLowerCase()}`,
+      groups: [
+        { label: "Members, visitors and clergy", parts: [{ label: "Members", value: ca.members, color: NV }, { label: "Visitors", value: ca.visitors, color: BZ }, { label: "Visiting clergy", value: ca.clergy, color: SF }].filter((p) => p.value > 0) },
+        { label: "Age group", parts: [{ label: "Adults", value: ca.am + ca.af, color: NV }, { label: "Youth", value: ca.ym + ca.yf, color: BZ }, { label: "Children", value: ca.cm + ca.cf, color: SF }].filter((p) => p.value > 0) },
+        { label: "Gender", parts: [{ label: "Female", value: ca.af + ca.yf + ca.cf + ca.vf + ca.pf, color: NV }, { label: "Male", value: ca.am + ca.ym + ca.cm + ca.vm + ca.pm, color: BZ }].filter((p) => p.value > 0) },
+      ].filter((g) => g.parts.length > 0),
+    },
+    {
+      kind: "segments",
+      id: "arrival",
+      title: "Worker arrival",
+      sub: start ? `Clock-in compared with the ${start} start` : "Clock-in compared with the start time",
+      full: true,
+      groups: [{ parts: [{ label: "Early", value: ds.early, color: GN }, { label: "On time", value: ds.onTime, color: BL }, { label: "Late", value: ds.late, color: AM }, { label: "Absent", value: ds.absent, color: RD }].filter((p) => p.value > 0) }],
+    },
+  ];
+
+  const attendanceSections: ReportSection[] = [
+    {
+      kind: "table",
+      id: "headcount",
+      title: "Headcount by group",
+      sub: "From the ushers’ count",
+      minWidth: "480px",
+      columns: [
+        { label: "Group", width: "minmax(160px,1.5fr)" },
+        { label: "Male", width: "100px", align: "right" },
+        { label: "Female", width: "100px", align: "right" },
+        { label: "Total", width: "100px", align: "right" },
+      ],
+      rows: [
+        ["Adults", ca.am, ca.af],
+        ["Youth", ca.ym, ca.yf],
+        ["Children", ca.cm, ca.cf],
+        ["Visitors", ca.vm, ca.vf, ca.visitors],
+        ["Visiting clergy", ca.pm, ca.pf, ca.clergy],
+      ]
+        .map(([label, m, f, t]) => ({
+          cells: [{ text: String(label), bold: true }, nf(Number(m)), nf(Number(f)), { text: nf(Number(t ?? Number(m) + Number(f))), bold: true }],
+        }))
+        .concat([
+          {
+            cells: [
+              { text: "Total", bold: true },
+              { text: nf(ca.am + ca.ym + ca.cm + ca.vm + ca.pm), bold: true },
+              { text: nf(ca.af + ca.yf + ca.cf + ca.vf + ca.pf), bold: true },
+              { text: nf(ca.total), bold: true },
+            ],
+          },
+        ]),
+    },
+    {
+      kind: "bars",
+      id: "by-group",
+      title: "By group",
+      sub: "Male and female",
+      stack: false,
+      labels: ["Adults", "Youth", "Children", "Visitors", "Clergy"],
+      series: [
+        { name: "Male", color: NV, values: [ca.am, ca.ym, ca.cm, ca.vm, ca.pm] },
+        { name: "Female", color: BZ, values: [ca.af, ca.yf, ca.cf, ca.vf, ca.pf] },
+      ],
+    },
+  ];
+
+  /* ---------------------------------- actions -------------------------------- */
+  const run = async (name: string, call: () => Promise<unknown>, toast: { title: string; message: string }) => {
+    setBusy(name);
+    try {
+      await call();
+      notify.success(toast);
+      await refetch(query);
+      return true;
+    } catch {
+      return false;
+    } finally {
+      setBusy(null);
+    }
+  };
+  const download = async (format: EventReportServiceSummaryFormat) => {
+    setBusy(format);
+    try {
+      const file = await api.post.downloadEventReportServiceSummary(selector, format);
+      downloadBlobFile(file.blob, file.fileName);
+    } catch {
+      notify.error({ title: "Couldn't download the report", message: `The ${format.toUpperCase()} file could not be created. Try again in a minute.` });
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const trail = (report.trail || []).map((t) => ({ action: ACTION_LABEL[t.action] || t.action, who: t.who || "System", when: fmtDateTime(t.when), done: true }));
+  if (statusLabel === "Pending approval") trail.push({ action: "Waiting for approval", who: "Leadership", when: "Pending", done: false });
+  const comments = report.comments || [];
+  const lastReturn = [...comments].reverse()[0];
+
+  const banners: { tone: PillTone; title: string; text?: string }[] = [];
+  if (statusLabel === "Pending approval") {
+    banners.push(
+      can.can_approve
+        ? { tone: "warning", title: "Waiting for your approval", text: "Check the department turnout and headcount, then approve or return it." }
+        : { tone: "info", title: "Waiting for leadership approval", text: report.generated_at ? `Generated on ${fmtDateTime(report.generated_at)}.` : undefined }
+    );
+  }
+  if (statusLabel === "Returned") banners.push({ tone: "danger", title: "Returned for changes", text: lastReturn ? `“${lastReturn.text}” — ${lastReturn.author || "Leadership"}` : undefined });
+  if (statusLabel === "Approved") banners.push({ tone: "success", title: "Approved and locked", text: `Approved${report.report?.acted_by_name ? ` by ${report.report.acted_by_name}` : ""}. Downloads use this approved version.` });
+
+  /* -------------------------------- departments ------------------------------ */
+  const deptRows = departments
+    .filter((d) => deptF === "ALL" || String(d.department_id) === deptF)
+    .map((d) => {
+      const attendees = (d.attendees || []).filter((a) => timeF === "ALL" || timingOf(a.status) === timeF);
+      return { d, attendees, open: deptF !== "ALL" || Boolean(openDepts[String(d.department_id)]) };
+    });
+
   return (
-    <PageOutline crumbs={crumbs}>
-      <section className="space-y-4 rounded-xl border border-lightGray bg-white p-4">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="space-y-2">
-            <div>
-              <h1 className="text-xl font-semibold text-primary md:text-2xl">
-                Event Report Details
-              </h1>
-              <p className="text-sm text-primaryGray">{eventName}</p>
-            </div>
-
-            <div className="flex flex-wrap gap-2 text-xs text-primaryGray">
-              <span className="rounded-full bg-lightGray/40 px-3 py-1">
-                Event Date: {formatDate(effectiveReportDate)}
-              </span>
-              {eventType && (
-                <span className="rounded-full bg-lightGray/40 px-3 py-1">
-                  {eventType}
-                </span>
-              )}
-              {eventLocation && (
-                <span className="rounded-full bg-lightGray/40 px-3 py-1">
-                  {eventLocation}
-                </span>
-              )}
-              {eventStartTime && (
-                <span className="rounded-full bg-lightGray/40 px-3 py-1">
-                  {eventStartTime}
-                  {eventEndTime ? ` - ${eventEndTime}` : ""}
-                </span>
-              )}
-            </div>
-
-            {generatedAt && (
-              <p className="text-xs text-primaryGray">
-                Generated on {formatDateTime(generatedAt)}
-              </p>
+    <section className="flex min-h-full flex-1 flex-col">
+      <ReportBand
+        backLabel={backLabel}
+        onBack={back}
+        eyebrow={`Event report · ${EVENT_TYPE_LABEL[type]}`}
+        title={eventName}
+        status={status}
+        meta={[fmtEventDate(currentDate), fmtEventTime(report.start_time, report.end_time), report.location || "", report.generated_at ? `Generated ${fmtDateTime(report.generated_at)}` : ""].filter(Boolean)}
+        tab={tab}
+        onTab={setTab}
+        tabs={[
+          { key: "overview", label: "Overview" },
+          { key: "depts", label: "Departments", count: low.length },
+          { key: "attendance", label: "Church attendance" },
+          { key: "review", label: "Approval", count: comments.length },
+        ]}
+        exportItems={
+          can.can_export === false
+            ? undefined
+            : [
+                { label: busy === "pdf" ? "Preparing PDF…" : "Download PDF", onClick: () => download("pdf"), disabled: Boolean(busy) },
+                { label: busy === "docx" ? "Preparing DOCX…" : "Download DOCX", onClick: () => download("docx"), disabled: Boolean(busy) },
+              ]
+        }
+        actions={
+          <>
+            {occurrences.length > 1 && (
+              <select
+                aria-label="Report date"
+                value={`${id}::${currentDate}`}
+                onChange={(event) => {
+                  const o = occurrences.find((x) => `${x.event_id}::${x.event_date}` === event.target.value);
+                  if (o) goTo(o);
+                }}
+                className="h-10 max-w-full rounded-lg border border-white/40 bg-primary px-3 text-sm text-white"
+              >
+                {occurrences.map((o) => (
+                  <option key={`${o.event_id}::${o.event_date}`} value={`${o.event_id}::${o.event_date}`}>
+                    {fmtEventDate(o.event_date)}
+                  </option>
+                ))}
+              </select>
             )}
-          </div>
+            {can.can_return && <BandButton onClick={() => setReturnOpen(true)}>Return</BandButton>}
+            {can.can_approve && (
+              <BandButton
+                solid
+                disabled={busy === "approve"}
+                onClick={() => run("approve", () => api.post.approveEventReport(selector), { title: "Event report approved", message: `${eventName} on ${fmtEventDate(currentDate)} is approved and locked.` })}
+              >
+                {busy === "approve" ? "Approving…" : "Approve report"}
+              </BandButton>
+            )}
+            {can.can_resubmit && (
+              <BandButton
+                solid
+                disabled={busy === "resubmit"}
+                onClick={() => run("resubmit", () => api.post.resubmitEventReport(selector), { title: "Resubmitted for approval", message: "Leadership can review the report again." })}
+              >
+                {busy === "resubmit" ? "Resubmitting…" : "Resubmit for approval"}
+              </BandButton>
+            )}
+          </>
+        }
+      />
 
-          <div className="flex min-w-[240px] flex-col gap-3">
-            {availableDates.length > 1 && (
-              <label className="space-y-1 text-sm">
-                <span className="block text-xs font-medium text-primaryGray">
-                  Report Date
-                </span>
-                <select
-                  className="h-10 w-full rounded-lg border border-lightGray px-3"
-                  value={selectedDate}
-                  onChange={(event) => setSelectedDate(event.target.value)}
-                >
-                  {availableDates.map((date) => (
-                    <option key={date} value={date}>
-                      {formatDate(date)}
-                    </option>
-                  ))}
-                </select>
+      <div className="flex w-full flex-1 flex-col gap-6 bg-white p-4 sm:p-6">
+        {banners.map((b) => (
+          <Banner key={b.title} tone={b.tone} title={b.title} text={b.text} />
+        ))}
+
+        {loading && <SkeletonGrid count={6} min={200} height={120} />}
+
+        {!loading && tab === "overview" && (
+          <>
+            <KpiGrid kpis={kpis} vsLabel={vsLabel} />
+            <div className="grid items-start gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr))]">
+              <FlagsCard flags={flags} />
+              <HighlightsCard items={highlights} />
+            </div>
+            <SectionGrid sections={overviewSections} />
+          </>
+        )}
+
+        {!loading && tab === "attendance" && <SectionGrid sections={attendanceSections} />}
+
+        {!loading && tab === "depts" && (
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-wrap items-end gap-x-4 gap-y-3">
+              <label className="flex max-w-[280px] flex-[1_1_200px] flex-col gap-1">
+                <span className="text-sm text-primary">Department</span>
+                <SelectInput
+                  value={deptF}
+                  onChange={(event) => setDeptF(event.target.value)}
+                  options={[{ value: "ALL", label: "All departments" }, ...departments.map((d) => ({ value: String(d.department_id), label: d.department_name }))]}
+                />
               </label>
-            )}
-
-            <div className="rounded-xl border border-lightGray bg-gray-50 p-3">
-              <p className="text-sm font-medium text-primary">
-                Generate Service Summary Report
-              </p>
-              <p className="mt-1 text-xs text-primaryGray">
-                Download the current report as DOCX or PDF.
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <Button
-                  value="Download DOCX"
-                  variant="secondary"
-                  onClick={() => handleDownloadServiceSummary("docx")}
-                  loading={downloadFormat === "docx"}
-                  disabled={!effectiveReportDate}
+              <label className="flex max-w-[240px] flex-[1_1_180px] flex-col gap-1">
+                <span className="text-sm text-primary">Arrival</span>
+                <SelectInput
+                  value={timeF}
+                  onChange={(event) => setTimeF(event.target.value as "ALL" | Timing)}
+                  options={[{ value: "ALL", label: "All arrivals" }, ...(["Early", "On time", "Late", "Absent"] as Timing[]).map((t) => ({ value: t, label: t }))]}
                 />
-                <Button
-                  value="Download PDF"
-                  variant="secondary"
-                  onClick={() => handleDownloadServiceSummary("pdf")}
-                  loading={downloadFormat === "pdf"}
-                  disabled={!effectiveReportDate}
-                />
+              </label>
+              <div className="flex flex-[1_1_320px] flex-wrap justify-start gap-2 sm:justify-end">
+                {(["Early", "On time", "Late", "Absent"] as Timing[]).map((t) => (
+                  <Pill key={t} tone={TIMING_TONE[t]}>
+                    {t} {t === "Early" ? ds.early : t === "On time" ? ds.onTime : t === "Late" ? ds.late : ds.absent}
+                  </Pill>
+                ))}
               </div>
             </div>
-          </div>
-        </div>
-
-        {loading && (
-          <p className="rounded-lg bg-lightGray/30 px-3 py-2 text-sm text-primaryGray">
-            Loading event report details...
-          </p>
-        )}
-
-        {error && !loading && (
-          <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
-            {error.message || "Unable to load the selected event report."}
-          </p>
-        )}
-      </section>
-
-      <section className="mt-6 space-y-3 rounded-xl border border-lightGray bg-white p-4">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-base font-semibold text-primary">Report View</h2>
-          <span className="text-xs text-primaryGray">{activeReportViewTab}</span>
-        </div>
-
-        <SlantTabs
-          tabs={[...reportViewTabs]}
-          selectedTab={activeReportViewTab}
-          onTabSelect={setActiveReportViewTab}
-        />
-
-        <p className="text-xs text-primaryGray">
-          {activeReportViewTab === "Data" &&
-            "Detailed records, attendance counts, and event reporting data."}
-          {activeReportViewTab === "Insight" &&
-            "Visual summaries of department coverage and church attendance."}
-        </p>
-      </section>
-
-      <section className="mt-6 space-y-3 rounded-xl border border-lightGray bg-white p-4">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-base font-semibold text-primary">
-            Report Sections
-          </h2>
-          <span className="text-xs text-primaryGray">
-            {activeReportSectionTab}
-          </span>
-        </div>
-
-        <SlantTabs
-          tabs={[...reportSectionTabs]}
-          selectedTab={activeReportSectionTab}
-          onTabSelect={setActiveReportSectionTab}
-        />
-      </section>
-
-      {activeReportSectionTab === "Department Overview" && (
-        <section className="mt-6 space-y-4 rounded-xl border border-lightGray bg-white p-4">
-          <div className="flex items-center justify-between gap-2">
-            <h2 className="text-lg font-semibold text-primary">
-              Department Overview
-            </h2>
-            <span className="text-xs text-primaryGray">
-              {countFormatter.format(departmentCoverageSummary.presentMembers)} present
-              {" "}out of{" "}
-              {countFormatter.format(departmentCoverageSummary.totalMembers)} members
-              {" "}(
-              {percentFormatter.format(departmentCoverageSummary.attendancePercentage)}
-              %)
-            </span>
-          </div>
-
-          {departmentSections.length === 0 ? (
-            <p className="rounded-lg border border-dashed border-lightGray px-3 py-4 text-sm text-primaryGray">
-              No departmental data found for this report.
+            <p className="text-xs text-gray-500">
+              Timing is measured against the {start || "event"} start using the attendance timing rules in Settings.
             </p>
-          ) : (
-            <>
-              {activeReportViewTab === "Insight" && (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-                    <label className="space-y-1 text-sm">
-                      <span className="block text-xs font-medium text-primaryGray">
-                        Department
+            {deptRows.map(({ d, attendees, open }) => {
+              const p = deptPct(d);
+              const lateN = (d.attendees || []).filter((a) => timingOf(a.status) === "Late").length;
+              return (
+                <div key={d.department_id} className="overflow-hidden rounded-xl border border-lightGray">
+                  <button
+                    type="button"
+                    aria-expanded={open}
+                    onClick={() => setOpenDepts((prev) => ({ ...prev, [String(d.department_id)]: !open }))}
+                    className="grid w-full grid-cols-[minmax(0,1fr)_auto_20px] items-center gap-3 bg-white px-4 py-4 text-left text-sm text-primary hover:bg-lightGray/20 sm:grid-cols-[minmax(0,1fr)_auto_auto_20px] sm:gap-4 sm:px-6"
+                  >
+                    <span className="min-w-0">
+                      <span className="block font-semibold">{d.department_name}</span>
+                      <span className="block text-xs text-gray-500">
+                        Head: {d.head_name || "Not set"} · {lateN} late
                       </span>
-                      <select
-                        className="h-10 w-full rounded-lg border border-lightGray px-3"
-                        value={insightDepartmentFilter}
-                        onChange={(event) =>
-                          setInsightDepartmentFilter(event.target.value)
-                        }
-                      >
-                        <option value="ALL">All departments</option>
-                        {departmentFilterOptions.map((department) => (
-                          <option key={department.id} value={department.id}>
-                            {department.name}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-
-                    <label className="space-y-1 text-sm">
-                      <span className="block text-xs font-medium text-primaryGray">
-                        Timing Status
-                      </span>
-                      <select
-                        className="h-10 w-full rounded-lg border border-lightGray px-3"
-                        value={insightTimingStatusFilter}
-                        onChange={(event) =>
-                          setInsightTimingStatusFilter(
-                            event.target.value as TimingStatusFilter
-                          )
-                        }
-                      >
-                        <option value="ALL">All statuses</option>
-                        <option value="EARLY">Early</option>
-                        <option value="ON_TIME">On Time</option>
-                        <option value="LATE">Late</option>
-                        <option value="ABSENT">Absent</option>
-                      </select>
-                    </label>
-
-                    <label className="space-y-1 text-sm">
-                      <span className="block text-xs font-medium text-primaryGray">
-                        Relative Filter
-                      </span>
-                      <select
-                        className="h-10 w-full rounded-lg border border-lightGray px-3"
-                        value={insightRelativeDirection}
-                        onChange={(event) =>
-                          setInsightRelativeDirection(
-                            event.target.value as RelativeDirectionFilter
-                          )
-                        }
-                      >
-                        <option value="ALL">No time filter</option>
-                        <option value="BEFORE">Before start</option>
-                        <option value="AFTER">After start</option>
-                      </select>
-                    </label>
-
-                    <label className="space-y-1 text-sm">
-                      <span className="block text-xs font-medium text-primaryGray">
-                        Hours from Start
-                      </span>
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.5"
-                        className="h-10 w-full rounded-lg border border-lightGray px-3"
-                        value={insightRelativeHours}
-                        onChange={(event) =>
-                          setInsightRelativeHours(event.target.value)
-                        }
-                      />
-                    </label>
-                  </div>
-
-                  <div className="rounded-lg border border-lightGray bg-gray-50 px-3 py-2 text-xs text-primaryGray">
-                    {eventStartDateTime ? (
-                      <>
-                        Timing is measured against the event start at{" "}
-                        <span className="font-medium text-primary">
-                          {eventStartDateTime.toFormat("dd LLL yyyy, HH:mm")}
-                        </span>
-                        . Early starts at{" "}
-                        {formatMinutesDistance(attendanceTimingRuleMinutes.early)}{" "}
-                        before, on time stays within{" "}
-                        {formatMinutesDistance(attendanceTimingRuleMinutes.onTime)},
-                        and late starts at{" "}
-                        {formatMinutesDistance(attendanceTimingRuleMinutes.late)}{" "}
-                        after the event start.
-                      </>
-                    ) : (
-                      "Timing status needs a valid event start date and time."
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                    <article className="rounded-lg border border-lightGray p-3">
-                      <p className="text-xs text-primaryGray">Early</p>
-                      <p className="text-lg font-semibold text-primary">
-                        {countFormatter.format(departmentInsightSummary.early)}
-                      </p>
-                    </article>
-                    <article className="rounded-lg border border-lightGray p-3">
-                      <p className="text-xs text-primaryGray">On Time</p>
-                      <p className="text-lg font-semibold text-primary">
-                        {countFormatter.format(departmentInsightSummary.onTime)}
-                      </p>
-                    </article>
-                    <article className="rounded-lg border border-lightGray p-3">
-                      <p className="text-xs text-primaryGray">Late</p>
-                      <p className="text-lg font-semibold text-primary">
-                        {countFormatter.format(departmentInsightSummary.late)}
-                      </p>
-                    </article>
-                    <article className="rounded-lg border border-lightGray p-3">
-                      <p className="text-xs text-primaryGray">Matching Members</p>
-                      <p className="text-lg font-semibold text-primary">
-                        {countFormatter.format(filteredDepartmentInsightRows.length)}
-                      </p>
-                    </article>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-                    <article className="rounded-lg border border-lightGray p-3 lg:col-span-2">
-                      <p className="text-sm font-medium text-primary">
-                        Department Attendance Rate
-                      </p>
-                      <div className="mt-3 h-72">
-                        <Bar
-                          data={{
-                            labels: departmentPresenceSeries.labels,
-                            datasets: [
-                              {
-                                label: "Attendance %",
-                                data: departmentPresenceSeries.values,
-                                backgroundColor: departmentPresenceSeries.colors,
-                                borderRadius: 6,
-                                maxBarThickness: 28,
-                              },
-                            ],
-                          }}
-                          options={horizontalBarOptions}
-                        />
+                    </span>
+                    <span className="hidden whitespace-nowrap text-gray-600 sm:inline">
+                      {n(d.present_members)} of {n(d.total_members)}
+                    </span>
+                    <Pill tone={p >= 75 ? "success" : p >= 60 ? "warning" : "danger"}>{p < 60 ? `▼ ${p}%` : `${p}%`}</Pill>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgb(var(--color-gray-600))" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={cn("transition-transform", open && "rotate-180")}>
+                      <path d="M6 9l6 6 6-6" />
+                    </svg>
+                  </button>
+                  {open && (
+                    <div className="overflow-x-auto border-t border-lightGray">
+                      <div className="min-w-[620px]">
+                        <div className="grid grid-cols-[minmax(180px,1.5fr)_110px_minmax(160px,1fr)_120px] gap-3 bg-inputBackground px-6 py-3 font-semibold">
+                          <span>Name</span>
+                          <span>Clock-in</span>
+                          <span>Relative to start</span>
+                          <span>Status</span>
+                        </div>
+                        {attendees.map((a) => {
+                          const t = timingOf(a.status);
+                          return (
+                            <div key={a.id} className="grid min-h-12 grid-cols-[minmax(180px,1.5fr)_110px_minmax(160px,1fr)_120px] items-center gap-3 border-t border-gray-200 px-6 py-2">
+                              <span>{a.name}</span>
+                              <span>{fmtClock(a.arrival_time || a.arrival_at) || a.reported_time || "—"}</span>
+                              <span className="text-gray-600">{a.relative_to_start && a.relative_to_start !== "-" ? a.relative_to_start : "—"}</span>
+                              <span>{t ? <Pill tone={TIMING_TONE[t]}>{t}</Pill> : "—"}</span>
+                            </div>
+                          );
+                        })}
+                        {attendees.length === 0 && <p className="px-6 py-4 text-gray-500">Nobody in this department matches the arrival filter.</p>}
                       </div>
-                    </article>
-
-                    <article className="rounded-lg border border-lightGray p-3">
-                      <p className="text-sm font-medium text-primary">
-                        Overall Department Coverage
-                      </p>
-                      <div className="mt-3 h-72">
-                        <Doughnut
-                          data={{
-                            labels: ["Present", "Absent"],
-                            datasets: [
-                              {
-                                data: [
-                                  departmentCoverageSummary.presentMembers,
-                                  departmentCoverageSummary.absentMembers,
-                                ],
-                                backgroundColor: ["#16A34A", "#E5E7EB"],
-                              },
-                            ],
-                          }}
-                          options={doughnutOptions}
-                        />
-                      </div>
-                    </article>
-                  </div>
-
-                  <article className="overflow-hidden rounded-lg border border-lightGray">
-                    <div className="flex flex-wrap items-center justify-between gap-2 bg-gray-50 px-4 py-3">
-                      <div>
-                        <p className="font-medium text-primary">
-                          Department Reporting Detail
-                        </p>
-                        <p className="text-xs text-primaryGray">
-                          Member, department, reported time, and timing status.
-                        </p>
-                      </div>
-                      <span className="text-xs text-primaryGray">
-                        {countFormatter.format(filteredDepartmentInsightRows.length)} records
-                      </span>
                     </div>
-
-                    <div className="overflow-x-auto">
-                      <table className="min-w-full border-t border-lightGray text-sm">
-                        <thead>
-                          <tr className="bg-white">
-                            <th className="px-4 py-3 text-left font-semibold text-primary">
-                              Member
-                            </th>
-                            <th className="px-4 py-3 text-left font-semibold text-primary">
-                              Department
-                            </th>
-                            <th className="px-4 py-3 text-left font-semibold text-primary">
-                              Reported Time
-                            </th>
-                            <th className="px-4 py-3 text-left font-semibold text-primary">
-                              Relative to Start
-                            </th>
-                            <th className="px-4 py-3 text-left font-semibold text-primary">
-                              Status
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {filteredDepartmentInsightRows.length === 0 ? (
-                            <tr>
-                              <td colSpan={5} className="px-4 py-4 text-primaryGray">
-                                No member records matched the current filters.
-                              </td>
-                            </tr>
-                          ) : (
-                            filteredDepartmentInsightRows.map((row) => (
-                              <tr
-                                key={row.id}
-                                className="border-t border-lightGray align-top"
-                              >
-                                <td className="px-4 py-3">{row.name}</td>
-                                <td className="px-4 py-3">{row.departmentName}</td>
-                                <td className="px-4 py-3">
-                                  <div className="space-y-1">
-                                    <p className="text-primary">{row.arrivalTime}</p>
-                                    {row.reportedAtLabel && (
-                                      <p className="text-xs text-primaryGray">
-                                        {row.reportedAtLabel}
-                                      </p>
-                                    )}
-                                  </div>
-                                </td>
-                                <td className="px-4 py-3">
-                                  {row.relativeToStartLabel}
-                                </td>
-                                <td className="px-4 py-3">
-                                  <span
-                                    className={`inline-flex rounded-lg px-2 py-1 text-xs font-medium ${getTimingBadgeClasses(
-                                      row.timingStatus
-                                    )}`}
-                                  >
-                                    {timingStatusLabelMap[row.timingStatus]}
-                                  </span>
-                                </td>
-                              </tr>
-                            ))
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  </article>
+                  )}
                 </div>
-              )}
+              );
+            })}
+            {departments.length === 0 && <p className="text-gray-500">No department clock-ins were recorded for this event.</p>}
+          </div>
+        )}
 
-              {activeReportViewTab === "Data" && (
-                <div className="space-y-3">
-                  <div className="flex flex-col gap-3 rounded-lg border border-lightGray p-3 md:flex-row md:items-end md:justify-between">
-                    <label className="w-full max-w-xl space-y-1 text-sm">
-                      <span className="block text-xs font-medium text-primaryGray">
-                        Search Department or Member
-                      </span>
-                      <input
-                        type="text"
-                        className="h-10 w-full rounded-lg border border-lightGray px-3"
-                        placeholder="Search department name or member name"
-                        value={dataSearchTerm}
-                        onChange={(event) => setDataSearchTerm(event.target.value)}
-                      />
-                    </label>
-                    <p className="text-xs text-primaryGray">
-                      {countFormatter.format(dataDepartmentSections.length)} departments
-                      matched
-                    </p>
-                  </div>
-
-                  {dataDepartmentSections.length === 0 ? (
-                    <p className="rounded-lg border border-dashed border-lightGray px-3 py-4 text-sm text-primaryGray">
-                      No departments or members matched your search.
-                    </p>
-                  ) : (
-                    dataDepartmentSections.map((department) => {
-                      const isOpen = openDepartments[department.id] ?? false;
-
-                      return (
-                        <article
-                          key={department.id}
-                          className="overflow-hidden rounded-lg border border-lightGray"
-                        >
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setOpenDepartments((current) => ({
-                                ...current,
-                                [department.id]: !current[department.id],
-                              }))
-                            }
-                            className="flex w-full items-center justify-between bg-gray-50 px-4 py-3 text-left"
-                          >
-                            <div>
-                              <p className="font-medium text-primary">
-                                {department.name}
-                              </p>
-                              <p className="text-xs text-primaryGray">
-                                {countFormatter.format(department.presentMembers)} present
-                                out of{" "}
-                                {countFormatter.format(department.totalMembers)} members
-                              </p>
-                              <p className="text-xs text-primaryGray">
-                                {percentFormatter.format(
-                                  department.attendancePercentage
-                                )}
-                                % attendance rate
-                              </p>
-                              {normalizedDataSearchTerm && (
-                                <p className="text-xs text-primaryGray">
-                                  Showing {countFormatter.format(department.visibleCount)}
-                                  {" "}of{" "}
-                                  {countFormatter.format(department.attendees.length)}
-                                  {" "}member records
-                                </p>
-                              )}
-                            </div>
-                            <span className="text-lg text-primary">
-                              {isOpen ? "−" : "+"}
-                            </span>
-                          </button>
-
-                          {isOpen && (
-                            <div className="overflow-x-auto">
-                              <table className="min-w-full border-t border-lightGray text-sm">
-                                <thead>
-                                  <tr className="bg-white">
-                                    <th className="px-4 py-3 text-left font-semibold text-primary">
-                                      Name
-                                    </th>
-                                    <th className="px-4 py-3 text-left font-semibold text-primary">
-                                      Reported Time
-                                    </th>
-                                    <th className="px-4 py-3 text-left font-semibold text-primary">
-                                      Relative to Start
-                                    </th>
-                                    <th className="px-4 py-3 text-left font-semibold text-primary">
-                                      Status
-                                    </th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {department.visibleAttendees.length === 0 ? (
-                                    <tr>
-                                      <td
-                                        colSpan={4}
-                                        className="px-4 py-4 text-primaryGray"
-                                      >
-                                        No member records matched your search for
-                                        this department.
-                                      </td>
-                                    </tr>
-                                  ) : (
-                                    department.visibleAttendees.map((attendee) => {
-                                      const insightRow =
-                                        departmentInsightRowsByAttendeeKey.get(
-                                          buildDepartmentAttendeeLookupKey(
-                                            department.id,
-                                            attendee
-                                          )
-                                        );
-
-                                      return (
-                                        <tr
-                                          key={buildDepartmentAttendeeLookupKey(
-                                            department.id,
-                                            attendee
-                                          )}
-                                          className="border-t border-lightGray"
-                                        >
-                                          <td className="px-4 py-3">{attendee.name}</td>
-                                          <td className="px-4 py-3">
-                                            <div className="space-y-1">
-                                              <p className="text-primary">
-                                                {attendee.reportedTime ||
-                                                  attendee.arrivalTime}
-                                              </p>
-                                              {insightRow?.reportedAtLabel && (
-                                                <p className="text-xs text-primaryGray">
-                                                  {insightRow.reportedAtLabel}
-                                                </p>
-                                              )}
-                                            </div>
-                                          </td>
-                                          <td className="px-4 py-3">
-                                            {insightRow?.relativeToStartLabel ||
-                                              "Event start time unavailable"}
-                                          </td>
-                                          <td className="px-4 py-3">
-                                            <span
-                                              className={`inline-flex rounded-lg px-2 py-1 text-xs font-medium ${getTimingBadgeClasses(
-                                                insightRow?.timingStatus ||
-                                                  "UNCLASSIFIED"
-                                              )}`}
-                                            >
-                                              {
-                                                timingStatusLabelMap[
-                                                  insightRow?.timingStatus ||
-                                                    "UNCLASSIFIED"
-                                                ]
-                                              }
-                                            </span>
-                                          </td>
-                                        </tr>
-                                      );
-                                    })
-                                  )}
-                                </tbody>
-                              </table>
-                            </div>
-                          )}
-
-                          <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-lightGray bg-white px-4 py-3 text-sm">
-                            <div className="space-y-1">
-                              <p>
-                                <span className="font-medium text-primary">
-                                  Head of Department:
-                                </span>{" "}
-                                <span className="text-primaryGray">
-                                  {department.headName || "Not assigned"}
-                                </span>
-                              </p>
-                              <p className="text-xs text-primaryGray">
-                                Present: {countFormatter.format(department.presentMembers)}
-                                {" "} | Absent:{" "}
-                                {countFormatter.format(department.absentMembers)}
-                              </p>
-                            </div>
-                            <div className="rounded-lg bg-lightGray/40 px-3 py-2 text-right">
-                              <p className="text-xs text-primaryGray">
-                                Attendance Rate
-                              </p>
-                              <p className="font-semibold text-primary">
-                                {percentFormatter.format(
-                                  department.attendancePercentage
-                                )}
-                                %
-                              </p>
-                            </div>
-                          </footer>
-                        </article>
-                      );
-                    })
+        {!loading && tab === "review" && (
+          <div className="grid items-start gap-4 [grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr))]">
+            <ApprovalTrail steps={trail}>
+              {(can.can_approve || can.can_return) && (
+                <div className="flex flex-wrap gap-2">
+                  {can.can_return && <UiButton onClick={() => setReturnOpen(true)}>Return with note</UiButton>}
+                  {can.can_approve && (
+                    <UiButton
+                      tone="primary"
+                      disabled={busy === "approve"}
+                      onClick={() => run("approve", () => api.post.approveEventReport(selector), { title: "Event report approved", message: `${eventName} on ${fmtEventDate(currentDate)} is approved and locked.` })}
+                    >
+                      {busy === "approve" ? "Approving…" : "Approve report"}
+                    </UiButton>
                   )}
                 </div>
               )}
-            </>
-          )}
-        </section>
-      )}
+            </ApprovalTrail>
+            <CommentsCard
+              sub="Visible to everyone who can open this report"
+              comments={comments.map((c) => ({ id: c.id, author: c.author || "Unknown user", when: fmtDateTime(c.when), text: c.text }))}
+              canPost={can.can_comment}
+              posting={busy === "comment"}
+              onPost={async (text) => {
+                setBusy("comment");
+                try {
+                  await api.post.commentOnEventReport({ ...selector, text });
+                  await refetch(query);
+                } finally {
+                  setBusy(null);
+                }
+              }}
+            />
+          </div>
+        )}
+      </div>
 
-      {activeReportSectionTab === "Church Attendance" && (
-        <section className="mt-6 space-y-4 rounded-xl border border-lightGray bg-white p-4">
-          <header className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-lg font-semibold text-primary">
-              Church Attendance
-            </h2>
-            <span className="text-sm font-medium text-primary">
-              Total Attendance: {countFormatter.format(attendanceTotals.totalAttendance)}
-            </span>
-          </header>
-
-          {activeReportViewTab === "Insight" && (
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-              <article className="rounded-lg border border-lightGray p-3 lg:col-span-2">
-                <p className="text-sm font-medium text-primary">
-                  Attendance Composition by Category
-                </p>
-                <div className="mt-3 h-72">
-                  <Bar
-                    data={{
-                      labels: churchAttendanceSeries.labels,
-                      datasets: [
-                        {
-                          label: "Attendance",
-                          data: churchAttendanceSeries.values,
-                          backgroundColor: [
-                            "#2563EB",
-                            "#60A5FA",
-                            "#F97316",
-                            "#FDBA74",
-                            "#16A34A",
-                            "#86EFAC",
-                            "#7C3AED",
-                            "#C084FC",
-                          ],
-                          borderRadius: 8,
-                          maxBarThickness: 42,
-                        },
-                      ],
-                    }}
-                    options={barChartOptions}
-                  />
-                </div>
-              </article>
-
-              <article className="rounded-lg border border-lightGray p-3">
-                <p className="text-sm font-medium text-primary">
-                  Members vs Visitors
-                </p>
-                <div className="mt-3 h-72">
-                  <Doughnut
-                    data={{
-                      labels: churchAttendanceMix.labels,
-                      datasets: [
-                        {
-                          data: churchAttendanceMix.values,
-                          backgroundColor: ["#16A34A", "#2563EB", "#F97316"],
-                        },
-                      ],
-                    }}
-                    options={doughnutOptions}
-                  />
-                </div>
-              </article>
-            </div>
-          )}
-
-          {activeReportViewTab === "Data" && (
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              <div className="rounded-lg border border-lightGray p-3">
-                <p className="text-xs text-primaryGray">Adult Male</p>
-                <p className="text-base font-semibold text-primary">
-                  {countFormatter.format(attendanceTotals.adultMale)}
-                </p>
-              </div>
-              <div className="rounded-lg border border-lightGray p-3">
-                <p className="text-xs text-primaryGray">Adult Female</p>
-                <p className="text-base font-semibold text-primary">
-                  {countFormatter.format(attendanceTotals.adultFemale)}
-                </p>
-              </div>
-              <div className="rounded-lg border border-lightGray p-3">
-                <p className="text-xs text-primaryGray">Male Children</p>
-                <p className="text-base font-semibold text-primary">
-                  {countFormatter.format(attendanceTotals.childrenMale)}
-                </p>
-              </div>
-              <div className="rounded-lg border border-lightGray p-3">
-                <p className="text-xs text-primaryGray">Female Children</p>
-                <p className="text-base font-semibold text-primary">
-                  {countFormatter.format(attendanceTotals.childrenFemale)}
-                </p>
-              </div>
-              <div className="rounded-lg border border-lightGray p-3">
-                <p className="text-xs text-primaryGray">Male Youth</p>
-                <p className="text-base font-semibold text-primary">
-                  {countFormatter.format(attendanceTotals.youthMale)}
-                </p>
-              </div>
-              <div className="rounded-lg border border-lightGray p-3">
-                <p className="text-xs text-primaryGray">Female Youth</p>
-                <p className="text-base font-semibold text-primary">
-                  {countFormatter.format(attendanceTotals.youthFemale)}
-                </p>
-              </div>
-              <div className="rounded-lg border border-lightGray p-3">
-                <p className="text-xs text-primaryGray">Visitors</p>
-                <p className="text-base font-semibold text-primary">
-                  {countFormatter.format(attendanceTotals.visitors)}
-                </p>
-              </div>
-              <div className="rounded-lg border border-lightGray p-3">
-                <p className="text-xs text-primaryGray">Visiting Pastors</p>
-                <p className="text-base font-semibold text-primary">
-                  {countFormatter.format(attendanceTotals.visitingPastors)}
-                </p>
-              </div>
-              <div className="rounded-lg border border-lightGray p-3">
-                <p className="text-xs text-primaryGray">
-                  Attendance (Without Visitors)
-                </p>
-                <p className="text-base font-semibold text-primary">
-                  {countFormatter.format(attendanceTotals.totalWithoutVisitors)}
-                </p>
-              </div>
-            </div>
-          )}
-        </section>
-      )}
-    </PageOutline>
+      <DialogShell
+        open={returnOpen}
+        onClose={() => setReturnOpen(false)}
+        title="Return for changes"
+        subtitle="The report goes back to the event team. Your note appears on the report and in the comments."
+        ctaLabel="Return report"
+        ctaDisabled={!note.trim()}
+        loading={busy === "return"}
+        onConfirm={async () => {
+          const ok = await run("return", () => api.post.returnEventReport({ ...selector, note: note.trim() }), {
+            title: "Report returned",
+            message: "The event team can see your note and resubmit.",
+          });
+          if (ok) {
+            setReturnOpen(false);
+            setNote("");
+          }
+        }}
+      >
+        <label className="flex flex-col gap-1">
+          <span className="text-sm text-primary">Note</span>
+          <TextArea rows={4} value={note} placeholder="What needs to change?" onChange={(event) => setNote(event.target.value)} />
+        </label>
+      </DialogShell>
+    </section>
   );
 };
 
-export default EventReportDetails;
+const EventReportDetailsPage = () => (
+  <ReportsRouteAccess>
+    <EventReportDetails />
+  </ReportsRouteAccess>
+);
+
+export default EventReportDetailsPage;

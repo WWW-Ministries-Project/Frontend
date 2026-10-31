@@ -48,7 +48,7 @@ const Action = ({
   return (
     <div
       className={cn(
-        "z-50 bg-white divide-gray-100 rounded-lg shadow w-32 border border-[#D8DAE5]",
+        "z-50 bg-white divide-gray-100 rounded-lg shadow w-32 border border-lightGray",
         className
       )}
     >
@@ -60,7 +60,7 @@ const Action = ({
         {onView && <ActionButton onClick={onView} text="View" />}
         {canShowDelete && onDelete && (
           <>
-            <hr className="border-[#D8DAE5]" />
+            <hr className="border-lightGray" />
             <ActionButton onClick={onDelete} text="Delete" />
           </>
         )}

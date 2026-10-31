@@ -20,10 +20,16 @@ export interface JoinRequestRow {
   member_id?: number;
   member_name?: string;
   phone_number?: string | null;
+  note?: string | null;
+  position_id?: number | null;
+  position_name?: string | null;
+  start_date?: string | null;
+  instructions?: string | null;
 }
 
 export interface CreateJoinRequestPayload {
   department_id: number;
+  note?: string;
 }
 
 export interface ApproveJoinRequestPayload {

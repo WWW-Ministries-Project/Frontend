@@ -1,330 +1,313 @@
-import { HeaderControls } from "@/components/HeaderControls";
-import { useFetch } from "@/CustomHooks/useFetch";
-import PageOutline from "@/pages/HomePage/Components/PageOutline";
-import { api } from "@/utils";
-import { EventResponseType } from "@/utils/api/events/interfaces";
-import { Bar, Doughnut, Line } from "react-chartjs-2";
 import { useMemo, useState } from "react";
-import { eventsContract } from "../../Analytics/contracts";
-import { ensureAnalyticsChartsRegistered } from "../../Analytics/chartSetup";
-import { AnalyticsContractsPanel } from "../../Analytics/components/AnalyticsContractsPanel";
-import { AnalyticsDateFilters } from "../../Analytics/components/AnalyticsDateFilters";
-import { AnalyticsStatCards } from "../../Analytics/components/AnalyticsStatCards";
-import { AnalyticsFilters } from "../../Analytics/types";
+
+import PageOutline from "@/pages/HomePage/Components/PageOutline";
+import { downloadCsv } from "@/pages/HomePage/pages/Attendance/utils/attendanceModel";
+import { cn } from "@/utils/cn";
+
+import { Dot, KpiCard, PageHeading, Pill, type PillTone, Segmented, UiButton } from "../Components/eventsUi";
 import {
-  buildSeries,
-  createDefaultAnalyticsFilters,
-  getEarliestIsoDate,
-  isWithinRange,
-  numberFormatter,
-  resolveFiltersDateRange,
-  toDateTime,
-  toPercent,
-} from "../../Analytics/utils";
+  addDays,
+  attendanceFor,
+  EVENT_TYPES,
+  fmtShortDay,
+  keyToDate,
+  MONTHS,
+  plural,
+  type ScheduledEvent,
+  TYPE_TABS,
+  type TypeFilter,
+  todayKey,
+  typeColor,
+  typeLabel,
+  weekdayOf,
+} from "../utils/eventsModel";
+import { useEventsForYears, useHeadcounts } from "../utils/useEventsData";
 
-ensureAnalyticsChartsRegistered();
+type Period = "month" | "3m" | "year";
 
-type AttendanceRecord = Record<string, unknown>;
-
-const safeString = (value: unknown) => {
-  if (typeof value === "string") return value.trim();
-  if (typeof value === "number") return String(value);
-  return "";
+const periodRange = (period: Period, today: string): { from: string; label: string } => {
+  const date = keyToDate(today);
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  if (period === "month") {
+    return { from: `${today.slice(0, 7)}-01`, label: `${MONTHS[month]} ${year}` };
+  }
+  if (period === "3m") {
+    const start = new Date(year, month - 2, 1);
+    const from = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, "0")}-01`;
+    const sameYear = start.getFullYear() === year;
+    return {
+      from,
+      label: `${MONTHS[start.getMonth()].slice(0, 3)}${sameYear ? "" : ` ${start.getFullYear()}`} – ${MONTHS[month].slice(0, 3)} ${year}`,
+    };
+  }
+  return { from: `${year}-01-01`, label: `${year} so far` };
 };
 
-const attendanceTotal = (record: AttendanceRecord) => {
-  return [
-    Number(record.adultMale ?? record.adult_male ?? 0),
-    Number(record.adultFemale ?? record.adult_female ?? 0),
-    Number(record.childrenMale ?? record.children_male ?? 0),
-    Number(record.childrenFemale ?? record.children_female ?? 0),
-    Number(record.youthMale ?? record.youth_male ?? 0),
-    Number(record.youthFemale ?? record.youth_female ?? 0),
-    Number(record.visitorTotal ?? record.visitor_total ?? record.visitors ?? 0),
-  ].reduce((acc, item) => (Number.isFinite(item) ? acc + item : acc), 0);
-};
+const rateTone = (rate: number): PillTone => (rate >= 80 ? "success" : rate >= 60 ? "warning" : "danger");
 
-export const EventsAnalytics = () => {
-  const [filters, setFilters] = useState<AnalyticsFilters>(
-    createDefaultAnalyticsFilters()
-  );
-  const [eventTypeFilter, setEventTypeFilter] = useState("all");
+interface Held {
+  event: ScheduledEvent;
+  attendance: number;
+}
 
-  const { data: eventsResponse, loading, error } = useFetch(api.fetch.fetchEvents, {
-    take: 5000,
-  });
+const EventsAnalytics = () => {
+  const today = todayKey();
+  const [period, setPeriod] = useState<Period>("3m");
+  const [type, setType] = useState<TypeFilter>("all");
+  const range = periodRange(period, today);
 
-  const { data: attendanceResponse } = useFetch(api.fetch.fetchChurchAttendance);
+  const years = useMemo(() => {
+    const list = [Number(range.from.slice(0, 4)), Number(today.slice(0, 4)), Number(addDays(today, 30).slice(0, 4))];
+    return Array.from(new Set(list));
+  }, [range.from, today]);
+  const { events, loading, failed } = useEventsForYears(years);
+  const { headcounts } = useHeadcounts();
 
-  const events = useMemo(() => {
-    if (!Array.isArray(eventsResponse?.data)) return [];
-    return eventsResponse.data as EventResponseType[];
-  }, [eventsResponse]);
-
-  const attendance = useMemo(() => {
-    if (!Array.isArray(attendanceResponse?.data)) return [];
-    return attendanceResponse.data as AttendanceRecord[];
-  }, [attendanceResponse]);
-
-  const eventTypeOptions = useMemo(() => {
-    return Array.from(new Set(events.map((event) => safeString(event.event_type)).filter(Boolean))).sort();
-  }, [events]);
-
-  const cumulativeFrom = useMemo(() => {
-    const eventDates = events.map((event) => event.start_date);
-    const attendanceDates = attendance.map((record) => record.date);
-    return getEarliestIsoDate([...eventDates, ...attendanceDates]);
-  }, [attendance, events]);
-
-  const effectiveDateRange = useMemo(
-    () => resolveFiltersDateRange(filters, cumulativeFrom),
-    [cumulativeFrom, filters]
-  );
-
-  const filteredEvents = useMemo(() => {
-    return events.filter((event) => {
-      if (!isWithinRange(event.start_date, effectiveDateRange)) return false;
-      if (eventTypeFilter !== "all" && safeString(event.event_type) !== eventTypeFilter) {
-        return false;
-      }
-      return true;
-    });
-  }, [effectiveDateRange, eventTypeFilter, events]);
-
-  const eventTrend = useMemo(
+  const held = useMemo<Held[]>(
     () =>
-      buildSeries(
-        filteredEvents,
-        (event) => event.start_date,
-        () => 1,
-        filters.groupBy,
-        effectiveDateRange
-      ),
-    [effectiveDateRange, filteredEvents, filters.groupBy]
+      events
+        .filter(
+          (event) =>
+            event.date >= range.from &&
+            event.date < today &&
+            (type === "all" || event.type === type)
+        )
+        .map((event) => ({ event, attendance: attendanceFor(event, headcounts) }))
+        .filter((row): row is Held => row.attendance !== null)
+        .sort((a, b) => a.event.date.localeCompare(b.event.date)),
+    [events, headcounts, range.from, today, type]
   );
 
-  const eventTypeBreakdown = useMemo(() => {
+  const total = held.reduce((sum, row) => sum + row.attendance, 0);
+  const regHeld = held.filter((row) => row.event.requiresRegistration);
+  const regCount = regHeld.reduce((sum, row) => sum + row.event.registrations, 0);
+  const regAttended = regHeld.reduce((sum, row) => sum + row.attendance, 0);
+  const upcoming30 = events.filter(
+    (event) => event.date >= today && event.date <= addDays(today, 30) && (type === "all" || event.type === type)
+  ).length;
+
+  const weeks = useMemo(() => {
     const map = new Map<string, number>();
-
-    filteredEvents.forEach((event) => {
-      const type = safeString(event.event_type || "UNKNOWN");
-      map.set(type, (map.get(type) ?? 0) + 1);
+    held.forEach((row) => {
+      const week = addDays(row.event.date, -weekdayOf(row.event.date));
+      map.set(week, (map.get(week) ?? 0) + row.attendance);
     });
+    return Array.from(map.entries())
+      .map(([week, value]) => ({ week, value }))
+      .sort((a, b) => a.week.localeCompare(b.week));
+  }, [held]);
+  const weekMax = Math.max(1, ...weeks.map((week) => week.value));
 
-    return Array.from(map.entries()).map(([label, value]) => ({ label, value }));
-  }, [filteredEvents]);
-
-  const statusSplit = useMemo(() => {
-    const now = new Date();
-
-    return filteredEvents.reduce(
-      (acc, event) => {
-        const start = toDateTime(event.start_date)?.toJSDate();
-        const end = toDateTime(event.end_date || event.start_date)?.toJSDate();
-
-        if (!start || !end) {
-          acc.unknown += 1;
-          return acc;
-        }
-
-        if (start > now) acc.upcoming += 1;
-        else if (start <= now && end >= now) acc.active += 1;
-        else acc.ended += 1;
-
-        return acc;
-      },
-      { upcoming: 0, active: 0, ended: 0, unknown: 0 }
-    );
-  }, [filteredEvents]);
-
-  const attendanceByEvent = useMemo(() => {
-    const totals = new Map<string, number>();
-
-    attendance.forEach((record) => {
-      if (!isWithinRange(record.date, effectiveDateRange)) return;
-      const key = safeString(record.event_name || record.eventName || record.eventId || record.event_id);
-      if (!key) return;
-
-      totals.set(key, (totals.get(key) ?? 0) + attendanceTotal(record));
+  const byEvent = useMemo(() => {
+    const map = new Map<string, { name: string; type: string; values: number[] }>();
+    held.forEach((row) => {
+      const key = row.event.eventNameId || row.event.name;
+      const entry = map.get(key) ?? { name: row.event.name, type: row.event.type, values: [] };
+      entry.values.push(row.attendance);
+      map.set(key, entry);
     });
+    return Array.from(map.values())
+      .map((entry) => ({
+        ...entry,
+        avg: Math.round(entry.values.reduce((sum, value) => sum + value, 0) / entry.values.length),
+      }))
+      .sort((a, b) => b.avg - a.avg);
+  }, [held]);
+  const eventMax = Math.max(1, ...byEvent.map((row) => row.avg));
 
-    return Array.from(totals.entries())
-      .map(([label, value]) => ({ label, value }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 10);
-  }, [attendance, effectiveDateRange]);
+  const mix = EVENT_TYPES.map((item) => ({
+    ...item,
+    count: held.filter((row) => row.event.type === item.key).length,
+  })).filter((item) => item.count > 0);
 
-  const totalAttendance = useMemo(
-    () => attendanceByEvent.reduce((acc, item) => acc + item.value, 0),
-    [attendanceByEvent]
-  );
+  const regRows = [...regHeld].sort((a, b) => b.event.date.localeCompare(a.event.date));
 
-  const registrationAttendanceRate = useMemo(() => {
-    const denominator = filteredEvents.length * 100;
-    if (!denominator) return 0;
-    return toPercent(totalAttendance, denominator);
-  }, [filteredEvents.length, totalAttendance]);
-
-  const statItems = useMemo(
-    () => [
-      {
-        label: "Events in Range",
-        value: numberFormatter.format(filteredEvents.length),
-      },
-      {
-        label: "Upcoming Events",
-        value: numberFormatter.format(statusSplit.upcoming),
-      },
-      {
-        label: "Active Events",
-        value: numberFormatter.format(statusSplit.active),
-      },
-      {
-        label: "Registration→Attendance (proxy)",
-        value: `${registrationAttendanceRate.toFixed(1)}%`,
-        hint: "V1 proxy from church attendance totals",
-      },
-    ],
-    [filteredEvents.length, registrationAttendanceRate, statusSplit.active, statusSplit.upcoming]
-  );
-
-  const resetFilters = () => {
-    setFilters(createDefaultAnalyticsFilters());
-    setEventTypeFilter("all");
-  };
+  const exportCsv = () =>
+    downloadCsv(`events-analytics-${range.from}-to-${today}.csv`, [
+      ["Event", "Type", "Date", "Start", "Attendance", "Registered", "Capacity"],
+      ...held.map((row) => [
+        row.event.name,
+        typeLabel(row.event.type),
+        row.event.date,
+        row.event.start,
+        row.attendance,
+        row.event.requiresRegistration ? row.event.registrations : "",
+        row.event.capacity ?? "",
+      ]),
+    ]);
 
   return (
-    <PageOutline>
-      <div className="space-y-6">
-        <HeaderControls
-          title="Events Analytics"
-          subtitle="Portfolio health, type distribution, and attendance performance"
-        />
-
-        <AnalyticsDateFilters
-          value={filters}
-          onChange={setFilters}
-          onReset={resetFilters}
-          cumulativeFrom={cumulativeFrom}
-          extra={
-            <div className="space-y-1">
-              <label className="text-xs text-gray-600">Event type</label>
-              <select
-                className="h-10 border rounded px-3 w-full"
-                value={eventTypeFilter}
-                onChange={(event) => setEventTypeFilter(event.target.value)}
-              >
-                <option value="all">All event types</option>
-                {eventTypeOptions.map((eventType) => (
-                  <option key={eventType} value={eventType}>
-                    {eventType}
-                  </option>
-                ))}
-              </select>
-            </div>
+    <PageOutline className="flex flex-col gap-4">
+      <div className="mb-2">
+        <PageHeading
+          title="Events analytics"
+          subtitle={`How many came, which gatherings draw people, and who shows up after registering · ${range.label}`}
+          actions={
+            <UiButton onClick={exportCsv} disabled={!held.length}>
+              Export CSV
+            </UiButton>
           }
         />
+      </div>
 
-        <AnalyticsStatCards stats={statItems} />
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+        <Segmented
+          ariaLabel="Period"
+          items={[
+            { key: "month", label: "This month" },
+            { key: "3m", label: "Last 3 months" },
+            { key: "year", label: "This year" },
+          ]}
+          value={period}
+          onChange={setPeriod}
+          scroll
+        />
+        <Segmented ariaLabel="Type" items={TYPE_TABS} value={type} onChange={setType} scroll />
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div className="rounded-xl border bg-white p-4">
-            <h3 className="font-semibold text-primary">Events Trend</h3>
-            <div className="h-72 mt-3">
-              <Line
-                data={{
-                  labels: eventTrend.labels,
-                  datasets: [
-                    {
-                      label: "Events",
-                      data: eventTrend.values,
-                      borderColor: "#2563EB",
-                      backgroundColor: "rgba(37, 99, 235, 0.2)",
-                      tension: 0.3,
-                    },
-                  ],
-                }}
-                options={{ responsive: true, maintainAspectRatio: false }}
-              />
+      {failed && (
+        <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          Couldn’t load events for this period. Refresh the page to try again.
+        </p>
+      )}
+
+      <div className={cn("grid grid-cols-[repeat(auto-fit,minmax(min(100%,200px),1fr))] gap-4", loading && "opacity-60")}>
+        <KpiCard label="Events held" value={held.length} sub={`${plural(upcoming30, "event")} coming up in the next 30 days`} />
+        <KpiCard label="Total attendance" value={total.toLocaleString()} sub={`Across ${plural(held.length, "event")}`} />
+        <KpiCard
+          label="Average per event"
+          value={held.length ? Math.round(total / held.length).toLocaleString() : "—"}
+          sub="People per gathering"
+        />
+        <KpiCard
+          label="Show-up rate"
+          value={regCount ? `${Math.round((regAttended / regCount) * 100)}%` : "—"}
+          sub={regCount ? `${regAttended} of ${regCount} registrants came` : "No registration events"}
+        />
+      </div>
+
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,420px),1fr))] gap-4">
+        <div className="flex min-w-0 flex-col gap-3 rounded-xl border border-lightGray bg-white p-4">
+          <h2 className="text-base font-semibold text-primary">Attendance by week</h2>
+          {weeks.length ? (
+            <div className="overflow-x-auto">
+              <div
+                role="img"
+                aria-label="Weekly attendance chart"
+                className="flex h-[200px] min-w-min items-end gap-2 pt-5"
+              >
+                {weeks.map((week) => {
+                  const date = keyToDate(week.week);
+                  return (
+                    <div
+                      key={week.week}
+                      title={`Week of ${fmtShortDay(week.week)}: ${week.value.toLocaleString()}`}
+                      className="flex h-full flex-[1_0_28px] flex-col items-center justify-end gap-1 tablet:flex-[1_0_40px]"
+                    >
+                      <span className="text-xs text-gray-600">{week.value.toLocaleString()}</span>
+                      <span
+                        className="w-full max-w-10 rounded-t bg-primary"
+                        style={{ height: `${Math.round((week.value / weekMax) * 140)}px` }}
+                      />
+                      <span className="whitespace-nowrap text-xs text-gray-500">
+                        {date.getDate()} {MONTHS[date.getMonth()].slice(0, 3)}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-
-          <div className="rounded-xl border bg-white p-4">
-            <h3 className="font-semibold text-primary">Upcoming/Active/Ended</h3>
-            <div className="h-72 mt-3">
-              <Doughnut
-                data={{
-                  labels: ["Upcoming", "Active", "Ended", "Unknown"],
-                  datasets: [
-                    {
-                      data: [
-                        statusSplit.upcoming,
-                        statusSplit.active,
-                        statusSplit.ended,
-                        statusSplit.unknown,
-                      ],
-                      backgroundColor: ["#0EA5E9", "#16A34A", "#64748B", "#CBD5E1"],
-                    },
-                  ],
-                }}
-                options={{ responsive: true, maintainAspectRatio: false }}
-              />
-            </div>
-          </div>
-
-          <div className="rounded-xl border bg-white p-4 lg:col-span-2">
-            <h3 className="font-semibold text-primary">Event Type Mix</h3>
-            <div className="h-64 mt-3">
-              <Bar
-                data={{
-                  labels: eventTypeBreakdown.map((item) => item.label),
-                  datasets: [
-                    {
-                      label: "Events",
-                      data: eventTypeBreakdown.map((item) => item.value),
-                      backgroundColor: "#7C3AED",
-                    },
-                  ],
-                }}
-                options={{ responsive: true, maintainAspectRatio: false }}
-              />
-            </div>
-          </div>
-
-          <div className="rounded-xl border bg-white p-4 lg:col-span-2">
-            <h3 className="font-semibold text-primary">Top Attendance by Event (V1)</h3>
-            <div className="h-64 mt-3">
-              <Bar
-                data={{
-                  labels: attendanceByEvent.map((item) => item.label),
-                  datasets: [
-                    {
-                      label: "Attendance",
-                      data: attendanceByEvent.map((item) => item.value),
-                      backgroundColor: "#2563EB",
-                    },
-                  ],
-                }}
-                options={{ responsive: true, maintainAspectRatio: false }}
-              />
-            </div>
-          </div>
+          ) : (
+            <p className="text-sm text-gray-500">No attendance recorded in this period.</p>
+          )}
         </div>
 
-        <AnalyticsContractsPanel contract={eventsContract} />
+        <div className="flex min-w-0 flex-col gap-3 rounded-xl border border-lightGray bg-white p-4">
+          <h2 className="text-base font-semibold text-primary">Average attendance by event</h2>
+          {byEvent.length === 0 && <p className="text-sm text-gray-500">No attendance recorded in this period.</p>}
+          {byEvent.map((row) => (
+            <div key={row.name} className="flex flex-col gap-1">
+              <div className="flex justify-between gap-2 text-sm">
+                <span className="min-w-0 truncate font-medium text-primary">{row.name}</span>
+                <span className="whitespace-nowrap">
+                  <strong className="font-semibold text-primary">{row.avg.toLocaleString()}</strong>{" "}
+                  <span className="text-xs text-gray-500">· {plural(row.values.length, "time")}</span>
+                </span>
+              </div>
+              <div className="h-2 overflow-hidden rounded-full bg-gray-100">
+                <div
+                  className="h-full"
+                  style={{ width: `${(row.avg / eventMax) * 100}%`, background: typeColor(row.type) }}
+                />
+              </div>
+            </div>
+          ))}
+          {mix.length > 0 && (
+            <div className="flex flex-col gap-2 border-t border-gray-200 pt-3">
+              <span className="text-xs font-semibold uppercase text-gray-500">Mix of events held</span>
+              <div className="flex h-3 overflow-hidden rounded-full">
+                {mix.map((item) => (
+                  <span key={item.key} style={{ width: `${(item.count / held.length) * 100}%`, background: item.color }} />
+                ))}
+              </div>
+              <div className="flex flex-wrap gap-x-4 gap-y-2">
+                {mix.map((item) => (
+                  <span key={item.key} className="inline-flex items-center gap-1.5 text-xs text-gray-700">
+                    <Dot color={item.color} />
+                    {item.label} · {item.count}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
 
-        {error ? (
-          <div className="rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            Failed to load event analytics datasets.
+      <div className="overflow-hidden rounded-lg bg-white shadow-[0_8px_24px_rgb(var(--color-shadow)_/_0.08)]">
+        <div className="p-4">
+          <h2 className="text-base font-semibold text-primary">Registration vs. attendance</h2>
+          <p className="text-sm text-gray-600">For events that needed registration.</p>
+        </div>
+        {regRows.length ? (
+          <div className="overflow-x-auto">
+            <div className="min-w-[560px] text-sm text-primary">
+              <div className="grid grid-cols-[minmax(180px,2fr)_110px_110px_100px_100px] bg-lightGray font-semibold">
+                {["Event", "Date", "Registered", "Attended", "Show-up"].map((head) => (
+                  <span key={head} className="px-4 py-3">
+                    {head}
+                  </span>
+                ))}
+              </div>
+              {regRows.map((row) => {
+                const rate = Math.round((row.attendance / Math.max(1, row.event.registrations)) * 100);
+                return (
+                  <div
+                    key={row.event.id}
+                    className="grid min-h-14 grid-cols-[minmax(180px,2fr)_110px_110px_100px_100px] items-center border-b border-lightGray"
+                  >
+                    <span className="px-4 py-3 font-medium">{row.event.name}</span>
+                    <span className="px-4 py-3 text-gray-600">{fmtShortDay(row.event.date)}</span>
+                    <span className="px-4 py-3">
+                      {row.event.registrations}
+                      {row.event.capacity ? ` / ${row.event.capacity}` : ""}
+                    </span>
+                    <span className="px-4 py-3">{row.attendance.toLocaleString()}</span>
+                    <span className="px-4 py-3">
+                      <Pill tone={rateTone(rate)}>{rate}%</Pill>
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        ) : null}
-
-        {loading ? (
-          <div className="rounded border px-4 py-3 text-sm text-gray-600">Loading events analytics...</div>
-        ) : null}
+        ) : (
+          <p className="px-4 pb-4 text-sm text-gray-500">No registration events in this period.</p>
+        )}
       </div>
     </PageOutline>
   );
 };
 
+export { EventsAnalytics };
 export default EventsAnalytics;

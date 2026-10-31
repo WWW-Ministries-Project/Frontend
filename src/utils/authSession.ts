@@ -5,6 +5,7 @@ import { UserStats } from "@/pages/HomePage/pages/Members/utils/membersInterface
 import useSettingsStore from "@/pages/HomePage/pages/Settings/utils/settingsStore";
 import { useNotificationStore } from "@/pages/HomePage/store/globalComponentsStore";
 import { useInAppNotificationStore } from "@/store/useInAppNotificationStore";
+import { useBranchStore } from "@/store/useBranchStore";
 import { useStore } from "@/store/useStore";
 import { useUserStore } from "@/store/userStore";
 import { removeToken } from "@/utils/helperFunctions";
@@ -79,6 +80,8 @@ export const resetProtectedAppState = (): void => {
   useCart.getState().clearCart();
   useCart.setState({ cartOpen: false });
   useInAppNotificationStore.getState().reset();
+  // A different user may sign in next; their branches decide the default.
+  useBranchStore.getState().resetBranchSelection();
 };
 
 export const clearAuthSession = (): void => {

@@ -1,49 +1,52 @@
-import { ShieldCheckIcon } from "@heroicons/react/24/outline";
 import { useCallback, useEffect, useRef, useState } from "react";
-import EmptyState from "@/components/EmptyState";
 import { api } from "@/utils/api/apiCalls";
 import type { RideReport, RideReportStatus } from "@/utils/api/rides/interfaces";
-import { clockLabel, plural, serviceDateLabel } from "../utils/rideHelpers";
 import {
-  FilterChips,
-  PanelError,
-  PanelSkeleton,
-  PhoneLink,
-  formatWhen,
-  outlineButtonClass,
-} from "./AdminRideShared";
+  LoadError,
+  Pill,
+  RideSkeleton,
+  Segmented,
+} from "../components/rideUi";
+import {
+  btnPrimary,
+} from "../components/rideClasses";
+import { clockLabel, serviceDateLabel } from "../utils/rideHelpers";
+import { PhoneLink } from "./AdminRideShared";
+import { formatWhen } from "./adminRideFormat";
 import { ResolveReportModal } from "./AdminRideModals";
-import { RidePill, RideReportStatusBadge } from "./RideStatusBadge";
 
 type StatusFilter = RideReportStatus | "ALL";
 
-const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
-  { value: "OPEN", label: "Open" },
-  { value: "RESOLVED", label: "Resolved" },
-  { value: "ALL", label: "All" },
-];
-
 const DAY_MS = 24 * 60 * 60 * 1000;
-
-interface RideReportsPanelProps {
-  /** Keeps the page's "Safety reports" tab badge in step. */
-  onOpenReports: (count: number) => void;
-}
 
 /** When the safety team should have called the reporter back by. */
 const ContactDeadline = ({ createdAt }: { createdAt: string }) => {
   const created = new Date(createdAt).getTime();
   if (Number.isNaN(created)) return null;
   const due = created + DAY_MS;
-  if (Date.now() > due) {
-    return <RidePill tone="rose">Over 24 hours old</RidePill>;
-  }
+  if (Date.now() > due) return <Pill tone="danger">Over 24 hours old</Pill>;
   return (
-    <span className="text-xs text-amber-800 dark:text-amber-200">
+    <span className="text-xs text-amber-700">
       Contact by {formatWhen(new Date(due).toISOString())}
     </span>
   );
 };
+
+const Person = ({
+  label,
+  name,
+  phone,
+}: {
+  label: string;
+  name: string;
+  phone?: string | null;
+}) => (
+  <div className="flex min-w-0 flex-col">
+    <p className="text-xs text-mainGray">{label}</p>
+    <p className="text-sm font-medium text-primary">{name}</p>
+    {phone !== undefined ? <PhoneLink phone={phone} /> : null}
+  </div>
+);
 
 const ReportCard = ({
   report,
@@ -54,94 +57,80 @@ const ReportCard = ({
 }) => {
   const open = report.status === "OPEN";
   return (
-    <li className="flex flex-col gap-3 rounded-2xl border border-lightGray bg-white p-5 shadow-sm">
+    <li className="flex flex-col gap-3 rounded-2xl border border-lightGray bg-white p-4 tablet:p-5">
       <div className="flex flex-wrap items-center gap-2">
-        <h3 className="text-base font-semibold text-primary">
-          {report.reason}
-        </h3>
-        {report.blocked ? <RidePill tone="rose">Blocked</RidePill> : null}
-        <span className="ml-auto">
-          <RideReportStatusBadge status={report.status} />
+        <h2 className="text-base font-semibold text-primary">{report.reason}</h2>
+        <Pill tone={open ? "warning" : "success"}>{open ? "Open" : "Resolved"}</Pill>
+        {report.blocked ? <Pill tone="danger">Blocked</Pill> : null}
+        <span className="ml-auto text-xs text-mainGray">
+          {formatWhen(report.created_at)}
         </span>
       </div>
+      {open ? <ContactDeadline createdAt={report.created_at} /> : null}
 
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-primaryGray">
-        <span>Reported {formatWhen(report.created_at)}</span>
-        {open ? <ContactDeadline createdAt={report.created_at} /> : null}
+      <p className="whitespace-pre-line break-words rounded-lg bg-inputBackground px-4 py-3 text-sm text-gray-700">
+        {report.details ? `“${report.details}”` : "No details given."}
+      </p>
+
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,200px),1fr))] gap-3">
+        <Person
+          label="Reported by"
+          name={report.reporter.name}
+          phone={report.reporter.phone}
+        />
+        {report.reported_user ? (
+          <Person
+            label="About"
+            name={report.reported_user.name}
+            phone={report.reported_user.phone}
+          />
+        ) : (
+          <Person label="About" name="Not named" />
+        )}
+        <Person
+          label="Ride"
+          name={
+            report.offer
+              ? `${report.offer.area} → Church · ${serviceDateLabel(report.offer.service_date)} · ${clockLabel(report.offer.depart_time)}`
+              : "No longer available"
+          }
+        />
       </div>
 
-      {report.details ? (
-        <p className="whitespace-pre-line break-words rounded-xl bg-lightGray/30 p-3 text-sm text-primary">
-          “{report.details}”
-        </p>
+      {open ? (
+        <div className="flex justify-end border-t border-gray-200 pt-3">
+          <button type="button" onClick={onResolve} className={btnPrimary}>
+            Resolve
+          </button>
+        </div>
       ) : (
-        <p className="text-sm text-primaryGray">No details given.</p>
-      )}
-
-      <dl className="grid grid-cols-1 gap-x-4 gap-y-2 text-sm sm:grid-cols-[auto_1fr]">
-        <dt className="text-primaryGray">Reported by</dt>
-        <dd className="flex flex-wrap items-center gap-x-3 gap-y-1 text-primary">
-          <span className="font-medium">{report.reporter.name}</span>
-          <PhoneLink phone={report.reporter.phone} />
-        </dd>
-        <dt className="text-primaryGray">About</dt>
-        <dd className="flex flex-wrap items-center gap-x-3 gap-y-1 text-primary">
-          {report.reported_user ? (
-            <>
-              <span className="font-medium">{report.reported_user.name}</span>
-              <PhoneLink phone={report.reported_user.phone} />
-            </>
-          ) : (
-            <span className="text-primaryGray">Unknown member</span>
-          )}
-        </dd>
-        <dt className="text-primaryGray">Ride</dt>
-        <dd className="text-primary">
-          {report.offer ? (
-            <>
-              From {report.offer.area} ·{" "}
-              {serviceDateLabel(report.offer.service_date)} · sets off{" "}
-              {clockLabel(report.offer.depart_time)}
-            </>
-          ) : (
-            <span className="text-primaryGray">Ride no longer available</span>
-          )}
-        </dd>
-      </dl>
-
-      {!open ? (
-        <div className="rounded-xl border border-teal-100 bg-teal-50/60 p-3 text-sm dark:border-teal-400/30 dark:bg-teal-400/10">
-          <p className="text-xs text-primaryGray">
+        <div className="border-t border-gray-200 pt-3">
+          <p className="text-xs text-mainGray">
             Resolved
             {report.resolver ? ` by ${report.resolver.name}` : ""}
             {report.resolved_at ? ` · ${formatWhen(report.resolved_at)}` : ""}
           </p>
-          {report.resolution_note ? (
-            <p className="mt-1 whitespace-pre-line break-words text-primary">
-              {report.resolution_note}
-            </p>
-          ) : (
-            <p className="mt-1 text-primaryGray">No resolution note.</p>
-          )}
-        </div>
-      ) : (
-        <div className="mt-auto flex justify-end border-t border-lightGray pt-3">
-          <button
-            type="button"
-            className={outlineButtonClass}
-            onClick={onResolve}
-          >
-            <ShieldCheckIcon className="h-4 w-4" aria-hidden="true" />
-            Resolve
-          </button>
+          <p className="whitespace-pre-line break-words text-sm text-gray-700">
+            {report.resolution_note || "No note."}
+          </p>
         </div>
       )}
     </li>
   );
 };
 
-/** Safety concerns members report from a ride, for the safety team to follow up. */
-export const RideReportsPanel = ({ onOpenReports }: RideReportsPanelProps) => {
+interface RideReportsPanelProps {
+  /** Open reports overall, for the "Open (n)" filter. */
+  openCount: number | null;
+  /** Keeps the page's "Safety reports" tab count in step. */
+  onOpenReports: (count: number) => void;
+}
+
+/** Safety concerns members report from a ride, for the safety team. */
+export const RideReportsPanel = ({
+  openCount,
+  onOpenReports,
+}: RideReportsPanelProps) => {
   const [status, setStatus] = useState<StatusFilter>("OPEN");
   const [reports, setReports] = useState<RideReport[]>([]);
   const [loading, setLoading] = useState(true);
@@ -172,59 +161,39 @@ export const RideReportsPanel = ({ onOpenReports }: RideReportsPanelProps) => {
     load();
   }, [load]);
 
-  const openCount = reports.filter((report) => report.status === "OPEN").length;
-
   return (
     <section className="flex flex-col gap-4">
-      <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50/60 p-4 text-sm text-primary dark:border-amber-400/30 dark:bg-amber-400/10">
-        <ShieldCheckIcon
-          className="mt-0.5 h-5 w-5 flex-none text-amber-700 dark:text-amber-200"
-          aria-hidden="true"
-        />
-        <p>
-          Members are told their report goes to the church safety team and that
-          someone will contact them within 24 hours.{" "}
-          <strong>Contact the reporter within 24 hours</strong>, then resolve
-          the report with a note of what was done.
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
+        <p className="max-w-[640px] text-sm text-primaryGray">
+          Members are told their report reaches the safety team within 24
+          hours. Call the member, act on it, then resolve with a note.
         </p>
-      </div>
-
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <FilterChips
+        <Segmented
           label="Report status"
           value={status}
-          options={STATUS_FILTERS}
           onChange={setStatus}
+          options={[
+            {
+              value: "OPEN",
+              label: openCount !== null ? `Open (${openCount})` : "Open",
+            },
+            { value: "RESOLVED", label: "Resolved" },
+            { value: "ALL", label: "All" },
+          ]}
         />
-        {!loading && !failed && status !== "RESOLVED" ? (
-          <span className="text-sm text-primaryGray">
-            {openCount
-              ? `${plural(openCount, "open report")} to follow up`
-              : "All caught up"}
-          </span>
-        ) : null}
       </div>
 
       {failed ? (
-        <PanelError
-          message="Failed to load safety reports. Please try again."
-          onRetry={load}
-        />
+        <LoadError message="Couldn't load safety reports." onRetry={load} />
       ) : loading && !reports.length ? (
-        <PanelSkeleton rows={2} rowClassName="h-56" />
+        <RideSkeleton rows={2} className="h-56" />
       ) : reports.length === 0 ? (
-        <EmptyState
-          scope="section"
-          msg={status === "OPEN" ? "All caught up" : "No reports"}
-          description={
-            status === "OPEN"
-              ? "There are no open safety reports."
-              : "No safety reports match this filter."
-          }
-        />
+        <p className="py-8 text-center text-sm text-mainGray">
+          {status === "RESOLVED" ? "No resolved reports yet." : "Nothing here. All clear."}
+        </p>
       ) : (
         <ul
-          className={`grid grid-cols-1 gap-4 xl:grid-cols-2 ${loading ? "opacity-60" : ""}`}
+          className={`grid grid-cols-1 gap-4 ${loading ? "opacity-60" : ""}`}
           aria-busy={loading}
         >
           {reports.map((report) => (

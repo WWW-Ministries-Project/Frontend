@@ -30,6 +30,10 @@ export type EventReportOverviewItem = {
   poster?: string | null;
   generated_at?: string | null;
   report_status?: string | null;
+  status?: string | null;
+  status_label?: "Pending approval" | "Approved" | "Returned" | null;
+  total_attendance?: number | null;
+  workers_present_pct?: number | null;
 };
 
 export type EventReportGenerateResult = {
@@ -101,6 +105,30 @@ export type EventReportDetail = {
   generated_at?: string | null;
   departments?: EventReportDepartment[];
   church_attendance?: EventReportChurchAttendance | null;
+  department_summary?: {
+    total_members?: number | null;
+    present_members?: number | null;
+    attendance_percentage?: number | null;
+  } | null;
+  report?: {
+    id: number;
+    status: string;
+    status_label: "Pending approval" | "Approved" | "Returned";
+    generated_at: string | null;
+    generated_by_name: string | null;
+    acted_at: string | null;
+    acted_by_name: string | null;
+  } | null;
+  trail?: { action: string; who: string | null; when: string; note: string | null }[];
+  comments?: { id: number; author: string | null; when: string; text: string }[];
+  permissions?: {
+    can_approve: boolean;
+    can_return: boolean;
+    can_resubmit: boolean;
+    can_comment: boolean;
+    /** Reports.event_export; missing from older API versions. */
+    can_export?: boolean;
+  };
 };
 
 export type DownloadedFile = {

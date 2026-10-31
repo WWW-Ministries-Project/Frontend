@@ -1,3 +1,4 @@
+import { useBackNavigation } from "@/CustomHooks/useBackNavigation";
 import EmptyState from "@/components/EmptyState";
 import { useFetch } from "@/CustomHooks/useFetch";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
@@ -15,6 +16,7 @@ const EventSchedulesByEvent = () => {
   const eventNameId = params.get("event_name_id");
   const eventName = params.get("event_name") || "Event";
   const navigate = useNavigate();
+  const back = useBackNavigation("/home/events/events");
 
   const { data, loading } = useFetch(api.fetch.fetchEvents, {
     page: 1,
@@ -118,7 +120,7 @@ const EventSchedulesByEvent = () => {
       {/* Back + heading */}
       <div className="mb-6">
         <button
-          onClick={() => navigate(-1)}
+          onClick={back.goBack}
           className="mb-3 flex items-center gap-1 text-sm text-primaryGray hover:text-primary transition-colors"
         >
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -137,7 +139,7 @@ const EventSchedulesByEvent = () => {
       ) : schedules.length === 0 ? (
         <EmptyState
           scope="section"
-          className="mx-auto w-[20rem]"
+          className="mx-auto w-full max-w-[20rem]"
           msg="No scheduled events found for this event."
         />
       ) : (

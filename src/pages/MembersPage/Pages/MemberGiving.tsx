@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { showDeleteDialog, showNotification } from "@/pages/HomePage/utils";
@@ -35,11 +36,11 @@ const isRetryable = (status: string): boolean =>
 
 const statusClass = (status: string): string => {
   if (status === "success")
-    return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300";
+    return "bg-green-100 text-green-700";
   if (status === "pending")
-    return "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300";
+    return "bg-amber-100 text-amber-700";
   if (status === "failed" || status === "abandoned")
-    return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300";
+    return "bg-red-100 text-red-700";
   return "bg-lightGray text-primaryGray";
 };
 
@@ -77,6 +78,19 @@ const MemberGiving = () => {
     () => (Array.isArray(optionsData?.data) ? optionsData.data : []),
     [optionsData]
   );
+
+  // Shared giving links (/member/giving?option=<id>) open with that option picked.
+  const [searchParams] = useSearchParams();
+  const linkedOptionId = searchParams.get("option");
+  const linkApplied = useRef(false);
+  useEffect(() => {
+    if (!linkedOptionId || linkApplied.current) return;
+    const match = options.find((option) => option.id === linkedOptionId);
+    if (match) {
+      linkApplied.current = true;
+      setSelected(match);
+    }
+  }, [linkedOptionId, options]);
   const contributions = useMemo(
     () => (Array.isArray(historyData?.data) ? historyData.data : []),
     [historyData]
@@ -332,7 +346,7 @@ const MemberGiving = () => {
                             </button>
                             <button
                               type="button"
-                              className="text-sm font-medium text-red-600 underline disabled:opacity-50 dark:text-red-400"
+                              className="text-sm font-medium text-red-600 underline disabled:opacity-50"
                               disabled={pendingAction === row.reference}
                               onClick={() => remove(row)}
                             >

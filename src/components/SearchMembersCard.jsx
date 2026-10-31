@@ -23,7 +23,7 @@ function SearchMembersCard({users,...props}) {
   }
   return (
     <>
-      <div className={"border border-[#F5F5F5] rounded-md p-4 "+props.className}>
+      <div className={"border border-gray-100 rounded-md p-4 "+props.className}>
       <div className="py-2">
               <label className="relative block">
               <span className="sr-only">Search</span>

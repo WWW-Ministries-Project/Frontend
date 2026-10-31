@@ -1,13 +1,20 @@
-import { LifeCenterMemberForm } from "@/pages/HomePage/pages/LifeCenter/components/LifeCenterMemberForm";
-import { ILifeCernterRoles } from "@/pages/HomePage/pages/LifeCenter/components/RolesForm";
-import { ISoulsWonForm } from "@/pages/HomePage/pages/LifeCenter/components/SoulsWonForm";
+import type {
+  DeptReportCommentaryPayload,
+  DeptReportDetail,
+} from "./reports/interfaces";
 import { AccessRight } from "@/pages/HomePage/pages/Settings/utils/settingsInterfaces";
 import { ApiResponse, QueryType } from "../interfaces";
 import { ApiExecution } from "./apiConstructor";
 import type {
   BulkAssignAccessLevelPayload,
   BulkAssignAccessLevelResult,
+  SetUserBranchAccessPayload,
+  UserBranchAccess,
 } from "./settings/accessLevelAssignmentInterfaces";
+import type {
+  AccessLevelWorkspacesPayload,
+  AccessLevelWorkspacesResult,
+} from "./settings/accessLevelWorkspaceInterfaces";
 import type {
   CommunityPost,
   UpdateCommunityPostDto,
@@ -19,6 +26,8 @@ import type {
   SaveRidePickupPointDto,
 } from "./rides/interfaces";
 import type { Promotion, UpdatePromotionDto } from "./promotions/interfaces";
+import type { AiPreferences, AiPreferencesPatch } from "./ai/preferencesInterfaces";
+import type { AnnualTheme, AnnualThemePayload } from "./theme/interfaces";
 import type { DecideMembershipRequestPayload } from "./guests/interfaces";
 import type {
   Sermon,
@@ -27,9 +36,13 @@ import type {
   UpdateSermonSeriesDto,
 } from "./sermons/interfaces";
 import { patchData, updateData } from "./apiFunctions";
-import { AssetPayloadType } from "./assets/interfaces";
 import type { PledgeDetail, PledgeMutationPayload } from "./pledges/interface";
-import { LifeCenterType, MeetingType } from "./lifeCenter/interfaces";
+import {
+  LifeCenterMemberPayload,
+  LifeCenterRole,
+  LifeCenterType,
+  MeetingType,
+} from "./lifeCenter/interfaces";
 import {
   activateMemberPayloadType,
   activateMemberType,
@@ -41,6 +54,21 @@ import type {
 } from "./settings/departmentInterfaces";
 import {
   CohortPayloadType,
+  BankQuestionPayload,
+  CohortSchedule,
+  DueRule,
+  GradeOverridePayload,
+  RubricPayload,
+  AttendanceStatus,
+  InstructorAbilities,
+  LibraryItemPayload,
+  ProgramInstructor,
+  SessionAttendance,
+  SessionPayload,
+  GradingCategory,
+  ModulePayload,
+  ProgramGrading,
+  ProgramModulesResponse,
   ReorderProgramTopicsPayload,
   ProgramsPayloadType,
 } from "./ministrySchool/interfaces";
@@ -57,11 +85,14 @@ import type {
   IProduct,
   IOrders,
   IOrderDetail,
+  IBulkOrderStatusPayload,
+  IBulkOrderStatusResult,
   IUpdateOrderPayload,
 } from "./marketPlace/interface";
 import type {
   Appointment,
   AppointmentReason,
+  AppointmentSettings,
   ReorderAppointmentReasonsPayload,
   StaffAvailability,
   UpdateAppointmentBookingPayload,
@@ -102,6 +133,16 @@ export class ApiUpdateCalls {
       patchExecutor: patchData,
     });
   }
+
+  // Department report commentary (head of department)
+  saveDepartmentReportCommentary = (
+    payload: DeptReportCommentaryPayload
+  ): Promise<ApiResponse<DeptReportDetail>> => {
+    return this.apiExecution.updateData(
+      "department-reports/commentary",
+      payload as unknown as Record<string, unknown>
+    );
+  };
 
   // Update Event
   updateEvent = (
@@ -148,11 +189,6 @@ export class ApiUpdateCalls {
     );
   };
 
-  // Update Asset
-  updateAsset = (payload: AssetPayloadType): Promise<ApiResponse<unknown>> => {
-    return this.apiExecution.updateData("assets/update-asset", payload);
-  };
-
   // Update Requisition
   updateRequisition = <T = unknown>(
     payload: Record<string, unknown>,
@@ -189,6 +225,11 @@ export class ApiUpdateCalls {
     );
   };
 
+  /** New sign-ups and records without a branch land in the default one. */
+  setDefaultBranch = (payload: { id: number }): Promise<ApiResponse<Branch>> => {
+    return this.apiExecution.updateData("branch/set-default-branch", payload);
+  };
+
   updateBranch = (
     payload: BranchPayload,
     query?: QueryType
@@ -223,6 +264,20 @@ export class ApiUpdateCalls {
     );
   };
 
+  // Set (or with access_level_id null, remove) a user's role in one branch
+  setUserBranchAccess = (
+    payload: SetUserBranchAccessPayload
+  ): Promise<ApiResponse<UserBranchAccess>> => {
+    return this.apiExecution.updateData("access/user-branch-access", payload);
+  };
+
+  // Set a role's Home workspaces without resending its permission map
+  updateAccessLevelWorkspaces = (
+    payload: AccessLevelWorkspacesPayload
+  ): Promise<ApiResponse<AccessLevelWorkspacesResult>> => {
+    return this.apiExecution.updateData("access/access-level-workspaces", payload);
+  };
+
   // Assign and/or unassign many users on one access level
   bulkAssignAccessLevel = (
     payload: BulkAssignAccessLevelPayload
@@ -239,6 +294,106 @@ export class ApiUpdateCalls {
     query?: QueryType
   ): Promise<ApiResponse<unknown>> => {
     return this.apiExecution.updateData(`program/program`, payload, query);
+  };
+
+  updateProgramModule = (payload: ModulePayload, query: QueryType): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData("program/module", payload, query);
+  };
+
+  reorderProgramModules = (payload: {
+    programId: number;
+    modules: { id: number; order_number: number }[];
+  }): Promise<ApiResponse<ProgramModulesResponse>> => {
+    return this.apiExecution.updateData("program/reorder-modules", payload);
+  };
+
+  setTopicModule = (payload: {
+    topicId: number;
+    moduleId: number | null;
+    order_number?: number;
+  }): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData("program/topic-module", payload);
+  };
+
+  updateProgramGrading = (
+    payload: Partial<Omit<ProgramGrading, "programId">>,
+    query: QueryType
+  ): Promise<ApiResponse<ProgramGrading>> => {
+    return this.apiExecution.updateData("program/grading", payload, query);
+  };
+
+  updateUnitSettings = (payload: {
+    topicId: number;
+    due_rule?: DueRule | null;
+    grading_category?: GradingCategory | null;
+  }): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData("program/unit-settings", payload);
+  };
+
+  updateBankQuestion = (payload: Partial<BankQuestionPayload>, query: QueryType): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData("program/question-bank", payload, query);
+  };
+
+  updateRubric = (payload: Partial<RubricPayload>, query: QueryType): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData("program/rubric", payload, query);
+  };
+
+  setUnitRubric = (payload: { topicId: number; rubricId: number | null }): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData("program/unit-rubric", payload);
+  };
+
+  gradeWithRubric = (payload: {
+    submissionId: number;
+    scores: Record<string, string>;
+    feedback?: string;
+  }): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData("program/grade-with-rubric", payload);
+  };
+
+  setGradeOverrides = (payload: GradeOverridePayload): Promise<ApiResponse<{ updated: number }>> => {
+    return this.apiExecution.updateData("program/grade-overrides", payload);
+  };
+
+  updateLmsSession = (payload: SessionPayload, query: QueryType): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData("program/session", payload, query);
+  };
+
+  saveSessionAttendance = (payload: {
+    sessionId: number;
+    records: { enrollmentId: number; status: AttendanceStatus; note?: string | null }[];
+  }): Promise<ApiResponse<SessionAttendance>> => {
+    return this.apiExecution.updateData("program/session-attendance", payload);
+  };
+
+  decideLmsApplication = (payload: {
+    id: number;
+    decision: "APPROVE" | "DECLINE";
+    courseId?: number | null;
+    note?: string;
+  }): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.updateData("program/application/decide", payload);
+  };
+
+  updateProgramInstructor = (
+    payload: Partial<InstructorAbilities>,
+    query: QueryType
+  ): Promise<ApiResponse<ProgramInstructor[]>> => {
+    return this.apiExecution.updateData("program/program-instructor", payload, query);
+  };
+
+  updateLibraryItem = (
+    payload: LibraryItemPayload,
+    query: QueryType
+  ): Promise<ApiResponse<{ unitsUpdated: number }>> => {
+    return this.apiExecution.updateData("program/library-item", payload, query);
+  };
+
+  setCohortDueDate = (payload: {
+    cohortId: number;
+    topicId: number;
+    dueDate: string | null;
+  }): Promise<ApiResponse<CohortSchedule>> => {
+    return this.apiExecution.updateData("program/cohort-due-date", payload);
   };
 
   // Update Cohort
@@ -299,8 +454,7 @@ export class ApiUpdateCalls {
     payload: unknown,
     // query?: QueryType
   ): Promise<ApiResponse<unknown>> => {
-    return this.apiExecution.updateData(`program/complete-topic
-`, payload);
+    return this.apiExecution.updateData("program/complete-topic", payload);
   }
 
   // activate assignment
@@ -422,7 +576,7 @@ export class ApiUpdateCalls {
   updateSoul = (
     payload: unknown,
     query?: QueryType
-  ): Promise<ApiResponse<ISoulsWonForm>> => {
+  ): Promise<ApiResponse<unknown>> => {
     return this.apiExecution.updateData("lifecenter/soulwon", payload, query);
   };
 
@@ -434,9 +588,9 @@ export class ApiUpdateCalls {
   };
 
   updateLifeCenterRole = (
-    payload: ILifeCernterRoles,
+    payload: Pick<LifeCenterRole, "name">,
     query?: QueryType
-  ): Promise<ApiResponse<ILifeCernterRoles>> => {
+  ): Promise<ApiResponse<LifeCenterRole>> => {
     return this.apiExecution.updateData(
       "lifecenter/update-role",
       payload,
@@ -445,9 +599,9 @@ export class ApiUpdateCalls {
   };
 
   updateLifeCenterMember = (
-    payload: LifeCenterMemberForm,
+    payload: LifeCenterMemberPayload,
     query?: QueryType
-  ): Promise<ApiResponse<LifeCenterMemberForm>> => {
+  ): Promise<ApiResponse<unknown>> => {
     return this.apiExecution.updateData(
       "lifecenter/update-member-role",
       payload,
@@ -549,6 +703,29 @@ export class ApiUpdateCalls {
     return this.apiExecution.updateData("appointment/reasons/reorder", payload);
   };
 
+  updateAppointmentSettings = (
+    payload: Partial<AppointmentSettings>
+  ): Promise<ApiResponse<AppointmentSettings>> => {
+    return this.apiExecution.updateData("appointment/settings", payload);
+  };
+
+  // Stop or restart new bookings for one person. Existing bookings stay.
+  setStaffBookingsPaused = (
+    payload: { paused: boolean },
+    query?: QueryType
+  ): Promise<ApiResponse<{ userId: string; paused: boolean }>> => {
+    const userId = query?.id;
+
+    if (!userId) {
+      throw new Error("Staff id is required to pause bookings");
+    }
+
+    return this.apiExecution.updateData(
+      `appointment/availability/staff/${userId}/pause`,
+      payload
+    );
+  };
+
   updateAppointmentStatus = (
     payload: UpdateAppointmentStatusPayload,
     query?: QueryType
@@ -585,6 +762,12 @@ export class ApiUpdateCalls {
     return this.apiExecution.updateData("orders/update-order", payload);
   };
 
+  bulkUpdateOrderStatus = (
+    payload: IBulkOrderStatusPayload
+  ): Promise<ApiResponse<IBulkOrderStatusResult>> => {
+    return this.apiExecution.updateData("orders/bulk-update-status", payload);
+  };
+
   // uodate church attendance
   updateChurchAttendance = (
     payload: unknown,
@@ -595,9 +778,9 @@ export class ApiUpdateCalls {
 
   // update annual theme
   updateAnnualTheme = (
-    payload: unknown,
+    payload: Partial<AnnualThemePayload> | unknown,
     query?: QueryType
-  ): Promise<ApiResponse<unknown>> => {
+  ): Promise<ApiResponse<AnnualTheme>> => {
     return this.apiExecution.updateData("theme/update-theme", payload, query);
 }
 
@@ -810,6 +993,12 @@ export class ApiUpdateCalls {
     payload: Record<string, never> = {}
   ): Promise<ApiResponse<unknown>> => {
     return this.apiExecution.patchData("notifications/read-all", payload);
+  };
+
+  updateAiPreferences = (
+    payload: AiPreferencesPatch
+  ): Promise<ApiResponse<AiPreferences>> => {
+    return this.apiExecution.patchData("ai/preferences", payload);
   };
 
   updateNotificationPreference = (

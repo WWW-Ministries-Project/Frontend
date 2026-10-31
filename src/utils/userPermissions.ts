@@ -3,7 +3,7 @@
  * any API payloads (login response, `user/current-user`). Shared by login and
  * the realtime `session.changed` refresh so both build the user the same way.
  */
-import type { userTypeWithToken } from "@/utils/interfaces";
+import type { BranchAccessGrant, userTypeWithToken } from "@/utils/interfaces";
 
 type PermissionCandidate = Record<string, unknown> | string[] | null | undefined;
 
@@ -22,6 +22,8 @@ const USER_PROFILE_FIELDS = [
   "department_positions",
   "life_center_leader",
   "instructor",
+  "branch_id",
+  "branch_name",
 ] as const;
 
 const asRecord = (value: unknown): Record<string, unknown> | undefined => {
@@ -146,6 +148,53 @@ const extractUserProfileFromSources = (
   return mergedProfile;
 };
 
+const toPositiveNumber = (value: unknown): number | null => {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+};
+
+/** Normalizes a `branch_access` array; drops malformed grants. */
+export const normalizeBranchAccess = (value: unknown): BranchAccessGrant[] | undefined => {
+  if (!Array.isArray(value)) return undefined;
+  return value.reduce<BranchAccessGrant[]>((grants, entry) => {
+    const record = asRecord(entry);
+    const branchId = toPositiveNumber(record?.branch_id);
+    const accessLevelId = toPositiveNumber(record?.access_level_id);
+    if (!record || !branchId || !accessLevelId) return grants;
+    grants.push({
+      branch_id: branchId,
+      branch_name: String(record.branch_name ?? ""),
+      access_level_id: accessLevelId,
+      access_level_name: String(record.access_level_name ?? ""),
+      permissions: asRecord(record.permissions),
+      ...(Array.isArray(record.workspaces)
+        ? { workspaces: record.workspaces.filter((key): key is string => typeof key === "string") }
+        : {}),
+    });
+    return grants;
+  }, []);
+};
+
+/**
+ * The richest `branch_access` among the sources: the last one that carries
+ * per-branch permissions (current-user), else the last one found at all.
+ */
+const extractBranchAccess = (
+  ...sources: unknown[]
+): BranchAccessGrant[] | undefined => {
+  let found: BranchAccessGrant[] | undefined;
+  let withPermissions: BranchAccessGrant[] | undefined;
+  sources.forEach((source) => {
+    collectCandidateRecords(source).forEach((record) => {
+      const grants = normalizeBranchAccess(record.branch_access);
+      if (!grants) return;
+      found = grants;
+      if (grants.every((grant) => grant.permissions)) withPermissions = grants;
+    });
+  });
+  return withPermissions ?? found;
+};
+
 export const mergeUserPermissionSources = (
   decodedToken: userTypeWithToken,
   ...sources: unknown[]
@@ -169,6 +218,10 @@ export const mergeUserPermissionSources = (
   return {
     ...decodedToken,
     ...profile,
+    branch_access:
+      extractBranchAccess(...sources) ??
+      normalizeBranchAccess(decodedToken.branch_access) ??
+      [],
     permissions: permissions as userTypeWithToken["permissions"],
     access_permissions: accessPermissions,
   };

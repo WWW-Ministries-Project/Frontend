@@ -71,6 +71,13 @@ export interface PledgeListRow extends PledgeSettlementSummary {
   id: number;
   event: { id: number; event_name: string } | null;
   title: string | null;
+  deadline?: string | null;
+  target_amount?: number | null;
+  created_at?: string;
+  pledger_count?: number;
+  pledgers_with_balance?: number;
+  /** Settled online payments that were never written to the pledger's ledger. */
+  uncredited_payments?: number;
   callers: PledgeCaller[];
   totalPledged: number;
   totalRedeemed: number;
@@ -99,7 +106,17 @@ export interface PledgerRow {
   pledged_amount: number;
   redeemed: number;
   remaining: number;
+  reminded_at?: string | null;
   redemptions: Redemption[];
+}
+
+export interface PledgeRemindResult {
+  reminded: number;
+  skipped_guests: number;
+  /** Bulk reminders skip anyone reminded in the last day. */
+  skipped_recent?: number;
+  failed?: number;
+  pledger_ids: number[];
 }
 
 export interface PledgeDetail extends PledgeListRow {

@@ -1,17 +1,12 @@
 import CreateEvent from "@/pages/HomePage/pages/EventsManagement/pages/CreateEvent";
-import EventRegister from "@/pages/HomePage/pages/EventsManagement/pages/EventRegister.jsx";
-import { ManageAsset } from "@/pages/HomePage/pages/AssetsManagement/pages/ManageAssets";
+import EventRegister from "@/pages/HomePage/pages/EventsManagement/pages/EventRegister";
 import EventsManagement from "@/pages/HomePage/pages/EventsManagement/EventsManagement";
 import ViewEvent from "@/pages/HomePage/pages/EventsManagement/pages/ViewEvents.jsx";
-import { FamilyInformation } from "@/pages/HomePage/pages/Members/pages/FamilyInformation";
 import { MemberInformation } from "@/pages/HomePage/pages/Members/pages/MemberInformation";
 import { ProfileDetails } from "@/pages/HomePage/pages/Members/pages/ProfileDetails";
 import { MemberExclusionGuard } from "@/routes/MemberExclusionGuard";
 import ProgramDetails from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramDetails.js";
 import ProgramInformation from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramInformation.js";
-import { AccessRights } from "@/pages/HomePage/pages/Settings/pages/AccessRights";
-import { ManageAccess } from "@/pages/HomePage/pages/Settings/pages/ManageAccess.js";
-import { UserManagement } from "@/pages/HomePage/pages/Users/UserManagement";
 import { VisitorDetails } from "@/pages/HomePage/pages/VisitorManagement/pages/VisitorDetails";
 import VisitorAnalytics from "@/pages/HomePage/pages/VisitorManagement/pages/VisitorAnalytics";
 import { Guests } from "@/pages/HomePage/pages/VisitorManagement/pages/Guests";
@@ -23,11 +18,8 @@ import LoginPage from "../pages/Authentication/pages/LoginPage/LoginPage.jsx";
 import ResetPassword from "../pages/Authentication/pages/ResetPassword/ResetPassword.jsx";
 import ErrorPage from "../pages/ErrorPage.jsx";
 import { HomePage } from "../pages/HomePage/HomePage";
-import { AssetManagement } from "../pages/HomePage/pages/AssetsManagement/AssetManagement";
 import { Members } from "../pages/HomePage/pages/Members/Members";
 import { ManageMember } from "../pages/HomePage/pages/Members/pages/ManageMember";
-import Settings from "../pages/HomePage/pages/Settings/Settings";
-import ApprovalSettings from "../pages/HomePage/pages/Settings/pages/ApprovalSettings";
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction";
 
 import { NoAccess } from "@/components/NoAccess";
@@ -35,13 +27,11 @@ import { NotificationCenterPage } from "@/features/notifications/NotificationCen
 import { DashBoardPage } from "@/pages/HomePage/pages/DashBoard/DashboardPage.js";
 import AllEvent from "@/pages/HomePage/pages/EventsManagement/pages/AllEvent";
 import EventSchedulesByEvent from "@/pages/HomePage/pages/EventsManagement/pages/EventSchedulesByEvent";
-import { LifeCenter } from "@/pages/HomePage/pages/LifeCenter/LifeCenter";
-import { LifeCenterAnalytics } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterAnalytics";
-import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles";
-import { ViewLifeCenter } from "@/pages/HomePage/pages/LifeCenter/pages/ViewLifeCenter";
-import { MarketPlace } from "@/pages/HomePage/pages/MarketPlace/MarketPlace.js";
-import { AddProduct } from "@/pages/HomePage/pages/MarketPlace/pages/AddProduct.js";
-import { MarketDetails } from "@/pages/HomePage/pages/MarketPlace/pages/MarketDetail";
+import {
+  LifeCenterAnalytics,
+  LifeCenterDetail,
+  LifeCenterList,
+} from "@/pages/HomePage/pages/LifeCenter/lazyPages";
 import { MembershipManagement } from "@/pages/HomePage/pages/MembershipManagement/MembershipManagement";
 import { DepartmentDetails } from "@/pages/HomePage/pages/MembershipManagement/pages/DepartmentDetails";
 import { DepartmentsAndMinistries } from "@/pages/HomePage/pages/MembershipManagement/pages/DepartmentsAndMinistries";
@@ -52,27 +42,29 @@ import { JoinDepartmentRequests } from "@/pages/HomePage/pages/MembershipManagem
 import { GuestToMembership } from "@/pages/HomePage/pages/MembershipManagement/pages/GuestToMembership";
 import MembershipAnalytics from "@/pages/HomePage/pages/MembershipManagement/pages/MembershipAnalytics";
 import ViewPageTemplate from "@/pages/HomePage/pages/MinistrySchool/Components/ViewPageTemplate";
-import { MinistrySchool } from "@/pages/HomePage/pages/MinistrySchool/MinistrySchool";
+import AssessmentLibraryPage from "@/pages/HomePage/pages/MinistrySchool/lms/assessment/AssessmentLibraryPage";
+import CohortsPage from "@/pages/HomePage/pages/MinistrySchool/lms/CohortsPage";
+import ContentLibraryPage from "@/pages/HomePage/pages/MinistrySchool/lms/library/ContentLibraryPage";
+import ReportsPage from "@/pages/HomePage/pages/MinistrySchool/lms/reports/ReportsPage";
+import CohortWorkspace from "@/pages/HomePage/pages/MinistrySchool/lms/CohortWorkspace";
+import InstructorsPage from "@/pages/HomePage/pages/MinistrySchool/lms/InstructorsPage";
+import LearnersPage from "@/pages/HomePage/pages/MinistrySchool/lms/LearnersPage";
+import { LegacyCohortRedirect } from "@/pages/HomePage/pages/MinistrySchool/lms/LegacyRedirect";
+import ProgramsPage from "@/pages/HomePage/pages/MinistrySchool/lms/ProgramsPage";
+import ProgramWorkspace from "@/pages/HomePage/pages/MinistrySchool/lms/ProgramWorkspace";
+import SomDashboard from "@/pages/HomePage/pages/MinistrySchool/lms/SomDashboard";
+import { SomDataProvider } from "@/pages/HomePage/pages/MinistrySchool/lms/SomDataProvider";
 import MinistrySchoolAnalytics from "@/pages/HomePage/pages/MinistrySchool/pages/MinistrySchoolAnalytics";
 import { ViewClass } from "@/pages/HomePage/pages/MinistrySchool/pages/ViewClass";
-import { ViewCohort } from "@/pages/HomePage/pages/MinistrySchool/pages/ViewCohort";
 import ViewCertificate from "@/pages/HomePage/pages/MinistrySchool/pages/ViewCertificate";
-import ViewProgram from "@/pages/HomePage/pages/MinistrySchool/pages/ViewProgram";
 import ViewStudent from "@/pages/HomePage/pages/MinistrySchool/pages/ViewStudent";
 import { relativePath } from "@/utils/const";
-import { ReactNode } from "react";
+import { ReactNode, Suspense } from "react";
 import { ProtectedRoute } from "./ProtectedRoutes.js";
 import type { PermissionRequirement } from "@/utils/accessControl";
 import MembersPage from "@/pages/MembersPage/MembersPage.js";
-import Market from "@/pages/MembersPage/Pages/Market.js";
 import MyLifeCenter from "@/pages/MembersPage/Pages/MyLifeCenter.js";
 import AllPrograms from "@/pages/MembersPage/Pages/AllPrograms.js";
-import { ProductDetailsPage } from "@/pages/MembersPage/Pages/ProductDetailsPage";
-import { CheckOutPage } from "@/pages/MembersPage/Pages/CheckOutPage";
-import ProductsPage from "@/pages/MembersPage/Pages/ProductsPage";
-import { MyOrders } from "@/pages/MembersPage/Pages/MyOrders";
-import { OrderDetailsPage } from "@/pages/MembersPage/Pages/OrderDetailsPage";
-import VerifyPayment from "@/pages/MembersPage/Pages/VerifyPayment.js";
 import GivingComplete from "@/pages/MembersPage/Pages/GivingComplete.js";
 import PledgeComplete from "@/pages/MembersPage/Pages/PledgeComplete.js";
 import MemberGiving from "@/pages/MembersPage/Pages/MemberGiving.js";
@@ -80,9 +72,14 @@ import MemberGivingComplete from "@/pages/MembersPage/Pages/MemberGivingComplete
 import MemberPledges from "@/pages/MembersPage/Pages/MemberPledges.js";
 import MemberPledgeComplete from "@/pages/MembersPage/Pages/MemberPledgeComplete.js";
 import { VisitorRegistration } from "@/pages/Registration/VisitorRegistration.js";
-import ViewTopic from "@/pages/HomePage/pages/MinistrySchool/Components/ViewTopic.js";
 import EnrolledProgram from "@/pages/MembersPage/Pages/EnrolledProgram.js";
-import MyLearning from "@/pages/MembersPage/Pages/MyLearning.js";
+import LearnerDashboard from "@/pages/MembersPage/Pages/school/LearnerDashboard";
+import MyPrograms from "@/pages/MembersPage/Pages/school/MyPrograms";
+import LearnerAssignments from "@/pages/MembersPage/Pages/school/LearnerAssignments";
+import LearnerSubmission from "@/pages/MembersPage/Pages/school/LearnerSubmission";
+import LearnerGrades from "@/pages/MembersPage/Pages/school/LearnerGrades";
+import LearnerSchedule from "@/pages/MembersPage/Pages/school/LearnerSchedule";
+import LearnerAnnouncements from "@/pages/MembersPage/Pages/school/LearnerAnnouncements";
 import InstructorProg from "@/pages/MembersPage/Pages/InstructorProg.js";
 import InstructorAssMan from "@/pages/MembersPage/Pages/InstructorAssMan.js";
 import Instructor from "@/pages/MembersPage/Pages/Instructor.js";
@@ -110,31 +107,71 @@ import AppointmentManager from "@/pages/HomePage/pages/AppointmentsManagement/Ap
 import AppointmentsAnalytics from "@/pages/HomePage/pages/AppointmentsManagement/pages/AppointmentsAnalytics";
 import ManageAvailability from "@/pages/HomePage/pages/AppointmentsManagement/pages/ManageAvailability.js";
 import AppointmentSettings from "@/pages/HomePage/pages/AppointmentsManagement/pages/AppointmentSettings";
-import AssetsAnalytics from "@/pages/HomePage/pages/AssetsManagement/pages/AssetsAnalytics";
 import EventsAnalytics from "@/pages/HomePage/pages/EventsManagement/pages/EventsAnalytics";
-import MarketplaceAnalytics from "@/pages/HomePage/pages/MarketPlace/pages/MarketplaceAnalytics";
 import MyAppointments from "@/pages/MembersPage/Pages/MyAppointments.js";
-import FinanceManager from "@/pages/HomePage/pages/FinanceManagement/FinanaceManagement.js";
-import FinanceDetailPage from "@/pages/HomePage/pages/FinanceManagement/pages/FinanceDetailPage.js";
-import FianancialsForm from "@/pages/HomePage/pages/FinanceManagement/pages/FinancialsForm.js";
-import FinanceConfiguration from "@/pages/HomePage/pages/FinanceManagement/pages/FinanceConfiguration.js";
-import GivingOptionsOverview from "@/pages/HomePage/pages/FinanceManagement/GivingOptions/GivingOptionsOverview";
-import GivingContributions from "@/pages/HomePage/pages/FinanceManagement/GivingOptions/GivingContributions";
-import GivingOptionDetail from "@/pages/HomePage/pages/FinanceManagement/GivingOptions/GivingOptionDetail";
-import PledgesOverview from "@/pages/HomePage/pages/FinanceManagement/Pledges/PledgesOverview";
-import PledgeForm from "@/pages/HomePage/pages/FinanceManagement/Pledges/PledgeForm";
-import PledgeDetail from "@/pages/HomePage/pages/FinanceManagement/Pledges/PledgeDetail";
-import MyRequisitions from "@/pages/HomePage/pages/Requisitions/pages/MyRequests";
-import RequestDetails from "@/pages/HomePage/pages/Requisitions/pages/RequestDetails";
-import Request from "@/pages/HomePage/pages/Requisitions/pages/Request";
-import Requisitions from "@/pages/HomePage/pages/Requisitions/pages/Requisitions";
+import {
+  FinanceConfiguration,
+  FinanceManager,
+  FinanceRecord,
+  GivingContributions,
+  GivingOptions,
+  PledgeDetail,
+  Pledges,
+} from "@/pages/HomePage/pages/FinanceManagement/lazyPages";
+import {
+  AllRequisitionsPage,
+  LegacyRequestRedirect,
+  MyRequisitionsPage,
+  RequisitionDeepLinkPage,
+} from "@/pages/HomePage/pages/Requisitions/RequisitionManager";
+import RequisitionsAnalytics from "@/pages/HomePage/pages/Requisitions/pages/RequisitionsAnalytics";
 import EventReportDetails from "@/pages/HomePage/pages/Reports/pages/EventReportDetails";
 import EventReports from "@/pages/HomePage/pages/Reports/pages/EventReports";
+import ExecutiveSummary from "@/pages/HomePage/pages/Reports/pages/ExecutiveSummary";
+import DepartmentReports from "@/pages/HomePage/pages/Reports/pages/DepartmentReports";
+import DepartmentReportDetail from "@/pages/HomePage/pages/Reports/pages/DepartmentReportDetail";
+import ReportsHome from "@/pages/HomePage/pages/Reports/pages/ReportsHome";
+import {
+  DEPARTMENT_REPORTS_ACCESS,
+  EXECUTIVE_SUMMARY_ACCESS,
+  REPORTS_MENU_ACCESS,
+} from "@/pages/HomePage/pages/Reports/utils/reportAccess";
 import CertificateVerificationPage from "@/pages/CertificateVerification/CertificateVerificationPage";
 import { Navigate } from "react-router-dom";
+import {
+  AccessRightsList,
+  ApprovalsPage,
+  GeneralConfiguration,
+  RoleDetail,
+  UsersPage,
+  VisitorFollowUpsSettings,
+} from "@/pages/HomePage/pages/Settings/lazyPages";
+import {
+  AssetAnalytics,
+  AssetCountPage,
+  AssetManager,
+  AssetReconciliation,
+} from "@/pages/HomePage/pages/AssetsManagement/lazyPages";
 import ChangePassword from "@/pages/Authentication/pages/ChangePassword/ChangePassword";
 import { AIConsole } from "@/pages/HomePage/pages/AI/AIConsole";
-// import { LifeCenterRoles } from "@/pages/HomePage/pages/LifeCenter/pages/LifeCenterRoles.js";
+
+import {
+  MarketPlace,
+  AddProduct,
+  MarketDetails,
+  Market,
+  ProductDetailsPage,
+  CheckOutPage,
+  ProductsPage,
+  MyOrders,
+  OrderDetailsPage,
+  VerifyPayment,
+  MarketplaceAnalytics,
+  MarketplaceOverview,
+  AllProducts,
+  AllOrders,
+  AdminOrderDetail,
+} from "./lazyMarketplaceRoutes";
 
 // Define a Route type
 export interface AppRoute {
@@ -146,6 +183,9 @@ export interface AppRoute {
   isPrivate?: boolean;
   permissionNeeded?: PermissionRequirement;
   sideTab?: boolean;
+  /** Names this page in "Back to …" links on pages opened from it. Pages
+   *  without one fall back to their nearest `sideTab` ancestor's name. */
+  backLabel?: string;
   /** A pure redirect: never a navigation entry, so it does not count when
    *  deciding whether a parent has anything the user can open. */
   redirectOnly?: boolean;
@@ -271,7 +311,9 @@ export const routes: AppRoute[] = [
             name: "Membership manager",
             element: <MembershipManagement />,
             isPrivate: true,
-            permissionNeeded: "manage_membership_management",
+            // Pipelines open at View; department heads (Departments manage)
+            // reach the join requests for departments they lead.
+            permissionNeeded: ["view_membership_management", "manage_departments"],
             sideTab: true,
             children: [
               {
@@ -279,47 +321,52 @@ export const routes: AppRoute[] = [
                 name: "Membership Management Default",
                 element: (
                   <Navigate
-                    to={relativePath.home.membership.management.memberConfirmation}
+                    to={
+                      relativePath.home.membership.management.memberConfirmation
+                    }
                     replace
                   />
                 ),
                 isPrivate: true,
-                permissionNeeded: "manage_membership_management",
+                permissionNeeded: "view_membership_management",
               },
               {
-                path: relativePath.home.membership.management.memberConfirmation,
+                path: relativePath.home.membership.management
+                  .memberConfirmation,
                 name: "Member Confirmation",
                 element: <MemberConfirmation />,
                 isPrivate: true,
-                permissionNeeded: "manage_membership_management",
+                permissionNeeded: "view_membership_management",
               },
               {
-                path: relativePath.home.membership.management.visitorToMembership,
+                path: relativePath.home.membership.management
+                  .visitorToMembership,
                 name: "Visitor-to-Membership",
                 element: <VisitorToMembership />,
                 isPrivate: true,
-                permissionNeeded: "manage_membership_management",
+                permissionNeeded: "view_membership_management",
               },
               {
-                path: relativePath.home.membership.management.soulwonToMembership,
+                path: relativePath.home.membership.management
+                  .soulwonToMembership,
                 name: "Soulwon-to-Membership",
                 element: <SoulwonToMembership />,
                 isPrivate: true,
-                permissionNeeded: "manage_membership_management",
+                permissionNeeded: "view_membership_management",
               },
               {
                 path: relativePath.home.membership.management.guestToMembership,
                 name: "Guest-to-Membership",
                 element: <GuestToMembership />,
                 isPrivate: true,
-                permissionNeeded: "manage_membership_management",
+                permissionNeeded: "view_membership_management",
               },
               {
                 path: relativePath.home.membership.management.joinRequests,
                 name: "Join Department Requests",
                 element: <JoinDepartmentRequests />,
                 isPrivate: true,
-                permissionNeeded: "manage_membership_management",
+                permissionNeeded: ["view_membership_management", "manage_departments"],
               },
             ],
           },
@@ -334,6 +381,7 @@ export const routes: AppRoute[] = [
           {
             path: relativePath.home.membership.departments.details,
             name: "Department Details",
+            backLabel: "Department",
             element: <DepartmentDetails />,
             isPrivate: true,
             permissionNeeded: "view_departments",
@@ -360,19 +408,14 @@ export const routes: AppRoute[] = [
         ),
         isPrivate: true,
         name: "Profile Details",
+        backLabel: "Member profile",
         permissionNeeded: "view_members",
         children: [
           {
-            path: "",
-            name: "Info",
-            element: <MemberInformation />,
-            isPrivate: true,
-            permissionNeeded: "view_members",
-          },
-          {
+            // Legacy link: the family details now live on the profile's Family tab.
             path: "fam-info",
             name: "fam-info",
-            element: <FamilyInformation familyData={[]} />,
+            element: <Navigate to="..?tab=family" relative="path" replace />,
             isPrivate: true,
             permissionNeeded: "view_members",
           },
@@ -387,7 +430,9 @@ export const routes: AppRoute[] = [
         name: "Ride to church",
         element: <RidesManager />,
         isPrivate: true,
-        permissionNeeded: "manage_membership_management",
+        // Falls back to Membership management for roles saved before Rides
+        // existed; each tab is gated by its own action.
+        permissionNeeded: "view_rides",
         sideTab: true,
       },
       {
@@ -427,6 +472,7 @@ export const routes: AppRoute[] = [
         path: "visitors/visitor/:visitorId",
         name: "Visitors",
         element: <VisitorDetails />,
+        backLabel: "Visitor",
         isPrivate: true,
         permissionNeeded: "view_visitors",
       },
@@ -472,6 +518,7 @@ export const routes: AppRoute[] = [
           {
             path: "event-schedules",
             name: "Event Schedules",
+            backLabel: "Event schedules",
             element: <EventSchedulesByEvent />,
             isPrivate: true,
             permissionNeeded: "view_events",
@@ -482,35 +529,55 @@ export const routes: AppRoute[] = [
         path: relativePath.home.reports.main,
         name: "Reports",
         isPrivate: true,
-        permissionNeeded: "view_events",
+        permissionNeeded: REPORTS_MENU_ACCESS,
         sideTab: true,
         children: [
           {
             path: "",
             name: "Reports Default",
-            element: (
-              <Navigate
-                to={`${relativePath.home.main}/${relativePath.home.reports.eventReports}`}
-                replace
-              />
-            ),
+            element: <ReportsHome />,
             isPrivate: true,
-            permissionNeeded: "view_events",
+            redirectOnly: true,
+          },
+          {
+            path: "executive-summary",
+            name: "Executive summary",
+            element: <ExecutiveSummary />,
+            isPrivate: true,
+            permissionNeeded: EXECUTIVE_SUMMARY_ACCESS,
+            sideTab: true,
+          },
+          {
+            path: "department",
+            name: "Department reports",
+            element: <DepartmentReports />,
+            isPrivate: true,
+            permissionNeeded: DEPARTMENT_REPORTS_ACCESS,
+            sideTab: true,
+          },
+          {
+            path: "department/:key",
+            name: "Department Report",
+            backLabel: "Department report",
+            element: <DepartmentReportDetail />,
+            isPrivate: true,
+            permissionNeeded: DEPARTMENT_REPORTS_ACCESS,
           },
           {
             path: "event-reports",
-            name: "Event Reports",
+            name: "Event reports",
             element: <EventReports />,
             isPrivate: true,
-            permissionNeeded: "view_events",
+            permissionNeeded: ["view_reports", "view_events"],
             sideTab: true,
           },
           {
             path: "event-reports/:id",
             name: "Event Report Details",
+            backLabel: "Event report",
             element: <EventReportDetails />,
             isPrivate: true,
-            permissionNeeded: "view_events",
+            permissionNeeded: ["view_reports", "view_events"],
           },
         ],
       },
@@ -525,6 +592,7 @@ export const routes: AppRoute[] = [
         path: "events/events/view-event",
         element: <ViewEvent />,
         name: " View Event",
+        backLabel: "Event",
         isPrivate: true,
         permissionNeeded: "view_events",
       },
@@ -678,7 +746,7 @@ export const routes: AppRoute[] = [
           },
         ],
       },
-   
+
       {
         path: "requests",
         name: "Requisition",
@@ -688,35 +756,47 @@ export const routes: AppRoute[] = [
           {
             path: "",
             name: "My Requisition",
-            element: <MyRequisitions />,
+            element: <MyRequisitionsPage />,
             isPrivate: true,
             sideTab: true,
           },
           {
-            path: ":id",
-            name: "Requisition Details",
-            element: <RequestDetails />,
+            // Managers see every submitted requisition; approvers see the
+            // ones that pass through their steps (scoped by the backend).
+            // Anyone else is sent back to My Requisition.
+            path: "staff_requests",
+            name: "Requisitions",
+            element: <AllRequisitionsPage />,
             isPrivate: true,
+            sideTab: true,
+          },
+          {
+            path: "analytics",
+            name: "Analytics",
+            element: <RequisitionsAnalytics />,
+            isPrivate: true,
+            permissionNeeded: "view_requisition",
+            sideTab: true,
           },
           {
             path: "request",
-            name: "Requisition",
-            element: <Request />,
+            name: "New Requisition",
+            element: <Navigate to="/home/requests?new=1" replace />,
             isPrivate: true,
           },
           {
             path: "request/:id",
-            name: "Requisition",
-            element: <Request />,
+            name: "Edit Requisition",
+            element: <LegacyRequestRedirect />,
             isPrivate: true,
           },
           {
-            path: "staff_requests",
-            name: "Requisitions",
-            element: <Requisitions />,
+            // Notification deep links: /home/requests/{base64 id}.
+            path: ":id",
+            name: "Requisition Details",
+            backLabel: "Requisition",
+            element: <RequisitionDeepLinkPage />,
             isPrivate: true,
-            permissionNeeded: "manage_requisition",
-            sideTab: true,
           },
         ],
       },
@@ -730,7 +810,15 @@ export const routes: AppRoute[] = [
           {
             path: "",
             name: "Assets",
-            element: <AssetManagement />,
+            element: <Suspense fallback={null}><AssetManager /></Suspense>,
+            isPrivate: true,
+            permissionNeeded: "view_asset",
+            sideTab: true,
+          },
+          {
+            path: "reconciliation",
+            name: "Reconciliation",
+            element: <Suspense fallback={null}><AssetReconciliation /></Suspense>,
             isPrivate: true,
             permissionNeeded: "view_asset",
             sideTab: true,
@@ -738,7 +826,7 @@ export const routes: AppRoute[] = [
           {
             path: "analytics",
             name: "Analytics",
-            element: <AssetsAnalytics />,
+            element: <Suspense fallback={null}><AssetAnalytics /></Suspense>,
             isPrivate: true,
             permissionNeeded: "view_asset",
             sideTab: true,
@@ -746,11 +834,20 @@ export const routes: AppRoute[] = [
         ],
       },
       {
-        path: "assets/manage-asset",
-        element: <ManageAsset />,
-        name: "Manage Asset",
+        // Stock-check notification links. Department heads count their own
+        // items here without needing Asset access; the server scopes the list.
+        // Kept outside the Assets menu so it doesn't show for everyone.
+        path: "assets/count",
+        name: "Stock check",
+        backLabel: "Stock check",
+        element: <Suspense fallback={null}><AssetCountPage /></Suspense>,
         isPrivate: true,
-        permissionNeeded: "manage_asset",
+      },
+      {
+        path: "assets/manage-asset",
+        name: "Manage Asset",
+        element: <Navigate to="/home/assets" replace />,
+        isPrivate: true,
       },
       {
         path: "finance",
@@ -762,53 +859,49 @@ export const routes: AppRoute[] = [
           {
             path: "",
             name: "Finance Manager",
-            element: <FinanceManager />,
+            element: <Suspense fallback={null}><FinanceManager /></Suspense>,
             isPrivate: true,
             permissionNeeded: "view_financials",
-            sideTab: true,   
-          },
-          {
-            path: ":id",
-            name: "Finance Detail",
-            element: <FinanceDetailPage />,
-            isPrivate: true,
-            permissionNeeded: "view_financials",
+            sideTab: true,
           },
           {
             path: "create",
-            name: "Create Financials",
-            element: <FianancialsForm />,
+            name: "New weekly record",
+            element: <Suspense fallback={null}><FinanceRecord /></Suspense>,
+            backLabel: "Weekly record",
             isPrivate: true,
-            permissionNeeded: "manage_financials",
+            // The page gates drafts and submitting by action.
+            permissionNeeded: "view_financials",
           },
           {
             path: "configuration",
             name: "Configuration",
-            element: <FinanceConfiguration />,
+            element: <Suspense fallback={null}><FinanceConfiguration /></Suspense>,
             isPrivate: true,
-            permissionNeeded: "manage_financials",
+            // The page gates each section by action (configure, configure_approvals).
+            permissionNeeded: "view_financials",
             sideTab: true,
           },
           {
             path: "giving-options",
             name: "Manage Giving Options",
-            element: <GivingOptionsOverview />,
+            element: <Suspense fallback={null}><GivingOptions /></Suspense>,
             isPrivate: true,
             permissionNeeded: "view_giving",
             sideTab: true,
           },
           {
-            // Not a sideTab: reached by clicking an option on the overview.
+            // Option details now live on the overview cards and contributions.
             path: "giving-options/:id",
             name: "Giving Option Detail",
-            element: <GivingOptionDetail />,
+            element: <Navigate to="/home/finance/giving-options" replace />,
             isPrivate: true,
             permissionNeeded: "view_giving",
           },
           {
             path: "giving-contributions",
             name: "Giving Contributions",
-            element: <GivingContributions />,
+            element: <Suspense fallback={null}><GivingContributions /></Suspense>,
             isPrivate: true,
             permissionNeeded: "view_giving",
             sideTab: true,
@@ -816,38 +909,48 @@ export const routes: AppRoute[] = [
           {
             path: "pledges",
             name: "Pledges",
-            element: <PledgesOverview />,
+            element: <Suspense fallback={null}><Pledges /></Suspense>,
             isPrivate: true,
-            permissionNeeded: "view_financials",
+            permissionNeeded: "view_pledges",
             sideTab: true,
           },
           {
+            // Pledges are created from a dialog on the Pledges page.
             path: "pledges/create",
             name: "Create Pledge",
-            element: <PledgeForm mode="create" />,
+            element: <Navigate to="/home/finance/pledges" replace />,
             isPrivate: true,
-            permissionNeeded: "manage_financials",
+            permissionNeeded: "manage_pledges",
           },
           {
             path: "pledges/:id",
             name: "Pledge Detail",
-            element: <PledgeDetail />,
+            element: <Suspense fallback={null}><PledgeDetail /></Suspense>,
+            backLabel: "Pledge",
             isPrivate: true,
-            permissionNeeded: "view_financials",
+            permissionNeeded: "view_pledges",
           },
           {
             path: "pledges/:id/edit",
             name: "Edit Pledge",
-            element: <PledgeForm mode="edit" />,
+            element: <Suspense fallback={null}><PledgeDetail /></Suspense>,
+            backLabel: "Pledge",
             isPrivate: true,
-            permissionNeeded: "manage_financials",
+            permissionNeeded: "manage_pledges",
+          },
+          {
+            path: ":id",
+            name: "Weekly record",
+            element: <Suspense fallback={null}><FinanceRecord /></Suspense>,
+            backLabel: "Weekly record",
+            isPrivate: true,
+            permissionNeeded: "view_financials",
           },
         ],
       },
       {
         path: relativePath.home.lifeCenter.main,
         name: "Life Centers",
-        // element: <LifeCenter />,
         isPrivate: true,
         permissionNeeded: "view_life_center",
         sideTab: true,
@@ -855,7 +958,7 @@ export const routes: AppRoute[] = [
           {
             path: "",
             name: "Life Centers",
-            element: <LifeCenter />,
+            element: <Suspense fallback={null}><LifeCenterList /></Suspense>,
             isPrivate: true,
             permissionNeeded: "view_life_center",
             sideTab: true,
@@ -863,21 +966,23 @@ export const routes: AppRoute[] = [
           {
             path: relativePath.home.lifeCenter.detail,
             name: "Life Center",
-            element: <ViewLifeCenter />,
+            element: <Suspense fallback={null}><LifeCenterDetail /></Suspense>,
+            backLabel: "Life center",
             isPrivate: true,
             permissionNeeded: "view_life_center",
           },
           {
             path: "roles",
             name: "Life Center Roles",
-            element: <LifeCenterRoles />,
+            // Roles are managed from the list page's "Manage roles" dialog.
+            element: <Navigate to=".." relative="path" replace />,
             isPrivate: true,
             permissionNeeded: "manage_life_center",
           },
           {
             path: "life-center-analytics",
             name: "Life Centers Analytic",
-            element: <LifeCenterAnalytics />,
+            element: <Suspense fallback={null}><LifeCenterAnalytics /></Suspense>,
             isPrivate: true,
             permissionNeeded: "view_life_center",
             sideTab: true,
@@ -893,8 +998,48 @@ export const routes: AppRoute[] = [
         children: [
           {
             path: "",
-            name: "Market Place",
-            element: <MarketPlace />,
+            name: "Overview",
+            element: (
+              <Suspense fallback={null}>
+                <MarketplaceOverview />
+              </Suspense>
+            ),
+            isPrivate: true,
+            permissionNeeded: "view_marketplace",
+            sideTab: true,
+          },
+          {
+            path: "markets",
+            name: "Markets",
+            element: (
+              <Suspense fallback={null}>
+                <MarketPlace />
+              </Suspense>
+            ),
+            isPrivate: true,
+            permissionNeeded: "view_marketplace",
+            sideTab: true,
+          },
+          {
+            path: "products",
+            name: "Products",
+            element: (
+              <Suspense fallback={null}>
+                <AllProducts />
+              </Suspense>
+            ),
+            isPrivate: true,
+            permissionNeeded: "view_marketplace",
+            sideTab: true,
+          },
+          {
+            path: "orders",
+            name: "Orders",
+            element: (
+              <Suspense fallback={null}>
+                <AllOrders />
+              </Suspense>
+            ),
             isPrivate: true,
             permissionNeeded: "view_marketplace",
             sideTab: true,
@@ -902,7 +1047,11 @@ export const routes: AppRoute[] = [
           {
             path: "analytics",
             name: "Analytics",
-            element: <MarketplaceAnalytics />,
+            element: (
+              <Suspense fallback={null}>
+                <MarketplaceAnalytics />
+              </Suspense>
+            ),
             isPrivate: true,
             permissionNeeded: "view_marketplace",
             sideTab: true,
@@ -910,23 +1059,48 @@ export const routes: AppRoute[] = [
         ],
       },
       {
+        path: relativePath.home.marketPlace.orderDetails,
+        name: "Order Details",
+        backLabel: "Order",
+        element: (
+          <Suspense fallback={null}>
+            <AdminOrderDetail />
+          </Suspense>
+        ),
+        isPrivate: true,
+        permissionNeeded: "view_marketplace",
+      },
+      {
         path: relativePath.home.marketPlace.details,
         name: "Market Details",
-        element: <MarketDetails />,
+        backLabel: "Market",
+        element: (
+          <Suspense fallback={null}>
+            <MarketDetails />
+          </Suspense>
+        ),
         isPrivate: true,
         permissionNeeded: "view_marketplace",
       },
       {
         path: relativePath.home.marketPlace.addProduct,
         name: "Add Product",
-        element: <AddProduct />,
+        element: (
+          <Suspense fallback={null}>
+            <AddProduct />
+          </Suspense>
+        ),
         isPrivate: true,
         permissionNeeded: "manage_marketplace",
       },
       {
         path: relativePath.home.marketPlace.editProduct,
         name: "Edit Product",
-        element: <AddProduct />,
+        element: (
+          <Suspense fallback={null}>
+            <AddProduct />
+          </Suspense>
+        ),
         isPrivate: true,
         permissionNeeded: "manage_marketplace",
       },
@@ -934,29 +1108,92 @@ export const routes: AppRoute[] = [
       {
         path: relativePath.home.ministrySchool.main,
         name: "School of Ministry",
+        element: <SomDataProvider />,
         isPrivate: true,
         permissionNeeded: "view_school_of_ministry",
         sideTab: true,
         children: [
           {
             path: "",
-            name: "School of Ministry",
-            element: <MinistrySchool />,
+            name: "Dashboard",
+            element: <SomDashboard />,
             isPrivate: true,
             permissionNeeded: "view_school_of_ministry",
             sideTab: true,
           },
           {
-            path: "analytics",
-            name: "Analytics",
-            element: <MinistrySchoolAnalytics />,
+            path: "programs",
+            name: "Programs",
+            element: <ProgramsPage />,
+            isPrivate: true,
+            permissionNeeded: "view_school_of_ministry",
+            sideTab: true,
+          },
+          {
+            path: "programs/:id",
+            name: "Program",
+            element: <ProgramWorkspace />,
+            isPrivate: true,
+            permissionNeeded: "view_school_of_ministry",
+          },
+          {
+            path: "cohorts",
+            name: "Cohorts",
+            element: <CohortsPage />,
+            isPrivate: true,
+            permissionNeeded: "view_school_of_ministry",
+            sideTab: true,
+          },
+          {
+            path: "cohorts/:id",
+            name: "Cohort",
+            element: <CohortWorkspace />,
+            isPrivate: true,
+            permissionNeeded: "view_school_of_ministry",
+          },
+          {
+            path: "learners",
+            name: "Learners",
+            element: <LearnersPage />,
+            isPrivate: true,
+            permissionNeeded: "view_school_of_ministry",
+            sideTab: true,
+          },
+          {
+            path: "instructors",
+            name: "Instructors",
+            element: <InstructorsPage />,
+            isPrivate: true,
+            permissionNeeded: "view_school_of_ministry",
+            sideTab: true,
+          },
+          {
+            path: "assessment-library",
+            name: "Assessment library",
+            element: <AssessmentLibraryPage />,
+            isPrivate: true,
+            permissionNeeded: "view_school_of_ministry",
+            sideTab: true,
+          },
+          {
+            path: "content-library",
+            name: "Content library",
+            element: <ContentLibraryPage />,
+            isPrivate: true,
+            permissionNeeded: "view_school_of_ministry",
+            sideTab: true,
+          },
+          {
+            path: "reports",
+            name: "Reports",
+            element: <ReportsPage />,
             isPrivate: true,
             permissionNeeded: "view_school_of_ministry",
             sideTab: true,
           },
           {
             path: relativePath.home.ministrySchool.instructorPortal,
-            name: "Instructor Portal",
+            name: "Grading",
             element: <Instructor isAdmin />,
             isPrivate: true,
             permissionNeeded: "view_school_of_ministry",
@@ -993,48 +1230,56 @@ export const routes: AppRoute[] = [
             ],
           },
           {
-            path: `${relativePath.home.ministrySchool.program}/:id`,
+            path: "analytics",
+            name: "Analytics",
+            element: <MinistrySchoolAnalytics />,
+            isPrivate: true,
+            permissionNeeded: "view_school_of_ministry",
+            sideTab: true,
+          },
+          {
+            path: "",
             name: "",
             element: <ViewPageTemplate />,
             isPrivate: true,
             permissionNeeded: "view_school_of_ministry",
             children: [
               {
-                path: "",
-                name: "View Program",
-                element: <ViewProgram />,
-                isPrivate: true,
-                permissionNeeded: "view_school_of_ministry",
-              },
-              {
-                path: `${relativePath.home.ministrySchool.topic}`,
-                name: "View Topic",
-                element: <ViewTopic />,
-                isPrivate: true,
-                permissionNeeded: "view_school_of_ministry",
-              },
-              {
-                path: relativePath.home.ministrySchool.cohort,
-                name: "View Cohort",
-                element: <ViewCohort />,
-                isPrivate: true,
-                permissionNeeded: "view_school_of_ministry",
-              },
-              {
-                path: `${relativePath.home.ministrySchool.cohort}/${relativePath.home.ministrySchool.class}`,
+                path: "cohorts/:cohortId/classes/:id",
                 name: "View Class",
                 element: <ViewClass />,
                 isPrivate: true,
                 permissionNeeded: "view_school_of_ministry",
               },
               {
-                path: `${relativePath.home.ministrySchool.cohort}/${relativePath.home.ministrySchool.class}/student/:id`,
+                path: "cohorts/:cohortId/classes/:classId/student/:id",
                 name: "View Student",
                 element: <ViewStudent />,
                 isPrivate: true,
                 permissionNeeded: "view_school_of_ministry",
               },
             ],
+          },
+          {
+            path: "programs/:programId/cohort/:cohortId",
+            name: "",
+            element: <LegacyCohortRedirect />,
+            isPrivate: true,
+            permissionNeeded: "view_school_of_ministry",
+          },
+          {
+            path: "programs/:programId/cohort/:cohortId/class/:classId",
+            name: "",
+            element: <LegacyCohortRedirect />,
+            isPrivate: true,
+            permissionNeeded: "view_school_of_ministry",
+          },
+          {
+            path: "programs/:programId/cohort/:cohortId/class/:classId/student/:studentId",
+            name: "",
+            element: <LegacyCohortRedirect />,
+            isPrivate: true,
+            permissionNeeded: "view_school_of_ministry",
           },
         ],
       },
@@ -1054,15 +1299,15 @@ export const routes: AppRoute[] = [
             path: "",
             alias: "departments",
             name: "General configuration",
-            element: <Settings />,
+            element: <Suspense fallback={null}><GeneralConfiguration /></Suspense>,
             isPrivate: true,
-            permissionNeeded: "view_departments",
+            permissionNeeded: "view_settings",
             sideTab: true,
           },
           {
             path: "access-rights",
             name: "Access Rights",
-            element: <AccessRights />,
+            element: <Suspense fallback={null}><AccessRightsList /></Suspense>,
             isPrivate: true,
             permissionNeeded: "view_access_rights",
             sideTab: true,
@@ -1070,25 +1315,56 @@ export const routes: AppRoute[] = [
           {
             path: "access-rights/manage-access",
             name: "Manage Access",
-            element: <ManageAccess />,
+            element: <Navigate to="/home/settings/access-rights" replace />,
             isPrivate: true,
-            permissionNeeded: "manage_access_rights",
+            permissionNeeded: "view_access_rights",
+          },
+          {
+            path: "access-rights/:roleId",
+            name: "Role",
+            element: <Suspense fallback={null}><RoleDetail /></Suspense>,
+            backLabel: "Access level",
+            isPrivate: true,
+            permissionNeeded: "view_access_rights",
           },
           {
             path: "users",
             name: "Users",
-            element: <UserManagement />,
+            element: <Suspense fallback={null}><UsersPage /></Suspense>,
             isPrivate: true,
-            permissionNeeded: "manage_users",
+            permissionNeeded: ["manage_access_rights", "manage_members"],
+            sideTab: true,
+          },
+          {
+            path: "approvals",
+            name: "Approvals",
+            element: <Suspense fallback={null}><ApprovalsPage /></Suspense>,
+            isPrivate: true,
+            permissionNeeded: "view_settings",
+            sideTab: true,
+          },
+          {
+            path: "visitor-follow-ups",
+            name: "Visitor Follow-ups",
+            element: <Suspense fallback={null}><VisitorFollowUpsSettings /></Suspense>,
+            isPrivate: true,
+            permissionNeeded: "view_settings",
+            sideTab: true,
+          },
+          {
+            path: "ai-console",
+            name: "AI Console",
+            element: <AIConsole />,
+            isPrivate: true,
+            permissionNeeded: { domain: "AI", action: "view" },
             sideTab: true,
           },
           {
             path: "approval",
             name: "Approval",
-            element: <ApprovalSettings />,
+            element: <Navigate to="/home/settings/approvals" replace />,
             isPrivate: true,
-            permissionNeeded: "manage_requisition",
-            sideTab: true,
+            permissionNeeded: "view_settings",
           },
         ],
       },
@@ -1134,33 +1410,43 @@ export const routes: AppRoute[] = [
         isPrivate: false,
       },
       {
-        path: "events/register-event",
-        element: <EventRegister />,
-        name: "Event Registration",
-        isPrivate: false,
-      },
-      {
         path: "products",
         name: "products",
-        element: <ProductsPage />,
+        element: (
+          <Suspense fallback={null}>
+            <ProductsPage />
+          </Suspense>
+        ),
         isPrivate: false,
       },
       {
         path: "products/:id",
         name: "ProductDetailsPage",
-        element: <ProductDetailsPage />,
+        element: (
+          <Suspense fallback={null}>
+            <ProductDetailsPage />
+          </Suspense>
+        ),
         isPrivate: false,
       },
       {
         path: "products/check-out",
         name: "Check Out",
-        element: <CheckOutPage />,
+        element: (
+          <Suspense fallback={null}>
+            <CheckOutPage />
+          </Suspense>
+        ),
         isPrivate: false,
       },
       {
         path: "verify-payment/:type",
         name: "Verify payment",
-        element: <VerifyPayment />,
+        element: (
+          <Suspense fallback={null}>
+            <VerifyPayment />
+          </Suspense>
+        ),
         isPrivate: false,
       },
       {
@@ -1203,6 +1489,14 @@ export const routes: AppRoute[] = [
     isPrivate: false,
   },
   {
+    // Public links from the backend point here. The page draws its own
+    // header and footer, so it sits outside the /out LandingPage layout.
+    path: "/out/events/register-event",
+    name: "Event Registration",
+    element: <EventRegister />,
+    isPrivate: false,
+  },
+  {
     path: "/member",
     element: (
       <ProtectedRoute>
@@ -1214,12 +1508,14 @@ export const routes: AppRoute[] = [
       {
         path: relativePath.member.dashboard,
         name: "member_dashboard",
+        backLabel: "Home",
         element: <DashBoardPage />,
         isPrivate: false,
       },
       {
         path: relativePath.member.profile,
         name: "member_profile",
+        backLabel: "My profile",
         element: <ProfileDetails />,
         isPrivate: false,
         children: [
@@ -1234,59 +1530,93 @@ export const routes: AppRoute[] = [
       {
         path: relativePath.member.market,
         name: "Member Market",
-        element: <Market />,
+        backLabel: "Marketplace",
+        element: (
+          <Suspense fallback={null}>
+            <Market />
+          </Suspense>
+        ),
         isPrivate: false,
 
         children: [
           {
             path: relativePath.member.market,
             name: "Products",
-            element: <ProductsPage />,
+            element: (
+              <Suspense fallback={null}>
+                <ProductsPage />
+              </Suspense>
+            ),
             isPrivate: false,
           },
           {
             path: relativePath.member.productDetails,
             name: "Product Details",
-            element: <ProductDetailsPage />,
+            element: (
+              <Suspense fallback={null}>
+                <ProductDetailsPage />
+              </Suspense>
+            ),
             isPrivate: false,
           },
 
           {
             path: relativePath.member.checkOut,
             name: "Check Out",
-            element: <CheckOutPage />,
+            element: (
+              <Suspense fallback={null}>
+                <CheckOutPage />
+              </Suspense>
+            ),
             isPrivate: false,
           },
           {
             path: relativePath.member.orders,
             name: "Orders",
-            element: <MyOrders />,
+            backLabel: "My orders",
+            element: (
+              <Suspense fallback={null}>
+                <MyOrders />
+              </Suspense>
+            ),
             isPrivate: false,
           },
           {
             path: relativePath.member.orderDetails,
             name: "Order Details",
-            element: <OrderDetailsPage />,
+            backLabel: "Order",
+            element: (
+              <Suspense fallback={null}>
+                <OrderDetailsPage />
+              </Suspense>
+            ),
             isPrivate: false,
           },
           {
             path: relativePath.member.verify_payment,
             name: "Verify Payment",
-            element: <VerifyPayment />,
+            element: (
+              <Suspense fallback={null}>
+                <VerifyPayment />
+              </Suspense>
+            ),
             isPrivate: false,
           },
         ],
       },
 
       {
-        path: relativePath.member.lifeCenter,
+        // Sections (meetings, souls-won, members, analytics) are picked from the header's More menu.
+        path: `${relativePath.member.lifeCenter}/:section?`,
         name: "member_life_center",
+        backLabel: "My life center",
         element: <MyLifeCenter />,
         isPrivate: false,
       },
       {
         path: relativePath.member.giving,
         name: "member_giving",
+        backLabel: "Giving",
         element: <MemberGiving />,
         isPrivate: false,
       },
@@ -1302,6 +1632,7 @@ export const routes: AppRoute[] = [
       {
         path: relativePath.member.pledges,
         name: "member_pledges",
+        backLabel: "Pledges",
         element: <MemberPledges />,
         isPrivate: false,
       },
@@ -1313,31 +1644,77 @@ export const routes: AppRoute[] = [
         isPrivate: false,
       },
       {
+        path: relativePath.member.schoolOfMinistries.main,
+        name: "member_school_of_ministries",
+        backLabel: "School of Ministry",
+        element: <LearnerDashboard />,
+        isPrivate: false,
+      },
+      {
         path: relativePath.member.schoolOfMinistries.allPrograms,
         name: "member_school_of_ministries",
+        backLabel: "School of Ministry",
         element: <AllPrograms />,
         isPrivate: false,
       },
       {
         path: relativePath.member.schoolOfMinistries.myEnrolledPrograms,
         name: "member_school_of_ministries",
-        element: <MyLearning />,
+        backLabel: "School of Ministry",
+        element: <MyPrograms />,
+        isPrivate: false,
+      },
+      {
+        path: relativePath.member.schoolOfMinistries.assignments,
+        name: "member_school_of_ministries",
+        backLabel: "School of Ministry",
+        element: <LearnerAssignments />,
+        isPrivate: false,
+      },
+      {
+        path: relativePath.member.schoolOfMinistries.assignmentDetails,
+        name: "member_school_of_ministries",
+        backLabel: "School of Ministry",
+        element: <LearnerSubmission />,
+        isPrivate: false,
+      },
+      {
+        path: relativePath.member.schoolOfMinistries.grades,
+        name: "member_school_of_ministries",
+        backLabel: "School of Ministry",
+        element: <LearnerGrades />,
+        isPrivate: false,
+      },
+      {
+        path: relativePath.member.schoolOfMinistries.schedule,
+        name: "member_school_of_ministries",
+        backLabel: "School of Ministry",
+        element: <LearnerSchedule />,
+        isPrivate: false,
+      },
+      {
+        path: relativePath.member.schoolOfMinistries.announcements,
+        name: "member_school_of_ministries",
+        backLabel: "School of Ministry",
+        element: <LearnerAnnouncements />,
         isPrivate: false,
       },
       {
         path: relativePath.member.schoolOfMinistries.programDetails,
         name: "member_school_of_ministries",
+        backLabel: "School of Ministry",
         element: <EnrolledProgram />,
         isPrivate: false,
       },
       {
         path: relativePath.member.schoolOfMinistries.instructorPortal,
         name: "member_school_of_ministries",
+        backLabel: "School of Ministry",
         element: <Instructor />,
         isPrivate: false,
         children: [
           {
-            path: '',
+            path: "",
             name: "instructor_assessment_management",
             element: <InstructorProg />,
             isPrivate: false,
@@ -1365,24 +1742,28 @@ export const routes: AppRoute[] = [
       {
         path: relativePath.member.appointments,
         name: "member_appointments",
+        backLabel: "Appointments",
         element: <MyAppointments />,
         isPrivate: false,
       },
       {
         path: relativePath.member.notifications,
         name: "member_notifications",
+        backLabel: "Notifications",
         element: <NotificationCenterPage />,
         isPrivate: false,
       },
       {
         path: relativePath.member.community,
         name: "member_community",
+        backLabel: "Community",
         element: <CommunityLayout />,
         isPrivate: false,
         children: [
           {
             path: "",
             name: "member_community",
+            backLabel: "Community",
             element: <MemberCommunityPage />,
             isPrivate: false,
           },
@@ -1390,6 +1771,7 @@ export const routes: AppRoute[] = [
             path: relativePath.member.communityPost,
             name: "member_community",
             element: <CommunityPostPage />,
+            backLabel: "Post",
             isPrivate: false,
           },
         ],
@@ -1397,30 +1779,35 @@ export const routes: AppRoute[] = [
       {
         path: relativePath.member.rides,
         name: "member_rides",
+        backLabel: "Rides",
         element: <RidesLayout />,
         isPrivate: false,
         children: [
           {
             path: "",
             name: "member_rides",
+            backLabel: "Rides",
             element: <RidesHubPage />,
             isPrivate: false,
           },
           {
             path: relativePath.member.rideOffer,
             name: "member_rides",
+            backLabel: "Rides",
             element: <RideOfferPage />,
             isPrivate: false,
           },
           {
             path: relativePath.member.rideFind,
             name: "member_rides",
+            backLabel: "Rides",
             element: <RideFindPage />,
             isPrivate: false,
           },
           {
             path: relativePath.member.myRide,
             name: "member_rides",
+            backLabel: "Rides",
             element: <MyRidePage />,
             isPrivate: false,
           },
@@ -1431,9 +1818,10 @@ export const routes: AppRoute[] = [
         // still land in the right place.
         path: "/member/announcements/*",
         name: "member_community",
+        backLabel: "Community",
         element: <Navigate to={relativePath.member.community} replace />,
         isPrivate: false,
-      }
+      },
       // {
       //       path: relativePath.member.schoolOfMinistries.instructorAssMan,
       //       name: "instructor_assessment_management",
@@ -1452,10 +1840,10 @@ export const routes: AppRoute[] = [
 
 // Now, extract sideTabs
 const homePageRoute = routes.find(
-  (route) => route.path === relativePath.home.main
+  (route) => route.path === relativePath.home.main,
 );
 const homePageChildren = homePageRoute?.children || [];
 
 export const sideTabs = homePageChildren.filter(
-  (childRoute) => childRoute.sideTab
+  (childRoute) => childRoute.sideTab,
 );

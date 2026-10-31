@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import ChurchLogo from "@/components/ChurchLogo";
@@ -7,12 +7,13 @@ import { ThemeModeSelector } from "@/components/ThemeModeSelector";
 import { CartIcon } from "../pages/MarketPlace/components/cart/CartIcon";
 import { HeaderNotificationMenu } from "@/features/notifications/HeaderNotificationMenu";
 import { useAccessControl } from "@/CustomHooks/useAccessControl";
-import { ALL_BRANCHES, useBranchStore } from "@/store/useBranchStore";
+import { BranchSwitcher } from "./BranchSwitcher";
 
 import { useAuth } from "../../../context/AuthWrapper";
 import { decodeToken } from "../../../utils/helperFunctions";
 import { relativePath } from "@/utils";
-import { Bars3Icon, Squares2X2Icon } from "@heroicons/react/24/outline";
+import { activeMenuPath, learnerMenu } from "@/pages/MembersPage/Pages/school/learnerPaths";
+import { Bars3Icon, ChevronDownIcon, Squares2X2Icon } from "@heroicons/react/24/outline";
 
 interface AccessibleMenuProps {
   isOpen: boolean;
@@ -94,9 +95,6 @@ export const Header = ({ handleShowNav }: IProps) => {
   const location = useLocation();
   const { logout } = useAuth();
   const { canView } = useAccessControl();
-  const branches = useBranchStore((state) => state.branches);
-  const activeBranchId = useBranchStore((state) => state.activeBranchId);
-  const setActiveBranchId = useBranchStore((state) => state.setActiveBranchId);
 
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [isMobileSchoolOpen, setIsMobileSchoolOpen] = useState(false);
@@ -104,12 +102,16 @@ export const Header = ({ handleShowNav }: IProps) => {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isSchoolMenuOpen, setIsSchoolMenuOpen] = useState(false);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
+  const [isMarketMenuOpen, setIsMarketMenuOpen] = useState(false);
+  const [isMobileMarketOpen, setIsMobileMarketOpen] = useState(false);
 
   const profileRef = useRef<HTMLDivElement>(null);
   const schoolRef = useRef<HTMLDivElement>(null);
   const schoolButtonRef = useRef<HTMLButtonElement>(null);
   const moreRef = useRef<HTMLDivElement>(null);
   const moreButtonRef = useRef<HTMLButtonElement>(null);
+  const marketRef = useRef<HTMLDivElement>(null);
+  const marketButtonRef = useRef<HTMLButtonElement>(null);
   const profileButtonRef = useRef<HTMLButtonElement>(null);
   const headerRef = useRef<HTMLElement>(null);
   const mobileNavRef = useRef<HTMLDivElement>(null);
@@ -130,50 +132,78 @@ export const Header = ({ handleShowNav }: IProps) => {
   const isMoreRoute =
     location.pathname.startsWith(relativePath.member.giving) ||
     location.pathname.startsWith(relativePath.member.pledges) ||
-    location.pathname.startsWith(relativePath.member.rides);
+    location.pathname.startsWith(relativePath.member.rides) ||
+    location.pathname.startsWith(relativePath.member.lifeCenter) ||
+    location.pathname.startsWith(relativePath.member.appointments);
   const adminAIPath = `${relativePath.home.main}/${relativePath.home.ai}`;
   const showAdminAiEntry = !isMemberRoute && canView("AI");
 
   const isActive = (path: string) => location.pathname.startsWith(path);
 
-  const memberNavItems = [
+  // Marketplace sub-sections live in a header dropdown (no in-page tabs).
+  const marketBasePath = relativePath.member.market.replace(/\/$/, "");
+  const isMarketRoute = location.pathname.startsWith(marketBasePath);
+  const isMarketOrdersRoute = location.pathname.startsWith(relativePath.member.orders);
+  const marketItems = [
+    { label: "Shop", path: relativePath.member.market, active: isMarketRoute && !isMarketOrdersRoute },
+    { label: "My orders", path: relativePath.member.orders, active: isMarketOrdersRoute },
+  ];
+
+  type MemberNavItem = { label: string; path: string; dropdown?: "market" };
+  const memberNavItems: MemberNavItem[] = [
     { label: "Home", path: relativePath.member.dashboard },
     ...(!isGuest
       ? [{ label: "Community", path: relativePath.member.community }]
       : []),
-    { label: "Marketplace", path: relativePath.member.market },
-    ...(isLifeCenterLeader
-      ? [{ label: "Life Center", path: relativePath.member.lifeCenter }]
-      : []),
-      { label: "Appointments", path: relativePath.member.appointments }
+    { label: "Marketplace", path: relativePath.member.market, dropdown: "market" as const },
   ];
 
-  const schoolItems = [
-    { label: "Explore programs", path: relativePath.member.schoolOfMinistries.allPrograms },
-    { label: "My learning", path: relativePath.member.schoolOfMinistries.myEnrolledPrograms },
-    ...(isInstructor
-      ? [{ label: "Instructor portal", path: relativePath.member.schoolOfMinistries.instructorPortal }]
-      : []),
-  ];
+  const schoolItems = learnerMenu(Boolean(isInstructor));
+  const activeSchoolPath = activeMenuPath(
+    location.pathname,
+    schoolItems.map((item) => item.path)
+  );
 
   // Everything a member can reach that is not one of the top-level tabs. Kept
   // as a list so the desktop dropdown and the mobile accordion cannot drift.
-  const moreItems = [
+  type MoreItem = { label: string; path: string; group?: string; exact?: boolean };
+  const lcPath = relativePath.member.lifeCenter;
+  const moreItems: MoreItem[] = [
     { label: "Giving", path: relativePath.member.giving },
     { label: "Pledges", path: relativePath.member.pledges },
+    { label: "Appointments", path: relativePath.member.appointments },
     // Ride to church is members-only, like Community.
     ...(!isGuest
       ? [{ label: "Ride to church", path: relativePath.member.rides }]
       : []),
+    // Life center leaders get their center's sections, as a group.
+    ...(isLifeCenterLeader
+      ? [
+          { label: "Overview", path: lcPath, group: "My life center", exact: true },
+          { label: "Meetings", path: `${lcPath}/meetings`, group: "My life center" },
+          { label: "Souls won", path: `${lcPath}/souls-won`, group: "My life center" },
+          { label: "Members", path: `${lcPath}/members`, group: "My life center" },
+          { label: "Analytics", path: `${lcPath}/analytics`, group: "My life center" },
+        ]
+      : []),
   ];
+  const isMoreItemActive = (item: MoreItem) =>
+    item.exact ? location.pathname.replace(/\/$/, "") === item.path : isActive(item.path);
+  /** Group heading to show before this item, if it starts a group. */
+  const groupStart = (index: number) => {
+    const group = moreItems[index].group;
+    return group && moreItems[index - 1]?.group !== group ? group : null;
+  };
 
   const handleNavigate = (path: string) => {
     navigate(path);
     setIsMobileNavOpen(false);
     setIsMobileSchoolOpen(false);
     setIsMobileMoreOpen(false);
+    setIsMobileMarketOpen(false);
     setIsSchoolMenuOpen(false);
     setIsMoreMenuOpen(false);
+    setIsMarketMenuOpen(false);
     setIsProfileMenuOpen(false);
   };
 
@@ -212,6 +242,10 @@ export const Header = ({ handleShowNav }: IProps) => {
         setIsMoreMenuOpen(false);
       }
 
+      if (marketRef.current && !marketRef.current.contains(target)) {
+        setIsMarketMenuOpen(false);
+      }
+
       if (
         isMobileNavOpen &&
         mobileNavRef.current &&
@@ -221,6 +255,7 @@ export const Header = ({ handleShowNav }: IProps) => {
         setIsMobileNavOpen(false);
         setIsMobileSchoolOpen(false);
         setIsMobileMoreOpen(false);
+        setIsMobileMarketOpen(false);
       }
     };
 
@@ -234,6 +269,7 @@ export const Header = ({ handleShowNav }: IProps) => {
         setIsMobileNavOpen(false);
         setIsMobileSchoolOpen(false);
         setIsMobileMoreOpen(false);
+        setIsMobileMarketOpen(false);
       }
     };
 
@@ -282,9 +318,9 @@ export const Header = ({ handleShowNav }: IProps) => {
       ref={headerRef}
       className="sticky top-0 z-[120] md:text-sm lg:text-md"
     >
-      <div className="flex items-center justify-between px-4 ">
+      <div className="flex items-center justify-between gap-2 px-3 tablet:px-4">
         {/* Left */}
-        <div className="flex items-center gap-3">
+        <div className="flex min-w-0 items-center gap-2 tablet:gap-3">
           {isMemberRoute && (
             <button
               ref={mobileToggleRef}
@@ -318,19 +354,67 @@ export const Header = ({ handleShowNav }: IProps) => {
         {/* Desktop Nav */}
         {isMemberRoute && (
           <nav className="hidden xl:flex items-center gap-2">
-            {memberNavItems.map(item => (
-              <button
-                key={item.label}
-                onClick={() => handleNavigate(item.path)}
-                className={`px-4 py-2 rounded-md font-semibold transition ${
-                  isActive(item.path)
-                    ? "bg-primary text-white"
-                    : "text-primary hover:bg-primary/10"
-                }`}
-              >
-                {item.label}
-              </button>
-            ))}
+            {memberNavItems.map(item =>
+              item.dropdown === "market" ? (
+                <div key={item.label} ref={marketRef} className="relative">
+                  <button
+                    ref={marketButtonRef}
+                    aria-expanded={isMarketMenuOpen}
+                    aria-haspopup="menu"
+                    onKeyDown={(e) => {
+                      if (e.key === "Escape") setIsMarketMenuOpen(false);
+                      if (e.key === "Enter" || e.key === " ") setIsMarketMenuOpen(v => !v);
+                    }}
+                    onClick={() => setIsMarketMenuOpen(v => !v)}
+                    className={`px-4 py-2 rounded-md flex items-center gap-1 font-semibold ${
+                      isMarketRoute
+                        ? "bg-primary text-white"
+                        : "text-primary hover:bg-primary/10"
+                    }`}
+                  >
+                    {item.label}
+                    <ChevronDownIcon
+                      className={`h-4 w-4 transition-transform ${isMarketMenuOpen ? "rotate-180" : ""}`}
+                      aria-hidden="true"
+                    />
+                  </button>
+
+                  <AccessibleMenu
+                    isOpen={isMarketMenuOpen}
+                    label="Marketplace"
+                    onClose={() => setIsMarketMenuOpen(false)}
+                    triggerRef={marketButtonRef}
+                  >
+                    {marketItems.map(sub => (
+                      <button
+                        role="menuitem"
+                        tabIndex={0}
+                        key={sub.label}
+                        onClick={() => handleNavigate(sub.path)}
+                        aria-current={sub.active ? "page" : undefined}
+                        className={`block w-full text-left px-4 py-3 text-sm hover:bg-gray-100 ${
+                          sub.active ? "text-primary font-semibold" : ""
+                        }`}
+                      >
+                        {sub.label}
+                      </button>
+                    ))}
+                  </AccessibleMenu>
+                </div>
+              ) : (
+                <button
+                  key={item.label}
+                  onClick={() => handleNavigate(item.path)}
+                  className={`px-4 py-2 rounded-md font-semibold transition ${
+                    isActive(item.path)
+                      ? "bg-primary text-white"
+                      : "text-primary hover:bg-primary/10"
+                  }`}
+                >
+                  {item.label}
+                </button>
+              )
+            )}
 
             <div ref={schoolRef} className="relative">
               <button
@@ -363,8 +447,9 @@ export const Header = ({ handleShowNav }: IProps) => {
                     tabIndex={0}
                     key={item.label}
                     onClick={() => handleNavigate(item.path)}
+                    aria-current={activeSchoolPath === item.path ? "page" : undefined}
                     className={`block w-full text-left px-4 py-3 text-sm hover:bg-gray-100 ${
-                      isActive(item.path) ? "text-primary font-semibold" : ""
+                      activeSchoolPath === item.path ? "text-primary font-semibold" : ""
                     }`}
                   >
                     {item.label}
@@ -398,18 +483,27 @@ export const Header = ({ handleShowNav }: IProps) => {
                 onClose={() => setIsMoreMenuOpen(false)}
                 triggerRef={moreButtonRef}
               >
-                {moreItems.map(item => (
-                  <button
-                    role="menuitem"
-                    tabIndex={0}
-                    key={item.label}
-                    onClick={() => handleNavigate(item.path)}
-                    className={`block w-full text-left px-4 py-3 text-sm hover:bg-gray-100 ${
-                      isActive(item.path) ? "text-primary font-semibold" : ""
-                    }`}
-                  >
-                    {item.label}
-                  </button>
+                {moreItems.map((item, index) => (
+                  <Fragment key={item.path}>
+                    {groupStart(index) && (
+                      <p
+                        role="presentation"
+                        className="mt-1 border-t border-gray-200 px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wide text-gray-500"
+                      >
+                        {groupStart(index)}
+                      </p>
+                    )}
+                    <button
+                      role="menuitem"
+                      tabIndex={0}
+                      onClick={() => handleNavigate(item.path)}
+                      className={`block w-full text-left py-3 text-sm hover:bg-gray-100 ${item.group ? "pl-6 pr-4" : "px-4"} ${
+                        isMoreItemActive(item) ? "text-primary font-semibold" : ""
+                      }`}
+                    >
+                      {item.label}
+                    </button>
+                  </Fragment>
                 ))}
               </AccessibleMenu>
             </div>
@@ -419,7 +513,7 @@ export const Header = ({ handleShowNav }: IProps) => {
           <nav className="flex items-center">
             <button
               onClick={() => handleNavigate(adminAIPath)}
-              className={`px-4 py-2 rounded-md font-semibold transition ${
+              className={`px-3 py-2 rounded-md font-semibold transition tablet:px-4 ${
                 isActive(adminAIPath)
                   ? "bg-primary text-white"
                   : "text-primary hover:bg-primary/10"
@@ -431,34 +525,8 @@ export const Header = ({ handleShowNav }: IProps) => {
         )}
 
         {/* Right */}
-        <div ref={profileRef} className="flex items-center gap-3 relative">
-          {!isMemberRoute && branches.length > 1 && (
-            <label className="hidden items-center gap-2 text-xs font-semibold text-primaryGray md:flex">
-              <span className="sr-only">Branch</span>
-              <select
-                className="max-w-[12rem] rounded-md border border-lightGray bg-white px-3 py-2 text-sm font-semibold text-primary outline-none focus:border-primary"
-                value={
-                  activeBranchId === ALL_BRANCHES
-                    ? ALL_BRANCHES
-                    : String(activeBranchId)
-                }
-                onChange={(event) => {
-                  const value = event.target.value;
-                  setActiveBranchId(
-                    value === ALL_BRANCHES ? ALL_BRANCHES : Number(value)
-                  );
-                }}
-                aria-label="Filter by branch"
-              >
-                <option value={ALL_BRANCHES}>All branches</option>
-                {branches.map((branch) => (
-                  <option key={branch.id} value={branch.id}>
-                    {branch.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
+        <div ref={profileRef} className="relative flex shrink-0 items-center gap-1.5 tablet:gap-3">
+          {!isMemberRoute && <BranchSwitcher />}
           {isMemberRoute && <CartIcon />}
           <HeaderNotificationMenu isMemberRoute={isMemberRoute} />
 
@@ -467,7 +535,7 @@ export const Header = ({ handleShowNav }: IProps) => {
             aria-haspopup="menu"
             aria-expanded={isProfileMenuOpen}
             onClick={() => setIsProfileMenuOpen(v => !v)}
-            className="flex items-center gap-2 p-2 rounded-md hover:bg-gray-100"
+            className="flex items-center gap-2 rounded-md p-1.5 hover:bg-gray-100 tablet:p-2"
           >
             <ProfilePicture alt={name} src={profileImg} name={name} className="w-8 h-8" />
             <span className="hidden md:block font-semibold text-primary">
@@ -538,15 +606,62 @@ export const Header = ({ handleShowNav }: IProps) => {
             className="px-4 py-3 space-y-2 overflow-y-auto"
             style={{ maxHeight: `calc(100vh - ${headerHeight}px)` }}
           >
-            {memberNavItems.map(item => (
-              <button
-                key={item.label}
-                onClick={() => handleNavigate(item.path)}
-                className="block w-full text-left px-4 py-3 rounded-md hover:bg-primary/10"
-              >
-                {item.label}
-              </button>
-            ))}
+            {memberNavItems.map(item =>
+              item.dropdown === "market" ? (
+                <div key={item.label}>
+                  <button
+                    onClick={() => setIsMobileMarketOpen(v => !v)}
+                    aria-expanded={isMobileMarketOpen}
+                    aria-controls="mobile-market-items"
+                    className="w-full flex justify-between items-center px-4 py-3 rounded-md hover:bg-primary/10 font-medium"
+                  >
+                    <span>{item.label}</span>
+                    <svg
+                      className={`h-4 w-4 transform transition-transform ${
+                        isMobileMarketOpen ? "rotate-180" : ""
+                      }`}
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M5.23 7.21a.75.75 0 011.06.02L10 11.293l3.71-4.06a.75.75 0 111.08 1.04l-4.25 4.65a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </button>
+
+                  <div
+                    id="mobile-market-items"
+                    className={`overflow-hidden transition-[max-height] duration-200 ${
+                      isMobileMarketOpen ? "max-h-96" : "max-h-0"
+                    }`}
+                  >
+                    {marketItems.map(sub => (
+                      <button
+                        key={sub.label}
+                        onClick={() => handleNavigate(sub.path)}
+                        aria-current={sub.active ? "page" : undefined}
+                        className={`block w-full text-left px-6 py-2 text-sm hover:bg-gray-100 ${
+                          sub.active ? "text-primary font-semibold" : ""
+                        }`}
+                      >
+                        {sub.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <button
+                  key={item.label}
+                  onClick={() => handleNavigate(item.path)}
+                  className="block w-full text-left px-4 py-3 rounded-md hover:bg-primary/10"
+                >
+                  {item.label}
+                </button>
+              )
+            )}
 
             {/* Mobile School of Ministries */}
             <div>
@@ -583,7 +698,10 @@ export const Header = ({ handleShowNav }: IProps) => {
                   <button
                     key={item.label}
                     onClick={() => handleNavigate(item.path)}
-                    className="block w-full text-left px-6 py-2 text-sm hover:bg-gray-100"
+                    aria-current={activeSchoolPath === item.path ? "page" : undefined}
+                    className={`block w-full text-left px-6 py-2 text-sm hover:bg-gray-100 ${
+                      activeSchoolPath === item.path ? "text-primary font-semibold" : ""
+                    }`}
                   >
                     {item.label}
                   </button>
@@ -619,17 +737,25 @@ export const Header = ({ handleShowNav }: IProps) => {
               <div
                 id="mobile-more-items"
                 className={`overflow-hidden transition-[max-height] duration-200 ${
-                  isMobileMoreOpen ? "max-h-96" : "max-h-0"
+                  isMobileMoreOpen ? "max-h-[640px]" : "max-h-0"
                 }`}
               >
-                {moreItems.map(item => (
-                  <button
-                    key={item.label}
-                    onClick={() => handleNavigate(item.path)}
-                    className="block w-full text-left px-6 py-2 text-sm hover:bg-gray-100"
-                  >
-                    {item.label}
-                  </button>
+                {moreItems.map((item, index) => (
+                  <Fragment key={item.path}>
+                    {groupStart(index) && (
+                      <p className="px-6 pb-1 pt-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                        {groupStart(index)}
+                      </p>
+                    )}
+                    <button
+                      onClick={() => handleNavigate(item.path)}
+                      className={`block w-full text-left py-2 text-sm hover:bg-gray-100 ${item.group ? "pl-8 pr-6" : "px-6"} ${
+                        isMoreItemActive(item) ? "font-semibold text-primary" : ""
+                      }`}
+                    >
+                      {item.label}
+                    </button>
+                  </Fragment>
                 ))}
               </div>
             </div>

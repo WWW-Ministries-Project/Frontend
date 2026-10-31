@@ -23,6 +23,8 @@ type ApprovalConfigPayloadBase = {
   notification_user_ids?: number[];
   is_active?: boolean;
   similar_item_lookback_days?: number;
+  /** Days an approver has before a requisition is overdue and chased. */
+  approval_reply_days?: number;
 };
 
 export type RequisitionApprovalConfigPayload = ApprovalConfigPayloadBase & {
