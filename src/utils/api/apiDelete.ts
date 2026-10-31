@@ -20,6 +20,13 @@ export class ApiDeletionCalls {
     return this.apiExecution.deleteData(path, query);
   }
 
+  clearAiTaskState = (taskKey: string): Promise<ApiResponse<unknown>> => {
+    return this.apiExecution.deleteData(
+      `ai/tasks/state/${encodeURIComponent(taskKey)}`,
+      {}
+    );
+  };
+
   deleteMember = (query: QueryType): Promise<ApiResponse<void>> => {
     return this.deleteFromApi<void>("user/delete-user", query);
   };

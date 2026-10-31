@@ -11,7 +11,7 @@ import { changeAuth } from "../../axiosInstance.js";
 import { useAuth } from "../../context/AuthWrapper";
 import { getToken } from "../../utils/helperFunctions";
 import { Header } from "./Components/Header";
-import { AiChatbotWidget } from "./Components/AiChatbotWidget";
+import { Assistant } from "./Components/Assistant";
 import { MobileSideBar } from "./Components/MobileSideBar";
 import { SideBar } from "./Components/SideBar";
 import { SubNav } from "./Components/SubNav";
@@ -190,7 +190,7 @@ export function HomePage() {
           </div>
         </div>
         <Dialog />
-        <AiChatbotWidget />
+        <Assistant />
       </div>
     </main>
   );

@@ -407,6 +407,7 @@ export const PERMISSION_CATALOG: Record<string, ModuleCatalog> = {
       act("chat", "Use the assistant", 1),
       act("generate_insights", "Generate insights", 1),
       act("query_data", "Ask about church data", 1, { note: "Only data they can already see" }),
+      act("view_tasks", "View assistant tasks", 1),
       act("view_usage", "View usage", 1),
       act("manage_credentials", "Manage AI credentials", 3, { explicit: true }),
     ],

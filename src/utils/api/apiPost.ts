@@ -196,6 +196,7 @@ import type {
   AiInsightsRequest,
   CreateAiCredentialPayload,
 } from "./ai/interfaces";
+import type { AiTaskStatePayload, AiTaskStateResult } from "./ai/tasksInterfaces";
 import type { NotificationPushSubscriptionPayload } from "./notifications/interfaces";
 import type {
   DownloadedFile,
@@ -1214,6 +1215,12 @@ export class ApiCreationCalls {
       : undefined;
 
     return this.postToApiWithOptions("ai/chatbot", payload, { headers });
+  };
+
+  setAiTaskState = (
+    payload: AiTaskStatePayload
+  ): Promise<ApiResponse<AiTaskStateResult>> => {
+    return this.postToApi("ai/tasks/state", payload);
   };
 
   createAiInsights = (
