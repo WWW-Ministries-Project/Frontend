@@ -9,6 +9,7 @@ import {
   SimpleTable,
   type Column,
 } from "@/pages/HomePage/pages/MinistrySchool/lms/ui";
+import { LearnerShell } from "./LearnerShell";
 import { learnerPaths } from "./learnerPaths";
 import {
   ASSESSMENT_TYPE,
@@ -108,7 +109,7 @@ const LearnerAssignments = () => {
   ];
 
   return (
-    <div className="flex flex-col gap-4">
+    <LearnerShell>
       <PageHeader
         title="Assignments"
         subtitle="Due dates follow your cohort's calendar. Extensions from your instructor are already applied."
@@ -157,7 +158,7 @@ const LearnerAssignments = () => {
           />
         </div>
       )}
-    </div>
+    </LearnerShell>
   );
 };
 

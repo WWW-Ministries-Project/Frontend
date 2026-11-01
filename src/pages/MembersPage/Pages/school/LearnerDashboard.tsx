@@ -12,6 +12,7 @@ import {
 import { api } from "@/utils/api/apiCalls";
 import { Link } from "react-router-dom";
 import { learnerPaths } from "./learnerPaths";
+import { LearnerShell } from "./LearnerShell";
 import {
   ASSIGNMENT_STATE,
   SESSION_MODE,
@@ -52,11 +53,15 @@ const LearnerDashboard = () => {
   const attended = active.find((e) => e.attendance !== null) ?? null;
 
   if (error && !enrollments.length) {
-    return <LoadError msg="We could not load your learning right now." onRetry={() => refetch()} />;
+    return (
+      <LearnerShell>
+        <LoadError msg="We could not load your learning right now." onRetry={() => refetch()} />
+      </LearnerShell>
+    );
   }
 
   return (
-    <div className="flex flex-col gap-5">
+    <LearnerShell>
       <PageHeader
         eyebrow={today}
         title="My learning"
@@ -81,12 +86,14 @@ const LearnerDashboard = () => {
               label="Current grade"
               value={pct(graded?.finalGrade)}
               sub={graded ? `Pass mark ${graded.grading.passMark}%` : "No grades yet"}
+              tone={graded ? "good" : undefined}
               to={learnerPaths.grades}
             />
             <Kpi
               label="Due this week"
               value={dueThisWeek}
               sub={dueSoon[0]?.dueDate ? `Next: ${shortDate(dueSoon[0].dueDate)}` : "Nothing due"}
+              tone={dueThisWeek ? "warn" : undefined}
               to={learnerPaths.assignments}
             />
             <Kpi
@@ -208,7 +215,7 @@ const LearnerDashboard = () => {
           </Panel>
         </>
       )}
-    </div>
+    </LearnerShell>
   );
 };
 
