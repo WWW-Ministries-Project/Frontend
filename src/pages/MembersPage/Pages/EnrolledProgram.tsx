@@ -364,9 +364,10 @@ const EnrolledProgram: React.FC = () => {
                       />
                     </div>
 
-                    <LearningUnit 
-                    unit={selectedTopic.learningUnit ?? undefined} 
-                    topicId={selectedTopic.id} 
+                    <LearningUnit
+                    unit={selectedTopic.learningUnit ?? undefined}
+                    topicId={selectedTopic.id}
+                    topicName={selectedTopic.name}
                     userId={userId}
                     programId= {programId}
 
