@@ -168,3 +168,34 @@ export interface AiInsightsRequest {
 export interface AiInsightResponse extends AiChatResponse {
   module: string;
 }
+
+export type AiSettingType = "int" | "float" | "string" | "enum";
+export type AiSettingGroup =
+  | "models"
+  | "generation"
+  | "tools"
+  | "quota"
+  | "advanced";
+export type AiSettingSource = "db" | "env" | "default";
+
+export interface AiSettingRecord {
+  key: string;
+  group: AiSettingGroup;
+  type: AiSettingType;
+  label: string;
+  description: string;
+  value: number | string;
+  default: number | string;
+  source: AiSettingSource;
+  min?: number;
+  max?: number;
+  step?: number;
+  enumValues?: string[];
+  unit?: string;
+}
+
+// Map of setting key -> new value. A value of null resets that key to the
+// environment/default fallback.
+export type UpdateAiSettingsPayload = {
+  settings: Record<string, number | string | null>;
+};
