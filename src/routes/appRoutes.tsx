@@ -52,6 +52,7 @@ import LearnersPage from "@/pages/HomePage/pages/MinistrySchool/lms/LearnersPage
 import { LegacyCohortRedirect } from "@/pages/HomePage/pages/MinistrySchool/lms/LegacyRedirect";
 import ProgramsPage from "@/pages/HomePage/pages/MinistrySchool/lms/ProgramsPage";
 import ProgramWorkspace from "@/pages/HomePage/pages/MinistrySchool/lms/ProgramWorkspace";
+import AssessmentBuilder from "@/pages/HomePage/pages/MinistrySchool/lms/assessment/AssessmentBuilder";
 import SomDashboard from "@/pages/HomePage/pages/MinistrySchool/lms/SomDashboard";
 import { SomDataProvider } from "@/pages/HomePage/pages/MinistrySchool/lms/SomDataProvider";
 import MinistrySchoolAnalytics from "@/pages/HomePage/pages/MinistrySchool/pages/MinistrySchoolAnalytics";
@@ -1133,6 +1134,13 @@ export const routes: AppRoute[] = [
             path: "programs/:id",
             name: "Program",
             element: <ProgramWorkspace />,
+            isPrivate: true,
+            permissionNeeded: "view_school_of_ministry",
+          },
+          {
+            path: "programs/:id/assessments/:topicId",
+            name: "Assessment builder",
+            element: <AssessmentBuilder />,
             isPrivate: true,
             permissionNeeded: "view_school_of_ministry",
           },

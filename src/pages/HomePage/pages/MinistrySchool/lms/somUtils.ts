@@ -19,6 +19,8 @@ export const somPaths = {
   programs: `${SOM_BASE}/programs`,
   program: (id: number | string, tab?: string) =>
     `${SOM_BASE}/programs/${id}${tab ? `?tab=${encodeURIComponent(tab)}` : ""}`,
+  assessmentBuilder: (programId: number | string, topicId: number | string) =>
+    `${SOM_BASE}/programs/${programId}/assessments/${topicId}`,
   cohorts: `${SOM_BASE}/cohorts`,
   cohort: (id: number | string, tab?: string) =>
     `${SOM_BASE}/cohorts/${id}${tab ? `?tab=${encodeURIComponent(tab)}` : ""}`,

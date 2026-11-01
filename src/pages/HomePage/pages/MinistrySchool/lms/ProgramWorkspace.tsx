@@ -193,6 +193,7 @@ export const ProgramWorkspace = () => {
 
         {tab === "Assessments" && (
           <ProgramAssessments
+            programId={programId}
             topics={topics}
             canManage={canDesign}
             onChanged={refreshAll}
