@@ -5,7 +5,7 @@ import { useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useSomData } from "./somDataContext";
 import { audienceLabel, isAssessmentUnit, somPaths } from "./somUtils";
-import { Btn, EmptyBlock, PageHeader, Panel, Pill, SimpleTable, type Column, LoadError } from "./ui";
+import { Btn, EmptyBlock, KebabMenu, PageHeader, Panel, Pill, SimpleTable, type Column, LoadError } from "./ui";
 import { useProgramEditor } from "./useProgramEditor";
 import { useSomAccess } from "../utils/useSomAccess";
 
@@ -84,34 +84,24 @@ export const ProgramsPage = () => {
     { key: "who", header: "Who can join", render: (r) => <span className="text-primaryGray">{audienceLabel(r.program)}</span> },
     { key: "cohorts", header: "Cohorts", className: "text-right", render: (r) => r.cohortCount },
     { key: "learners", header: "Learners", className: "text-right", render: (r) => r.learners },
-    ...(canEdit || canDelete
-      ? [
-          {
-            key: "actions",
-            header: <span className="sr-only">Actions</span>,
-            className: "text-right",
-            render: (r: Row) => (
-              <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
-                {canEdit && (
-                  <Btn size="sm" variant="secondary" onClick={() => editor.openEdit(r.program)}>
-                    Edit
-                  </Btn>
-                )}
-                {canDelete && (
-                  <Btn
-                    size="sm"
-                    variant="secondary"
-                    className="text-red-700"
-                    onClick={() => editor.confirmDelete(r.program)}
-                  >
-                    Delete
-                  </Btn>
-                )}
-              </div>
-            ),
-          },
-        ]
-      : []),
+    {
+      key: "actions",
+      header: <span className="sr-only">Actions</span>,
+      className: "text-right",
+      render: (r: Row) => (
+        <div className="flex justify-end">
+          <KebabMenu
+            actions={[
+              { label: "View", onClick: () => navigate(somPaths.program(r.program.id)) },
+              ...(canEdit ? [{ label: "Edit", onClick: () => editor.openEdit(r.program) }] : []),
+              ...(canDelete
+                ? [{ label: "Delete", onClick: () => editor.confirmDelete(r.program), danger: true }]
+                : []),
+            ]}
+          />
+        </div>
+      ),
+    },
   ];
 
   return (

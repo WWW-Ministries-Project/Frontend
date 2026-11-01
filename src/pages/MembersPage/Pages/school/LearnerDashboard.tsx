@@ -122,7 +122,7 @@ const LearnerDashboard = () => {
                   )}
                 </p>
                 <div className="flex max-w-md items-center gap-2.5">
-                  <ProgressBar value={current.progress.percent} />
+                  <ProgressBar value={current.progress.percent} tone="gold" />
                   <span className="text-[13px] font-semibold text-primary">
                     {current.progress.percent}%
                   </span>

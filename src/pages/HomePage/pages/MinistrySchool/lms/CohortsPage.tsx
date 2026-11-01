@@ -84,7 +84,7 @@ export const CohortsPage = () => {
                     <span>{c.timing.label}</span>
                     <span>{c.timing.pct}%</span>
                   </div>
-                  <ProgressBar value={c.timing.pct} />
+                  <ProgressBar value={c.timing.pct} tone="gold" />
                 </div>
                 <ul className="flex flex-col gap-1">
                   {c.courses.slice(0, 4).map((k) => (
