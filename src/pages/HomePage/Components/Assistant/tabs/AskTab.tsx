@@ -1,9 +1,9 @@
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, useEffect, useRef } from "react";
 
 import { AiStructuredMessage } from "@/pages/HomePage/pages/AI/components/AiStructuredMessage";
 import { useAssistantStore } from "@/store/assistantStore";
 import { api } from "@/utils";
-import type { AiChatbotConfig, AiChatbotRequest } from "@/utils/api/ai/interfaces";
+import type { AiChatbotRequest } from "@/utils/api/ai/interfaces";
 import { ApiError } from "@/utils/api/errors/ApiError";
 import { notify } from "@/components/feedback";
 
@@ -21,41 +21,15 @@ const createIdempotencyKey = () => {
   return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 };
 
-// Local fallback when the model is unavailable or returns nothing.
-const cannedReply = (question: string): string => {
-  const q = question.toLowerCase();
-  if (/draft|message|write|welcome/.test(q)) {
-    return "Here's a starting draft:\n\n“Hi {first name}, thank you for worshipping with us last Sunday — it was a joy to have you. If you'd like to connect or join a life center near you, just reply to this message.”\n\nNothing is sent until you approve it in Communication.";
-  }
-  if (/report/.test(q)) {
-    return "I can summarise your module data into a report once an AI credential is active. Open AI Console to set one up, or try again shortly.";
-  }
-  if (/visitor/.test(q)) {
-    return "I can summarise this week's visitors and flag anyone outside the follow-up window once connected to your data. Try again shortly.";
-  }
-  return "I can help with approvals, reports, visitor follow-ups and reminders. Ask what needs your attention today — if the assistant is unavailable, open AI Console to check the provider setup.";
-};
+// Shown only when the model is unavailable or returns nothing. We never
+// fabricate an answer: say what happened and where to look.
+const UNAVAILABLE_REPLY =
+  "I couldn't get a response just now. The assistant may be unavailable — check the provider setup in AI Console, then try again.";
 
 export const AskTab = () => {
   const { msgs, draft, busy, conversationId, setDraft, pushMsg, setBusy, setConversationId } =
     useAssistantStore();
-  const [config, setConfig] = useState<AiChatbotConfig | null>(null);
   const bodyEndRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    let active = true;
-    api.fetch
-      .fetchAiChatbotConfig()
-      .then((res) => {
-        if (active) setConfig(res.data);
-      })
-      .catch(() => {
-        /* config is optional; Ask still works with the default model + fallback */
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
 
   useEffect(() => {
     bodyEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -69,10 +43,13 @@ export const AskTab = () => {
     setDraft("");
     setBusy(true);
 
+    // Open-ended chat: no module/page context is sent. The model decides which
+    // data to fetch via its tools, and conversation history is threaded
+    // server-side from conversation_id. We only pass the access scope.
     const payload: AiChatbotRequest = {
       message,
       conversation_id: conversationId,
-      context: { ...(config?.default_context ?? {}), scope: "admin" },
+      context: { scope: "admin" },
     };
 
     try {
@@ -84,7 +61,7 @@ export const AskTab = () => {
       const reply = (data.reply || "").trim();
       pushMsg({
         role: "ai",
-        text: reply || cannedReply(message),
+        text: reply || UNAVAILABLE_REPLY,
         display: reply ? data.display : undefined,
       });
     } catch (error) {
@@ -93,8 +70,13 @@ export const AskTab = () => {
           title: "AI quota reached",
           message: "You've hit the monthly assistant limit. Try again after it resets.",
         });
+        pushMsg({
+          role: "ai",
+          text: "You've reached the monthly assistant limit. Try again after it resets.",
+        });
+      } else {
+        pushMsg({ role: "ai", text: UNAVAILABLE_REPLY });
       }
-      pushMsg({ role: "ai", text: cannedReply(message) });
     } finally {
       setBusy(false);
     }
