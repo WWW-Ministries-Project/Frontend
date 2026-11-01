@@ -117,20 +117,21 @@ export const ProgramWorkspace = () => {
           `${summary?.total_enrolled_members ?? 0} learners`,
         ]}
         actions={
-          (canDesign || canManageCohorts) && (
-            <>
-              {canDesign && (
-                <Btn variant="onDark" onClick={() => full && programEditor.openEdit(full)}>
-                  Edit
-                </Btn>
-              )}
-              {canManageCohorts && (
-                <Btn variant="onDarkSolid" onClick={() => cohortEditors.newCohort(programId)}>
-                  + New cohort
-                </Btn>
-              )}
-            </>
-          )
+          <>
+            <Btn variant="onDark" to={somPaths.publicProgram(title)}>
+              Public page
+            </Btn>
+            {canDesign && (
+              <Btn variant="onDark" onClick={() => full && programEditor.openEdit(full)}>
+                Edit
+              </Btn>
+            )}
+            {canManageCohorts && (
+              <Btn variant="onDarkSolid" onClick={() => cohortEditors.newCohort(programId)}>
+                + New cohort
+              </Btn>
+            )}
+          </>
         }
         tabs={[...TABS]}
         activeTab={tab}
