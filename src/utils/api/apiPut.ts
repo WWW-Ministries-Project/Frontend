@@ -102,7 +102,9 @@ import type {
 } from "./appointment/interfaces";
 import type {
   AiCredentialRecord,
+  AiSettingRecord,
   UpdateAiCredentialPayload,
+  UpdateAiSettingsPayload,
 } from "./ai/interfaces";
 import type {
   FinanceMutationRequest,
@@ -929,6 +931,12 @@ export class ApiUpdateCalls {
     payload: UpdateAiCredentialPayload
   ): Promise<ApiResponse<AiCredentialRecord>> => {
     return this.apiExecution.updateData(`ai/credentials/${id}`, payload);
+  };
+
+  updateAiSettings = (
+    payload: UpdateAiSettingsPayload
+  ): Promise<ApiResponse<AiSettingRecord[]>> => {
+    return this.apiExecution.updateData("ai/settings", payload);
   };
 
   approveJoinRequest = (

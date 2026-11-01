@@ -13,11 +13,13 @@ import type {
   AiInsightsRequest,
   AiProvider,
   AiRole,
+  AiSettingRecord,
   AiUsageHistoryPoint,
   AiUsageSnapshot,
   AiUsageSummary,
   CreateAiCredentialPayload,
   UpdateAiCredentialPayload,
+  UpdateAiSettingsPayload,
 } from "@/utils/api/ai/interfaces";
 
 interface ChatEntry {
@@ -73,6 +75,22 @@ const AI_PROVIDER_OPTIONS: Array<{ label: string; value: AiProvider }> = [
   { label: "Claude", value: "claude" },
   { label: "Gemini", value: "gemini" },
 ];
+
+const SETTINGS_GROUP_ORDER = [
+  "models",
+  "generation",
+  "tools",
+  "quota",
+  "advanced",
+] as const;
+
+const SETTINGS_GROUP_LABELS: Record<string, string> = {
+  models: "Model selection",
+  generation: "Generation",
+  tools: "Tool-calling (data access)",
+  quota: "Monthly quota",
+  advanced: "Advanced",
+};
 
 const MODEL_OPTIONS: Array<{
   label: string;
@@ -338,6 +356,13 @@ export const AIConsole = () => {
   const [insightPrompt, setInsightPrompt] = useState("");
   const [isGeneratingInsight, setIsGeneratingInsight] = useState(false);
   const [insightError, setInsightError] = useState<string | null>(null);
+
+  const [settings, setSettings] = useState<AiSettingRecord[]>([]);
+  const [settingsDraft, setSettingsDraft] = useState<Record<string, string>>({});
+  const [isLoadingSettings, setIsLoadingSettings] = useState(false);
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
+  const [settingsError, setSettingsError] = useState<string | null>(null);
+  const [settingsInfo, setSettingsInfo] = useState<string | null>(null);
   const isMountedRef = useRef(false);
   const usageRequestInFlightRef = useRef(false);
   const usageHistoryRequestInFlightRef = useRef(false);
@@ -484,6 +509,81 @@ export const AIConsole = () => {
     },
     []
   );
+
+  const refreshSettings = useCallback(async () => {
+    setIsLoadingSettings(true);
+    setSettingsError(null);
+    try {
+      const response = await api.fetch.fetchAiSettings();
+      const records = response.data ?? [];
+      setSettings(records);
+      setSettingsDraft(
+        records.reduce<Record<string, string>>((accumulator, record) => {
+          accumulator[record.key] = String(record.value);
+          return accumulator;
+        }, {})
+      );
+    } catch (error) {
+      const parsedError = parseAiError(error);
+      setSettingsError(parsedError.message);
+      setSettings([]);
+    } finally {
+      setIsLoadingSettings(false);
+    }
+  }, []);
+
+  const onSaveSettings = useCallback(
+    async (event: FormEvent) => {
+      event.preventDefault();
+      if (!canManageCredentials) {
+        setSettingsError("You do not have permission to change AI settings.");
+        return;
+      }
+
+      const changed: Record<string, number | string> = {};
+      for (const record of settings) {
+        const draftValue = settingsDraft[record.key];
+        if (draftValue === undefined) continue;
+        if (String(draftValue) === String(record.value)) continue;
+        changed[record.key] =
+          record.type === "int" || record.type === "float"
+            ? Number(draftValue)
+            : draftValue;
+      }
+
+      if (Object.keys(changed).length === 0) {
+        setSettingsInfo("No changes to save.");
+        return;
+      }
+
+      setIsSavingSettings(true);
+      setSettingsError(null);
+      setSettingsInfo(null);
+      try {
+        const payload: UpdateAiSettingsPayload = { settings: changed };
+        const response = await api.put.updateAiSettings(payload);
+        const records = response.data ?? [];
+        setSettings(records);
+        setSettingsDraft(
+          records.reduce<Record<string, string>>((accumulator, record) => {
+            accumulator[record.key] = String(record.value);
+            return accumulator;
+          }, {})
+        );
+        setSettingsInfo("AI settings saved.");
+      } catch (error) {
+        const parsedError = parseAiError(error);
+        setSettingsError(parsedError.message);
+      } finally {
+        setIsSavingSettings(false);
+      }
+    },
+    [canManageCredentials, settings, settingsDraft]
+  );
+
+  useEffect(() => {
+    void refreshSettings();
+  }, [refreshSettings]);
 
   useEffect(() => {
     if (!canViewUsage) return;
@@ -1355,6 +1455,136 @@ export const AIConsole = () => {
             </div>
           </div>
         </div>
+
+        <form
+          onSubmit={onSaveSettings}
+          className="mt-6 rounded-xl border border-gray-100 bg-white p-4 md:p-6"
+        >
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-semibold text-primary">
+                Model &amp; limits
+              </h2>
+              <p className="mt-1 text-xs text-gray-600">
+                Tune the assistant without redeploying. Each value falls back to
+                the environment default until saved here.
+              </p>
+            </div>
+            <button
+              type="submit"
+              disabled={!canManageCredentials || isSavingSettings}
+              className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isSavingSettings ? "Saving…" : "Save settings"}
+            </button>
+          </div>
+
+          {!canManageCredentials && (
+            <p className="mt-2 text-xs text-amber-700">
+              Read-only. You need AI credential management permission to edit
+              these.
+            </p>
+          )}
+          {settingsError && (
+            <p className="mt-2 rounded-md bg-red-50 px-2 py-1 text-xs text-red-700">
+              {settingsError}
+            </p>
+          )}
+          {settingsInfo && (
+            <p className="mt-2 rounded-md bg-green-50 px-2 py-1 text-xs text-green-700">
+              {settingsInfo}
+            </p>
+          )}
+
+          {isLoadingSettings && settings.length === 0 ? (
+            <p className="mt-3 text-xs text-gray-500">Loading settings…</p>
+          ) : (
+            SETTINGS_GROUP_ORDER.map((group) => {
+              const groupSettings = settings.filter(
+                (setting) => setting.group === group
+              );
+              if (groupSettings.length === 0) return null;
+              return (
+                <div key={group} className="mt-5">
+                  <h3 className="text-sm font-semibold text-primary">
+                    {SETTINGS_GROUP_LABELS[group] ?? group}
+                  </h3>
+                  <div className="mt-2 grid gap-4 md:grid-cols-2">
+                    {groupSettings.map((setting) => {
+                      const draftValue = settingsDraft[setting.key] ?? "";
+                      const onChangeValue = (value: string) =>
+                        setSettingsDraft((previousValue) => ({
+                          ...previousValue,
+                          [setting.key]: value,
+                        }));
+                      return (
+                        <label
+                          key={setting.key}
+                          className="text-xs font-semibold text-gray-700"
+                        >
+                          <span className="flex items-center justify-between gap-2">
+                            <span>
+                              {setting.label}
+                              {setting.unit ? ` (${setting.unit})` : ""}
+                            </span>
+                            <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium uppercase text-gray-500">
+                              {setting.source}
+                            </span>
+                          </span>
+                          {setting.type === "enum" && setting.enumValues ? (
+                            <select
+                              value={draftValue}
+                              disabled={!canManageCredentials}
+                              onChange={(event) =>
+                                onChangeValue(event.target.value)
+                              }
+                              className="mt-1 w-full rounded-md border border-gray-300 px-2 py-2 text-sm font-normal"
+                            >
+                              {setting.enumValues.map((option) => (
+                                <option key={option} value={option}>
+                                  {option}
+                                </option>
+                              ))}
+                            </select>
+                          ) : setting.type === "string" ? (
+                            <input
+                              type="text"
+                              value={draftValue}
+                              disabled={!canManageCredentials}
+                              onChange={(event) =>
+                                onChangeValue(event.target.value)
+                              }
+                              className="mt-1 w-full rounded-md border border-gray-300 px-2 py-2 text-sm font-normal"
+                            />
+                          ) : (
+                            <input
+                              type="number"
+                              value={draftValue}
+                              min={setting.min}
+                              max={setting.max}
+                              step={
+                                setting.step ??
+                                (setting.type === "float" ? 0.1 : 1)
+                              }
+                              disabled={!canManageCredentials}
+                              onChange={(event) =>
+                                onChangeValue(event.target.value)
+                              }
+                              className="mt-1 w-full rounded-md border border-gray-300 px-2 py-2 text-sm font-normal"
+                            />
+                          )}
+                          <span className="mt-1 block font-normal text-gray-500">
+                            {setting.description}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </form>
       </div>
     </section>
   );
