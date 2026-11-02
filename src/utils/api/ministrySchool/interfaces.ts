@@ -1120,4 +1120,6 @@ export type LearnerSubmission = {
   quiz: { prompt: string; yours: string | null; correct: string | null; isCorrect: boolean }[] | null;
   rubric: { label: string; level: string | null; factor: number | null; weight: number }[] | null;
   rubricScore: number | null;
+  /** Inline Strength / To-improve comments from grading (empty while the grade is held). */
+  comments?: SubmissionInlineComment[];
 };
