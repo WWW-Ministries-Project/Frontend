@@ -588,6 +588,12 @@ export type SomEnrollment = {
   completedAt: string | null;
   /** How the learner joined: auto-enrolled on apply, or staff-enrolled/approved. */
   enrolled_source?: "AUTO" | "MANUAL";
+  /** Weighted grade % (null in pass/fail mode or before any grade), from the gradebook. */
+  grade_percent?: number | null;
+  /** Attendance % (null until attendance is taken). */
+  attendance_percent?: number | null;
+  /** Count of missing/overdue assessments. */
+  missing_count?: number;
   user: SomPerson | null;
   progress: {
     id: number;

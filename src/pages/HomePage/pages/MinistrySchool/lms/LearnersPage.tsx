@@ -164,6 +164,25 @@ export const LearnersPage = () => {
                   ),
                 },
                 {
+                  key: "g",
+                  header: "Grade",
+                  render: (e) => (
+                    <span className="tabular-nums text-primaryGray">
+                      {e.grade_percent == null ? "—" : `${Math.round(e.grade_percent)}%`}
+                    </span>
+                  ),
+                },
+                {
+                  key: "a",
+                  header: "Attendance",
+                  render: (e) => (
+                    <span className="tabular-nums text-primaryGray">
+                      {e.attendance_percent == null ? "—" : `${Math.round(e.attendance_percent)}%`}
+                      {e.missing_count ? <span className="ml-1 text-xs text-red-700">· {e.missing_count} missing</span> : null}
+                    </span>
+                  ),
+                },
+                {
                   key: "d",
                   header: "Enrolled",
                   render: (e) => (
