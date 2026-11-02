@@ -31,6 +31,7 @@ export const SomShell = ({ children }: { children: ReactNode }) => {
       count: cohorts.length || undefined,
       match: "prefix",
     },
+    access.can("grade") && { label: "Gradebook", to: somPaths.gradebook, match: "prefix" },
     { label: "Content library", to: somPaths.contentLibrary, match: "prefix" },
     access.viewsAll && {
       label: "Learners",

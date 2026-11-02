@@ -370,6 +370,17 @@ export type Programs = {
   prerequisites: string[] | undefined
   courses: ClassOption[]
   completed?: boolean
+  // Marketing/details fields (backend additive) for the learner program page.
+  outcomes?: string[]
+  eligibilitySummary?: string | null
+  instructors?: {
+    id: number
+    name: string
+    photo?: string | null
+    role?: string | null
+    isLead?: boolean
+    bio?: string | null
+  }[]
 }
 
 export type LessonNoteLearningUnit = {

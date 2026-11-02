@@ -33,6 +33,7 @@ export const somPaths = {
   ) => `${SOM_BASE}/cohorts/${cohortId}/classes/${classId}/student/${enrollmentId}`,
   learners: `${SOM_BASE}/learners`,
   instructors: `${SOM_BASE}/instructors`,
+  gradebook: `${SOM_BASE}/gradebook`,
   library: `${SOM_BASE}/assessment-library`,
   contentLibrary: `${SOM_BASE}/content-library`,
   reports: `${SOM_BASE}/reports`,

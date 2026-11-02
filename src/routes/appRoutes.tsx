@@ -53,6 +53,7 @@ import { LegacyCohortRedirect } from "@/pages/HomePage/pages/MinistrySchool/lms/
 import ProgramsPage from "@/pages/HomePage/pages/MinistrySchool/lms/ProgramsPage";
 import ProgramWorkspace from "@/pages/HomePage/pages/MinistrySchool/lms/ProgramWorkspace";
 import AssessmentBuilder from "@/pages/HomePage/pages/MinistrySchool/lms/assessment/AssessmentBuilder";
+import GradebookPage from "@/pages/HomePage/pages/MinistrySchool/lms/GradebookPage";
 import SomDashboard from "@/pages/HomePage/pages/MinistrySchool/lms/SomDashboard";
 import { SomDataProvider } from "@/pages/HomePage/pages/MinistrySchool/lms/SomDataProvider";
 import MinistrySchoolAnalytics from "@/pages/HomePage/pages/MinistrySchool/pages/MinistrySchoolAnalytics";
@@ -76,6 +77,7 @@ import { VisitorRegistration } from "@/pages/Registration/VisitorRegistration.js
 import EnrolledProgram from "@/pages/MembersPage/Pages/EnrolledProgram.js";
 import LearnerDashboard from "@/pages/MembersPage/Pages/school/LearnerDashboard";
 import MyPrograms from "@/pages/MembersPage/Pages/school/MyPrograms";
+import ProgramDetailsPage from "@/pages/MembersPage/Pages/school/ProgramDetailsPage";
 import LearnerAssignments from "@/pages/MembersPage/Pages/school/LearnerAssignments";
 import LearnerSubmission from "@/pages/MembersPage/Pages/school/LearnerSubmission";
 import LearnerGrades from "@/pages/MembersPage/Pages/school/LearnerGrades";
@@ -1160,6 +1162,13 @@ export const routes: AppRoute[] = [
             permissionNeeded: "view_school_of_ministry",
           },
           {
+            path: "gradebook",
+            name: "Gradebook",
+            element: <GradebookPage />,
+            isPrivate: true,
+            permissionNeeded: "view_school_of_ministry",
+          },
+          {
             path: "learners",
             name: "Learners",
             element: <LearnersPage />,
@@ -1663,6 +1672,13 @@ export const routes: AppRoute[] = [
         name: "member_school_of_ministries",
         backLabel: "School of Ministry",
         element: <AllPrograms />,
+        isPrivate: false,
+      },
+      {
+        path: relativePath.member.schoolOfMinistries.programDetailsPublic,
+        name: "member_school_of_ministries",
+        backLabel: "School of Ministry",
+        element: <ProgramDetailsPage />,
         isPrivate: false,
       },
       {
