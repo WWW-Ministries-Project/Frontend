@@ -11,9 +11,12 @@ import {
   ASSIGNMENT_DOCUMENT_MIME_TYPES,
   validateUploadFile,
 } from "@/utils/uploadValidation";
+import { calendarLink } from "@/pages/MembersPage/Pages/school/learnerUtils";
+import { safeHttpUrl } from "@/pages/HomePage/pages/MinistrySchool/lms/somUtils";
 
 interface Props {
   topicId?: string | number;
+  topicName?: string;
   unit: LearningUnit | null | undefined;
 
   // topic-level state (authoritative)
@@ -173,6 +176,7 @@ const loadYouTubeIframeAPI = () => {
 export const LearningUnits: React.FC<Props> = ({
   unit,
   topicId,
+  topicName,
   userId,
   programId,
   topicCompleted,
@@ -200,6 +204,7 @@ export const LearningUnits: React.FC<Props> = ({
   const [attemptsUsed, setAttemptsUsed] = useState(0);
   const [isRetrying, setIsRetrying] = useState(false);
   const [essayFile, setEssayFile] = useState<File | null>(null);
+  const [essayText, setEssayText] = useState("");
   const [isSubmittingEssay, setIsSubmittingEssay] = useState(false);
   const [hasWatchedVideo, setHasWatchedVideo] = useState(Boolean(topicCompleted));
   const [isMarkingComplete, setIsMarkingComplete] = useState(false);
@@ -248,6 +253,34 @@ export const LearningUnits: React.FC<Props> = ({
     if (youtubeVideoId) return buildYouTubeEmbedUrl(youtubeVideoId);
     return normalizedVideoValue;
   }, [normalizedVideoValue, youtubeVideoId]);
+
+  // Live session. The live unit's `data.value` holds the meeting link; any
+  // date/time/location fields are read defensively because the backend does not
+  // guarantee them yet — the card renders whatever is present.
+  const isLive = unit?.type === "live";
+  const liveData = useMemo(
+    () =>
+      isLive
+        ? ((unit?.data ?? {}) as {
+            value?: string;
+            startsAt?: string;
+            endsAt?: string;
+            location?: string;
+          })
+        : undefined,
+    [isLive, unit]
+  );
+  const liveMeetingLink = useMemo(
+    () => safeHttpUrl(liveData?.value),
+    [liveData]
+  );
+  const liveStartsAt = liveData?.startsAt;
+  const liveEndsAt = liveData?.endsAt;
+  const liveLocation = liveData?.location;
+  const hasValidLiveStart =
+    !!liveStartsAt && !Number.isNaN(new Date(liveStartsAt).getTime());
+  const hasValidLiveEnd =
+    !!liveEndsAt && !Number.isNaN(new Date(liveEndsAt).getTime());
 
   const videoProgressStorageKey = useMemo(() => {
     if (!isVideo || !topicId || !programId || !userId) return null;
@@ -326,6 +359,7 @@ export const LearningUnits: React.FC<Props> = ({
     setAnswers({});
     setAttemptsUsed(0);
     setIsRetrying(false);
+    setEssayText("");
     clearEssayFileSelection();
   }, [clearEssayFileSelection, topicId, unit?.type]);
 
@@ -609,6 +643,7 @@ export const LearningUnits: React.FC<Props> = ({
       });
 
       clearEssayFileSelection();
+      setEssayText("");
       showNotification("Assignment submitted successfully.", "success");
       await refetch();
     } catch (error: unknown) {
@@ -821,11 +856,91 @@ export const LearningUnits: React.FC<Props> = ({
       )}
 
       {/* Live */}
-      {unit?.type === "live" && unit.data.value && (
-        <Button
-          value="Join live session"
-          onClick={() => window.open(unit.data.value, "_blank")}
-        />
+      {unit?.type === "live" && (
+        <div className="space-y-3 rounded-xl border border-green-200 bg-green-50/60 p-4">
+          <Badge className="bg-green-100 text-green-700">Live session</Badge>
+
+          {hasValidLiveStart && (
+            <div className="space-y-0.5">
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-primaryGray/80">
+                When
+              </p>
+              <p className="text-sm font-medium text-primaryGray">
+                {new Date(liveStartsAt as string).toLocaleString()}
+                {hasValidLiveEnd
+                  ? ` – ${new Date(liveEndsAt as string).toLocaleTimeString([], {
+                      hour: "numeric",
+                      minute: "2-digit",
+                    })}`
+                  : ""}
+              </p>
+            </div>
+          )}
+
+          {liveLocation && (
+            <div className="space-y-0.5">
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-primaryGray/80">
+                Where
+              </p>
+              <p className="text-sm text-primaryGray">📍 {liveLocation}</p>
+            </div>
+          )}
+
+          {liveMeetingLink && (
+            <div className="space-y-0.5">
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-primaryGray/80">
+                Meeting link
+              </p>
+              <a
+                href={liveMeetingLink}
+                target="_blank"
+                rel="noreferrer"
+                className="break-all text-sm text-primary underline-offset-4 hover:underline"
+              >
+                {liveMeetingLink}
+              </a>
+            </div>
+          )}
+
+          <div className="flex flex-wrap items-center gap-3 pt-1">
+            {liveMeetingLink && (
+              <Button
+                value="Join live session"
+                onClick={() =>
+                  window.open(liveMeetingLink, "_blank", "noopener,noreferrer")
+                }
+              />
+            )}
+
+            {hasValidLiveStart && (
+              <button
+                type="button"
+                className="rounded-md border border-lightGray bg-white px-4 py-2 text-sm text-primaryGray hover:bg-lightGray/20"
+                onClick={() =>
+                  window.open(
+                    calendarLink({
+                      title: topicName || "Live session",
+                      startsAt: liveStartsAt as string,
+                      endsAt: hasValidLiveEnd ? (liveEndsAt as string) : null,
+                      location: liveLocation ?? null,
+                      meetingLink: liveMeetingLink ?? null,
+                    }),
+                    "_blank",
+                    "noopener,noreferrer"
+                  )
+                }
+              >
+                Add to calendar
+              </button>
+            )}
+          </div>
+
+          {!liveMeetingLink && !hasValidLiveStart && (
+            <p className="text-sm text-primaryGray">
+              Session details will appear here once your facilitator adds them.
+            </p>
+          )}
+        </div>
       )}
 
       {/* In-person */}
@@ -1045,6 +1160,23 @@ export const LearningUnits: React.FC<Props> = ({
           )}
 
           <div className={`space-y-3 ${isSubmissionLocked ? "pointer-events-none opacity-65" : ""}`}>
+            <div className="space-y-1.5">
+              <label
+                htmlFor="essay-response"
+                className="text-sm font-medium text-foreground"
+              >
+                Your response
+              </label>
+              <textarea
+                id="essay-response"
+                value={essayText}
+                onChange={(e) => setEssayText(e.target.value)}
+                rows={6}
+                placeholder="Write your response here..."
+                className="block w-full rounded-md border border-lightGray px-3 py-2 text-sm text-primaryGray focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+            </div>
+
             <input
               ref={essayFileInputRef}
               type="file"
@@ -1080,7 +1212,8 @@ export const LearningUnits: React.FC<Props> = ({
           </div>
 
           <p className="text-xs text-primaryGray">
-            Upload your answer as a document (PDF, DOC, or DOCX).
+            Draft your response above, then attach it as a document (PDF, DOC, or
+            DOCX) to submit.
           </p>
         </div>
       )}

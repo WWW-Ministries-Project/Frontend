@@ -2,51 +2,17 @@ import { cn } from "@/utils/cn";
 import { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { initials } from "./somUtils";
+import { Checkbox } from "./uiControls";
+import { Tone, TONE, resolveStatusTone } from "./uiTokens";
 
-export type Tone =
-  | "gray"
-  | "green"
-  | "amber"
-  | "blue"
-  | "red"
-  | "indigo"
-  | "cyan"
-  | "fuchsia"
-  | "orange";
-
-const TONE: Record<Tone, string> = {
-  gray: "bg-gray-100 text-gray-700 border-gray-200",
-  green: "bg-green-50 text-green-700 border-green-200",
-  amber: "bg-amber-50 text-amber-700 border-amber-200",
-  blue: "bg-blue-50 text-blue-700 border-blue-200",
-  red: "bg-red-50 text-red-800 border-red-200",
-  indigo: "bg-indigo-50 text-indigo-800 border-indigo-200",
-  cyan: "bg-cyan-50 text-cyan-700 border-cyan-200",
-  fuchsia: "bg-fuchsia-50 text-fuchsia-800 border-fuchsia-200",
-  orange: "bg-orange-50 text-orange-800 border-orange-200",
-};
-
-const STATUS_TONE: Record<string, Tone> = {
-  Ongoing: "green",
-  Upcoming: "amber",
-  Completed: "blue",
-  "On track": "green",
-  Behind: "red",
-  "Not started": "amber",
-  Active: "green",
-  Inactive: "gray",
-  In_Person: "indigo",
-  Online: "cyan",
-  Hybrid: "fuchsia",
-  Lesson: "gray",
-  Video: "cyan",
-  PDF: "red",
-  Slides: "orange",
-  Quiz: "amber",
-  Essay: "fuchsia",
-  "Live class": "indigo",
-  "In person": "indigo",
-};
+// Re-export the token layer + sibling primitive modules so every existing
+// `from "./ui"` importer keeps working and gains the new primitives.
+/* eslint-disable react-refresh/only-export-components */
+export * from "./uiTokens";
+export * from "./uiControls";
+export * from "./uiLayout";
+export * from "./uiData";
+/* eslint-enable react-refresh/only-export-components */
 
 export const Pill = ({
   tone = "gray",
@@ -68,14 +34,45 @@ export const Pill = ({
   </span>
 );
 
-export const StatusPill = ({ status, label }: { status: string; label?: string }) => (
-  <Pill tone={STATUS_TONE[status] ?? "gray"}>{label ?? status}</Pill>
-);
+export const StatusPill = ({
+  status,
+  label,
+  tone,
+}: {
+  status: string;
+  label?: string;
+  tone?: Tone;
+}) => <Pill tone={tone ?? resolveStatusTone(status)}>{label ?? status}</Pill>;
 
-export const Avatar = ({ name }: { name: string }) => (
+const AV_SIZE = {
+  sm: "size-7 text-[11px]",
+  md: "size-8 text-xs",
+  lg: "size-11 text-sm",
+  xl: "size-14 text-base",
+} as const;
+
+export const Avatar = ({
+  name,
+  size = "md",
+  shape = "circle",
+  tone = "muted",
+  className,
+}: {
+  name: string;
+  size?: keyof typeof AV_SIZE;
+  shape?: "circle" | "square";
+  tone?: "muted" | "navy";
+  className?: string;
+}) => (
   <span
     aria-hidden
-    className="inline-flex size-8 flex-shrink-0 items-center justify-center rounded-full bg-neutralGray text-xs font-semibold text-primary"
+    className={cn(
+      "inline-flex flex-shrink-0 items-center justify-center font-semibold",
+      AV_SIZE[size],
+      shape === "circle" ? "rounded-full" : "rounded-xl",
+      tone === "navy" ? "bg-primary text-white" : "bg-neutralGray text-primary",
+      className
+    )}
   >
     {initials(name)}
   </span>
@@ -88,7 +85,7 @@ export const ProgressBar = ({
 }: {
   value: number;
   className?: string;
-  tone?: "primary" | "white";
+  tone?: "primary" | "white" | "gold";
 }) => (
   <div
     role="progressbar"
@@ -102,7 +99,10 @@ export const ProgressBar = ({
     )}
   >
     <div
-      className={cn("h-full rounded-full", tone === "white" ? "bg-[#fff]" : "bg-primary")}
+      className={cn(
+        "h-full rounded-full",
+        tone === "white" ? "bg-[#fff]" : tone === "gold" ? "bg-secondary" : "bg-primary"
+      )}
       style={{ width: `${Math.max(0, Math.min(100, value))}%` }}
     />
   </div>
@@ -129,23 +129,27 @@ export const PageHeader = ({
   </div>
 );
 
+type BtnVariant = "primary" | "secondary" | "ghost" | "onDark" | "onDarkSolid" | "danger";
+
 type BtnProps = {
   children: ReactNode;
   onClick?: () => void;
   to?: string;
-  variant?: "primary" | "secondary" | "ghost" | "onDark" | "onDarkSolid";
+  variant?: BtnVariant;
   size?: "sm" | "md";
   disabled?: boolean;
   className?: string;
   title?: string;
+  type?: "button" | "submit";
 };
 
-const BTN: Record<NonNullable<BtnProps["variant"]>, string> = {
+const BTN: Record<BtnVariant, string> = {
   primary: "bg-primary text-white hover:bg-lighter",
   secondary: "border border-lightGray bg-white text-primary hover:bg-gray-50",
   ghost: "text-primary hover:underline",
   onDark: "border border-[#fff]/40 bg-transparent text-[#fff] hover:bg-[#fff]/10",
   onDarkSolid: "bg-[#fff] text-[#080D2D] hover:bg-[#F3F4F6]",
+  danger: "bg-red-700 text-white hover:bg-red-800",
 };
 
 export const Btn = ({
@@ -157,6 +161,7 @@ export const Btn = ({
   disabled,
   className,
   title,
+  type = "button",
 }: BtnProps) => {
   const classes = cn(
     "inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-lg text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50",
@@ -172,7 +177,8 @@ export const Btn = ({
     );
   }
   return (
-    <button type="button" onClick={onClick} disabled={disabled} className={classes} title={title}>
+    // eslint-disable-next-line react/button-has-type
+    <button type={type} onClick={onClick} disabled={disabled} className={classes} title={title}>
       {children}
     </button>
   );
@@ -211,38 +217,49 @@ export const Kpi = ({
   label,
   value,
   sub,
+  delta,
   to,
+  onClick,
   tone,
 }: {
   label: string;
   value: ReactNode;
   sub?: ReactNode;
+  delta?: ReactNode;
   to?: string;
-  tone?: "default" | "warn";
+  onClick?: () => void;
+  tone?: "default" | "warn" | "good";
 }) => {
+  const valueColor =
+    tone === "warn" ? "text-red-700" : tone === "good" ? "text-green-700" : "text-primary";
   const body = (
     <>
       <p className="text-[13px] text-mainGray">{label}</p>
-      <p
-        className={cn(
-          "text-[26px] font-bold leading-tight",
-          tone === "warn" ? "text-red-700" : "text-primary"
-        )}
-      >
-        {value}
+      <p className="flex items-baseline gap-1.5">
+        <span className={cn("text-[26px] font-bold leading-tight", valueColor)}>{value}</span>
+        {delta && <span className="text-xs font-semibold text-green-700">{delta}</span>}
       </p>
       {sub && <p className="text-xs text-mainGray">{sub}</p>}
     </>
   );
   const classes =
     "flex flex-col gap-1 rounded-xl border border-gray-200 bg-white px-4 py-3.5 text-left";
-  return to ? (
-    <Link to={to} className={cn(classes, "transition hover:border-lightGray hover:shadow-sm")}>
-      {body}
-    </Link>
-  ) : (
-    <div className={classes}>{body}</div>
-  );
+  const interactive = "transition hover:border-lightGray hover:shadow-sm";
+  if (to) {
+    return (
+      <Link to={to} className={cn(classes, interactive)}>
+        {body}
+      </Link>
+    );
+  }
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} className={cn(classes, interactive)}>
+        {body}
+      </button>
+    );
+  }
+  return <div className={classes}>{body}</div>;
 };
 
 export type Column<T> = {
@@ -259,6 +276,12 @@ export function SimpleTable<T>({
   onRowClick,
   empty,
   minWidth = 640,
+  selectable,
+  isSelected,
+  onToggleRow,
+  allSelected,
+  onToggleAll,
+  bulkBar,
 }: {
   columns: Column<T>[];
   rows: T[];
@@ -266,13 +289,26 @@ export function SimpleTable<T>({
   onRowClick?: (row: T) => void;
   empty?: ReactNode;
   minWidth?: number;
+  /** Optional row selection (prototype gradebook / roster bulk actions). */
+  selectable?: boolean;
+  isSelected?: (row: T) => boolean;
+  onToggleRow?: (row: T) => void;
+  allSelected?: boolean;
+  onToggleAll?: (next: boolean) => void;
+  bulkBar?: ReactNode;
 }) {
   if (!rows.length && empty) return <>{empty}</>;
   return (
     <div className="overflow-x-auto">
+      {bulkBar}
       <table className="w-full border-collapse text-sm" style={{ minWidth }}>
         <thead>
           <tr className="border-b border-gray-200 bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-mainGray">
+            {selectable && (
+              <th scope="col" className="w-10 px-4 py-2.5">
+                <Checkbox checked={!!allSelected} onChange={(n) => onToggleAll?.(n)} label="Select all" />
+              </th>
+            )}
             {columns.map((c) => (
               <th key={c.key} scope="col" className={cn("px-4 py-2.5 font-semibold", c.className)}>
                 {c.header}
@@ -290,6 +326,15 @@ export function SimpleTable<T>({
                 onRowClick && "cursor-pointer hover:bg-gray-50"
               )}
             >
+              {selectable && (
+                <td className="px-4 py-3 align-middle" onClick={(e) => e.stopPropagation()}>
+                  <Checkbox
+                    checked={isSelected?.(row) ?? false}
+                    onChange={() => onToggleRow?.(row)}
+                    label="Select row"
+                  />
+                </td>
+              )}
               {columns.map((c) => (
                 <td key={c.key} className={cn("px-4 py-3 align-middle text-primary", c.className)}>
                   {c.render(row)}
@@ -409,5 +454,12 @@ export const WorkspaceHeader = ({
     ) : (
       <div className="h-2" />
     )}
+  </div>
+);
+
+/** Content surface wrapper: white panel with the prototype's 4px gold top border. */
+export const SomPanelSurface = ({ children, className }: { children: ReactNode; className?: string }) => (
+  <div className={cn("rounded-xl border border-gray-200 border-t-4 border-t-secondary bg-white", className)}>
+    {children}
   </div>
 );

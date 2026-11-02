@@ -19,11 +19,13 @@ const unitOf = (t: Topic) => (t.LearningUnit ?? t.learningUnit) as unknown as Un
 
 /** Program → Assessments: quizzes and essays, question-bank import and rubric attachment. */
 export const ProgramAssessments = ({
+  programId,
   topics,
   canManage,
   onChanged,
   onOpenCurriculum,
 }: {
+  programId: number;
   topics: Topic[];
   canManage: boolean;
   onChanged: () => void;
@@ -102,7 +104,15 @@ export const ProgramAssessments = ({
             />
           }
           columns={[
-            { key: "name", header: "Assessment", render: (t) => <span className="font-medium">{t.name}</span> },
+            {
+              key: "name",
+              header: "Assessment",
+              render: (t) => (
+                <Btn variant="ghost" size="sm" to={somPaths.assessmentBuilder(programId, t.id)} className="!px-0 font-medium">
+                  {t.name}
+                </Btn>
+              ),
+            },
             { key: "type", header: "Type", render: (t) => <StatusPill status={unitLabel(unitOf(t)?.type)} /> },
             {
               key: "qs",

@@ -1,6 +1,6 @@
 import React from "react";
 import { cn } from "@/utils/cn";
-import { BookOpenIcon, ChevronRightIcon, DocumentCheckIcon, DocumentTextIcon, PlayIcon, VideoCameraIcon } from "@heroicons/react/24/outline";
+import { BookOpenIcon, ChevronRightIcon, DocumentCheckIcon, DocumentTextIcon, LockClosedIcon, PlayIcon, VideoCameraIcon } from "@heroicons/react/24/outline";
 import { CheckCircleIcon, } from "@heroicons/react/24/solid";
 
 export interface NavItem {
@@ -11,6 +11,8 @@ export interface NavItem {
   type?: string;
   /** Module heading; consecutive items with the same group render under one heading. */
   group?: string;
+  /** Not open yet: rendered muted, with a lock, and not clickable. */
+  locked?: boolean;
 }
 
 export type NavItems = NavItem[];
@@ -34,7 +36,13 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
   const renderIcon = (nav: NavItem) => {
     const iconClass = cn(
       "h-6 w-6",
-      nav.active ? "text-white" : nav.completed?"text-lime-700":"text-primary"
+      nav.locked
+        ? "text-primaryGray/40"
+        : nav.active
+          ? "text-white"
+          : nav.completed
+            ? "text-lime-700"
+            : "text-primary"
     );
 
     if (nav.completed) {
@@ -44,6 +52,10 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
           className={iconClass}
         />
       );
+    }
+
+    if (nav.locked) {
+      return <LockClosedIcon title="Locked" className={iconClass} />;
     }
 
     switch (nav.type) {
@@ -96,22 +108,34 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
             )}
             <button
               type="button"
-              onClick={() => onSelect && onSelect(nav.id)}
+              onClick={() => {
+                if (nav.locked) return;
+                if (onSelect) onSelect(nav.id);
+              }}
+              disabled={nav.locked}
               aria-pressed={nav.active}
+              aria-disabled={nav.locked}
+              title={nav.locked ? "Not open yet" : undefined}
               className={cn(
                 "flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm font-medium transition-all",
-                nav.active
-                  ? "bg-primary text-white"
-                  : "text-primaryGray hover:bg-primary/15 hover:text-primary"
+                nav.locked
+                  ? "cursor-not-allowed text-primaryGray/40"
+                  : nav.active
+                    ? "bg-primary text-white"
+                    : "text-primaryGray hover:bg-primary/15 hover:text-primary"
               )}
               style={{ animationDelay: `${index * 50}ms` }}
             >
-              
+
               <span className="flex items-center gap-4">
                 {renderIcon(nav)}
                 {nav.name}
                 </span>
-              <ChevronRightIcon className="h-4 w-4" />
+              {nav.locked ? (
+                <LockClosedIcon className="h-4 w-4" />
+              ) : (
+                <ChevronRightIcon className="h-4 w-4" />
+              )}
             </button>
             </React.Fragment>
           ))}

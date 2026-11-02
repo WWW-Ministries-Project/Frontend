@@ -31,10 +31,16 @@ export const SomDashboard = () => {
       .filter((e) => needsAttention(e.health))
       .sort((a, b) => a.completion_percent - b.completion_percent);
     const completed = enrollments.filter((e) => e.completion_status === "COMPLETED").length;
+    const avgProgress = liveEnrollments.length
+      ? Math.round(
+          liveEnrollments.reduce((sum, e) => sum + (e.completion_percent ?? 0), 0) /
+            liveEnrollments.length
+        )
+      : 0;
     const unassigned = cohorts
       .filter((c) => c.timing.status !== COHORT_STATUS.COMPLETED)
       .flatMap((c) => c.courses.filter((cls) => !cls.instructor?.id).map((cls) => ({ cls, cohort: c })));
-    return { live, upcoming, liveEnrollments, attention, completed, unassigned };
+    return { live, upcoming, liveEnrollments, attention, completed, avgProgress, unassigned };
   }, [cohorts, enrollments]);
 
   // Manage-only endpoints: view-only users never call them.
@@ -89,6 +95,12 @@ export const SomDashboard = () => {
             value={stats.liveEnrollments.length}
             sub={`in ${stats.live.length} live cohort${stats.live.length === 1 ? "" : "s"}`}
             to={somPaths.learners}
+          />
+          <Kpi
+            label="Average progress"
+            value={`${stats.avgProgress}%`}
+            sub={stats.live.length ? "across live cohorts" : "no live cohorts"}
+            to={somPaths.cohorts}
           />
           <Kpi
             label="Need attention"
@@ -277,9 +289,9 @@ export const SomDashboard = () => {
                     <span>{c.timing.label}</span>
                     <span>{c.learnerCount} learners</span>
                   </div>
-                  <ProgressBar value={c.timing.pct} />
+                  <ProgressBar value={c.timing.pct} tone="gold" />
                   {c.attentionCount > 0 && (
-                    <span className="text-xs font-semibold text-red-700">{c.attentionCount} need attention</span>
+                    <span className="text-xs font-semibold text-red-700">{c.attentionCount} at risk</span>
                   )}
                   <span className="text-xs text-mainGray">
                     {c.courses.map((cls) => personName(cls.instructor)).filter((n, i, a) => a.indexOf(n) === i).join(", ")}

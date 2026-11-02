@@ -6,7 +6,7 @@ import { ProgramDetailsModal } from "@/pages/MembersPage/Component/ProgramDetail
 import CourseSidebar from "@/pages/MembersPage/Component/CourseSidebar";
 import { showNotification } from "@/pages/HomePage/utils";
 import { useUserStore } from "@/store/userStore";
-import { api, ClassOption, Programs, relativePath } from "@/utils";
+import { api, ApplyResult, ClassOption, Programs, relativePath } from "@/utils";
 import { Badge } from "@/components/Badge";
 import {
   Squares2X2Icon,
@@ -65,20 +65,19 @@ const ProgramApply = () => {
     if (selected) setFilter(selected.key as ProgramFilter);
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (): Promise<ApplyResult | null> => {
     if (!activeProgram || !selectedClass) {
       showNotification("Please select a class to continue.", "error");
-      return;
+      return null;
     }
 
     if (!user.id) {
       showNotification("Unable to identify your profile. Please sign in again.", "error");
-      return;
+      return null;
     }
 
     setSubmitting(true);
     try {
-      const enrolledProgramId = activeProgram.id;
       // Eligible members are enrolled straight away; anyone the rules hold back
       // (eligibility, prerequisites or a full class) goes to the review queue.
       const response = await api.post.applyToProgram({ courseId: Number(selectedClassId) });
@@ -86,13 +85,8 @@ const ProgramApply = () => {
 
       if (result?.status === "ENROLLED") {
         showNotification("You're enrolled.", "success");
-        setOpen(false);
         refetch();
-        navigate(
-          `${relativePath.member.main}/${relativePath.member.schoolOfMinistries.myEnrolledPrograms}/${encodeURIComponent(
-            String(enrolledProgramId)
-          )}`
-        );
+        return result;
       } else if (result?.status === "PENDING") {
         showNotification(
           `Application received. The School of Ministry team will review it${
@@ -100,18 +94,32 @@ const ProgramApply = () => {
           }.`,
           "success"
         );
-        setOpen(false);
         refetch();
-      } else {
-        showNotification(response.message || "We could not submit your application. Please try again.", "error");
+        return result;
       }
+
+      showNotification(response.message || "We could not submit your application. Please try again.", "error");
+      return null;
     } catch (error) {
       const message =
         (error as { response?: { data?: { message?: string } }; message?: string })?.response?.data?.message ||
         (error as { message?: string })?.message;
       showNotification(message || "An unexpected error occurred while applying.", "error");
+      return null;
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleDone = (result: ApplyResult) => {
+    const enrolledProgramId = activeProgram?.id;
+    setOpen(false);
+    if (result.status === "ENROLLED" && enrolledProgramId != null) {
+      navigate(
+        `${relativePath.member.main}/${relativePath.member.schoolOfMinistries.myEnrolledPrograms}/${encodeURIComponent(
+          String(enrolledProgramId)
+        )}`
+      );
     }
   };
 
@@ -239,6 +247,7 @@ const ProgramApply = () => {
           onSelectClass={setSelectedClassId}
           onClose={() => setOpen(false)}
           onSubmit={handleSubmit}
+          onDone={handleDone}
           submitting={submitting}
         />
       </Modal>

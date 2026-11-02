@@ -13,6 +13,7 @@ import {
   type SomData,
 } from "./somDataContext";
 import { cohortTiming, learnerHealth, personName } from "./somUtils";
+import { SomShell } from "./SomShell";
 
 const buildSomData = (programs: SomProgramFull[]) => {
   const cohorts: CohortRow[] = [];
@@ -118,7 +119,7 @@ export const SomDataProvider = ({ children }: { children?: ReactNode }) => {
 
   return (
     <SomDataContext.Provider value={value}>
-      {children ?? <Outlet context={parentContext} />}
+      <SomShell>{children ?? <Outlet context={parentContext} />}</SomShell>
     </SomDataContext.Provider>
   );
 };
