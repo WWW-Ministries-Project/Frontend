@@ -808,6 +808,15 @@ export type GradeOverridePayload = {
   note?: string;
 };
 
+/** An inline note a grader pins to a quoted span of the submission. */
+export type SubmissionInlineComment = {
+  id: string;
+  text: string;
+  /** The span of the submission the comment refers to. */
+  quote?: string;
+  kind?: "praise" | "improve";
+};
+
 export type GradingSubmission = {
   id: number;
   attempt: number;
@@ -818,6 +827,8 @@ export type GradingSubmission = {
   score: number | null;
   feedback: string | null;
   rubricScores: Record<string, string> | null;
+  /** Inline comments saved on a previous grading pass. */
+  inline_comments?: SubmissionInlineComment[] | null;
   learnerName: string;
   className: string;
   enrollmentId: number;
