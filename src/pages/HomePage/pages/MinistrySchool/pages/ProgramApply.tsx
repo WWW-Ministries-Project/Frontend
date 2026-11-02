@@ -4,6 +4,7 @@ import { Button } from "@/components";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { ProgramDetailsModal } from "@/pages/MembersPage/Component/ProgramDetailsModal";
 import CourseSidebar from "@/pages/MembersPage/Component/CourseSidebar";
+import { learnerPaths } from "@/pages/MembersPage/Pages/school/learnerPaths";
 import { showNotification } from "@/pages/HomePage/utils";
 import { useUserStore } from "@/store/userStore";
 import { api, ApplyResult, ClassOption, Programs, relativePath } from "@/utils";
@@ -218,8 +219,15 @@ const ProgramApply = () => {
                   </div>
                 </section>
 
-                <div className="mt-5 flex justify-end border-t border-lightGray pt-4">
-                  <Button value="View program details" onClick={() => handleOpen(program)} />
+                <div className="mt-5 flex flex-wrap justify-end gap-3 border-t border-lightGray pt-4">
+                  <button
+                    type="button"
+                    onClick={() => navigate(learnerPaths.programDetails(program.id))}
+                    className="rounded-lg border border-lightGray bg-white px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-gray-50"
+                  >
+                    View details
+                  </button>
+                  <Button value="Apply" onClick={() => handleOpen(program)} />
                 </div>
               </article>
             ))

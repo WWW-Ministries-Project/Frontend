@@ -77,6 +77,7 @@ import { VisitorRegistration } from "@/pages/Registration/VisitorRegistration.js
 import EnrolledProgram from "@/pages/MembersPage/Pages/EnrolledProgram.js";
 import LearnerDashboard from "@/pages/MembersPage/Pages/school/LearnerDashboard";
 import MyPrograms from "@/pages/MembersPage/Pages/school/MyPrograms";
+import ProgramDetailsPage from "@/pages/MembersPage/Pages/school/ProgramDetailsPage";
 import LearnerAssignments from "@/pages/MembersPage/Pages/school/LearnerAssignments";
 import LearnerSubmission from "@/pages/MembersPage/Pages/school/LearnerSubmission";
 import LearnerGrades from "@/pages/MembersPage/Pages/school/LearnerGrades";
@@ -1671,6 +1672,13 @@ export const routes: AppRoute[] = [
         name: "member_school_of_ministries",
         backLabel: "School of Ministry",
         element: <AllPrograms />,
+        isPrivate: false,
+      },
+      {
+        path: relativePath.member.schoolOfMinistries.programDetailsPublic,
+        name: "member_school_of_ministries",
+        backLabel: "School of Ministry",
+        element: <ProgramDetailsPage />,
         isPrivate: false,
       },
       {

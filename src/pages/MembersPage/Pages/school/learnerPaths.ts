@@ -14,6 +14,8 @@ export const learnerPaths = {
   schedule: abs(SOM.schedule),
   announcements: abs(SOM.announcements),
   browse: abs(SOM.allPrograms),
+  programDetails: (programId: number | string) =>
+    abs(SOM.programDetailsPublic.replace(":programId", String(programId))),
   instructorPortal: abs(SOM.instructorPortal),
 };
 
