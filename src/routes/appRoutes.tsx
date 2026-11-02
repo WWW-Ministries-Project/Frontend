@@ -53,6 +53,7 @@ import { LegacyCohortRedirect } from "@/pages/HomePage/pages/MinistrySchool/lms/
 import ProgramsPage from "@/pages/HomePage/pages/MinistrySchool/lms/ProgramsPage";
 import ProgramWorkspace from "@/pages/HomePage/pages/MinistrySchool/lms/ProgramWorkspace";
 import AssessmentBuilder from "@/pages/HomePage/pages/MinistrySchool/lms/assessment/AssessmentBuilder";
+import GradebookPage from "@/pages/HomePage/pages/MinistrySchool/lms/GradebookPage";
 import SomDashboard from "@/pages/HomePage/pages/MinistrySchool/lms/SomDashboard";
 import { SomDataProvider } from "@/pages/HomePage/pages/MinistrySchool/lms/SomDataProvider";
 import MinistrySchoolAnalytics from "@/pages/HomePage/pages/MinistrySchool/pages/MinistrySchoolAnalytics";
@@ -1156,6 +1157,13 @@ export const routes: AppRoute[] = [
             path: "cohorts/:id",
             name: "Cohort",
             element: <CohortWorkspace />,
+            isPrivate: true,
+            permissionNeeded: "view_school_of_ministry",
+          },
+          {
+            path: "gradebook",
+            name: "Gradebook",
+            element: <GradebookPage />,
             isPrivate: true,
             permissionNeeded: "view_school_of_ministry",
           },
