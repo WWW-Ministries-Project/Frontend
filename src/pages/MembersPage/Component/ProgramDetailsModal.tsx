@@ -1,13 +1,14 @@
 import { FC, memo, useEffect, useState, type ReactNode } from "react";
 import { ApplyResult, Programs } from "@/utils";
 import { useAuth } from "@/context/AuthWrapper";
-import { Btn, Pill } from "@/pages/HomePage/pages/MinistrySchool/lms/ui";
+import { Btn, DELIVERY_TONE, Pill } from "@/pages/HomePage/pages/MinistrySchool/lms/ui";
 import {
   AcademicCapIcon,
   BookOpenIcon,
   CalendarDaysIcon,
   CheckCircleIcon,
   ClockIcon,
+  MapPinIcon,
   UserGroupIcon,
   UsersIcon,
   XMarkIcon,
@@ -23,6 +24,19 @@ const formatMeetingDays = (meetingDays?: string[] | string) => {
   if (!meetingDays) return "To be announced";
   if (Array.isArray(meetingDays)) return meetingDays.filter(Boolean).join(", ");
   return meetingDays;
+};
+
+const DELIVERY_MODE_LABEL: Record<string, string> = {
+  In_Person: "In person",
+  Online: "Live online",
+  Hybrid: "Hybrid",
+};
+
+const formatStartDate = (startDate?: string | null) => {
+  if (!startDate) return null;
+  const date = new Date(startDate);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 };
 
 const Badge: FC<{ variant?: "default" | "full"; children: ReactNode }> = ({
@@ -61,7 +75,7 @@ const CourseRadioCard = memo(function CourseRadioCard({
   checked: boolean;
   onChange: (id: string) => void;
 }) {
-  const { id, name, enrolled, capacity, facilitator, meetingDays, meetingTime } = course;
+  const { id, name, enrolled, capacity, facilitator, meetingDays, meetingTime, mode, location, startDate } = course;
   const totalEnrolled = Number(enrolled ?? 0);
   const totalCapacity = Number(capacity ?? 0);
   const isFull = totalCapacity > 0 && totalEnrolled >= totalCapacity;
@@ -69,6 +83,8 @@ const CourseRadioCard = memo(function CourseRadioCard({
   const seatsLeft = totalCapacity > 0 ? Math.max(totalCapacity - totalEnrolled, 0) : null;
   const meetingDaysLabel = formatMeetingDays(meetingDays);
   const meetingTimeLabel = meetingTime || "Time to be announced";
+  const modeLabel = mode ? DELIVERY_MODE_LABEL[mode] : null;
+  const startDateLabel = formatStartDate(startDate);
 
   return (
     <label
@@ -91,11 +107,31 @@ const CourseRadioCard = memo(function CourseRadioCard({
         />
         <div className="min-w-0 flex-1 space-y-3">
           <div className="flex items-start justify-between gap-3">
-            <h4 className="text-sm font-semibold leading-tight text-primary">{name}</h4>
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              <h4 className="text-sm font-semibold leading-tight text-primary">{name}</h4>
+              {modeLabel && <Pill tone={DELIVERY_TONE[modeLabel]}>{modeLabel}</Pill>}
+            </div>
             <Badge variant={isFull ? "full" : "default"}>
               {isFull ? "Class Full" : "Open Seats"}
             </Badge>
           </div>
+
+          {(location || startDateLabel) && (
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-primaryGray">
+              {location && (
+                <span className="flex items-center gap-1.5">
+                  <MapPinIcon className="h-4 w-4 text-primaryGray" />
+                  {location}
+                </span>
+              )}
+              {startDateLabel && (
+                <span className="flex items-center gap-1.5">
+                  <CalendarDaysIcon className="h-4 w-4 text-primaryGray" />
+                  Starts {startDateLabel}
+                </span>
+              )}
+            </div>
+          )}
 
           <div className="grid gap-2 sm:grid-cols-2">
             <div className="rounded-lg bg-lightGray/30 px-3 py-2">

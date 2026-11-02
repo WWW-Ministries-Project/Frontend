@@ -356,6 +356,14 @@ export class ApiUpdateCalls {
     return this.apiExecution.updateData("program/grade-overrides", payload);
   };
 
+  releaseGrades = (payload: {
+    cohortId: number;
+    topicId?: number;
+    courseId?: number;
+  }): Promise<ApiResponse<{ released: number }>> => {
+    return this.apiExecution.updateData("program/release-grades", payload);
+  };
+
   updateLmsSession = (payload: SessionPayload, query: QueryType): Promise<ApiResponse<unknown>> => {
     return this.apiExecution.updateData("program/session", payload, query);
   };

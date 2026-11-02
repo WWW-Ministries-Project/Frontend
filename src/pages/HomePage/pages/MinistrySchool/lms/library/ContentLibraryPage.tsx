@@ -578,6 +578,7 @@ export const ContentLibraryPage = () => {
                       <div className="mt-auto flex items-center justify-between gap-2 pt-1">
                         <span className={cn("text-xs", !i.usedBy && "text-mainGray")}>
                           {i.usedBy ? `Used in ${i.usedBy} unit${i.usedBy === 1 ? "" : "s"}` : "Not used"}
+                          {i.usedInPrograms != null && i.usedInPrograms > 0 && ` · ${i.usedInPrograms} program${i.usedInPrograms === 1 ? "" : "s"}`}
                         </span>
                         {href && (
                           <a

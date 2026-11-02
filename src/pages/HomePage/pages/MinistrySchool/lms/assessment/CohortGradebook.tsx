@@ -11,6 +11,7 @@ import type {
 import { cn } from "@/utils/cn";
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { showConfirmDialog, showNotification } from "@/pages/HomePage/utils";
 import { runAction } from "../runAction";
 import { fmtDate, somPaths } from "../somUtils";
 import { Btn, EmptyBlock, Panel, Pill, StatusPill } from "../ui";
@@ -141,6 +142,26 @@ export const CohortGradebook = ({
     }
   };
 
+  const releaseGrades = () =>
+    showConfirmDialog(
+      "Release grades to learners?",
+      async () => {
+        const res = await api.put.releaseGrades({
+          cohortId,
+          ...(classId ? { courseId: Number(classId) } : {}),
+        });
+        showNotification(`Released ${res.data?.released ?? 0} held grade${res.data?.released === 1 ? "" : "s"}`, "success");
+        refetch();
+      },
+      {
+        confirmLabel: "Release grades",
+        points: [
+          "Only grades currently on hold are released",
+          "Each affected learner is notified",
+        ],
+      }
+    );
+
   const zeroMissing = (col: GradebookColumn) => {
     const ids = (book?.rows ?? [])
       .filter((r) => r.cells.find((c) => c.topicId === col.topicId)?.status === "missing")
@@ -233,6 +254,11 @@ export const CohortGradebook = ({
           </select>
         )}
         <div className="ml-auto flex gap-2">
+          {canManage && (
+            <Btn size="sm" onClick={releaseGrades}>
+              Release grades
+            </Btn>
+          )}
           <Btn size="sm" onClick={exportCsv}>
             Export CSV
           </Btn>

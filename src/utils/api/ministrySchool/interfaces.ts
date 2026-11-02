@@ -351,6 +351,11 @@ export type ClassOption = {
   facilitator: string
   enrolled: number
   capacity: number
+  // Delivery details (backend additive): mode pill, where, and start date.
+  mode?: ClassFormat | null
+  location?: string | null
+  meetingLink?: string | null
+  startDate?: string | null
 }
 
 export type Programs = {
@@ -581,6 +586,8 @@ export type SomEnrollment = {
   enrolledAt: string;
   completed: boolean | null;
   completedAt: string | null;
+  /** How the learner joined: auto-enrolled on apply, or staff-enrolled/approved. */
+  enrolled_source?: "AUTO" | "MANUAL";
   user: SomPerson | null;
   progress: {
     id: number;
@@ -667,6 +674,13 @@ export type SomProgramFull = {
   cohorts: SomCohort[];
   instructors: SomInstructor[];
   enrolled_members: SomEnrolledMember[];
+  /** Backend additive: publish status, grading model and module count. */
+  program_details?: {
+    status?: string;
+    grading_mode?: string;
+    pass_mark?: number;
+    module_count?: number;
+  };
   enrollment_summary: {
     total_topics: number;
     total_cohorts: number;
@@ -962,6 +976,8 @@ export type LibraryItem = {
   pages: number | null;
   tags: string[] | null;
   usedBy: number;
+  /** Distinct number of programs this item is used in (backend additive). */
+  usedInPrograms?: number;
   createdAt: string;
   updatedAt: string;
 };

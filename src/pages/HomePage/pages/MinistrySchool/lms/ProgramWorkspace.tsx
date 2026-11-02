@@ -110,6 +110,13 @@ export const ProgramWorkspace = () => {
       <WorkspaceHeader
         crumbs={[{ label: "Programs", to: somPaths.programs }, { label: title }]}
         title={title}
+        status={
+          full?.program_details?.status === "PUBLISHED"
+            ? "Published"
+            : full?.program_details?.status === "DRAFT"
+              ? "Draft"
+              : undefined
+        }
         meta={[
           `${topics.length} units`,
           `${assessments.length} assessed`,
