@@ -240,6 +240,23 @@ const LearnerSubmission = () => {
                   )}
                 </Panel>
               )}
+              {s.comments && s.comments.length > 0 && (
+                <Panel title="Comments" bodyClassName="flex flex-col gap-3 p-4">
+                  {s.comments.map((c) => (
+                    <div key={c.id} className="flex flex-col gap-1.5 rounded-lg border border-gray-200 p-3">
+                      <Pill tone={c.kind === "improve" ? "amber" : "green"}>
+                        {c.kind === "improve" ? "To improve" : "Strength"}
+                      </Pill>
+                      {c.quote && (
+                        <p className="border-l-2 border-gray-200 pl-2 text-xs italic text-mainGray">
+                          “{c.quote}”
+                        </p>
+                      )}
+                      <p className="text-sm text-primary">{c.text}</p>
+                    </div>
+                  ))}
+                </Panel>
+              )}
               <Btn to={learnerPaths.program(s.programId)}>Back to program</Btn>
             </aside>
           </div>

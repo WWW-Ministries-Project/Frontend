@@ -11,10 +11,11 @@ import type {
 import { cn } from "@/utils/cn";
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { showConfirmDialog, showNotification } from "@/pages/HomePage/utils";
 import { runAction } from "../runAction";
 import { fmtDate, somPaths } from "../somUtils";
 import { Btn, EmptyBlock, Panel, Pill, StatusPill } from "../ui";
-import { GradingModal } from "./GradingModal";
+import { FullGrading } from "./FullGrading";
 
 const FILTERS = ["All learners", "At risk", "Needs grading"] as const;
 type Filter = (typeof FILTERS)[number];
@@ -81,7 +82,7 @@ export const CohortGradebook = ({
   const [classId, setClassId] = useState("");
   const [filter, setFilter] = useState<Filter>("All learners");
   const [selected, setSelected] = useState<number[]>([]);
-  const [gradeId, setGradeId] = useState<number | null>(null);
+  const [grading, setGrading] = useState<{ queue: number[]; index: number } | null>(null);
   const [override, setOverride] = useState<OverrideTarget | null>(null);
   const [form, setForm] = useState<{ mode: "score" | "excuse" | "clear"; score: string; note: string }>({
     mode: "score",
@@ -141,6 +142,26 @@ export const CohortGradebook = ({
     }
   };
 
+  const releaseGrades = () =>
+    showConfirmDialog(
+      "Release grades to learners?",
+      async () => {
+        const res = await api.put.releaseGrades({
+          cohortId,
+          ...(classId ? { courseId: Number(classId) } : {}),
+        });
+        showNotification(`Released ${res.data?.released ?? 0} held grade${res.data?.released === 1 ? "" : "s"}`, "success");
+        refetch();
+      },
+      {
+        confirmLabel: "Release grades",
+        points: [
+          "Only grades currently on hold are released",
+          "Each affected learner is notified",
+        ],
+      }
+    );
+
   const zeroMissing = (col: GradebookColumn) => {
     const ids = (book?.rows ?? [])
       .filter((r) => r.cells.find((c) => c.topicId === col.topicId)?.status === "missing")
@@ -173,13 +194,25 @@ export const CohortGradebook = ({
     URL.revokeObjectURL(url);
   };
 
+  // Grade this submission, with a prev/next queue of the column's remaining
+  // "needs grading" submissions (visible rows, in order).
+  const openGrading = (col: GradebookColumn, submissionId: number) => {
+    const toGrade = rows
+      .map((r) => r.cells.find((c) => c.topicId === col.topicId))
+      .filter((c): c is GradebookCell => !!c && !!c.submissionId && c.status === "needs_grading")
+      .map((c) => c.submissionId as number);
+    const index = toGrade.indexOf(submissionId);
+    if (index === -1) setGrading({ queue: [submissionId], index: 0 });
+    else setGrading({ queue: toGrade, index });
+  };
+
   const onCell = (row: GradebookRow, col: GradebookColumn, cell: GradebookCell) => {
     if (cell.status === "needs_grading" && cell.submissionId) {
-      setGradeId(cell.submissionId);
+      openGrading(col, cell.submissionId);
       return;
     }
     if (col.type === "assignment-essay" && cell.submissionId && cell.status === "graded") {
-      setGradeId(cell.submissionId);
+      openGrading(col, cell.submissionId);
       return;
     }
     if (canManage) openOverride({ topicId: col.topicId, enrollmentIds: [row.enrollmentId], label: `${row.name} · ${col.name}` });
@@ -233,6 +266,11 @@ export const CohortGradebook = ({
           </select>
         )}
         <div className="ml-auto flex gap-2">
+          {canManage && (
+            <Btn size="sm" onClick={releaseGrades}>
+              Release grades
+            </Btn>
+          )}
           <Btn size="sm" onClick={exportCsv}>
             Export CSV
           </Btn>
@@ -402,7 +440,14 @@ export const CohortGradebook = ({
         </Panel>
       )}
 
-      {gradeId !== null && <GradingModal submissionId={gradeId} onClose={() => setGradeId(null)} onGraded={refetch} />}
+      {grading !== null && (
+        <FullGrading
+          queue={grading.queue}
+          startIndex={grading.index}
+          onClose={() => setGrading(null)}
+          onGraded={refetch}
+        />
+      )}
 
       <Modal open={Boolean(override)} onClose={() => setOverride(null)} className="!max-w-md" title="Update grade">
         {override && (

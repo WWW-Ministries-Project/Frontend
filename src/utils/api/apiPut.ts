@@ -71,6 +71,7 @@ import {
   ProgramModulesResponse,
   ReorderProgramTopicsPayload,
   ProgramsPayloadType,
+  SubmissionInlineComment,
 } from "./ministrySchool/interfaces";
 import {
   FollowUpPayloadType,
@@ -348,12 +349,21 @@ export class ApiUpdateCalls {
     submissionId: number;
     scores: Record<string, string>;
     feedback?: string;
+    comments?: SubmissionInlineComment[];
   }): Promise<ApiResponse<unknown>> => {
     return this.apiExecution.updateData("program/grade-with-rubric", payload);
   };
 
   setGradeOverrides = (payload: GradeOverridePayload): Promise<ApiResponse<{ updated: number }>> => {
     return this.apiExecution.updateData("program/grade-overrides", payload);
+  };
+
+  releaseGrades = (payload: {
+    cohortId: number;
+    topicId?: number;
+    courseId?: number;
+  }): Promise<ApiResponse<{ released: number }>> => {
+    return this.apiExecution.updateData("program/release-grades", payload);
   };
 
   updateLmsSession = (payload: SessionPayload, query: QueryType): Promise<ApiResponse<unknown>> => {

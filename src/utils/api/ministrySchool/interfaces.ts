@@ -351,6 +351,11 @@ export type ClassOption = {
   facilitator: string
   enrolled: number
   capacity: number
+  // Delivery details (backend additive): mode pill, where, and start date.
+  mode?: ClassFormat | null
+  location?: string | null
+  meetingLink?: string | null
+  startDate?: string | null
 }
 
 export type Programs = {
@@ -581,6 +586,14 @@ export type SomEnrollment = {
   enrolledAt: string;
   completed: boolean | null;
   completedAt: string | null;
+  /** How the learner joined: auto-enrolled on apply, or staff-enrolled/approved. */
+  enrolled_source?: "AUTO" | "MANUAL";
+  /** Weighted grade % (null in pass/fail mode or before any grade), from the gradebook. */
+  grade_percent?: number | null;
+  /** Attendance % (null until attendance is taken). */
+  attendance_percent?: number | null;
+  /** Count of missing/overdue assessments. */
+  missing_count?: number;
   user: SomPerson | null;
   progress: {
     id: number;
@@ -667,6 +680,13 @@ export type SomProgramFull = {
   cohorts: SomCohort[];
   instructors: SomInstructor[];
   enrolled_members: SomEnrolledMember[];
+  /** Backend additive: publish status, grading model and module count. */
+  program_details?: {
+    status?: string;
+    grading_mode?: string;
+    pass_mark?: number;
+    module_count?: number;
+  };
   enrollment_summary: {
     total_topics: number;
     total_cohorts: number;
@@ -788,6 +808,15 @@ export type GradeOverridePayload = {
   note?: string;
 };
 
+/** An inline note a grader pins to a quoted span of the submission. */
+export type SubmissionInlineComment = {
+  id: string;
+  text: string;
+  /** The span of the submission the comment refers to. */
+  quote?: string;
+  kind?: "praise" | "improve";
+};
+
 export type GradingSubmission = {
   id: number;
   attempt: number;
@@ -798,6 +827,8 @@ export type GradingSubmission = {
   score: number | null;
   feedback: string | null;
   rubricScores: Record<string, string> | null;
+  /** Inline comments saved on a previous grading pass. */
+  inline_comments?: SubmissionInlineComment[] | null;
   learnerName: string;
   className: string;
   enrollmentId: number;
@@ -962,6 +993,8 @@ export type LibraryItem = {
   pages: number | null;
   tags: string[] | null;
   usedBy: number;
+  /** Distinct number of programs this item is used in (backend additive). */
+  usedInPrograms?: number;
   createdAt: string;
   updatedAt: string;
 };
@@ -1087,4 +1120,6 @@ export type LearnerSubmission = {
   quiz: { prompt: string; yours: string | null; correct: string | null; isCorrect: boolean }[] | null;
   rubric: { label: string; level: string | null; factor: number | null; weight: number }[] | null;
   rubricScore: number | null;
+  /** Inline Strength / To-improve comments from grading (empty while the grade is held). */
+  comments?: SubmissionInlineComment[];
 };

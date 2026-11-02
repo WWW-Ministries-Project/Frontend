@@ -7,7 +7,7 @@ import { useSomAccess } from "../utils/useSomAccess";
 import { ReviewQueue } from "./people/ReviewQueue";
 import { useSomData, type EnrollmentRow } from "./somDataContext";
 import { ATTENTION_RULE, fmtDate, needsAttention, somPaths } from "./somUtils";
-import { Avatar, EmptyBlock, PageHeader, Panel, ProgressBar, SimpleTable, StatusPill, LoadError } from "./ui";
+import { Avatar, EmptyBlock, PageHeader, Panel, Pill, ProgressBar, SimpleTable, StatusPill, LoadError } from "./ui";
 
 const FILTERS = [
   { key: "all", label: "All" },
@@ -163,7 +163,37 @@ export const LearnersPage = () => {
                     </div>
                   ),
                 },
-                { key: "d", header: "Enrolled", render: (e) => <span className="text-primaryGray">{fmtDate(e.enrolledAt)}</span> },
+                {
+                  key: "g",
+                  header: "Grade",
+                  render: (e) => (
+                    <span className="tabular-nums text-primaryGray">
+                      {e.grade_percent == null ? "—" : `${Math.round(e.grade_percent)}%`}
+                    </span>
+                  ),
+                },
+                {
+                  key: "a",
+                  header: "Attendance",
+                  render: (e) => (
+                    <span className="tabular-nums text-primaryGray">
+                      {e.attendance_percent == null ? "—" : `${Math.round(e.attendance_percent)}%`}
+                      {e.missing_count ? <span className="ml-1 text-xs text-red-700">· {e.missing_count} missing</span> : null}
+                    </span>
+                  ),
+                },
+                {
+                  key: "d",
+                  header: "Enrolled",
+                  render: (e) => (
+                    <div className="flex flex-col items-start gap-1">
+                      <span className="text-primaryGray">{fmtDate(e.enrolledAt)}</span>
+                      <Pill tone={e.enrolled_source === "MANUAL" ? "indigo" : "blue"}>
+                        {e.enrolled_source === "MANUAL" ? "Manual" : "Auto"}
+                      </Pill>
+                    </div>
+                  ),
+                },
                 { key: "s", header: "Status", render: (e) => <StatusPill status={e.health} /> },
               ]}
             />

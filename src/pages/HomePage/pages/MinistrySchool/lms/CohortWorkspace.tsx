@@ -314,7 +314,18 @@ const CohortRoster = ({ roster }: { roster: EnrollmentRow[] }) => {
                 </div>
               ),
             },
-            { key: "d", header: "Enrolled", render: (e) => <span className="text-primaryGray">{fmtDate(e.enrolledAt)}</span> },
+            {
+              key: "d",
+              header: "Enrolled",
+              render: (e) => (
+                <div className="flex flex-col items-start gap-1">
+                  <span className="text-primaryGray">{fmtDate(e.enrolledAt)}</span>
+                  <Pill tone={e.enrolled_source === "MANUAL" ? "indigo" : "blue"}>
+                    {e.enrolled_source === "MANUAL" ? "Manual" : "Auto"}
+                  </Pill>
+                </div>
+              ),
+            },
             { key: "s", header: "Status", render: (e) => <StatusPill status={e.health} /> },
           ]}
         />

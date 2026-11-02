@@ -77,7 +77,20 @@ export const ProgramsPage = () => {
       header: "Curriculum",
       render: (r) => (
         <span className="whitespace-nowrap text-primaryGray">
-          {r.units} units · {r.assessments} assessed
+          {r.program.program_details?.module_count ?? 0} modules · {r.units} units
+        </span>
+      ),
+    },
+    {
+      key: "grading",
+      header: "Grading",
+      render: (r) => (
+        <span className="whitespace-nowrap text-primaryGray">
+          {r.program.program_details?.grading_mode === "WEIGHTED"
+            ? "Weighted"
+            : r.program.program_details?.grading_mode === "PASS_FAIL"
+              ? "Pass / fail"
+              : "—"}
         </span>
       ),
     },
