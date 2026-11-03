@@ -3,6 +3,7 @@ import { useFetch } from "@/CustomHooks/useFetch";
 import SkeletonLoader from "@/pages/HomePage/Components/reusable/SkeletonLoader";
 import { showDeleteDialog } from "@/pages/HomePage/utils";
 import { api } from "@/utils";
+import type { LearningUnitType } from "@/utils";
 import type {
   DueRule,
   GradingCategory,
@@ -15,7 +16,9 @@ import { useMemo, useState } from "react";
 import TopicBasicInfoForm from "../../Components/TopicBasicInfoForm";
 import { runAction } from "../runAction";
 import { defaultCategory, describeRule, isAssessmentUnit, unitLabel } from "../somUtils";
-import { Btn, EmptyBlock, StatusPill } from "../ui";
+import { Btn, EmptyBlock } from "../ui";
+import { KebabMenu } from "../uiData";
+import { TONE, UNIT_TONE } from "../uiTokens";
 import { LibraryPickerModal } from "../library/LibraryPickerModal";
 import { DueRuleModal } from "./DueRuleModal";
 
@@ -26,11 +29,24 @@ const byOrder = (a: ModuleTopic, b: ModuleTopic) =>
 
 const fieldClass = "h-10 w-full rounded-lg border border-lightGray bg-inputBackground px-3 text-sm text-primary";
 
+/** Adders shown under each module, mapped to the backend learning-unit type. */
+const UNIT_ADDERS: { label: string; type: LearningUnitType }[] = [
+  { label: "Lesson", type: "lesson-note" },
+  { label: "Video", type: "video" },
+  { label: "File", type: "pdf" },
+  { label: "Live class", type: "live" },
+  { label: "Assessment", type: "assignment" },
+];
+
+type DragUnit = { gi: number; ti: number };
+type UnitEditor = { topic: Topic | null; moduleId: number | null; type?: LearningUnitType };
+
 /**
- * Curriculum organised as modules → units. Unit content is still edited with
- * the existing TopicBasicInfoForm; this board owns grouping, order, due rules
- * and grading categories. The program-wide topic order is rewritten to follow
- * module order so learners see units in the same sequence.
+ * Curriculum organised as modules → units, matching the SoM LMS prototype:
+ * collapsible module cards, a per-module adder row that creates a unit of a set
+ * type straight inside the module, and drag-to-reorder units within and across
+ * modules. Unit content is still edited with TopicBasicInfoForm. The program-wide
+ * topic order is rewritten to follow module order so learners see units in sequence.
  */
 export const ModuleBoard = ({
   programId,
@@ -47,19 +63,22 @@ export const ModuleBoard = ({
   const [busy, setBusy] = useState(false);
   const [collapsed, setCollapsed] = useState<Record<number, boolean>>({});
   const [moduleForm, setModuleForm] = useState<{ id?: number; title: string; weeks: string; description: string } | null>(null);
-  const [unitEditor, setUnitEditor] = useState<{ topic: Topic | null } | null>(null);
+  const [unitEditor, setUnitEditor] = useState<UnitEditor | null>(null);
   const [ruleFor, setRuleFor] = useState<ModuleTopic | null>(null);
-  const [libraryOpen, setLibraryOpen] = useState(false);
+  const [libraryFor, setLibraryFor] = useState<number | null>(null);
+  const [dragUnit, setDragUnit] = useState<DragUnit | null>(null);
+  const [dragModule, setDragModule] = useState<number | null>(null);
 
   const groups: Group[] = useMemo(() => {
     const modules = [...(data?.data?.modules ?? [])].sort((a, b) => a.order_number - b.order_number || a.id - b.id);
     const list: Group[] = modules.map((m) => ({ key: `m-${m.id}`, module: m, topics: [...m.topics].sort(byOrder) }));
     const unassigned = [...(data?.data?.unassigned ?? [])].sort(byOrder);
-    if (unassigned.length || !modules.length) list.push({ key: "unassigned", module: null, topics: unassigned });
+    if (unassigned.length) list.push({ key: "unassigned", module: null, topics: unassigned });
     return list;
   }, [data]);
 
   const modules = groups.filter((g) => g.module).map((g) => g.module!);
+  const noModules = modules.length === 0;
 
   const refresh = () => {
     refetch();
@@ -81,20 +100,31 @@ export const ModuleBoard = ({
       topics: nextGroups.flatMap((g) => g.topics).map((t, i) => ({ id: t.id, order_number: i + 1 })),
     });
 
-  const moveUnit = (groupIndex: number, index: number, delta: -1 | 1) => {
+  /** Moves a unit to a position in another (or the same) module, then persists. */
+  const relocateUnit = (from: DragUnit, toGi: number, toIndex: number) => {
     const next = groups.map((g) => ({ ...g, topics: [...g.topics] }));
-    const list = next[groupIndex].topics;
-    const target = index + delta;
-    if (target < 0 || target >= list.length) return;
-    [list[index], list[target]] = [list[target], list[index]];
-    void mutate(() => persistOrder(next), "Unit order saved", "Could not reorder units");
+    const [moved] = next[from.gi].topics.splice(from.ti, 1);
+    if (!moved) return;
+    let idx = toIndex;
+    if (from.gi === toGi && from.ti < toIndex) idx -= 1;
+    const targetModuleId = next[toGi].module?.id ?? null;
+    next[toGi].topics.splice(idx, 0, { ...moved, moduleId: targetModuleId });
+    const movedModule = (moved.moduleId ?? null) !== targetModuleId;
+    void mutate(
+      async () => {
+        if (movedModule) await api.put.setTopicModule({ topicId: moved.id, moduleId: targetModuleId });
+        await persistOrder(next);
+      },
+      "Curriculum updated",
+      "Could not reorder the curriculum"
+    );
   };
 
-  const moveModule = (index: number, delta: -1 | 1) => {
+  const reorderModules = (fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex) return;
     const ordered = [...modules];
-    const target = index + delta;
-    if (target < 0 || target >= ordered.length) return;
-    [ordered[index], ordered[target]] = [ordered[target], ordered[index]];
+    const [moved] = ordered.splice(fromIndex, 1);
+    ordered.splice(toIndex, 0, moved);
     const nextGroups = [
       ...ordered.map((m) => groups.find((g) => g.module?.id === m.id)!),
       ...groups.filter((g) => !g.module),
@@ -109,25 +139,6 @@ export const ModuleBoard = ({
       },
       "Module order saved",
       "Could not reorder modules"
-    );
-  };
-
-  const assignModule = (topic: ModuleTopic, moduleId: number | null) => {
-    const next = groups.map((g) => ({ ...g, topics: g.topics.filter((t) => t.id !== topic.id) }));
-    const targetKey = moduleId ? `m-${moduleId}` : "unassigned";
-    let target = next.find((g) => g.key === targetKey);
-    if (!target) {
-      target = { key: "unassigned", module: null, topics: [] };
-      next.push(target);
-    }
-    target.topics.push({ ...topic, moduleId });
-    void mutate(
-      async () => {
-        await api.put.setTopicModule({ topicId: topic.id, moduleId });
-        await persistOrder(next);
-      },
-      "Unit moved",
-      "Could not move the unit"
     );
   };
 
@@ -174,6 +185,14 @@ export const ModuleBoard = ({
     if (ok) setRuleFor(null);
   };
 
+  const editModule = (m: ProgramModule) =>
+    setModuleForm({
+      id: m.id,
+      title: m.title,
+      weeks: m.weeks?.toString() ?? "",
+      description: m.description ?? "",
+    });
+
   if (loading && !data) return <SkeletonLoader />;
 
   return (
@@ -181,174 +200,227 @@ export const ModuleBoard = ({
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h3 className="text-[15px] font-semibold text-primary">Curriculum</h3>
-          <p className="text-sm text-primaryGray">
-            Group units into modules. Changes apply to every live and future cohort.
-          </p>
+          <p className="text-sm text-primaryGray">Drag to reorder. Click a unit to edit it.</p>
         </div>
         {canManage && (
-          <div className="flex gap-2">
-            <Btn size="sm" onClick={() => setLibraryOpen(true)}>
-              Add from library
-            </Btn>
-            <Btn size="sm" onClick={() => setUnitEditor({ topic: null })}>
-              + Unit
-            </Btn>
-            <Btn size="sm" variant="primary" onClick={() => setModuleForm({ title: "", weeks: "", description: "" })}>
-              + Module
-            </Btn>
-          </div>
+          <Btn size="sm" variant="primary" onClick={() => setModuleForm({ title: "", weeks: "", description: "" })}>
+            + Module
+          </Btn>
         )}
       </div>
 
-      {groups.every((g) => g.topics.length === 0) && modules.length === 0 && (
-        <EmptyBlock msg="No units yet. Add a module, then add units to it." />
+      {noModules && (
+        <EmptyBlock
+          msg="No modules yet."
+          action={
+            canManage && (
+              <Btn size="sm" variant="primary" onClick={() => setModuleForm({ title: "", weeks: "", description: "" })}>
+                + Module
+              </Btn>
+            )
+          }
+        />
       )}
 
       {groups.map((g, gi) => {
-        const moduleIndex = g.module ? modules.findIndex((m) => m.id === g.module!.id) : -1;
-        const isCollapsed = g.module ? collapsed[g.module.id] : false;
+        const m = g.module;
+        const moduleIndex = m ? modules.findIndex((x) => x.id === m.id) : -1;
+        const isCollapsed = m ? collapsed[m.id] : false;
+        const unitCount = g.topics.length;
+        const meta = m
+          ? `${unitCount} unit${unitCount === 1 ? "" : "s"}${m.weeks ? ` · ${m.weeks} week${m.weeks === 1 ? "" : "s"}` : ""}`
+          : `${unitCount} unit${unitCount === 1 ? "" : "s"}`;
         return (
-          <section key={g.key} className="overflow-hidden rounded-xl border border-gray-200 bg-white">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 bg-gray-50 px-4 py-2.5">
+          <section
+            key={g.key}
+            className="overflow-hidden rounded-xl border border-gray-200 bg-white"
+            onDragOver={(e) => {
+              if (dragModule !== null && m) e.preventDefault();
+            }}
+            onDrop={() => {
+              if (dragModule !== null && m && moduleIndex !== -1) {
+                reorderModules(dragModule, moduleIndex);
+                setDragModule(null);
+              }
+            }}
+          >
+            <div
+              className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 bg-gray-50 px-4 py-2.5"
+              draggable={canManage && Boolean(m)}
+              onDragStart={(e) => {
+                if (!m) return;
+                setDragModule(moduleIndex);
+                e.dataTransfer.effectAllowed = "move";
+              }}
+              onDragEnd={() => setDragModule(null)}
+            >
               <button
                 type="button"
-                onClick={() => g.module && setCollapsed((c) => ({ ...c, [g.module!.id]: !c[g.module!.id] }))}
-                className="flex min-w-0 items-center gap-2 text-left"
+                onClick={() => m && setCollapsed((c) => ({ ...c, [m.id]: !c[m.id] }))}
+                className="flex min-w-0 flex-1 items-center gap-2 text-left"
                 aria-expanded={!isCollapsed}
               >
-                {g.module && <span className={cn("text-xs text-mainGray transition", !isCollapsed && "rotate-90")}>▸</span>}
-                {g.module ? (
-                  <>
-                    <span className="text-[11px] font-semibold uppercase tracking-wide text-mainGray">
-                      Module {moduleIndex + 1}
-                    </span>
-                    <span className="truncate text-sm font-semibold text-primary">{g.module.title}</span>
-                  </>
-                ) : (
-                  <span className="text-sm font-semibold text-primary">Not in a module</span>
+                {m && (
+                  <span className={cn("text-xs text-mainGray transition", !isCollapsed && "rotate-90")}>▸</span>
                 )}
-                <span className="whitespace-nowrap text-xs text-mainGray">
-                  · {g.topics.length} unit{g.topics.length === 1 ? "" : "s"}
-                  {g.module?.weeks ? ` · ${g.module.weeks} week${g.module.weeks === 1 ? "" : "s"}` : ""}
+                {m ? (
+                  <span className="text-[11px] font-semibold uppercase tracking-wide text-mainGray">
+                    Module {moduleIndex + 1}
+                  </span>
+                ) : null}
+                <span className="truncate text-sm font-semibold text-primary">
+                  {m ? m.title : "Not in a module"}
                 </span>
+                <span className="whitespace-nowrap text-xs text-mainGray">· {meta}</span>
               </button>
-              {canManage && g.module && (
-                <div className="flex gap-1">
-                  <Btn size="sm" disabled={busy || moduleIndex === 0} onClick={() => moveModule(moduleIndex, -1)} title="Move up">
-                    ↑
+              {canManage && m && (
+                <div className="flex items-center gap-1.5">
+                  <Btn size="sm" onClick={() => setUnitEditor({ topic: null, moduleId: m.id })}>
+                    + Unit
                   </Btn>
-                  <Btn
-                    size="sm"
-                    disabled={busy || moduleIndex === modules.length - 1}
-                    onClick={() => moveModule(moduleIndex, 1)}
-                    title="Move down"
-                  >
-                    ↓
-                  </Btn>
-                  <Btn
-                    size="sm"
-                    onClick={() =>
-                      setModuleForm({
-                        id: g.module!.id,
-                        title: g.module!.title,
-                        weeks: g.module!.weeks?.toString() ?? "",
-                        description: g.module!.description ?? "",
-                      })
-                    }
-                  >
-                    Edit
-                  </Btn>
-                  <Btn size="sm" className="text-red-700" onClick={() => deleteModule(g.module!)}>
-                    Delete
-                  </Btn>
+                  <KebabMenu
+                    label={`Module ${moduleIndex + 1} actions`}
+                    actions={[
+                      { label: "Edit", onClick: () => editModule(m) },
+                      { label: "Add from library", onClick: () => setLibraryFor(m.id) },
+                      { label: "Delete", danger: true, onClick: () => deleteModule(m) },
+                    ]}
+                  />
                 </div>
               )}
             </div>
 
             {!isCollapsed && (
-              <ul>
-                {g.topics.length === 0 && (
-                  <li className="px-4 py-3 text-sm text-primaryGray">
-                    No units here yet. Use “Module” on a unit to move it in.
-                  </li>
+              <>
+                {m?.description && (
+                  <p className="whitespace-pre-line bg-white px-4 pt-2.5 text-sm leading-relaxed text-primaryGray">
+                    {m.description}
+                  </p>
                 )}
-                {g.topics.map((t, ti) => {
-                  const type = t.LearningUnit?.type;
-                  const assessed = isAssessmentUnit(type);
-                  return (
-                    <li key={t.id} className="flex flex-wrap items-center gap-2 border-b border-gray-100 px-4 py-2.5 last:border-0">
-                      {canManage && (
-                        <span className="flex flex-col">
+                {unitCount === 0 && (
+                  <p className="bg-white px-4 py-2.5 text-sm text-primaryGray">
+                    {m ? (
+                      <>
+                        No units yet.{" "}
+                        {canManage && (
                           <button
                             type="button"
-                            aria-label={`Move ${t.name} up`}
-                            disabled={busy || ti === 0}
-                            onClick={() => moveUnit(gi, ti, -1)}
-                            className="text-[10px] leading-none text-mainGray hover:text-primary disabled:opacity-30"
+                            onClick={() => setUnitEditor({ topic: null, moduleId: m.id })}
+                            className="font-medium text-primary underline"
                           >
-                            ▲
+                            Add a unit
                           </button>
-                          <button
-                            type="button"
-                            aria-label={`Move ${t.name} down`}
-                            disabled={busy || ti === g.topics.length - 1}
-                            onClick={() => moveUnit(gi, ti, 1)}
-                            className="text-[10px] leading-none text-mainGray hover:text-primary disabled:opacity-30"
-                          >
-                            ▼
-                          </button>
-                        </span>
-                      )}
-                      <StatusPill status={unitLabel(type)} />
-                      <button
-                        type="button"
-                        disabled={!canManage}
-                        onClick={() => setUnitEditor({ topic: detailTopics.find((d) => Number(d.id) === t.id) ?? null })}
-                        className="min-w-0 flex-1 truncate text-left text-sm font-medium text-primary hover:underline disabled:no-underline"
+                        )}
+                      </>
+                    ) : (
+                      "No units here yet. Drag a unit in, or delete this group."
+                    )}
+                  </p>
+                )}
+
+                <ul>
+                  {g.topics.map((t, ti) => {
+                    const type = t.LearningUnit?.type;
+                    const assessed = isAssessmentUnit(type);
+                    const tone = UNIT_TONE[unitLabel(type)] ?? "gray";
+                    return (
+                      <li
+                        key={t.id}
+                        draggable={canManage}
+                        onDragStart={(e) => {
+                          setDragUnit({ gi, ti });
+                          e.dataTransfer.effectAllowed = "move";
+                          e.stopPropagation();
+                        }}
+                        onDragEnd={() => setDragUnit(null)}
+                        onDragOver={(e) => {
+                          if (dragUnit) e.preventDefault();
+                        }}
+                        onDrop={(e) => {
+                          if (!dragUnit) return;
+                          e.stopPropagation();
+                          relocateUnit(dragUnit, gi, ti);
+                          setDragUnit(null);
+                        }}
+                        className="flex flex-wrap items-center gap-2.5 border-t border-gray-100 px-4 py-2.5 first:border-t-0 hover:bg-gray-50"
                       >
-                        {t.name}
-                      </button>
-                      {assessed && (
+                        {canManage && (
+                          <span
+                            aria-hidden
+                            className="cursor-grab select-none tracking-[-2px] text-gray-300"
+                            title="Drag to reorder"
+                          >
+                            ⋮⋮
+                          </span>
+                        )}
+                        <span
+                          className={cn(
+                            "min-w-[74px] rounded-md border px-2 py-0.5 text-center text-[11px] font-semibold",
+                            TONE[tone]
+                          )}
+                        >
+                          {unitLabel(type)}
+                        </span>
                         <button
                           type="button"
                           disabled={!canManage}
-                          onClick={() => setRuleFor(t)}
-                          className={cn(
-                            "rounded-full border px-2.5 py-0.5 text-xs",
-                            t.LearningUnit?.due_rule
-                              ? "border-gray-200 text-primaryGray hover:bg-gray-50"
-                              : "border-amber-200 bg-amber-50 text-amber-800"
-                          )}
+                          onClick={() =>
+                            setUnitEditor({
+                              topic: detailTopics.find((d) => Number(d.id) === t.id) ?? null,
+                              moduleId: t.moduleId,
+                            })
+                          }
+                          className="min-w-0 flex-1 truncate text-left text-sm font-medium text-primary hover:underline disabled:no-underline"
                         >
-                          {describeRule(t.LearningUnit?.due_rule)}
-                          {t.LearningUnit?.grading_category ? ` · ${t.LearningUnit.grading_category}` : ""}
+                          {t.name}
                         </button>
-                      )}
-                      {canManage && (
-                        <>
-                          <select
-                            aria-label={`Module for ${t.name}`}
-                            value={t.moduleId ?? ""}
-                            disabled={busy}
-                            onChange={(e) => assignModule(t, e.target.value ? Number(e.target.value) : null)}
-                            className="h-8 max-w-[11rem] rounded-lg border border-lightGray bg-white px-2 text-xs text-primary"
+                        {assessed && (
+                          <button
+                            type="button"
+                            disabled={!canManage}
+                            onClick={() => setRuleFor(t)}
+                            className="whitespace-nowrap text-right text-xs font-semibold text-amber-700 hover:underline disabled:no-underline"
                           >
-                            <option value="">No module</option>
-                            {modules.map((m, i) => (
-                              <option key={m.id} value={m.id}>
-                                Module {i + 1}: {m.title}
-                              </option>
-                            ))}
-                          </select>
-                          <Btn size="sm" className="text-red-700" onClick={() => deleteUnit(t)}>
+                            {t.LearningUnit?.due_rule ? describeRule(t.LearningUnit.due_rule) : "Set due rule"}
+                          </button>
+                        )}
+                        {canManage && (
+                          <button
+                            type="button"
+                            onClick={() => deleteUnit(t)}
+                            aria-label={`Delete ${t.name}`}
+                            className="text-xs font-medium text-red-700 hover:underline"
+                          >
                             Delete
-                          </Btn>
-                        </>
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
+                          </button>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+
+                {canManage && m && (
+                  <div className="flex flex-wrap gap-3 border-t border-gray-100 px-4 py-2.5 text-xs font-medium text-primaryGray">
+                    {UNIT_ADDERS.map((a) => (
+                      <button
+                        key={a.label}
+                        type="button"
+                        onClick={() => setUnitEditor({ topic: null, moduleId: m.id, type: a.type })}
+                        className="hover:text-primary"
+                      >
+                        + {a.label}
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => setLibraryFor(m.id)}
+                      className="hover:text-primary"
+                    >
+                      + From library
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </section>
         );
@@ -411,6 +483,8 @@ export const ModuleBoard = ({
                   }
                 : null
             }
+            moduleId={unitEditor.moduleId}
+            initialUnitType={unitEditor.type}
             refetchProgram={refresh}
           />
         )}
@@ -419,8 +493,9 @@ export const ModuleBoard = ({
       <LibraryPickerModal
         programId={programId}
         modules={modules.map((m) => ({ id: m.id, title: m.title }))}
-        open={libraryOpen}
-        onClose={() => setLibraryOpen(false)}
+        defaultModuleId={libraryFor}
+        open={libraryFor !== null}
+        onClose={() => setLibraryFor(null)}
         onAdded={refresh}
       />
 
