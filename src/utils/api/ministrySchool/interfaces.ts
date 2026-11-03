@@ -399,7 +399,18 @@ export type LessonNoteLearningUnit = {
 export type MediaLearningUnit = {
   type: "video" | "live" | "in-person";
   data: {
-    value: string;
+    /** Legacy flat value; kept for back-compat with older units. */
+    value?: string;
+    /** video */
+    url?: string;
+    /** live */
+    meetingLink?: string;
+    /** in-person */
+    venue?: string;
+    /** live / in-person session start, ISO string */
+    startsAt?: string;
+    /** live: whether attendance is taken for the session */
+    takeAttendance?: boolean;
   };
 };
 
@@ -407,6 +418,7 @@ export type FileLearningUnit = {
   type: "pdf" | "ppt";
   data: {
     link: string;
+    fileName?: string;
   };
 };
 
@@ -415,9 +427,19 @@ export type AssignmentOption = {
   text: string;
 };
 
+export type AssignmentQuestionType =
+  | "MULTIPLE_CHOICE"
+  | "TRUE_FALSE"
+  | "SHORT_ANSWER"
+  | "ESSAY";
+
 export type AssignmentQuestion = {
   id: string;
+  /** Defaults to MULTIPLE_CHOICE when absent (legacy questions). */
+  type?: AssignmentQuestionType;
   question: string;
+  points?: number;
+  /** Present for MULTIPLE_CHOICE / TRUE_FALSE; empty for open questions. */
   options: AssignmentOption[];
   correctOptionId: string | null;
 };
@@ -429,6 +451,8 @@ export type AssignmentLearningUnit = {
     maxAttempt?: number;
     maxAttempts?: number;
     passMark?: number;
+    /** Display weight, e.g. "10%". */
+    weight?: string;
   };
 };
 
@@ -439,6 +463,7 @@ export type AssignmentEssayLearningUnit = {
     maxAttempt?: number;
     maxAttempts?: number;
     passMark?: number;
+    weight?: string;
   };
 };
 

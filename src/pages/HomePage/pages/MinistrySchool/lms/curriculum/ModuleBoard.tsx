@@ -484,6 +484,10 @@ export const ModuleBoard = ({
                 : null
             }
             moduleId={unitEditor.moduleId}
+            moduleLabel={(() => {
+              const idx = modules.findIndex((m) => m.id === unitEditor.moduleId);
+              return idx >= 0 ? `Module ${idx + 1} · ${modules[idx].title}` : undefined;
+            })()}
             initialUnitType={unitEditor.type}
             refetchProgram={refresh}
           />
