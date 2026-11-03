@@ -80,6 +80,10 @@ export const ReviewQueue = ({ canManage, programFilter, onDecided }: Props) => {
   }, [deciding, programs]);
 
   if (!canManage) return null;
+  // Only surface the review panel when something is actually waiting. While the
+  // pending fetch is in flight there are no rows yet, so this also keeps an empty
+  // panel from flashing before the first result lands.
+  if (pendingRows.length === 0) return null;
 
   const open = (app: LmsApplication, decision: "APPROVE" | "DECLINE") => {
     setDeciding({ app, decision });
