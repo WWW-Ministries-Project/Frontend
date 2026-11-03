@@ -4,9 +4,12 @@ import MultiSelect from "@/components/MultiSelect";
 import { FormHeader, ProgressStepper } from "@/components/ui";
 import { BranchSelectField } from "@/components/BranchSelectField";
 import { useBranchStore, ALL_BRANCHES } from "@/store/useBranchStore";
-import { ProgramResponse } from "@/utils/api/ministrySchool/interfaces";
-import { Field, FieldArray, Form, Formik } from "formik";
-import { array, boolean, number, object, string } from "yup";
+import type {
+  GradingMode,
+  ProgramResponse,
+} from "@/utils/api/ministrySchool/interfaces";
+import { Field, Form, Formik } from "formik";
+import { array, boolean, mixed, object, number, string } from "yup";
 import { ChangeEvent, useMemo, useState } from "react";
 import { isLmsFeatureEnabled } from "../utils/lmsGuardrails";
 
@@ -18,30 +21,33 @@ interface IProps {
   loading: boolean;
 }
 
-type ProgramStep = "basics" | "curriculum" | "prerequisites" | "publish";
+type ProgramStep = "details" | "eligibility" | "review";
 
 const PROGRAM_STEPS: { id: ProgramStep; label: string; description: string }[] = [
   {
-    id: "basics",
-    label: "Program Basics",
-    description: "Name, overview, and required audience",
+    id: "details",
+    label: "Details",
+    description: "Title, overview, grading and branch",
   },
   {
-    id: "curriculum",
-    label: "Curriculum",
-    description: "Add and review topics",
+    id: "eligibility",
+    label: "Eligibility & enrollment",
+    description: "Who can join and how they enroll",
   },
   {
-    id: "prerequisites",
-    label: "Prerequisites",
-    description: "Set dependent programs",
-  },
-  {
-    id: "publish",
-    label: "Publish",
-    description: "Final review before save",
+    id: "review",
+    label: "Review",
+    description: "Confirm and save as a draft",
   },
 ];
+
+const GRADING_OPTIONS: { value: GradingMode; label: string }[] = [
+  { value: "PASS_FAIL", label: "Pass / fail per unit" },
+  { value: "WEIGHTED", label: "Weighted scores" },
+];
+
+const gradingLabel = (mode: GradingMode) =>
+  GRADING_OPTIONS.find((option) => option.value === mode)?.label ?? mode;
 
 const ProgramFormComponent = ({
   onClose,
@@ -50,7 +56,7 @@ const ProgramFormComponent = ({
   loading,
   handleSubmit,
 }: IProps) => {
-  const [activeStep, setActiveStep] = useState<ProgramStep>("basics");
+  const [activeStep, setActiveStep] = useState<ProgramStep>("details");
   const guidedFlowEnabled = isLmsFeatureEnabled("guided_forms");
 
   const initial: IProgramForm = useMemo(
@@ -59,10 +65,11 @@ const ProgramFormComponent = ({
         ? {
             title: program.title,
             description: program.description,
+            grading_mode: program.grading_mode ?? "PASS_FAIL",
             member_required: program.member_required,
             leader_required: program.leader_required,
             ministry_required: program.ministry_required,
-            topics: program.topics.map((topic) => topic.name),
+            auto_enroll: program.auto_enroll ?? true,
             prerequisites: program.prerequisitePrograms.map((prerequisite) =>
               String(prerequisite.id)
             ),
@@ -78,23 +85,18 @@ const ProgramFormComponent = ({
   const markStepTouched = (
     step: ProgramStep,
     setTouched: (
-      touched: Record<string, boolean | boolean[]>,
+      touched: Record<string, boolean>,
       shouldValidate?: boolean
-    ) => void,
-    topicsLength: number
+    ) => void
   ) => {
-    const touched: Record<string, boolean | boolean[]> = {};
+    const touched: Record<string, boolean> = {};
 
-    if (step === "basics") {
+    if (step === "details") {
       touched.title = true;
       touched.description = true;
     }
 
-    if (step === "curriculum") {
-      touched.topics = Array.from({ length: Math.max(1, topicsLength) }).map(() => true);
-    }
-
-    if (step === "prerequisites") {
+    if (step === "eligibility") {
       touched.isPrerequisitesChecked = true;
       touched.prerequisites = true;
     }
@@ -107,15 +109,11 @@ const ProgramFormComponent = ({
     errors: Record<string, unknown>,
     values: IProgramForm
   ) => {
-    if (step === "basics") {
+    if (step === "details") {
       return Boolean(errors.title || errors.description || errors.branch_id);
     }
 
-    if (step === "curriculum") {
-      return Boolean(errors.topics);
-    }
-
-    if (step === "prerequisites") {
+    if (step === "eligibility") {
       return Boolean(values.isPrerequisitesChecked && errors.prerequisites);
     }
 
@@ -127,33 +125,24 @@ const ProgramFormComponent = ({
       initialValues={initial}
       validationSchema={validationSchema}
       onSubmit={(values) => {
-        const normalizedTopics = values.topics
-          .map((topic) => topic.trim())
-          .filter(Boolean);
         const normalizedPrerequisites = values.isPrerequisitesChecked
           ? values.prerequisites.filter(Boolean)
           : [];
 
         handleSubmit({
           ...values,
-          topics: normalizedTopics,
           prerequisites: normalizedPrerequisites,
         });
       }}
       enableReinitialize
     >
-      {({
-        values,
-        setFieldValue,
-        submitForm,
-        validateForm,
-        setTouched,
-        errors,
-      }) => {
+      {({ values, setFieldValue, submitForm, validateForm, setTouched, errors }) => {
         const goToNextStep = async () => {
-          markStepTouched(activeStep, setTouched, values.topics.length);
+          markStepTouched(activeStep, setTouched);
           const validationErrors = await validateForm();
-          if (hasStepErrors(activeStep, validationErrors as Record<string, unknown>, values)) {
+          if (
+            hasStepErrors(activeStep, validationErrors as Record<string, unknown>, values)
+          ) {
             return;
           }
 
@@ -170,7 +159,14 @@ const ProgramFormComponent = ({
           }
         };
 
-        const topicCount = values.topics.filter((topic) => topic.trim()).length;
+        const audienceLabel =
+          [
+            values.member_required ? "Members" : null,
+            values.leader_required ? "Leaders" : null,
+            values.ministry_required ? "Ministry workers" : null,
+          ]
+            .filter(Boolean)
+            .join(", ") || "No specific audience";
 
         return (
           <Form className="bg-white rounded-lg md:w-[45rem] max-h-[90vh] text-primary space-y-4">
@@ -180,7 +176,7 @@ const ProgramFormComponent = ({
                   {program?.id ? "Edit Program" : "Create New Program"}
                 </p>
                 <p className="text-sm text-white">
-                  Use the guided flow to configure your School of Ministry program.
+                  Set up the program here, then build the curriculum once it is saved.
                 </p>
               </FormHeader>
             </div>
@@ -191,7 +187,9 @@ const ProgramFormComponent = ({
                   steps={PROGRAM_STEPS}
                   activeStep={activeStep}
                   onStepChange={(step) => {
-                    const targetIndex = PROGRAM_STEPS.findIndex((item) => item.id === step);
+                    const targetIndex = PROGRAM_STEPS.findIndex(
+                      (item) => item.id === step
+                    );
                     if (targetIndex <= activeIndex) {
                       setActiveStep(step);
                     }
@@ -202,13 +200,13 @@ const ProgramFormComponent = ({
             )}
 
             <div className="flex-1 overflow-y-auto px-6 pb-4 space-y-4">
-              {(!guidedFlowEnabled || activeStep === "basics") && (
+              {(!guidedFlowEnabled || activeStep === "details") && (
                 <div className="space-y-4">
                   <Field
                     component={FormikInputDiv}
                     type="text"
                     placeholder="Enter program title"
-                    label="Program Name *"
+                    label="Program title *"
                     name="title"
                     id="title"
                   />
@@ -216,163 +214,172 @@ const ProgramFormComponent = ({
                     component={FormikInputDiv}
                     type="textarea"
                     placeholder="Enter program description"
-                    label="Program Overview *"
+                    label="Description *"
                     name="description"
                     id="description"
                   />
 
-                  <BranchSelectField
-                    value={values.branch_id}
-                    onChange={(v) => setFieldValue("branch_id", v)}
-                    required
-                    error={typeof errors.branch_id === "string" ? errors.branch_id : undefined}
-                  />
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-1 text-sm">
+                      <label
+                        htmlFor="grading_mode"
+                        className="block font-semibold text-primary"
+                      >
+                        Grading model
+                      </label>
+                      <Field
+                        as="select"
+                        id="grading_mode"
+                        name="grading_mode"
+                        className="w-full h-10 rounded-lg border border-lightGray bg-white px-3 text-primary"
+                      >
+                        {GRADING_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </Field>
+                    </div>
 
-                  <div className="space-y-2 text-sm">
+                    <BranchSelectField
+                      value={values.branch_id}
+                      onChange={(v) => setFieldValue("branch_id", v)}
+                      required
+                      error={
+                        typeof errors.branch_id === "string"
+                          ? errors.branch_id
+                          : undefined
+                      }
+                    />
+                  </div>
+                </div>
+              )}
+
+              {(!guidedFlowEnabled || activeStep === "eligibility") && (
+                <div className="space-y-4 text-sm">
+                  <div className="space-y-2">
                     <label className="block font-semibold text-primary">
-                      This program is required for:
+                      Who can join
                     </label>
                     <div className="flex flex-col gap-3">
                       <label>
                         <Field type="checkbox" name="member_required" className="mr-2" />
-                        Church Member
+                        Members
                       </label>
                       <label>
                         <Field type="checkbox" name="leader_required" className="mr-2" />
-                        Leaders (Department & Ministry Heads)
+                        Leaders (Department &amp; Ministry Heads)
                       </label>
                       <label>
                         <Field type="checkbox" name="ministry_required" className="mr-2" />
-                        Ministry Worker
+                        Ministry workers
                       </label>
                     </div>
                   </div>
-                </div>
-              )}
 
-              {(!guidedFlowEnabled || activeStep === "curriculum") && (
-                <div className="space-y-2">
-                  <div>
-                    <h3 className="text-sm font-semibold text-primary">Program Topics</h3>
-                    <p className="text-xs text-primaryGray">
-                      Add the topics learners must complete in this program.
-                    </p>
+                  <div className="space-y-3">
+                    <div>
+                      <Field
+                        type="checkbox"
+                        name="isPrerequisitesChecked"
+                        className="mr-2"
+                        onChange={(event: ChangeEvent<HTMLInputElement>) => {
+                          const checked = event.target.checked;
+                          setFieldValue("isPrerequisitesChecked", checked);
+                          if (!checked) {
+                            setFieldValue("prerequisites", []);
+                          }
+                        }}
+                      />
+                      <span>This program has prerequisite program(s)</span>
+                    </div>
+
+                    {values.isPrerequisitesChecked && (
+                      <>
+                        <MultiSelect
+                          options={prerequisitesDropdown}
+                          selectedValues={values.prerequisites}
+                          onChange={(selected) =>
+                            setFieldValue("prerequisites", selected)
+                          }
+                          placeholder="Select prerequisite programs"
+                        />
+                        {errors.prerequisites && (
+                          <div className="text-sm text-error">
+                            {String(errors.prerequisites)}
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
 
-                  <FieldArray
-                    name="topics"
-                    render={({ push, remove }) => (
-                      <div className="space-y-3">
-                        {values.topics.map((_, index) => (
-                          <div key={index} className="flex items-start gap-2">
-                            <Field
-                              component={FormikInputDiv}
-                              name={`topics[${index}]`}
-                              id={`topics[${index}]`}
-                              className="flex-1"
-                              placeholder={`Topic ${index + 1}`}
-                            />
-                            {index > 0 && (
-                              <button
-                                type="button"
-                                onClick={() => remove(index)}
-                                title="Remove topic"
-                                className="mt-8 h-9 w-9 rounded-full border border-lightGray text-primary hover:bg-lightGray/20"
-                              >
-                                x
-                              </button>
-                            )}
-                          </div>
-                        ))}
-                        <div className="w-full flex justify-end">
-                          <Button
-                            type="button"
-                            onClick={() => push("")}
-                            variant="primary"
-                            value="Add Topic"
-                          />
-                        </div>
-                        {errors.topics && typeof errors.topics === "string" && (
-                          <p className="text-sm text-error">{errors.topics}</p>
-                        )}
-                      </div>
-                    )}
-                  />
-                </div>
-              )}
-
-              {(!guidedFlowEnabled || activeStep === "prerequisites") && (
-                <div className="space-y-3 text-sm">
-                  <label className="block font-semibold text-primary">Prerequisites</label>
-                  <div>
+                  <label className="flex items-start gap-3 rounded-lg border border-lightGray p-3">
                     <Field
                       type="checkbox"
-                      name="isPrerequisitesChecked"
-                      className="mr-2"
-                      onChange={(event: ChangeEvent<HTMLInputElement>) => {
-                        const checked = event.target.checked;
-                        setFieldValue("isPrerequisitesChecked", checked);
-                        if (!checked) {
-                          setFieldValue("prerequisites", []);
-                        }
-                      }}
+                      name="auto_enroll"
+                      className="mt-1"
                     />
-                    <span>This program has prerequisite(s)</span>
-                  </div>
-
-                  {values.isPrerequisitesChecked && (
-                    <>
-                      <MultiSelect
-                        options={prerequisitesDropdown}
-                        selectedValues={values.prerequisites}
-                        onChange={(selected) => setFieldValue("prerequisites", selected)}
-                        placeholder="Select prerequisite programs"
-                      />
-                      {errors.prerequisites && (
-                        <div className="text-sm text-error">{String(errors.prerequisites)}</div>
-                      )}
-                    </>
-                  )}
+                    <span>
+                      <span className="font-semibold text-primary">
+                        Auto-enroll eligible applicants
+                      </span>
+                      <span className="block text-xs text-primaryGray">
+                        Applicants who pass every rule are enrolled right away. Anyone
+                        who fails a rule — or everyone, when this is off — goes to the
+                        review queue for an admin to enroll.
+                      </span>
+                    </span>
+                  </label>
                 </div>
               )}
 
-              {guidedFlowEnabled && activeStep === "publish" && (
+              {(!guidedFlowEnabled || activeStep === "review") && (
                 <div className="space-y-4 rounded-lg border border-lightGray p-4">
-                  <h3 className="text-base font-semibold text-primary">Review and Publish</h3>
+                  <h3 className="text-base font-semibold text-primary">
+                    Review and save
+                  </h3>
                   <div className="grid gap-4 text-sm md:grid-cols-2">
                     <div>
-                      <p className="text-primaryGray">Program Name</p>
+                      <p className="text-primaryGray">Title</p>
                       <p className="font-medium text-primary">{values.title || "-"}</p>
                     </div>
                     <div>
-                      <p className="text-primaryGray">Topics</p>
-                      <p className="font-medium text-primary">{topicCount}</p>
+                      <p className="text-primaryGray">Grading</p>
+                      <p className="font-medium text-primary">
+                        {gradingLabel(values.grading_mode)}
+                      </p>
                     </div>
                     <div className="md:col-span-2">
                       <p className="text-primaryGray">Overview</p>
-                      <p className="font-medium text-primary">{values.description || "-"}</p>
-                    </div>
-                    <div>
-                      <p className="text-primaryGray">Audience</p>
                       <p className="font-medium text-primary">
-                        {[
-                          values.member_required ? "Members" : null,
-                          values.leader_required ? "Leaders" : null,
-                          values.ministry_required ? "Workers" : null,
-                        ]
-                          .filter(Boolean)
-                          .join(", ") || "No specific audience"}
+                        {values.description || "-"}
                       </p>
                     </div>
                     <div>
-                      <p className="text-primaryGray">Prerequisites</p>
+                      <p className="text-primaryGray">Open to</p>
+                      <p className="font-medium text-primary">{audienceLabel}</p>
+                    </div>
+                    <div>
+                      <p className="text-primaryGray">Prerequisite</p>
                       <p className="font-medium text-primary">
                         {values.isPrerequisitesChecked
                           ? `${values.prerequisites.length} selected`
-                          : "Not required"}
+                          : "None"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-primaryGray">Enrollment</p>
+                      <p className="font-medium text-primary">
+                        {values.auto_enroll ? "Auto-enroll" : "Manual review"}
                       </p>
                     </div>
                   </div>
+                  {!program?.id && (
+                    <p className="text-xs text-primaryGray">
+                      Saved as a draft. Add modules and units in Curriculum, then
+                      publish.
+                    </p>
+                  )}
                 </div>
               )}
             </div>
@@ -392,7 +399,12 @@ const ProgramFormComponent = ({
                   )}
                   {guidedFlowEnabled ? (
                     activeIndex < PROGRAM_STEPS.length - 1 ? (
-                      <Button type="button" variant="primary" onClick={goToNextStep} value="Next" />
+                      <Button
+                        type="button"
+                        variant="primary"
+                        onClick={goToNextStep}
+                        value="Continue"
+                      />
                     ) : (
                       <Button
                         type="button"
@@ -400,7 +412,7 @@ const ProgramFormComponent = ({
                         loading={loading}
                         disabled={loading}
                         onClick={submitForm}
-                        value={program?.id ? "Update Program" : "Publish Program"}
+                        value={program?.id ? "Update Program" : "Save draft"}
                       />
                     )
                   ) : (
@@ -410,7 +422,7 @@ const ProgramFormComponent = ({
                       loading={loading}
                       disabled={loading}
                       onClick={submitForm}
-                      value={program?.id ? "Update Program" : "Save Program"}
+                      value={program?.id ? "Update Program" : "Save draft"}
                     />
                   )}
                 </div>
@@ -426,10 +438,11 @@ const ProgramFormComponent = ({
 export interface IProgramForm {
   title: string;
   description: string;
+  grading_mode: GradingMode;
   member_required: boolean;
   leader_required: boolean;
   ministry_required: boolean;
-  topics: string[];
+  auto_enroll: boolean;
   prerequisites: string[];
   isPrerequisitesChecked: boolean;
   branch_id: number | "";
@@ -438,10 +451,11 @@ export interface IProgramForm {
 const initialValues: IProgramForm = {
   title: "",
   description: "",
+  grading_mode: "PASS_FAIL",
   member_required: false,
   leader_required: false,
   ministry_required: false,
-  topics: [""],
+  auto_enroll: true,
   prerequisites: [],
   isPrerequisitesChecked: false,
   branch_id: "",
@@ -450,9 +464,10 @@ const initialValues: IProgramForm = {
 const validationSchema = object().shape({
   title: string().trim().required("Program title is required"),
   description: string().trim().required("Program description is required"),
-  topics: array()
-    .of(string().trim().required("Topic is required"))
-    .min(1, "At least one topic is required"),
+  grading_mode: mixed<GradingMode>()
+    .oneOf(["PASS_FAIL", "WEIGHTED"])
+    .required(),
+  auto_enroll: boolean(),
   isPrerequisitesChecked: boolean(),
   prerequisites: array().of(string()).when("isPrerequisitesChecked", {
     is: true,

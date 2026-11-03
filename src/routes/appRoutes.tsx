@@ -1167,6 +1167,7 @@ export const routes: AppRoute[] = [
             element: <GradebookPage />,
             isPrivate: true,
             permissionNeeded: "view_school_of_ministry",
+            sideTab: true,
           },
           {
             path: "learners",

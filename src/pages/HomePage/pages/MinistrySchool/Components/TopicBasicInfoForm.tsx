@@ -56,7 +56,19 @@ interface TopicBasicInfoFormProps {
   onClose?: () => void;
   topicToEdit?: EditableTopic | null;
   refetchProgram?: () => void;
+  /** Module the new unit is created in (curriculum board adders). Ignored on edit. */
+  moduleId?: number | null;
+  /** Pre-selects the learning-unit type when creating a new unit. Ignored on edit. */
+  initialUnitType?: LearningUnitType;
 }
+
+/** Blank learning-unit data for a freshly picked type. */
+const defaultUnitData = (type: LearningUnitType): TopicLearningUnit["data"] => {
+  if (type === "assignment") return { questions: [], maxAttempts: 2, passMark: 50 };
+  if (type === "lesson-note") return { content: "" };
+  if (type === "assignment-essay") return { question: "" };
+  return {};
+};
 
 const LEARNING_UNIT_TYPES: { label: string; value: LearningUnitType }[] = [
   { label: "Playback Video", value: "video" },
@@ -91,7 +103,13 @@ const TOPIC_STEPS: { id: TopicStep; label: string; description: string }[] = [
 
 const createId = () => crypto.randomUUID();
 
-const TopicBasicInfoForm = ({ onClose, topicToEdit, refetchProgram }: TopicBasicInfoFormProps) => {
+const TopicBasicInfoForm = ({
+  onClose,
+  topicToEdit,
+  refetchProgram,
+  moduleId,
+  initialUnitType,
+}: TopicBasicInfoFormProps) => {
   const { id: programId } = useParams();
   const apiPost = useMemo(() => new ApiCreationCalls(), []);
   const apiPut = useMemo(() => new ApiUpdateCalls(), []);
@@ -105,6 +123,12 @@ const TopicBasicInfoForm = ({ onClose, topicToEdit, refetchProgram }: TopicBasic
   const [saving, setSaving] = useState(false);
   const [activeStep, setActiveStep] = useState<TopicStep>("details");
   const guidedFlowEnabled = isLmsFeatureEnabled("guided_forms");
+
+  // Creating a new unit with a type preset by the curriculum adders.
+  useEffect(() => {
+    if (topicToEdit || !initialUnitType) return;
+    setLearningUnit({ type: initialUnitType, data: defaultUnitData(initialUnitType) });
+  }, [topicToEdit, initialUnitType]);
 
   useEffect(() => {
     if (!topicToEdit) return;
@@ -332,6 +356,8 @@ const TopicBasicInfoForm = ({ onClose, topicToEdit, refetchProgram }: TopicBasic
       programId: Number(programId),
       type: learningUnit.type,
       learningUnit: learningUnit as Topic["learningUnit"],
+      // New units are created inside the module the adder belongs to.
+      ...(!topicToEdit && moduleId != null ? { moduleId } : {}),
     };
 
     const success = await persistTopic(payload);
@@ -427,17 +453,14 @@ const TopicBasicInfoForm = ({ onClose, topicToEdit, refetchProgram }: TopicBasic
               <select
                 className="w-full rounded-md border border-lightGray px-3 py-2 text-sm"
                 onChange={(event) =>
-                  setLearningUnit({
-                    type: event.target.value as LearningUnitType,
-                    data:
-                      event.target.value === "assignment"
-                        ? { questions: [], maxAttempts: 2, passMark: 50 }
-                        : event.target.value === "lesson-note"
-                        ? { content: "" }
-                        : event.target.value === "assignment-essay"
-                        ? { question: "" }
-                        : {},
-                  })
+                  setLearningUnit(
+                    event.target.value
+                      ? {
+                          type: event.target.value as LearningUnitType,
+                          data: defaultUnitData(event.target.value as LearningUnitType),
+                        }
+                      : null
+                  )
                 }
               >
                 <option value="">Select learning unit type</option>
