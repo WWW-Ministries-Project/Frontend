@@ -1167,7 +1167,6 @@ export const routes: AppRoute[] = [
             element: <GradebookPage />,
             isPrivate: true,
             permissionNeeded: "view_school_of_ministry",
-            sideTab: true,
           },
           {
             path: "learners",
@@ -1191,7 +1190,6 @@ export const routes: AppRoute[] = [
             element: <AssessmentLibraryPage />,
             isPrivate: true,
             permissionNeeded: "view_school_of_ministry",
-            sideTab: true,
           },
           {
             path: "content-library",
@@ -1199,7 +1197,6 @@ export const routes: AppRoute[] = [
             element: <ContentLibraryPage />,
             isPrivate: true,
             permissionNeeded: "view_school_of_ministry",
-            sideTab: true,
           },
           {
             path: "reports",
@@ -1215,7 +1212,6 @@ export const routes: AppRoute[] = [
             element: <Instructor isAdmin />,
             isPrivate: true,
             permissionNeeded: "view_school_of_ministry",
-            sideTab: true,
             children: [
               {
                 path: "",
@@ -1253,7 +1249,6 @@ export const routes: AppRoute[] = [
             element: <MinistrySchoolAnalytics />,
             isPrivate: true,
             permissionNeeded: "view_school_of_ministry",
-            sideTab: true,
           },
           {
             path: "",
