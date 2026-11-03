@@ -1,6 +1,7 @@
 /** SoM data-display primitives: horizontal bar chart, timeline, thumbnail, kebab menu. */
 import { cn } from "@/utils/cn";
 import { ReactNode, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Tone, TONE_DOT } from "./uiTokens";
 
 export type BarDatum = {
@@ -93,18 +94,35 @@ export type MenuAction = { label: string; onClick: () => void; danger?: boolean;
 /** Kebab (⋮) action menu. */
 export const KebabMenu = ({ actions, label = "Actions" }: { actions: MenuAction[]; label?: string }) => {
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (!open) return;
-    const h = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (triggerRef.current?.contains(target) || menuRef.current?.contains(target)) return;
+      setOpen(false);
     };
-    window.addEventListener("mousedown", h);
-    return () => window.removeEventListener("mousedown", h);
+    // Any scroll (page or the table's own overflow wrapper) would detach the
+    // fixed-position menu from its trigger, so close it instead of letting it float.
+    const handleScroll = () => setOpen(false);
+    document.addEventListener("mousedown", handleClickOutside);
+    window.addEventListener("scroll", handleScroll, true);
+    window.addEventListener("resize", handleScroll);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("scroll", handleScroll, true);
+      window.removeEventListener("resize", handleScroll);
+    };
   }, [open]);
+
+  const rect = triggerRef.current?.getBoundingClientRect();
+
   return (
-    <div ref={ref} className="relative inline-block">
+    <div className="inline-block">
       <button
+        ref={triggerRef}
         type="button"
         aria-label={label}
         aria-haspopup="menu"
@@ -121,32 +139,44 @@ export const KebabMenu = ({ actions, label = "Actions" }: { actions: MenuAction[
           <circle cx="12" cy="19" r="1.6" />
         </svg>
       </button>
-      {open && (
-        <div
-          role="menu"
-          className="absolute right-0 z-20 mt-1 min-w-[160px] overflow-hidden rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
-        >
-          {actions.map((a) => (
-            <button
-              key={a.label}
-              type="button"
-              role="menuitem"
-              onClick={(e) => {
-                e.stopPropagation();
-                setOpen(false);
-                a.onClick();
-              }}
-              className={cn(
-                "flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-gray-50",
-                a.danger ? "text-red-700" : "text-primary"
-              )}
-            >
-              {a.icon}
-              {a.label}
-            </button>
-          ))}
-        </div>
-      )}
+      {open &&
+        rect &&
+        createPortal(
+          <div
+            ref={menuRef}
+            role="menu"
+            // Portaled to document.body with fixed positioning so the table's
+            // overflow-x wrapper and the Panel's overflow-hidden can't clip it.
+            className="fixed z-50 min-w-[160px] overflow-hidden rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
+            style={{
+              top: rect.bottom + 4,
+              left: Math.max(8, rect.right - 160),
+            }}
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            {actions.map((a) => (
+              <button
+                key={a.label}
+                type="button"
+                role="menuitem"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setOpen(false);
+                  a.onClick();
+                }}
+                className={cn(
+                  "flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-gray-50",
+                  a.danger ? "text-red-700" : "text-primary"
+                )}
+              >
+                {a.icon}
+                {a.label}
+              </button>
+            ))}
+          </div>,
+          document.body
+        )}
     </div>
   );
 };

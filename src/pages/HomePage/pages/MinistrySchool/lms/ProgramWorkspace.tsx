@@ -133,6 +133,11 @@ export const ProgramWorkspace = () => {
                 Edit
               </Btn>
             )}
+            {canDesign && full?.program_details?.status === "DRAFT" && (
+              <Btn variant="onDarkSolid" onClick={() => full && programEditor.publish(full)}>
+                Publish
+              </Btn>
+            )}
             {canManageCohorts && (
               <Btn variant="onDarkSolid" onClick={() => cohortEditors.newCohort(programId)}>
                 + New cohort

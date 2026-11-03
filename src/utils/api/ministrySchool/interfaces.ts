@@ -93,12 +93,15 @@ export type ExtensionPayload = {
 export type ProgramsPayloadType = {
   title: string;
   description: string;
-  topics: string[];
-  prerequisites: string[];
+  topics?: string[];
+  prerequisites?: string[];
   member_required: boolean;
   leader_required: boolean;
   ministry_required: boolean;
   branch_id?: number;
+  grading_mode?: GradingMode;
+  auto_enroll?: boolean;
+  status?: "DRAFT" | "PUBLISHED";
 };
 
 export const COHORT_STATUS = {
@@ -151,6 +154,9 @@ export type ProgramResponse = {
   topics: Topic[];
   cohorts: CohortType[];
   prerequisitePrograms: { id: number; title: string }[];
+  grading_mode?: GradingMode;
+  auto_enroll?: boolean;
+  status?: "DRAFT" | "PUBLISHED";
 };
 
 // export type Topic = {
@@ -695,6 +701,7 @@ export type SomProgramFull = {
   program_details?: {
     status?: string;
     grading_mode?: string;
+    auto_enroll?: boolean;
     pass_mark?: number;
     module_count?: number;
   };
