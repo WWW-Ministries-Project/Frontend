@@ -15,7 +15,8 @@ import { cn } from "@/utils/cn";
 import { useMemo, useState } from "react";
 import TopicBasicInfoForm from "../../Components/TopicBasicInfoForm";
 import { runAction } from "../runAction";
-import { defaultCategory, describeRule, isAssessmentUnit, unitLabel } from "../somUtils";
+import { useNavigate } from "react-router-dom";
+import { defaultCategory, describeRule, isAssessmentUnit, somPaths, unitLabel } from "../somUtils";
 import { Btn, EmptyBlock } from "../ui";
 import { KebabMenu } from "../uiData";
 import { TONE, UNIT_TONE } from "../uiTokens";
@@ -29,13 +30,16 @@ const byOrder = (a: ModuleTopic, b: ModuleTopic) =>
 
 const fieldClass = "h-10 w-full rounded-lg border border-lightGray bg-inputBackground px-3 text-sm text-primary";
 
-/** Adders shown under each module, mapped to the backend learning-unit type. */
+/**
+ * Adders shown under each module, mapped to the backend learning-unit type.
+ * Quizzes and essays are not here — they are created from the program's
+ * Assessments tab and edited in the assessment builder.
+ */
 const UNIT_ADDERS: { label: string; type: LearningUnitType }[] = [
   { label: "Lesson", type: "lesson-note" },
   { label: "Video", type: "video" },
   { label: "File", type: "pdf" },
   { label: "Live class", type: "live" },
-  { label: "Assessment", type: "assignment" },
 ];
 
 type DragUnit = { gi: number; ti: number };
@@ -64,6 +68,7 @@ export const ModuleBoard = ({
   const [collapsed, setCollapsed] = useState<Record<number, boolean>>({});
   const [moduleForm, setModuleForm] = useState<{ id?: number; title: string; weeks: string; description: string } | null>(null);
   const [unitEditor, setUnitEditor] = useState<UnitEditor | null>(null);
+  const navigate = useNavigate();
   const [ruleFor, setRuleFor] = useState<ModuleTopic | null>(null);
   const [libraryFor, setLibraryFor] = useState<number | null>(null);
   const [dragUnit, setDragUnit] = useState<DragUnit | null>(null);
@@ -363,12 +368,14 @@ export const ModuleBoard = ({
                         </span>
                         <button
                           type="button"
-                          disabled={!canManage}
+                          disabled={!canManage && !assessed}
                           onClick={() =>
-                            setUnitEditor({
-                              topic: detailTopics.find((d) => Number(d.id) === t.id) ?? null,
-                              moduleId: t.moduleId,
-                            })
+                            assessed
+                              ? navigate(somPaths.assessmentBuilder(programId, t.id))
+                              : setUnitEditor({
+                                  topic: detailTopics.find((d) => Number(d.id) === t.id) ?? null,
+                                  moduleId: t.moduleId,
+                                })
                           }
                           className="min-w-0 flex-1 truncate text-left text-sm font-medium text-primary hover:underline disabled:no-underline"
                         >

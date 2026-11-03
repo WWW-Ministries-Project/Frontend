@@ -444,6 +444,24 @@ export type AssignmentQuestion = {
   correctOptionId: string | null;
 };
 
+/** Assessment status in the builder — absent/"published" is live (back-compat). */
+export type AssessmentStatus = "draft" | "published";
+export type AssessmentLatePolicy = "accept" | "penalty" | "lock";
+export type AssessmentShowAnswers = "immediately" | "after_due" | "never";
+
+/**
+ * Builder-authored settings stored inside a quiz/essay unit's `data` JSON.
+ * All optional and additive; the backend persists them as-is.
+ */
+export type AssessmentSettings = {
+  status?: AssessmentStatus;
+  /** Minutes; null/absent = no time limit. */
+  timeLimit?: number | null;
+  latePolicy?: AssessmentLatePolicy;
+  showAnswers?: AssessmentShowAnswers;
+  shuffle?: boolean;
+};
+
 export type AssignmentLearningUnit = {
   type: "assignment";
   data: {
@@ -453,7 +471,7 @@ export type AssignmentLearningUnit = {
     passMark?: number;
     /** Display weight, e.g. "10%". */
     weight?: string;
-  };
+  } & AssessmentSettings;
 };
 
 export type AssignmentEssayLearningUnit = {
@@ -464,7 +482,7 @@ export type AssignmentEssayLearningUnit = {
     maxAttempts?: number;
     passMark?: number;
     weight?: string;
-  };
+  } & AssessmentSettings;
 };
 
 export type TopicSubmission = {

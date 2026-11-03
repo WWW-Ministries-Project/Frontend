@@ -209,7 +209,6 @@ export const ProgramWorkspace = () => {
             topics={topics}
             canManage={canDesign}
             onChanged={refreshAll}
-            onOpenCurriculum={() => setTab("Curriculum")}
           />
         )}
 

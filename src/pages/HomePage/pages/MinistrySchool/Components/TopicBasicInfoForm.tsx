@@ -123,8 +123,6 @@ const LEARNING_UNIT_TYPES: { label: string; value: LearningUnitType }[] = [
   { label: "In person", value: "in-person" },
   { label: "PDF", value: "pdf" },
   { label: "Slides", value: "ppt" },
-  { label: "Quiz", value: "assignment" },
-  { label: "Essay", value: "assignment-essay" },
 ];
 
 const QUESTION_TYPES: { label: string; value: AssignmentQuestionType }[] = [
