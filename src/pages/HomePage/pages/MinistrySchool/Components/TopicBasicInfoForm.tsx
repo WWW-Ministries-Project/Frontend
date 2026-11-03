@@ -1,5 +1,4 @@
 import TextEditor from "@/components/TextEditor";
-import { ProgressStepper } from "@/components/ui";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { showNotification } from "@/pages/HomePage/utils";
 import { api, LearningUnitType, Topic } from "@/utils";
@@ -10,7 +9,7 @@ import { cn } from "@/utils/cn";
 import { uploadImageFile } from "@/utils/uploadImage";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
-import { createLmsActionTracker, isLmsFeatureEnabled } from "../utils/lmsGuardrails";
+import { createLmsActionTracker } from "../utils/lmsGuardrails";
 
 interface TopicForm {
   topicName: string;
@@ -157,14 +156,6 @@ const isOpenQuestion = (type: AssignmentQuestionType) =>
 const field =
   "w-full rounded-lg border border-lightGray bg-inputBackground px-3 py-2 text-sm text-primary focus:outline-none focus:ring-1 focus:ring-primary";
 
-type TopicStep = "details" | "learning-unit" | "publish";
-
-const TOPIC_STEPS: { id: TopicStep; label: string; description: string }[] = [
-  { id: "details", label: "Topic Details", description: "Name and description" },
-  { id: "learning-unit", label: "Learning Unit", description: "Configure content format" },
-  { id: "publish", label: "Publish", description: "Review and save" },
-];
-
 const TopicBasicInfoForm = ({
   onClose,
   topicToEdit,
@@ -183,8 +174,6 @@ const TopicBasicInfoForm = ({
   const [rubricId, setRubricId] = useState<number | null>(null);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [activeStep, setActiveStep] = useState<TopicStep>("details");
-  const guidedFlowEnabled = isLmsFeatureEnabled("guided_forms");
 
   const { data: rubricResponse } = useFetch(api.fetch.fetchRubrics);
   const rubrics = useMemo(() => rubricResponse?.data ?? [], [rubricResponse]);
@@ -465,22 +454,6 @@ const TopicBasicInfoForm = ({
     onClose?.();
   };
 
-  const activeIndex = TOPIC_STEPS.findIndex((step) => step.id === activeStep);
-
-  const moveToNextStep = () => {
-    if (!guidedFlowEnabled) return;
-    if (activeStep === "details" && !validateTopicDetails()) return;
-    if (activeStep === "learning-unit" && !validateLearningUnit()) return;
-    const next = TOPIC_STEPS[activeIndex + 1];
-    if (next) setActiveStep(next.id);
-  };
-
-  const moveToPreviousStep = () => {
-    if (!guidedFlowEnabled) return;
-    const previous = TOPIC_STEPS[activeIndex - 1];
-    if (previous) setActiveStep(previous.id);
-  };
-
   /** Build the persisted learning-unit payload from form state. */
   const buildPayloadUnit = () => {
     if (!learningUnit) return null;
@@ -591,12 +564,7 @@ const TopicBasicInfoForm = ({
     handleClose();
   };
 
-  const selectedLearningUnitLabel = learningUnit
-    ? LEARNING_UNIT_TYPES.find((item) => item.value === learningUnit.type)?.label ?? learningUnit.type
-    : "Not selected";
-
   const data = (learningUnit?.data ?? {}) as Record<string, unknown>;
-  const showUnitFields = !guidedFlowEnabled || activeStep === "learning-unit";
 
   return (
     <div className="flex h-full flex-col">
@@ -611,53 +579,38 @@ const TopicBasicInfoForm = ({
         </p>
       </div>
 
-      {guidedFlowEnabled && (
-        <div className="px-6 pt-4">
-          <ProgressStepper
-            steps={TOPIC_STEPS}
-            activeStep={activeStep}
-            onStepChange={(step) => {
-              const targetIndex = TOPIC_STEPS.findIndex((item) => item.id === step);
-              if (targetIndex <= activeIndex) setActiveStep(step);
-            }}
-          />
-        </div>
-      )}
-
       <div className="flex-1 space-y-5 overflow-y-auto p-6">
-        {showUnitFields && (
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-primary">Unit type</p>
-            <div className="flex flex-wrap gap-1.5">
-              {LEARNING_UNIT_TYPES.map((item) => {
-                const active = learningUnit?.type === item.value;
-                return (
-                  <button
-                    key={item.value}
-                    type="button"
-                    onClick={() => pickType(item.value)}
-                    className={cn(
-                      "rounded-lg border px-3 py-1.5 text-sm transition-colors",
-                      active
-                        ? "border-primary bg-primary text-white"
-                        : "border-lightGray bg-white text-primary hover:bg-lightGray/20"
-                    )}
-                  >
-                    {item.label}
-                  </button>
-                );
-              })}
-            </div>
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-primary">Unit type</p>
+          <div className="flex flex-wrap gap-1.5">
+            {LEARNING_UNIT_TYPES.map((item) => {
+              const active = learningUnit?.type === item.value;
+              return (
+                <button
+                  key={item.value}
+                  type="button"
+                  onClick={() => pickType(item.value)}
+                  className={cn(
+                    "rounded-lg border px-3 py-1.5 text-sm transition-colors",
+                    active
+                      ? "border-primary bg-primary text-white"
+                      : "border-lightGray bg-white text-primary hover:bg-lightGray/20"
+                  )}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
           </div>
-        )}
+        </div>
 
-        {moduleLabel && (!guidedFlowEnabled || activeStep !== "publish") && (
+        {moduleLabel && (
           <p className="text-sm text-primaryGray">
             Module: <span className="font-semibold text-primary">{moduleLabel}</span>
           </p>
         )}
 
-        {learningUnit && isAssessmentType(learningUnit.type) && showUnitFields && (
+        {learningUnit && isAssessmentType(learningUnit.type) && (
           <p className="rounded-lg border border-lightGray bg-lightGray/10 px-3 py-2.5 text-sm text-primaryGray">
             Saving also lists this under the program&apos;s{" "}
             <span className="font-semibold text-primary">Assessments</span>. Set its due date and
@@ -665,32 +618,28 @@ const TopicBasicInfoForm = ({
           </p>
         )}
 
-        {(!guidedFlowEnabled || activeStep === "details") && (
-          <>
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-primary">
-                Title <span className="text-red-500">Required</span>
-              </label>
-              <input
-                className={field}
-                value={topicForm.topicName}
-                onChange={(event) => setTopicForm((old) => ({ ...old, topicName: event.target.value }))}
-                placeholder="e.g. The gifts of the Spirit"
-              />
-            </div>
+        <div className="space-y-1">
+          <label className="text-sm font-medium text-primary">
+            Title <span className="text-red-500">Required</span>
+          </label>
+          <input
+            className={field}
+            value={topicForm.topicName}
+            onChange={(event) => setTopicForm((old) => ({ ...old, topicName: event.target.value }))}
+            placeholder="e.g. The gifts of the Spirit"
+          />
+        </div>
 
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-primary">Description</label>
-              <TextEditor
-                value={topicForm.topicDescription}
-                onChange={(value) => setTopicForm((old) => ({ ...old, topicDescription: value }))}
-                placeholder="Enter a short description"
-              />
-            </div>
-          </>
-        )}
+        <div className="space-y-1">
+          <label className="text-sm font-medium text-primary">Description</label>
+          <TextEditor
+            value={topicForm.topicDescription}
+            onChange={(value) => setTopicForm((old) => ({ ...old, topicDescription: value }))}
+            placeholder="Enter a short description"
+          />
+        </div>
 
-        {showUnitFields && learningUnit && (
+        {learningUnit && (
           <div className="space-y-3">
             {learningUnit.type === "video" && (
               <div className="space-y-1">
@@ -1074,31 +1023,9 @@ const TopicBasicInfoForm = ({
             )}
           </div>
         )}
-
-        {guidedFlowEnabled && activeStep === "publish" && (
-          <div className="space-y-4 rounded-lg border border-lightGray p-4">
-            <h3 className="text-base font-semibold text-primary">Review and Publish</h3>
-            <div className="grid gap-4 text-sm md:grid-cols-2">
-              <div>
-                <p className="text-primaryGray">Title</p>
-                <p className="font-medium text-primary">{topicForm.topicName || "-"}</p>
-              </div>
-              <div>
-                <p className="text-primaryGray">Unit type</p>
-                <p className="font-medium text-primary">{selectedLearningUnitLabel}</p>
-              </div>
-              <div className="md:col-span-2">
-                <p className="text-primaryGray">Description</p>
-                <p className="font-medium text-primary">
-                  {topicForm.topicDescription || "No description provided"}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
-      <div className="sticky bottom-0 z-10 flex justify-between gap-2 border-t bg-white p-4">
+      <div className="sticky bottom-0 z-10 flex justify-end gap-2 border-t bg-white p-4">
         <button
           type="button"
           className="rounded-md border border-lightGray px-4 py-2 text-sm hover:bg-lightGray/20"
@@ -1106,35 +1033,14 @@ const TopicBasicInfoForm = ({
         >
           Cancel
         </button>
-        <div className="flex items-center gap-2">
-          {guidedFlowEnabled && activeIndex > 0 && (
-            <button
-              type="button"
-              className="rounded-md border border-lightGray px-4 py-2 text-sm hover:bg-lightGray/20"
-              onClick={moveToPreviousStep}
-            >
-              Back
-            </button>
-          )}
-          {guidedFlowEnabled && activeIndex < TOPIC_STEPS.length - 1 ? (
-            <button
-              type="button"
-              className="rounded-md bg-primary px-4 py-2 text-sm text-white hover:opacity-90"
-              onClick={moveToNextStep}
-            >
-              Next
-            </button>
-          ) : (
-            <button
-              type="button"
-              className="rounded-md bg-primary px-4 py-2 text-sm text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-              onClick={handleSubmit}
-              disabled={saving || uploading}
-            >
-              {saving ? "Saving..." : topicToEdit ? "Save changes" : "Add unit"}
-            </button>
-          )}
-        </div>
+        <button
+          type="button"
+          className="rounded-md bg-primary px-4 py-2 text-sm text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+          onClick={handleSubmit}
+          disabled={saving || uploading}
+        >
+          {saving ? "Saving..." : topicToEdit ? "Save changes" : "Add unit"}
+        </button>
       </div>
     </div>
   );
