@@ -469,7 +469,7 @@ export const ModuleBoard = ({
         )}
       </Modal>
 
-      <Modal open={Boolean(unitEditor)} onClose={() => setUnitEditor(null)} className="h-full w-[80vw]" title="Unit">
+      <Modal open={Boolean(unitEditor)} onClose={() => setUnitEditor(null)} className="h-[80vh] w-[80vw]" title="Unit">
         {unitEditor && (
           <TopicBasicInfoForm
             onClose={() => setUnitEditor(null)}
