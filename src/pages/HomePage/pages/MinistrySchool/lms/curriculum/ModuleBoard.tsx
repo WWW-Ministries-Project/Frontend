@@ -469,7 +469,7 @@ export const ModuleBoard = ({
         )}
       </Modal>
 
-      <Modal open={Boolean(unitEditor)} onClose={() => setUnitEditor(null)} className="h-full w-[80vw]" title="Unit">
+      <Modal open={Boolean(unitEditor)} onClose={() => setUnitEditor(null)} className="h-[80vh] w-[80vw]" title="Unit">
         {unitEditor && (
           <TopicBasicInfoForm
             onClose={() => setUnitEditor(null)}
@@ -484,6 +484,10 @@ export const ModuleBoard = ({
                 : null
             }
             moduleId={unitEditor.moduleId}
+            moduleLabel={(() => {
+              const idx = modules.findIndex((m) => m.id === unitEditor.moduleId);
+              return idx >= 0 ? `Module ${idx + 1} · ${modules[idx].title}` : undefined;
+            })()}
             initialUnitType={unitEditor.type}
             refetchProgram={refresh}
           />
