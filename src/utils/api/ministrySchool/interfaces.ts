@@ -1038,6 +1038,8 @@ export type InstructorOverview = {
   liveClasses: number;
   learners: number;
   toGrade: number;
+  /** The grading backlog grouped by cohort (backend additive). */
+  gradingQueue?: { cohortId: number; cohortName: string; programTitle: string; pending: number }[];
   avgGradingHours: number | null;
   gradedCount: number;
   formats: ClassFormat[];

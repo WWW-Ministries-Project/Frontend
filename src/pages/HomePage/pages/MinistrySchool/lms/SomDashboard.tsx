@@ -6,6 +6,7 @@ import SkeletonLoader from "@/pages/HomePage/Components/reusable/SkeletonLoader"
 import { COHORT_STATUS } from "@/utils/api/ministrySchool/interfaces";
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { InstructorDashboard } from "./InstructorDashboard";
 import { useSomData } from "./somDataContext";
 import {
   ATTENTION_RULE,
@@ -17,7 +18,8 @@ import {
 } from "./somUtils";
 import { Avatar, Btn, EmptyBlock, Kpi, PageHeader, Panel, Pill, ProgressBar, StatusPill, LoadError } from "./ui";
 
-export const SomDashboard = () => {
+/** The whole-school dashboard (admins and whole-school roles). */
+const AdminDashboard = () => {
   const navigate = useNavigate();
   const { loading, programs, cohorts, enrollments, instructors, error, refetch } = useSomData();
 
@@ -304,6 +306,12 @@ export const SomDashboard = () => {
       </div>
     </PageOutline>
   );
+};
+
+/** Instructors who teach but hold no whole-school role get "My teaching". */
+export const SomDashboard = () => {
+  const { instructorView } = useSomAccess();
+  return instructorView ? <InstructorDashboard /> : <AdminDashboard />;
 };
 
 const DateTile = ({ value }: { value: string }) => {

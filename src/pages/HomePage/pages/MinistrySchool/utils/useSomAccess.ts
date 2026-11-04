@@ -112,5 +112,11 @@ export const useSomAccess = () => {
     canDelete: canAdmin("School_of_ministry"),
     viewsAll,
     instructor: Boolean(instructor),
+    /**
+     * Whether to show the instructor experience (My teaching / My classes):
+     * the user teaches but does not read the whole school. Whole-school admins
+     * who also teach keep the full admin navigation.
+     */
+    instructorView: Boolean(instructor) && !viewsAll,
   };
 };
