@@ -54,6 +54,13 @@ export const personName = (person?: SomPerson | null): string => {
   return fromInfo || person.name || "Unnamed";
 };
 
+/** Whether a class is taught by the given user. Classes carry the instructor's
+ *  user id, so an instructor's own classes are those where the ids match. */
+export const isMyClass = (
+  cls: { instructor?: { id: number } | null },
+  userId: number
+): boolean => Boolean(cls.instructor && cls.instructor.id === userId);
+
 export const initials = (name: string): string => {
   const parts = name
     .replace(/^(Rev\.|Pastor|Min\.|P\.|Dr\.|Elder|Deacon(ess)?)\s*/i, "")

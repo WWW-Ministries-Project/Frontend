@@ -1,4 +1,5 @@
 import type { AppRoute } from "@/routes/appRoutes";
+import { useSomAccess } from "@/pages/HomePage/pages/MinistrySchool/utils/useSomAccess";
 import { useMemo } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 
@@ -12,10 +13,23 @@ import { useSideNavTabs } from "./useSideNavTabs";
 export const SubNav = () => {
   const location = useLocation();
   const { activeTab } = useSideNavTabs();
+  const { instructorView } = useSomAccess();
+
+  // Modules that offer an instructor cut of their navigation (today, School of
+  // Ministry) carry `instructorTab` on the pages an instructor should see. For
+  // those, an instructor gets the trimmed, relabelled list; everyone else and
+  // every other module keep the normal `sideTab` pages.
+  const asInstructor = useMemo(
+    () => instructorView && (activeTab?.children ?? []).some((child) => child.instructorTab),
+    [instructorView, activeTab]
+  );
 
   const items: AppRoute[] = useMemo(
-    () => (activeTab?.children ?? []).filter((child) => child.sideTab),
-    [activeTab]
+    () =>
+      (activeTab?.children ?? []).filter((child) =>
+        asInstructor ? child.instructorTab : child.sideTab
+      ),
+    [activeTab, asInstructor]
   );
 
   if (!activeTab || items.length === 0) return null;
@@ -49,7 +63,7 @@ export const SubNav = () => {
                 : "text-gray-600 hover:bg-gray-200 hover:text-primary"
             }`}
           >
-            <span>{child.name}</span>
+            <span>{asInstructor ? child.instructorLabel ?? child.name : child.name}</span>
           </NavLink>
         );
       })}

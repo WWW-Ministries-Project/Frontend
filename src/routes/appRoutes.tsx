@@ -192,6 +192,14 @@ export interface AppRoute {
   /** A pure redirect: never a navigation entry, so it does not count when
    *  deciding whether a parent has anything the user can open. */
   redirectOnly?: boolean;
+  /** Reachable by a School of Ministry instructor who teaches but has no
+   *  whole-school role, even without the page's usual permission. */
+  allowInstructor?: boolean;
+  /** Shown in the sub navigation when the module is viewed as an instructor
+   *  (My teaching / My classes). Pages without it drop out of that nav. */
+  instructorTab?: boolean;
+  /** The label this page carries in the instructor sub navigation. */
+  instructorLabel?: string;
   children?: AppRoute[];
 }
 
@@ -1115,6 +1123,7 @@ export const routes: AppRoute[] = [
         isPrivate: true,
         permissionNeeded: "view_school_of_ministry",
         sideTab: true,
+        allowInstructor: true,
         children: [
           {
             path: "",
@@ -1123,6 +1132,9 @@ export const routes: AppRoute[] = [
             isPrivate: true,
             permissionNeeded: "view_school_of_ministry",
             sideTab: true,
+            allowInstructor: true,
+            instructorTab: true,
+            instructorLabel: "My teaching",
           },
           {
             path: "programs",
@@ -1138,6 +1150,7 @@ export const routes: AppRoute[] = [
             element: <ProgramWorkspace />,
             isPrivate: true,
             permissionNeeded: "view_school_of_ministry",
+            allowInstructor: true,
           },
           {
             path: "programs/:id/assessments/:topicId",
@@ -1153,6 +1166,9 @@ export const routes: AppRoute[] = [
             isPrivate: true,
             permissionNeeded: "view_school_of_ministry",
             sideTab: true,
+            allowInstructor: true,
+            instructorTab: true,
+            instructorLabel: "My classes",
           },
           {
             path: "cohorts/:id",
@@ -1160,6 +1176,7 @@ export const routes: AppRoute[] = [
             element: <CohortWorkspace />,
             isPrivate: true,
             permissionNeeded: "view_school_of_ministry",
+            allowInstructor: true,
           },
           {
             path: "gradebook",
@@ -1167,6 +1184,7 @@ export const routes: AppRoute[] = [
             element: <GradebookPage />,
             isPrivate: true,
             permissionNeeded: "view_school_of_ministry",
+            allowInstructor: true,
           },
           {
             path: "learners",
@@ -1212,6 +1230,7 @@ export const routes: AppRoute[] = [
             element: <Instructor isAdmin />,
             isPrivate: true,
             permissionNeeded: "view_school_of_ministry",
+            allowInstructor: true,
             children: [
               {
                 path: "",
@@ -1219,6 +1238,7 @@ export const routes: AppRoute[] = [
                 element: <InstructorProg />,
                 isPrivate: true,
                 permissionNeeded: "view_school_of_ministry",
+                allowInstructor: true,
               },
               {
                 path: relativePath.home.ministrySchool.instructorCohort,
@@ -1226,6 +1246,7 @@ export const routes: AppRoute[] = [
                 element: <InstructorCohort />,
                 isPrivate: true,
                 permissionNeeded: "view_school_of_ministry",
+                allowInstructor: true,
               },
               {
                 path: relativePath.home.ministrySchool.instructorAssMan,
@@ -1233,6 +1254,7 @@ export const routes: AppRoute[] = [
                 element: <InstructorAssMan />,
                 isPrivate: true,
                 permissionNeeded: "view_school_of_ministry",
+                allowInstructor: true,
               },
               {
                 path: relativePath.home.ministrySchool.instructorGradingPanel,
@@ -1240,6 +1262,7 @@ export const routes: AppRoute[] = [
                 element: <GradingPanel />,
                 isPrivate: true,
                 permissionNeeded: "view_school_of_ministry",
+                allowInstructor: true,
               },
             ],
           },
@@ -1256,6 +1279,7 @@ export const routes: AppRoute[] = [
             element: <ViewPageTemplate />,
             isPrivate: true,
             permissionNeeded: "view_school_of_ministry",
+            allowInstructor: true,
             children: [
               {
                 path: "cohorts/:cohortId/classes/:id",
@@ -1263,6 +1287,7 @@ export const routes: AppRoute[] = [
                 element: <ViewClass />,
                 isPrivate: true,
                 permissionNeeded: "view_school_of_ministry",
+                allowInstructor: true,
               },
               {
                 path: "cohorts/:cohortId/classes/:classId/student/:id",
@@ -1270,6 +1295,7 @@ export const routes: AppRoute[] = [
                 element: <ViewStudent />,
                 isPrivate: true,
                 permissionNeeded: "view_school_of_ministry",
+                allowInstructor: true,
               },
             ],
           },

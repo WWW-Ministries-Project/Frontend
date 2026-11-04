@@ -4,8 +4,10 @@ import { COHORT_STATUS, type CohortStatus } from "@/utils/api/ministrySchool/int
 import { cn } from "@/utils/cn";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthWrapper";
+import { useSomAccess } from "../utils/useSomAccess";
 import { useSomData, type CohortRow } from "./somDataContext";
-import { formatLabel, personName, somPaths } from "./somUtils";
+import { formatLabel, isMyClass, personName, somPaths } from "./somUtils";
 import { EmptyBlock, PageHeader, ProgressBar, StatusPill, LoadError } from "./ui";
 
 /** Status tabs, in prototype order. "Completed" cohorts are shown as "Ended". */
@@ -31,17 +33,29 @@ type ProgramGroup = {
 export const CohortsPage = () => {
   const navigate = useNavigate();
   const { loading, cohorts, error, refetch } = useSomData();
+  const { instructorView } = useSomAccess();
+  const myId = Number(useAuth().user.id);
   const [tab, setTab] = useState<CohortStatus>(COHORT_STATUS.ONGOING);
+
+  // As an instructor, "My classes" lists only the cohorts that hold a class you
+  // teach; the data context has already limited this to your programs.
+  const source = useMemo(
+    () =>
+      instructorView
+        ? cohorts.filter((c) => c.courses.some((cls) => isMyClass(cls, myId)))
+        : cohorts,
+    [cohorts, instructorView, myId]
+  );
 
   const counts = useMemo(() => {
     const c: Record<CohortStatus, number> = { Upcoming: 0, Ongoing: 0, Completed: 0 };
-    cohorts.forEach((x) => (c[x.timing.status] += 1));
+    source.forEach((x) => (c[x.timing.status] += 1));
     return c;
-  }, [cohorts]);
+  }, [source]);
 
   const groups = useMemo<ProgramGroup[]>(() => {
     const byProgram = new Map<number, ProgramGroup>();
-    cohorts
+    source
       .filter((c) => c.timing.status === tab)
       .forEach((c) => {
         const g =
@@ -56,7 +70,7 @@ export const CohortsPage = () => {
       g.cohorts.sort((a, b) => +new Date(b.startDate) - +new Date(a.startDate))
     );
     return list.sort((a, b) => a.title.localeCompare(b.title));
-  }, [cohorts, tab]);
+  }, [source, tab]);
 
   const statusLabel = (status: CohortStatus) =>
     status === COHORT_STATUS.COMPLETED ? "Ended" : status;
@@ -66,8 +80,12 @@ export const CohortsPage = () => {
       <div className="flex flex-col gap-5">
         {error && <LoadError msg={error} onRetry={refetch} />}
         <PageHeader
-          title="Cohorts"
-          subtitle="Each cohort is one run of a program, split into classes by delivery mode. Create cohorts from a program."
+          title={instructorView ? "My classes" : "Cohorts"}
+          subtitle={
+            instructorView
+              ? "The cohorts you teach in, grouped by program. Open one to take attendance, grade and message your learners."
+              : "Each cohort is one run of a program, split into classes by delivery mode. Create cohorts from a program."
+          }
         />
 
         <div role="tablist" aria-label="Cohort status" className="flex gap-1 overflow-x-auto border-b border-gray-200">
@@ -145,16 +163,21 @@ export const CohortsPage = () => {
                         <ProgressBar value={c.timing.pct} tone="gold" />
                       </div>
                       <ul className="flex flex-col gap-1">
-                        {c.courses.slice(0, 4).map((k) => (
-                          <li key={k.id} className="flex items-center justify-between gap-2 text-xs">
-                            <span className="truncate font-medium text-primary">
-                              {k.name} <span className="font-normal text-mainGray">· {formatLabel(k.classFormat)}</span>
-                            </span>
-                            <span className="flex-shrink-0 text-mainGray">
-                              {personName(k.instructor)} · {k.enrollments.length}/{k.capacity}
-                            </span>
-                          </li>
-                        ))}
+                        {(instructorView
+                          ? c.courses.filter((k) => isMyClass(k, myId))
+                          : c.courses
+                        )
+                          .slice(0, 4)
+                          .map((k) => (
+                            <li key={k.id} className="flex items-center justify-between gap-2 text-xs">
+                              <span className="truncate font-medium text-primary">
+                                {k.name} <span className="font-normal text-mainGray">· {formatLabel(k.classFormat)}</span>
+                              </span>
+                              <span className="flex-shrink-0 text-mainGray">
+                                {personName(k.instructor)} · {k.enrollments.length}/{k.capacity}
+                              </span>
+                            </li>
+                          ))}
                         {c.courses.length === 0 && <li className="text-xs text-amber-700">No classes yet</li>}
                       </ul>
                       <div className="mt-auto flex items-center justify-between border-t border-gray-100 pt-2.5 text-sm">
