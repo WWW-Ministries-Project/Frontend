@@ -1,8 +1,16 @@
 import { useFetch } from "@/CustomHooks/useFetch";
 import SkeletonLoader from "@/pages/HomePage/Components/reusable/SkeletonLoader";
 import { api } from "@/utils";
-import type { LearningUnit, SomCohort, Topic } from "@/utils/api/ministrySchool/interfaces";
-import { useMemo } from "react";
+import {
+  COHORT_STATUS,
+  COHORT_STATUS_VALUES,
+  type CohortStatus,
+  type LearningUnit,
+  type SomCohort,
+  type Topic,
+} from "@/utils/api/ministrySchool/interfaces";
+import { cn } from "@/utils/cn";
+import { useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ProgramAssessments } from "./assessment/ProgramAssessments";
 import { ProgramInstructorsPanel } from "./people/ProgramInstructorsPanel";
@@ -59,6 +67,17 @@ export const ProgramWorkspace = () => {
   const detail = data?.data;
   const full = som.programs.find((p) => p.id === programId);
   const cohortRows = som.cohorts.filter((c) => c.program.id === programId);
+
+  // Program cohorts are grouped by lifecycle (prototype: Upcoming / Ongoing / Completed).
+  const [cohortTab, setCohortTab] = useState<CohortStatus>(COHORT_STATUS.ONGOING);
+  const cohortCounts = useMemo(() => {
+    const counts: Record<CohortStatus, number> = { Upcoming: 0, Ongoing: 0, Completed: 0 };
+    cohortRows.forEach((c) => {
+      counts[c.timing.status] += 1;
+    });
+    return counts;
+  }, [cohortRows]);
+  const shownCohorts = cohortRows.filter((c) => c.timing.status === cohortTab);
 
   const refreshAll = () => {
     refetch();
@@ -222,10 +241,42 @@ export const ProgramWorkspace = () => {
                 </Btn>
               )}
             </div>
-            {cohortRows.length === 0 && (
+            <div role="tablist" aria-label="Cohort status" className="flex gap-1 overflow-x-auto border-b border-gray-200">
+              {COHORT_STATUS_VALUES.map((s) => {
+                const selected = cohortTab === s;
+                return (
+                  <button
+                    key={s}
+                    type="button"
+                    role="tab"
+                    aria-selected={selected}
+                    onClick={() => setCohortTab(s)}
+                    className={cn(
+                      "-mb-px flex items-center gap-2 whitespace-nowrap border-b-2 px-3.5 py-2.5 text-sm",
+                      selected ? "border-primary font-semibold text-primary" : "border-transparent text-primaryGray hover:text-primary"
+                    )}
+                  >
+                    {s}
+                    <span
+                      className={cn(
+                        "min-w-[20px] rounded-full px-1.5 text-xs font-semibold",
+                        selected ? "bg-primary text-white" : "bg-gray-100 text-primaryGray"
+                      )}
+                    >
+                      {cohortCounts[s]}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            {cohortRows.length === 0 ? (
               <EmptyBlock msg="No cohorts yet. Create the first intake for this program." />
+            ) : (
+              shownCohorts.length === 0 && (
+                <EmptyBlock msg={`No ${cohortTab.toLowerCase()} cohorts.`} />
+              )
             )}
-            {cohortRows.map((c) => (
+            {shownCohorts.map((c) => (
               <CohortCard
                 key={c.id}
                 cohort={c}
