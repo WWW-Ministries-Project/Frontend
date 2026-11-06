@@ -95,7 +95,7 @@ export const AskTab = () => {
         {empty ? (
           <div className="flex flex-col gap-4 pt-2">
             <div className="flex flex-col gap-1">
-              <p className="text-base font-semibold text-[#080D2D]">Ask about your work</p>
+              <p className="text-base font-semibold text-primary">Ask about your work</p>
               <p className="text-sm text-gray-600">
                 I can see what your role can see. I’ll always ask before sending anything.
               </p>
@@ -106,7 +106,7 @@ export const AskTab = () => {
                   key={label}
                   type="button"
                   onClick={() => void send(label)}
-                  className="rounded-lg border border-[#D8DAE5] bg-white px-3.5 py-2.5 text-left text-sm text-[#080D2D] transition hover:border-[#080D2D] hover:bg-[#F8F9FC]"
+                  className="rounded-lg border border-lightGray bg-white px-3.5 py-2.5 text-left text-sm text-primary transition hover:border-primary hover:bg-inputBackground"
                 >
                   {label}
                 </button>
@@ -119,16 +119,16 @@ export const AskTab = () => {
           message.role === "user" ? (
             <div
               key={index}
-              className="ml-auto max-w-[85%] whitespace-pre-wrap rounded-[12px] rounded-br-[4px] bg-[#080D2D] px-3.5 py-2.5 text-sm text-white"
+              className="ml-auto max-w-[85%] whitespace-pre-wrap rounded-[12px] rounded-br-[4px] bg-primary px-3.5 py-2.5 text-sm text-white"
             >
               {message.text}
             </div>
           ) : (
             <div key={index} className="flex max-w-[92%] gap-2">
-              <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-[#080D2D] text-white">
+              <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-primary text-white">
                 <BotMark />
               </span>
-              <div className="min-w-0 rounded-[12px] rounded-bl-[4px] border border-gray-200 bg-[#F8F9FC] px-3.5 py-2.5 text-sm text-[#080D2D]">
+              <div className="min-w-0 rounded-[12px] rounded-bl-[4px] border border-gray-200 bg-inputBackground px-3.5 py-2.5 text-sm text-primary">
                 <AiStructuredMessage display={message.display} fallbackText={message.text} />
               </div>
             </div>
@@ -149,13 +149,13 @@ export const AskTab = () => {
             onChange={(event) => setDraft(event.target.value)}
             placeholder="Ask anything about your tasks…"
             aria-label="Message the assistant"
-            className="h-10 min-w-0 flex-1 rounded-lg border border-gray-300 px-3 text-sm text-[#080D2D] outline-none focus:border-[#080D2D] focus:shadow-[0_0_0_4px_rgba(8,13,45,0.08)]"
+            className="h-10 min-w-0 flex-1 rounded-lg border border-gray-300 px-3 text-sm text-primary outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgb(var(--color-primary)/0.08)]"
           />
           <button
             type="submit"
             aria-label="Send"
             disabled={!draft.trim() || busy}
-            className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-[#080D2D] text-white transition hover:bg-[#080D2D]/90 disabled:opacity-60"
+            className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-primary text-white transition hover:bg-primary/90 disabled:opacity-60"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" aria-hidden="true">
               <path d="M4 12l16-8-6 16-2-7z" />

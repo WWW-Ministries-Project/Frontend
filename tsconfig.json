@@ -1,9 +1,8 @@
 {
     "compilerOptions": {
-      "baseUrl": "./src",
     "paths": {
-      "@/*": ["*"],
-      "@components/*": ["components/*"]
+      "@/*": ["./src/*"],
+      "@components/*": ["./src/components/*"]
     },
       "target": "es2015",
       "lib": ["dom", "dom.iterable", "esnext"],
@@ -15,7 +14,7 @@
       "forceConsistentCasingInFileNames": true,
       "noFallthroughCasesInSwitch": true,
       "module": "esnext",
-      "moduleResolution": "node",
+      "moduleResolution": "bundler",
       "resolveJsonModule": true,
       "isolatedModules": true,
       "noEmit": true,

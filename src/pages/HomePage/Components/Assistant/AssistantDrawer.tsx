@@ -48,9 +48,9 @@ export const AssistantDrawer = () => {
     <aside
       role="complementary"
       aria-label="Assistant"
-      className="fixed bottom-3 right-3 top-3 z-[150] flex w-[440px] max-w-[calc(100vw-24px)] flex-col overflow-hidden rounded-2xl border border-[#D8DAE5] bg-white shadow-[0_20px_45px_-20px_rgba(8,13,45,0.45)]"
+      className="fixed bottom-3 right-3 top-3 z-[150] flex w-[440px] max-w-[calc(100vw-24px)] flex-col overflow-hidden rounded-2xl border border-lightGray bg-white shadow-[0_20px_45px_-20px_rgba(8,13,45,0.45)]"
     >
-      <header className="flex-shrink-0 bg-[#080D2D] px-6 pt-5 text-white">
+      <header className="flex-shrink-0 bg-primary px-6 pt-5 text-white">
         <div className="flex items-center gap-3">
           <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-white/10">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" aria-hidden="true">
@@ -102,7 +102,7 @@ export const AssistantDrawer = () => {
                 onClick={() => setTab(entry.key)}
                 className={cn(
                   "flex items-center gap-2 rounded-t-lg px-3.5 py-2.5 text-sm",
-                  on ? "bg-white font-semibold text-[#080D2D]" : "font-normal text-white/80 hover:text-white"
+                  on ? "bg-white font-semibold text-primary" : "font-normal text-white/80 hover:text-white"
                 )}
               >
                 <span>{entry.label}</span>
@@ -110,7 +110,7 @@ export const AssistantDrawer = () => {
                   <span
                     className={cn(
                       "min-w-[20px] rounded-full px-1.5 text-center text-xs font-semibold leading-5",
-                      on ? "bg-[#080D2D] text-white" : "bg-white/20 text-white"
+                      on ? "bg-primary text-white" : "bg-white/20 text-white"
                     )}
                   >
                     {entry.count}

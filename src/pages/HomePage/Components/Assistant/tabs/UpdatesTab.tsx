@@ -65,7 +65,7 @@ export const UpdatesTab = () => {
       <div
         role="tablist"
         aria-label="Filter updates"
-        className="flex gap-1 rounded-lg border border-[#D8DAE5] bg-[#D8DAE5]/30 p-1"
+        className="flex gap-1 rounded-lg border border-lightGray bg-lightGray/30 p-1"
       >
         {FILTERS.map((entry) => {
           const on = filter === entry.key;
@@ -77,7 +77,7 @@ export const UpdatesTab = () => {
               aria-selected={on}
               onClick={() => setFilter(entry.key)}
               className={cn(
-                "flex-1 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-sm text-[#080D2D]",
+                "flex-1 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-sm text-primary",
                 on ? "bg-white font-semibold shadow-sm" : "font-normal hover:bg-white/70"
               )}
             >
@@ -93,7 +93,7 @@ export const UpdatesTab = () => {
           <button
             type="button"
             onClick={() => void markAllAsRead()}
-            className="rounded-lg px-2 py-1 text-sm font-medium text-[#080D2D] hover:bg-[#080D2D]/5"
+            className="rounded-lg px-2 py-1 text-sm font-medium text-primary hover:bg-primary/5"
           >
             Mark all read
           </button>
@@ -102,7 +102,7 @@ export const UpdatesTab = () => {
 
       {visible.length === 0 ? (
         <div className="flex flex-col items-center gap-2 py-8 text-center">
-          <p className="text-base font-semibold text-[#080D2D]">No updates yet</p>
+          <p className="text-base font-semibold text-primary">No updates yet</p>
           <p className="text-sm text-gray-600">I’ll post here when something happens for you.</p>
         </div>
       ) : (
@@ -116,18 +116,18 @@ export const UpdatesTab = () => {
                 onClick={() => openUpdate(item)}
                 className={cn(
                   "-mx-3 flex gap-3 rounded-lg border-b border-gray-200 px-3 py-4 text-left last:border-b-0",
-                  unread ? "bg-[#F8F9FC]" : "bg-transparent hover:bg-[#D8DAE5]/20"
+                  unread ? "bg-inputBackground" : "bg-transparent hover:bg-lightGray/20"
                 )}
               >
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
-                  <p className={cn("text-sm text-[#080D2D]", unread ? "font-semibold" : "font-medium")}>
+                  <p className={cn("text-sm text-primary", unread ? "font-semibold" : "font-medium")}>
                     {item.title}
                   </p>
                   {item.body ? <p className="text-sm text-gray-600">{item.body}</p> : null}
                   <span className="mt-1 text-xs text-gray-500">{formatWhen(item.createdAt)}</span>
                 </div>
                 {unread ? (
-                  <span aria-label="Unread" className="mt-2 h-2 w-2 flex-shrink-0 rounded-full bg-[#080D2D]" />
+                  <span aria-label="Unread" className="mt-2 h-2 w-2 flex-shrink-0 rounded-full bg-primary" />
                 ) : null}
               </button>
             );
@@ -138,7 +138,7 @@ export const UpdatesTab = () => {
               type="button"
               onClick={() => void loadMore()}
               disabled={loadingMore}
-              className="mt-3 self-center rounded-lg px-3 py-2 text-sm font-medium text-[#080D2D] hover:bg-[#080D2D]/5 disabled:opacity-60"
+              className="mt-3 self-center rounded-lg px-3 py-2 text-sm font-medium text-primary hover:bg-primary/5 disabled:opacity-60"
             >
               {loadingMore ? "Loading…" : "Load more"}
             </button>
