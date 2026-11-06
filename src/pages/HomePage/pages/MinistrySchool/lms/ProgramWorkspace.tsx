@@ -29,7 +29,9 @@ import {
 import {
   Btn,
   EmptyBlock,
+  KebabMenu,
   LoadError,
+  type MenuAction,
   Panel,
   Pill,
   SimpleTable,
@@ -362,15 +364,18 @@ export const CohortCard = ({
       </span>
     }
     action={
-      <div className="flex flex-wrap justify-end gap-1.5">
-        {canManage && (
-          <>
-            <Btn size="sm" onClick={onAddClass}>+ Class</Btn>
-            <Btn size="sm" onClick={onEdit}>Edit</Btn>
-          </>
-        )}
-        {canDelete && <Btn size="sm" className="text-red-700" onClick={onDelete}>Delete</Btn>}
+      <div className="flex flex-wrap items-center justify-end gap-1.5">
+        {canManage && <Btn size="sm" onClick={onAddClass}>+ Class</Btn>}
         <Btn size="sm" variant="primary" onClick={onOpen}>Open cohort</Btn>
+        {(canManage || canDelete) && (
+          <KebabMenu
+            label="Cohort actions"
+            actions={[
+              ...(canManage ? [{ label: "Edit", onClick: onEdit }] : []),
+              ...(canDelete ? [{ label: "Delete", onClick: onDelete, danger: true }] : []),
+            ] as MenuAction[]}
+          />
+        )}
       </div>
     }
   >
