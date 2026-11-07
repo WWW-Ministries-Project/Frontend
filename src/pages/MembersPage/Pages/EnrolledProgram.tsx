@@ -341,7 +341,7 @@ const EnrolledProgram: React.FC = () => {
                   {selectedTopic.description && (
                     <div className="rounded-xl border border-lightGray bg-white p-5">
                       <div
-                        className="prose max-w-none text-primaryGray"
+                        className="prose max-w-none break-words text-primaryGray"
                         dangerouslySetInnerHTML={{
                           __html: DOMPurify.sanitize(String(selectedTopic.description ?? "")),
                         }}

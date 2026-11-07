@@ -767,7 +767,7 @@ export const LearningUnits: React.FC<Props> = ({
       {unit?.type === "lesson-note" && (
         <>
           <div
-            className="prose max-w-none text-primaryGray"
+            className="prose max-w-none break-words text-primaryGray"
             dangerouslySetInnerHTML={{ __html: unit.data.content }}
           />
         </>
@@ -1133,7 +1133,7 @@ export const LearningUnits: React.FC<Props> = ({
           </div>
 
           <div
-            className="prose max-w-none text-primaryGray"
+            className="prose max-w-none break-words text-primaryGray"
             dangerouslySetInnerHTML={{ __html: String(essayUnitData?.question ?? "") }}
           />
 
