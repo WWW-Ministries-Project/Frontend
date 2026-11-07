@@ -1,3 +1,4 @@
+import type { SomNav } from "@/pages/HomePage/pages/MinistrySchool/lms/somUtils";
 import { relativePath } from "@/utils/const";
 
 const SOM = relativePath.member.schoolOfMinistries;
@@ -17,6 +18,20 @@ export const learnerPaths = {
   programDetails: (programId: number | string) =>
     abs(SOM.programDetailsPublic.replace(":programId", String(programId))),
   instructorPortal: abs(SOM.instructorPortal),
+};
+
+/**
+ * Member-portal navigation for the reused School of Ministry teaching pages
+ * (CohortsPage teaching view + ClassWorkspace). Keeps the instructor's "My
+ * classes" and class workspace inside the member top-nav shell. `program` is
+ * omitted so the shared list hides its "View program" link (the member portal
+ * has no instructor program page).
+ */
+export const memberSomNav: SomNav = {
+  cohorts: learnerPaths.instructorPortal,
+  cohort: () => learnerPaths.instructorPortal,
+  class: (cohortId, classId) =>
+    `${learnerPaths.instructorPortal}/class/${cohortId}/${classId}`,
 };
 
 /** The learner menu, shared by the desktop dropdown and the mobile accordion. */
