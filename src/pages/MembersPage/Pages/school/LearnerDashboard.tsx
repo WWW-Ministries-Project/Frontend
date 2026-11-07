@@ -39,10 +39,8 @@ const LearnerDashboard = () => {
   const { data: sessionsData } = useFetch(api.fetch.fetchLearnerSessions, {
     from: new Date().toISOString().slice(0, 10),
   });
-  const { data: announcementsData } = useFetch(api.fetch.fetchLearnerAnnouncements);
 
   const sessions = (sessionsData?.data ?? []).filter((s) => !s.cancelled).slice(0, 3);
-  const latest = announcementsData?.data?.[0] ?? null;
   const assignments = flattenAssignments(enrollments);
   const dueSoon = assignments.filter(isOutstanding).slice(0, 4);
   const dueThisWeek = assignments.filter((a) => assignmentState(a) === "due").length;
@@ -196,23 +194,6 @@ const LearnerDashboard = () => {
               )}
             </Panel>
           </div>
-
-          <Panel
-            title="Latest announcement"
-            action={<Btn variant="ghost" to={learnerPaths.announcements}>View all</Btn>}
-          >
-            {latest ? (
-              <div className="flex flex-col gap-1 px-4 py-3.5">
-                <p className="text-sm font-semibold text-primary">{latest.title}</p>
-                <p className="whitespace-pre-line text-[13px] text-primaryGray">{latest.body}</p>
-                <p className="text-xs text-mainGray">
-                  {latest.sentByName ?? "School of Ministry"} · {shortDate(latest.sentAt)}
-                </p>
-              </div>
-            ) : (
-              <p className="px-4 py-6 text-sm text-primaryGray">No announcements yet.</p>
-            )}
-          </Panel>
         </>
       )}
     </LearnerShell>

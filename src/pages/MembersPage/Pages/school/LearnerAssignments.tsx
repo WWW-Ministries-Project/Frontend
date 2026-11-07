@@ -112,7 +112,7 @@ const LearnerAssignments = () => {
     <LearnerShell>
       <PageHeader
         title="Assignments"
-        subtitle="Due dates follow your cohort's calendar. Extensions from your instructor are already applied."
+        subtitle="Due dates follow your cohort's calendar. Self-paced work counts from your enrolment date."
       />
 
       <div role="tablist" aria-label="Filter assignments" className="flex flex-wrap gap-2">
