@@ -231,7 +231,9 @@ export const LearningUnits: React.FC<Props> = ({
   const isVideo = unit?.type === "video";
   const rawVideoValue = useMemo(() => {
     if (!isVideo) return "";
-    return String((unit.data as { value?: string })?.value ?? "").trim();
+    // Current builder stores the link in `url`; older units used the flat `value`.
+    const d = unit.data as { value?: string; url?: string };
+    return String(d?.url ?? d?.value ?? "").trim();
   }, [isVideo, unit]);
 
   const normalizedVideoValue = useMemo(
@@ -263,6 +265,7 @@ export const LearningUnits: React.FC<Props> = ({
       isLive
         ? ((unit?.data ?? {}) as {
             value?: string;
+            meetingLink?: string;
             startsAt?: string;
             endsAt?: string;
             location?: string;
@@ -271,7 +274,8 @@ export const LearningUnits: React.FC<Props> = ({
     [isLive, unit]
   );
   const liveMeetingLink = useMemo(
-    () => safeHttpUrl(liveData?.value),
+    // Current builder stores the link in `meetingLink`; older units used `value`.
+    () => safeHttpUrl(liveData?.meetingLink ?? liveData?.value),
     [liveData]
   );
   const liveStartsAt = liveData?.startsAt;
