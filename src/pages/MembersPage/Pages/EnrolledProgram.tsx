@@ -304,11 +304,11 @@ const EnrolledProgram: React.FC = () => {
       {/* Main Content Area — one unified panel holding the sidebar and the
           topic content, matching the prototype's course player. */}
       <main className="w-full">
-        <div className="rounded-2xl border border-lightGray bg-white p-4 shadow-sm md:p-6">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-            {/* Topics Sidebar - Left */}
+        <div className="overflow-hidden rounded-2xl border border-lightGray bg-white shadow-sm">
+          <div className="flex flex-col lg:flex-row lg:items-stretch">
+            {/* Topics Sidebar - Left (subtle tint + divider, like the prototype) */}
             <aside
-              className="w-full shrink-0 lg:sticky lg:top-28 lg:w-[280px] lg:border-r lg:border-lightGray lg:pr-6"
+              className="w-full shrink-0 border-b border-lightGray bg-lightGray/20 p-4 md:p-5 lg:w-[300px] lg:border-b-0 lg:border-r"
               aria-label="Course topics navigation"
             >
               <CourseSidebar
@@ -321,7 +321,7 @@ const EnrolledProgram: React.FC = () => {
             </aside>
 
             {/* Main Content - Center */}
-            <section className="min-w-0 flex-1" aria-label="Topic content">
+            <section className="min-w-0 flex-1 p-4 md:p-6" aria-label="Topic content">
               {selectedTopic ? (
                 <div className="space-y-6">
                   <div>

@@ -41,25 +41,25 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
   // filter list (items carry no type, completed or locked state) shows none.
   const renderIcon = (nav: NavItem) => {
     if (nav.completed) {
-      return <CheckCircleIcon title="Completed" className="h-5 w-5 text-lime-600" />;
+      return <CheckCircleIcon title="Completed" className="h-5 w-5 text-green-600" />;
     }
 
     if (nav.type === undefined && !nav.locked) return null;
 
+    // A plain hollow ring for current / upcoming / locked topics — the active
+    // row is distinguished by its filled background, not the indicator.
     return (
       <span
         aria-hidden
         className={cn(
-          "flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border-2",
+          "h-5 w-5 flex-shrink-0 rounded-full border-2",
           nav.locked
             ? "border-primaryGray/30"
             : nav.active
               ? "border-white"
               : "border-primaryGray/40"
         )}
-      >
-        {nav.active && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
-      </span>
+      />
     );
   };
 
