@@ -335,14 +335,20 @@ export const CohortRoster = ({ roster }: { roster: EnrollmentRow[] }) => {
   );
 };
 
-const CohortAssessments = ({
+export const CohortAssessments = ({
   cohortId,
   programId,
   canManage,
+  showGrade = true,
+  showCurriculumLink = true,
 }: {
   cohortId: number;
   programId: number;
   canManage: boolean;
+  /** Admin-only shortcut into the grading page; hidden in the member class view. */
+  showGrade?: boolean;
+  /** Admin-only empty-state link into the curriculum editor. */
+  showCurriculumLink?: boolean;
 }) => {
   const navigate = useNavigate();
   const { data, loading, refetch } = useFetch(api.fetch.fetchCohortAssignments, {
@@ -398,7 +404,11 @@ const CohortAssessments = ({
           empty={
             <EmptyBlock
               msg="This program has no quizzes or essays yet."
-              action={<Btn size="sm" to={somPaths.program(programId, "Curriculum")}>Open curriculum</Btn>}
+              action={
+                showCurriculumLink ? (
+                  <Btn size="sm" to={somPaths.program(programId, "Curriculum")}>Open curriculum</Btn>
+                ) : undefined
+              }
             />
           }
           columns={[
@@ -444,13 +454,15 @@ const CohortAssessments = ({
                         Open
                       </Btn>
                     ))}
-                  <Btn
-                    size="sm"
-                    variant="primary"
-                    onClick={() => navigate(somPaths.grading(programId, cohortId, r.topic.id))}
-                  >
-                    Grade
-                  </Btn>
+                  {showGrade && (
+                    <Btn
+                      size="sm"
+                      variant="primary"
+                      onClick={() => navigate(somPaths.grading(programId, cohortId, r.topic.id))}
+                    >
+                      Grade
+                    </Btn>
+                  )}
                 </div>
               ),
             },
