@@ -7,5 +7,5 @@ import { ReactNode } from "react";
  * children.
  */
 export const LearnerShell = ({ children }: { children: ReactNode }) => (
-  <div className="flex flex-col gap-5">{children}</div>
+  <div className="flex flex-col gap-5 py-4 md:py-6">{children}</div>
 );
