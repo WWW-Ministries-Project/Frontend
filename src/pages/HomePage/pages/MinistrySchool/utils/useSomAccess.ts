@@ -1,7 +1,12 @@
 import { useCallback, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useAuth } from "@/context/AuthWrapper";
 import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { normalizePermissionPayload, type PermissionMap } from "@/utils/accessControl";
+
+/** Query flag the combined nav sets so an admin who also teaches can open their teaching views. */
+export const TEACHING_VIEW_PARAM = "view";
+export const TEACHING_VIEW_VALUE = "teaching";
 
 export type SomAction =
   | "view_reports"
@@ -43,6 +48,9 @@ export const useSomAccess = () => {
   const {
     user: { instructor },
   } = useAuth();
+  const [searchParams] = useSearchParams();
+  const teachingParam =
+    searchParams.get(TEACHING_VIEW_PARAM) === TEACHING_VIEW_VALUE;
 
   const legacyRole = useMemo(
     () =>
@@ -113,10 +121,17 @@ export const useSomAccess = () => {
     viewsAll,
     instructor: Boolean(instructor),
     /**
-     * Whether to show the instructor experience (My teaching / My classes):
-     * the user teaches but does not read the whole school. Whole-school admins
-     * who also teach keep the full admin navigation.
+     * Whether this user only ever gets the instructor experience: they teach
+     * but do not read the whole school. Whole-school admins who also teach keep
+     * their full admin navigation and reach their teaching views through the
+     * combined nav instead (see `teachingView`).
      */
     instructorView: Boolean(instructor) && !viewsAll,
+    /**
+     * Whether to render the instructor cut of a page right now: a pure
+     * instructor always, or an admin who also teaches while the combined nav
+     * has them in the "My teaching" view (`?view=teaching`).
+     */
+    teachingView: Boolean(instructor) && (!viewsAll || teachingParam),
   };
 };

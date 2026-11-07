@@ -33,7 +33,7 @@ type ProgramGroup = {
 export const CohortsPage = () => {
   const navigate = useNavigate();
   const { loading, cohorts, error, refetch } = useSomData();
-  const { instructorView } = useSomAccess();
+  const { teachingView } = useSomAccess();
   const myId = Number(useAuth().user.id);
   const [tab, setTab] = useState<CohortStatus>(COHORT_STATUS.ONGOING);
 
@@ -41,10 +41,10 @@ export const CohortsPage = () => {
   // teach; the data context has already limited this to your programs.
   const source = useMemo(
     () =>
-      instructorView
+      teachingView
         ? cohorts.filter((c) => c.courses.some((cls) => isMyClass(cls, myId)))
         : cohorts,
-    [cohorts, instructorView, myId]
+    [cohorts, teachingView, myId]
   );
 
   const counts = useMemo(() => {
@@ -80,9 +80,9 @@ export const CohortsPage = () => {
       <div className="flex flex-col gap-5">
         {error && <LoadError msg={error} onRetry={refetch} />}
         <PageHeader
-          title={instructorView ? "My classes" : "Cohorts"}
+          title={teachingView ? "My classes" : "Cohorts"}
           subtitle={
-            instructorView
+            teachingView
               ? "The cohorts you teach in, grouped by program. Open one to take attendance, grade and message your learners."
               : "Each cohort is one run of a program, split into classes by delivery mode. Create cohorts from a program."
           }
@@ -163,7 +163,7 @@ export const CohortsPage = () => {
                         <ProgressBar value={c.timing.pct} tone="gold" />
                       </div>
                       <ul className="flex flex-col gap-1">
-                        {(instructorView
+                        {(teachingView
                           ? c.courses.filter((k) => isMyClass(k, myId))
                           : c.courses
                         )

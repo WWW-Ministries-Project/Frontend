@@ -125,6 +125,28 @@ export const durationInWeeks = (duration?: string | null): number | null => {
   return Math.round(n * 52);
 };
 
+/** Setup-wizard defaults for a program's first cohort (name, dates, duration). */
+export const suggestFirstCohort = (
+  programTitle: string,
+  existingCount: number,
+  now: Date = new Date()
+): { name: string; duration: string; startDate: string; applicationDeadline: string } => {
+  const start = new Date(now.getFullYear(), now.getMonth() + 1, 1); // first of next month
+  const deadline = new Date(start.getTime() - 7 * DAY_MS);
+  const iso = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  return {
+    name: `${programTitle} · Cohort ${existingCount + 1}`,
+    duration: "8 weeks",
+    startDate: iso(start),
+    applicationDeadline: iso(deadline),
+  };
+};
+
+/** Setup-wizard default class name: A, B, C … by how many classes a cohort already has. */
+export const suggestClassName = (existingCount: number): string =>
+  `Class ${"ABCDEFGHIJKLMNOPQRSTUVWXYZ"[Math.min(existingCount, 25)]}`;
+
 export type CohortTiming = {
   status: CohortStatus;
   /** 0–100, share of the cohort's calendar that has elapsed. */

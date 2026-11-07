@@ -37,10 +37,13 @@ export const useProgramEditor = ({
   allPrograms,
   onSaved,
   onDeleted,
+  onCreated,
 }: {
   allPrograms: { id: number; title: string }[];
   onSaved?: () => void;
   onDeleted?: () => void;
+  /** Called after a program is created (not edited), with its new id — used to open the setup flow. */
+  onCreated?: (program: { id: number }) => void;
 }) => {
   const { activeBranchId } = useBranchStore();
   const [open, setOpen] = useState(false);
@@ -87,15 +90,18 @@ export const useProgramEditor = ({
     );
     setSaving(true);
     try {
+      let createdId: number | undefined;
       if (editing) {
         await api.put.updateProgram(payload, { id: String(editing.id) });
       } else {
-        await api.post.createProgram(payload);
+        const res = await api.post.createProgram(payload);
+        createdId = (res as { data?: { id?: number } } | undefined)?.data?.id;
       }
       tracker.success();
       showNotification(editing ? "Program updated" : "Program created", "success");
       close();
       onSaved?.();
+      if (createdId) onCreated?.({ id: createdId });
     } catch (error) {
       tracker.failure({ error });
       showNotification(

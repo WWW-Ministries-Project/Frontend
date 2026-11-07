@@ -17,6 +17,7 @@ import { ProgramInstructorsPanel } from "./people/ProgramInstructorsPanel";
 import { ProgramCertificates } from "./assessment/ProgramCertificates";
 import { GradingModelPanel } from "./curriculum/GradingModelPanel";
 import { ModuleBoard } from "./curriculum/ModuleBoard";
+import { ProgramSetupChecklist } from "./ProgramSetupChecklist";
 import { useSomData } from "./somDataContext";
 import {
   audienceLabel,
@@ -25,6 +26,8 @@ import {
   isAssessmentUnit,
   personName,
   somPaths,
+  suggestClassName,
+  suggestFirstCohort,
 } from "./somUtils";
 import {
   Btn,
@@ -96,6 +99,10 @@ export const ProgramWorkspace = () => {
   });
   const cohortEditors = useCohortEditors({ onChanged: refreshAll });
 
+  // Guided setup for a freshly created program (opened with ?setup=1).
+  const inSetup = params.get("setup") === "1";
+  const [setupCollapsed, setSetupCollapsed] = useState(false);
+
   const tabParam = params.get("tab") as Tab | null;
   const tab: Tab = tabParam && TABS.includes(tabParam) ? tabParam : "Overview";
   const setTab = (t: string) => {
@@ -125,6 +132,45 @@ export const ProgramWorkspace = () => {
 
   const summary = full?.enrollment_summary;
   const title = detail.title;
+
+  // Setup checklist state, ticked off from the program's real data.
+  const moduleCount = full?.program_details?.module_count ?? 0;
+  const unitCount = topics.length;
+  const classCount = cohortRows.reduce((n, c) => n + c.courses.length, 0);
+  const firstCohort = cohortRows[0];
+  const isDraft = full?.program_details?.status === "DRAFT";
+
+  const startFirstCohort = () =>
+    cohortEditors.newCohort(programId, {
+      prefill: {
+        ...suggestFirstCohort(title, cohortRows.length),
+        description: "",
+        status: COHORT_STATUS.UPCOMING,
+        branch_id: "",
+      },
+      chainClass: true,
+      classPrefill: {
+        name: suggestClassName(0),
+        capacity: 20,
+        schedule: "Saturdays 09:00",
+        classFormat: "In_Person",
+      },
+    });
+
+  const addFirstClass = () => {
+    if (!firstCohort) return;
+    cohortEditors.newClass(firstCohort.id, {
+      name: suggestClassName(firstCohort.courses.length),
+      capacity: 20,
+      schedule: "Saturdays 09:00",
+      classFormat: "In_Person",
+    });
+  };
+
+  const finishSetup = () => {
+    params.delete("setup");
+    setParams(params, { replace: true });
+  };
 
   return (
     <div className="flex min-h-full flex-col">
@@ -170,6 +216,27 @@ export const ProgramWorkspace = () => {
         activeTab={tab}
         onTab={setTab}
       />
+
+      {inSetup && (canDesign || canManageCohorts) && (
+        <ProgramSetupChecklist
+          moduleCount={moduleCount}
+          unitCount={unitCount}
+          cohortCount={cohortRows.length}
+          classCount={classCount}
+          collapsed={setupCollapsed}
+          canDesign={canDesign}
+          canManageCohorts={canManageCohorts}
+          isDraft={isDraft}
+          onToggleCollapsed={() => setSetupCollapsed((v) => !v)}
+          onGoCurriculum={() => setTab("Curriculum")}
+          onGoCohorts={() => setTab("Cohorts")}
+          onCreateCohort={startFirstCohort}
+          onAddClass={addFirstClass}
+          onPublish={() => full && programEditor.publish(full)}
+          onOpenCohort={() => firstCohort && navigate(somPaths.cohort(firstCohort.id))}
+          onFinish={finishSetup}
+        />
+      )}
 
       <div className="app-page-padding flex flex-col gap-4">
         {som.error && <LoadError msg={som.error} onRetry={som.refetch} />}

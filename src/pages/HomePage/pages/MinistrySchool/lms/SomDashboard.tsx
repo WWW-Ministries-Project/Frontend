@@ -308,10 +308,10 @@ const AdminDashboard = () => {
   );
 };
 
-/** Instructors who teach but hold no whole-school role get "My teaching". */
+/** Instructors who teach get "My teaching"; whole-school admins who also teach reach it via the combined nav. */
 export const SomDashboard = () => {
-  const { instructorView } = useSomAccess();
-  return instructorView ? <InstructorDashboard /> : <AdminDashboard />;
+  const { teachingView } = useSomAccess();
+  return teachingView ? <InstructorDashboard /> : <AdminDashboard />;
 };
 
 const DateTile = ({ value }: { value: string }) => {

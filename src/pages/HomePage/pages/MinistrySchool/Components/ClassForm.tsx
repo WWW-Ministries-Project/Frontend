@@ -16,6 +16,8 @@ interface IProps {
   onClose: () => void;
   onSubmit: (values: IClassForm) => void;
   initialData?: IClassForm;
+  /** Suggested values for a new class (setup wizard); keeps the "Add New Class" header. */
+  prefill?: Partial<IClassForm>;
   loading?: boolean;
 }
 
@@ -23,6 +25,7 @@ export const ClassForm = ({
   onClose,
   onSubmit,
   initialData,
+  prefill,
   loading = false,
 }: IProps) => {
   const membersOptions = useStore((state) => state.membersOptions);
@@ -43,11 +46,12 @@ export const ClassForm = ({
   const initial = useMemo(() => {
     return {
       ...initialValues,
+      ...prefill,
       ...initialData,
-      meetingLink: initialData?.meetingLink || "",
-      location: initialData?.location || "",
+      meetingLink: initialData?.meetingLink || prefill?.meetingLink || "",
+      location: initialData?.location || prefill?.location || "",
     };
-  }, [initialData]);
+  }, [initialData, prefill]);
   return (
     <div className="bg-white  rounded-lg max-h-[90vh] md:h-full md:w-[45rem] text-primary space-y-4 overflow-auto">
       

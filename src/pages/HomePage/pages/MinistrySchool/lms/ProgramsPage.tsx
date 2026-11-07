@@ -19,7 +19,13 @@ export const ProgramsPage = () => {
   const canEdit = som.can("design_curriculum");
   const canDelete = som.canDelete;
   const { loading, programs, cohorts, refetch, error } = useSomData();
-  const editor = useProgramEditor({ allPrograms: programs, onSaved: refetch, onDeleted: refetch });
+  const editor = useProgramEditor({
+    allPrograms: programs,
+    onSaved: refetch,
+    onDeleted: refetch,
+    // A new program drops straight into guided setup on its Curriculum tab.
+    onCreated: (p) => navigate(`${somPaths.program(p.id, "Curriculum")}&setup=1`),
+  });
 
   useEffect(() => {
     if (params.get("new") === "1" && canCreate) {
