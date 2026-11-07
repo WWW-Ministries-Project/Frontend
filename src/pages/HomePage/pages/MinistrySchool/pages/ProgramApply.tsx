@@ -3,28 +3,43 @@ import { Modal } from "@/components/Modal";
 import { Button } from "@/components";
 import { useFetch } from "@/CustomHooks/useFetch";
 import { ProgramDetailsModal } from "@/pages/MembersPage/Component/ProgramDetailsModal";
-import CourseSidebar from "@/pages/MembersPage/Component/CourseSidebar";
 import { learnerPaths } from "@/pages/MembersPage/Pages/school/learnerPaths";
 import { showNotification } from "@/pages/HomePage/utils";
 import { useUserStore } from "@/store/userStore";
 import { api, ApplyResult, ClassOption, Programs, relativePath } from "@/utils";
-import { Badge } from "@/components/Badge";
-import {
-  CheckCircleIcon,
-  Squares2X2Icon,
-  Square3Stack3DIcon,
-  UserGroupIcon,
-} from "@heroicons/react/24/outline";
+import { formatLabel } from "@/pages/HomePage/pages/MinistrySchool/lms/somUtils";
+import { CheckCircleIcon } from "@heroicons/react/24/outline";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-type ProgramFilter = "all" | "member_required" | "leader_required" | "ministry_required";
+const formatDate = (value?: string | null) => {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+};
+
+/** Earliest class start date + the delivery formats on offer, for the card meta. */
+const programSchedule = (program: Programs) => {
+  const courses = program.courses ?? [];
+  const startTimes = courses
+    .map((course) => course.startDate)
+    .filter((value): value is string => Boolean(value))
+    .map((value) => new Date(value).getTime())
+    .filter((time) => !Number.isNaN(time));
+  const starts = startTimes.length
+    ? formatDate(new Date(Math.min(...startTimes)).toISOString())
+    : null;
+  const modes = Array.from(
+    new Set(courses.map((course) => course.mode).filter(Boolean))
+  ).map((mode) => formatLabel(mode as string));
+  return { starts, modes };
+};
 
 const ProgramApply = () => {
   const [open, setOpen] = useState(false);
   const [activeProgram, setActiveProgram] = useState<Programs | null>(null);
   const [selectedClassId, setSelectedClassId] = useState<string>("");
-  const [filter, setFilter] = useState<ProgramFilter>("all");
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
 
@@ -47,35 +62,10 @@ const ProgramApply = () => {
     return activeProgram?.courses?.find((course) => course.id === selectedClassId);
   }, [activeProgram, selectedClassId]);
 
-  const programStatus = [
-    { id: 1, name: "All", key: "all", active: filter === "all" },
-    { id: 2, name: "Members", key: "member_required", active: filter === "member_required" },
-    { id: 3, name: "Leaders", key: "leader_required", active: filter === "leader_required" },
-    { id: 4, name: "Ministry Workers", key: "ministry_required", active: filter === "ministry_required" },
-  ];
-
-  const filteredPrograms = useMemo(() => {
-    if (filter === "all") return programs;
-    return programs.filter((program) => program[filter] === true);
-  }, [programs, filter]);
-
-  const getInitials = (name: string) =>
-    name
-      .split(" ")
-      .filter(Boolean)
-      .map((part) => part[0])
-      .join("")
-      .toUpperCase();
-
   const handleOpen = (program: Programs) => {
     setActiveProgram(program);
     setSelectedClassId("");
     setOpen(true);
-  };
-
-  const handleStatusSelect = (id: string | number) => {
-    const selected = programStatus.find((state) => state.id === Number(id));
-    if (selected) setFilter(selected.key as ProgramFilter);
   };
 
   const handleSubmit = async (): Promise<ApplyResult | null> => {
@@ -137,145 +127,89 @@ const ProgramApply = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <div key={index} className="animate-pulse rounded-xl border border-lightGray bg-white p-5">
+            <div className="mb-3 h-3 w-1/3 rounded bg-lightGray/70" />
+            <div className="mb-3 h-5 w-2/3 rounded bg-lightGray" />
+            <div className="mb-2 h-3 w-full rounded bg-lightGray/80" />
+            <div className="mb-6 h-3 w-5/6 rounded bg-lightGray/70" />
+            <div className="h-9 w-full rounded bg-lightGray/50" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (!programs.length) {
+    return (
+      <div className="rounded-xl border border-lightGray bg-white p-6 text-center">
+        <EmptyState
+          scope="section"
+          title="No Programs Available"
+          description="Programs will appear here once they are published."
+        />
+      </div>
+    );
+  }
+
   return (
-    <main className="mx-auto">
-      <div className="flex flex-col gap-6 lg:flex-row">
-        <div className="w-full lg:w-64">
-          <CourseSidebar
-            heading="Category"
-            navItems={programStatus.map((state) => ({
-              id: state.id,
-              name: state.name,
-              active: state.active,
-            }))}
-            onSelect={handleStatusSelect}
-          />
-        </div>
-
-        <div className="flex flex-1 flex-col gap-4">
-          {loading ? (
-            <div className="space-y-3">
-              {Array.from({ length: 3 }).map((_, index) => (
-                <div key={index} className="animate-pulse rounded-xl border border-lightGray bg-white p-4">
-                  <div className="mb-4 h-5 w-1/3 rounded bg-lightGray" />
-                  <div className="mb-2 h-3 w-full rounded bg-lightGray/80" />
-                  <div className="h-3 w-5/6 rounded bg-lightGray/70" />
-                </div>
-              ))}
-            </div>
-          ) : filteredPrograms.length > 0 ? (
-            filteredPrograms.map((program) => {
-              const applied = appliedProgramIds.has(String(program.id));
-              return (
-              <article
-                key={program.id}
-                className="rounded-xl border border-lightGray bg-white p-4 shadow-sm"
-              >
-                <header className="flex items-start justify-between gap-3">
-                  <div className="space-y-1">
-                    <h2 className="text-lg font-semibold text-primary">{program.name}</h2>
-                    <p className="text-sm text-primaryGray">{program.description}</p>
-                  </div>
-                  {applied && (
-                    <span className="inline-flex flex-shrink-0 items-center gap-1 rounded-full bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-700">
-                      <CheckCircleIcon className="w-4" />
-                      Applied
-                    </span>
-                  )}
-                </header>
-
-                {!!program?.prerequisites?.length && (
-                  <section className="mt-4 space-y-2">
-                    <p className="flex items-center gap-2 text-sm font-semibold text-primary">
-                      <Square3Stack3DIcon className="w-5" />
-                      Prerequisites
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {program.prerequisites.map((prerequisite) => (
-                        <span
-                          key={prerequisite}
-                          className="rounded-md bg-lightGray/30 px-2 py-1 text-sm text-primary"
-                        >
-                          {prerequisite}
-                        </span>
-                      ))}
-                    </div>
-                  </section>
+    <>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {programs.map((program) => {
+          const applied = appliedProgramIds.has(String(program.id));
+          const { starts, modes } = programSchedule(program);
+          return (
+            <article
+              key={program.id}
+              className="flex flex-col rounded-xl border border-lightGray bg-white p-5"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <p className="text-xs text-mainGray">{program.upcomingCohort || "Open for enrolment"}</p>
+                {applied && (
+                  <span className="inline-flex flex-shrink-0 items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-xs font-semibold text-green-700">
+                    <CheckCircleIcon className="w-3.5" />
+                    Applied
+                  </span>
                 )}
+              </div>
 
-                <section className="mt-4 space-y-2">
-                  <p className="flex items-center gap-2 text-sm font-semibold text-primary">
-                    <UserGroupIcon className="w-5" />
-                    Facilitators
-                  </p>
-                  <div className="flex flex-wrap gap-3">
-                    {Array.from(
-                      new Set(program.courses?.map((course) => course.facilitator).filter(Boolean))
-                      ).map((facilitator) => (
-                        <div key={facilitator} className="flex items-center gap-2 text-sm">
-                          <span className="rounded-full bg-lightGray/30 px-2 py-1 font-medium text-primary">
-                            {getInitials(facilitator)}
-                          </span>
-                        <span className="font-medium text-primary">{facilitator}</span>
-                      </div>
-                    ))}
-                  </div>
-                </section>
+              <h2 className="mt-2 text-lg font-semibold text-primary">{program.name}</h2>
+              {program.description && (
+                <p className="mt-1.5 line-clamp-2 text-sm text-primaryGray">{program.description}</p>
+              )}
 
-                <section className="mt-4 space-y-2">
-                  <p className="flex items-center gap-2 text-sm font-semibold text-primary">
-                    <Squares2X2Icon className="w-5" />
-                    Cohort
-                  </p>
-                  <p className="text-sm text-primaryGray">{program.upcomingCohort || "Not assigned"}</p>
-                </section>
+              <p className="mt-3 text-sm text-primaryGray">
+                <span className="font-semibold text-primary">Starts</span> {starts || "To be announced"}
+                {modes.length ? ` · ${modes.join(", ")}` : ""}
+              </p>
 
-                <section className="mt-4 space-y-2">
-                  <p className="flex items-center gap-2 text-sm font-semibold text-primary">
-                    <Squares2X2Icon className="w-5" />
-                    Target Group
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {program.leader_required && <Badge>Leaders</Badge>}
-                    {program.ministry_required && <Badge>Ministry workers</Badge>}
-                    {program.member_required && <Badge>Church members</Badge>}
-                  </div>
-                </section>
-
-                <div className="mt-5 flex flex-wrap justify-end gap-3 border-t border-lightGray pt-4">
-                  <button
-                    type="button"
-                    onClick={() => navigate(learnerPaths.programDetails(program.id))}
-                    className="rounded-lg border border-lightGray bg-white px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-gray-50"
+              <div className="mt-auto flex items-center gap-3 pt-5">
+                <button
+                  type="button"
+                  onClick={() => navigate(learnerPaths.programDetails(program.id))}
+                  className="rounded-lg border border-lightGray bg-white px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-gray-50"
+                >
+                  View details
+                </button>
+                {applied ? (
+                  <span
+                    aria-disabled="true"
+                    title="You have already applied to this program"
+                    className="inline-flex cursor-default items-center gap-1.5 rounded-lg bg-green-50 px-4 py-2 text-sm font-semibold text-green-700"
                   >
-                    View details
-                  </button>
-                  {applied ? (
-                    <span
-                      aria-disabled="true"
-                      title="You have already applied to this program"
-                      className="inline-flex cursor-default items-center gap-1.5 rounded-lg bg-green-50 px-4 py-2 text-sm font-semibold text-green-700"
-                    >
-                      <CheckCircleIcon className="w-5" />
-                      Applied
-                    </span>
-                  ) : (
-                    <Button value="Apply" onClick={() => handleOpen(program)} />
-                  )}
-                </div>
-              </article>
-              );
-            })
-          ) : (
-            <div className="rounded-xl border border-lightGray bg-white p-6 text-center">
-              <EmptyState
-                scope="section"
-                title="No Programs Available"
-                description="Programs will appear here once they are published."
-              />
-            </div>
-          )}
-        </div>
+                    <CheckCircleIcon className="w-5" />
+                    Applied
+                  </span>
+                ) : (
+                  <Button value="Apply" onClick={() => handleOpen(program)} />
+                )}
+              </div>
+            </article>
+          );
+        })}
       </div>
 
       <Modal
@@ -294,7 +228,7 @@ const ProgramApply = () => {
           submitting={submitting}
         />
       </Modal>
-    </main>
+    </>
   );
 };
 

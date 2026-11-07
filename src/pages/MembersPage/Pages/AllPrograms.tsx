@@ -6,7 +6,7 @@ const AllPrograms = () => (
   <LearnerShell>
     <PageHeader
       title="Browse programs"
-      subtitle="Programs open for enrolment. Eligible applicants are enrolled automatically; others go to the School of Ministry office for review."
+      subtitle="Programs open for enrolment. Eligible applicants are enrolled automatically."
     />
     <ProgramApply />
   </LearnerShell>
