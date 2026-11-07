@@ -1,7 +1,7 @@
 import React from "react";
 import { cn } from "@/utils/cn";
-import { BookOpenIcon, ChevronRightIcon, DocumentCheckIcon, DocumentTextIcon, LockClosedIcon, PlayIcon, VideoCameraIcon } from "@heroicons/react/24/outline";
-import { CheckCircleIcon, } from "@heroicons/react/24/solid";
+import { ChevronRightIcon, LockClosedIcon } from "@heroicons/react/24/outline";
+import { CheckCircleIcon } from "@heroicons/react/24/solid";
 
 export interface NavItem {
   id: string | number;
@@ -24,6 +24,8 @@ type CourseSidebarProps = {
   onSelect?: (id: string | number) => void;
   /** When set, a progress bar heads the list (course player). */
   progress?: number;
+  /** Drop the card chrome (border/background/padding) to sit inside a host surface. */
+  bare?: boolean;
 };
 
 const CourseSidebar: React.FC<CourseSidebarProps> = ({
@@ -31,57 +33,45 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
   heading = "Topic",
   onSelect,
   progress,
+  bare = false,
 }) => {
   
+  // Uniform circle indicators for the course player: a green check for a
+  // completed topic, a ring with a dot for the current one, and an empty circle
+  // for anything upcoming or locked — matching the prototype. The category
+  // filter list (items carry no type, completed or locked state) shows none.
   const renderIcon = (nav: NavItem) => {
-    const iconClass = cn(
-      "h-6 w-6",
-      nav.locked
-        ? "text-primaryGray/40"
-        : nav.active
-          ? "text-white"
-          : nav.completed
-            ? "text-lime-700"
-            : "text-primary"
-    );
-
     if (nav.completed) {
-      return (
-        <CheckCircleIcon
-          title="Completed"
-          className={iconClass}
-        />
-      );
+      return <CheckCircleIcon title="Completed" className="h-5 w-5 text-lime-600" />;
     }
 
-    if (nav.locked) {
-      return <LockClosedIcon title="Locked" className={iconClass} />;
-    }
+    if (nav.type === undefined && !nav.locked) return null;
 
-    switch (nav.type) {
-      case "live":
-        return <VideoCameraIcon className={iconClass} />;
-      case "video":
-        return <PlayIcon className={iconClass} />;
-      case "lesson-note":
-        return <BookOpenIcon className={iconClass} />;
-      case "pdf":
-      case "ppt":
-        return <DocumentTextIcon className={iconClass} />;
-      case "assignment":
-      case "assignment-essay":
-        return <DocumentCheckIcon className={iconClass}/>;
-      default:
-        return null;
-    }
+    return (
+      <span
+        aria-hidden
+        className={cn(
+          "flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border-2",
+          nav.locked
+            ? "border-primaryGray/30"
+            : nav.active
+              ? "border-white"
+              : "border-primaryGray/40"
+        )}
+      >
+        {nav.active && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
+      </span>
+    );
   };
 
   return (
-    <aside className="w-full  lg:flex-shrink-0 " aria-label={`${heading} sidebar`}>
-      <div className="rounded-xl border border-lightGray bg-white p-4">
-        <h2 className="mb-4 text-xs font-semibold uppercase tracking-wider text-primaryGray">
-          {heading}
-        </h2>
+    <aside className="w-full  lg:flex-shrink-0 " aria-label={`${heading || "Course content"} sidebar`}>
+      <div className={bare ? "" : "rounded-xl border border-lightGray bg-white p-4"}>
+        {heading && (
+          <h2 className="mb-4 text-xs font-semibold uppercase tracking-wider text-primaryGray">
+            {heading}
+          </h2>
+        )}
 
         {progress !== undefined && (
           <div className="mb-4">
@@ -98,7 +88,7 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
           </div>
         )}
 
-        <nav className={navItems.some((n) => n.group) ? "space-y-1" : "space-y-6"} role="navigation" aria-label={heading}>
+        <nav className="space-y-1" role="navigation" aria-label={heading || "Course content"}>
           {navItems.map((nav, index) => (
             <React.Fragment key={nav.id}>
             {nav.group && nav.group !== navItems[index - 1]?.group && (
