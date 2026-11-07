@@ -279,7 +279,7 @@ const EnrolledProgram: React.FC = () => {
       </div>
 
       {/* Main Content Area */}
-      <main className="mx-auto py-6">
+      <main className="mx-auto py-4 md:py-6">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
           {/* Topics Sidebar - Left */}
           <aside

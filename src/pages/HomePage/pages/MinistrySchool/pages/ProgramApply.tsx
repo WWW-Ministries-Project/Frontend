@@ -138,7 +138,7 @@ const ProgramApply = () => {
   };
 
   return (
-    <main className="mx-auto min-h-screen py-8">
+    <main className="mx-auto">
       <div className="flex flex-col gap-6 lg:flex-row">
         <div className="w-full lg:w-64">
           <CourseSidebar
