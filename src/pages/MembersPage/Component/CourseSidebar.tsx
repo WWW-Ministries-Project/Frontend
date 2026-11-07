@@ -88,7 +88,7 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
           </div>
         )}
 
-        <nav className={navItems.some((n) => n.group) ? "space-y-1" : "space-y-6"} role="navigation" aria-label={heading || "Course content"}>
+        <nav className="space-y-1" role="navigation" aria-label={heading || "Course content"}>
           {navItems.map((nav, index) => (
             <React.Fragment key={nav.id}>
             {nav.group && nav.group !== navItems[index - 1]?.group && (

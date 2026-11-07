@@ -278,7 +278,7 @@ const EnrolledProgram: React.FC = () => {
 
 
   return (
-    <div className="w-full">
+    <div className="w-full pt-4 md:pt-6">
       {/* Header Section */}
       <div className="flex flex-col gap-1">
         <nav aria-label="Breadcrumb" className="flex flex-wrap gap-1 text-[13px] text-primaryGray">
