@@ -103,7 +103,13 @@ export const SubNav = () => {
             : "text-gray-600 hover:bg-gray-200 hover:text-primary"
         }`}
       >
-        <span>{teaching ? child.instructorLabel ?? child.name : child.name}</span>
+        <span>
+          {teaching
+            ? (combined ? child.instructorLabelCombined : undefined) ??
+              child.instructorLabel ??
+              child.name
+            : child.name}
+        </span>
       </NavLink>
     );
   };
