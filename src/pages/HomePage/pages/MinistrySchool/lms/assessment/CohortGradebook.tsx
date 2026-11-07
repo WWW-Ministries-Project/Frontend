@@ -73,13 +73,16 @@ export const CohortGradebook = ({
   programId,
   classes,
   canManage,
+  lockClassId,
 }: {
   cohortId: number;
   programId: number;
   classes: SomClass[];
   canManage: boolean;
+  /** When set, scope the gradebook to this one class and hide the class picker. */
+  lockClassId?: string;
 }) => {
-  const [classId, setClassId] = useState("");
+  const [classId, setClassId] = useState(lockClassId ?? "");
   const [filter, setFilter] = useState<Filter>("All learners");
   const [selected, setSelected] = useState<number[]>([]);
   const [grading, setGrading] = useState<{ queue: number[]; index: number } | null>(null);
@@ -247,7 +250,7 @@ export const CohortGradebook = ({
             </button>
           ))}
         </div>
-        {classes.length > 1 && (
+        {classes.length > 1 && !lockClassId && (
           <select
             aria-label="Class"
             value={classId}

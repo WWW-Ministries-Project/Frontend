@@ -149,7 +149,18 @@ export const CohortsPage = () => {
                     <button
                       key={c.id}
                       type="button"
-                      onClick={() => navigate(somPaths.cohort(c.id))}
+                      onClick={() => {
+                        // In "My classes", open the class you teach directly (prototype
+                        // flow); if you teach several in this cohort, open the cohort.
+                        const mine = teachingView
+                          ? c.courses.filter((k) => isMyClass(k, myId))
+                          : [];
+                        navigate(
+                          mine.length === 1
+                            ? somPaths.class(c.id, mine[0].id)
+                            : somPaths.cohort(c.id)
+                        );
+                      }}
                       className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-4 text-left transition hover:border-lightGray hover:shadow-sm"
                     >
                       <div className="flex items-start justify-between gap-2">
