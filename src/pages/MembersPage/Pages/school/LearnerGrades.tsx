@@ -143,7 +143,7 @@ const LearnerGrades = () => {
     <LearnerShell>
       <PageHeader
         title="Grades"
-        subtitle="Scores appear here as soon as your instructor grades your work."
+        subtitle="Grades appear once your instructor releases them for the class."
       />
       {error && !enrollments.length ? (
         <LoadError msg="We could not load your grades." onRetry={() => refetch()} />
