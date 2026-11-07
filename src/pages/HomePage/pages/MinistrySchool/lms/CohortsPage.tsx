@@ -131,7 +131,8 @@ export const CohortsPage = () => {
                   <div className="flex flex-wrap items-baseline gap-2.5">
                     <h2 className="text-lg font-semibold text-primary">{g.title}</h2>
                     <span className="text-[13px] text-mainGray">
-                      {g.cohorts.length} {g.cohorts.length === 1 ? "cohort" : "cohorts"} · {g.learners} learners
+                      {g.cohorts.length} {g.cohorts.length === 1 ? "cohort" : "cohorts"} · {g.learners}{" "}
+                      {g.learners === 1 ? "learner" : "learners"}
                     </span>
                   </div>
                   <button
@@ -182,11 +183,12 @@ export const CohortsPage = () => {
                       </ul>
                       <div className="mt-auto flex items-center justify-between border-t border-gray-100 pt-2.5 text-sm">
                         <span className="text-primaryGray">
-                          <b className="text-primary">{c.learnerCount}</b> learners
+                          <b className="text-primary">{c.learnerCount}</b>{" "}
+                          {c.learnerCount === 1 ? "learner" : "learners"}
                           {c.attentionCount > 0 && (
                             <>
                               {" · "}
-                              <b className="text-red-700">{c.attentionCount} need attention</b>
+                              <b className="text-red-700">{c.attentionCount} at risk</b>
                             </>
                           )}
                         </span>

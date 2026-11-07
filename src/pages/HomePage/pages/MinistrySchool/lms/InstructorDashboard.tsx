@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { useSomAccess } from "../utils/useSomAccess";
 import { useSomData } from "./somDataContext";
 import { ATTENTION_RULE, isMyClass, needsAttention, somPaths } from "./somUtils";
-import { Avatar, Btn, EmptyBlock, Kpi, PageHeader, Panel, Pill, ProgressBar, StatusPill, LoadError } from "./ui";
+import { Avatar, Btn, EmptyBlock, Kpi, PageHeader, Panel, Pill, ProgressBar, SimpleTable, LoadError } from "./ui";
 
 const greeting = () => {
   const h = new Date().getHours();
@@ -138,31 +138,70 @@ export const InstructorDashboard = () => {
           <Panel
             title="At-risk learners"
             icon={<span className="size-2 rounded-full bg-red-600" aria-hidden />}
+            action={<Btn variant="ghost" to={somPaths.learners}>View all</Btn>}
           >
             {mine.attention.length === 0 ? (
               <p className="px-4 py-6 text-sm text-primaryGray">Everyone in your live classes is keeping pace.</p>
             ) : (
-              <ul>
-                {mine.attention.slice(0, 6).map((e) => (
-                  <li key={e.id} className="flex items-center gap-3 border-b border-gray-100 px-4 py-2.5 last:border-0">
-                    <Avatar name={e.name} />
-                    <div className="min-w-0 flex-1">
-                      <button
-                        type="button"
+              <SimpleTable
+                rows={mine.attention.slice(0, 6)}
+                rowKey={(e) => e.id}
+                minWidth={480}
+                columns={[
+                  {
+                    key: "learner",
+                    header: "Learner",
+                    render: (e) => (
+                      <div className="flex items-center gap-2.5">
+                        <Avatar name={e.name} />
+                        <div className="min-w-0">
+                          <button
+                            type="button"
+                            onClick={() => navigate(somPaths.student(e.cohort.id, e.cls.id, e.id))}
+                            className="block truncate text-left font-medium text-primary hover:underline"
+                          >
+                            {e.name}
+                          </button>
+                          <p className="truncate text-xs text-mainGray">
+                            {e.program.title} · {e.cohort.name} · {e.cls.name}
+                          </p>
+                        </div>
+                      </div>
+                    ),
+                  },
+                  {
+                    key: "grade",
+                    header: "Grade",
+                    render: (e) => (
+                      <span className="font-semibold tabular-nums text-red-700">
+                        {Math.round(e.completion_percent)}%
+                      </span>
+                    ),
+                  },
+                  {
+                    key: "why",
+                    header: "Why flagged",
+                    render: (e) => (
+                      <span className="inline-block whitespace-nowrap rounded-md bg-red-50 px-2 py-0.5 text-xs font-medium text-red-800">
+                        {e.completion_percent <= 0 ? "No units started" : "Behind pace"}
+                      </span>
+                    ),
+                  },
+                  {
+                    key: "act",
+                    header: "",
+                    className: "text-right",
+                    render: (e) => (
+                      <Btn
+                        size="sm"
                         onClick={() => navigate(somPaths.student(e.cohort.id, e.cls.id, e.id))}
-                        className="block truncate text-left text-sm font-medium text-primary hover:underline"
                       >
-                        {e.name}
-                      </button>
-                      <p className="truncate text-xs text-mainGray">
-                        {e.program.title} · {e.cohort.name} · {e.cls.name}
-                      </p>
-                    </div>
-                    <span className="text-sm tabular-nums text-primaryGray">{Math.round(e.completion_percent)}%</span>
-                    <StatusPill status={e.health} />
-                  </li>
-                ))}
-              </ul>
+                        Reach out
+                      </Btn>
+                    ),
+                  },
+                ]}
+              />
             )}
             <p className="border-t border-gray-100 px-4 py-2 text-xs text-mainGray">{ATTENTION_RULE}</p>
           </Panel>
@@ -239,7 +278,7 @@ export const InstructorDashboard = () => {
           </div>
         </div>
 
-        <Panel title="My classes" action={<Btn variant="ghost" to={somPaths.cohorts}>All my classes</Btn>}>
+        <Panel title="Live cohorts" action={<Btn variant="ghost" to={somPaths.cohorts}>All cohorts</Btn>}>
           {mine.live.length === 0 ? (
             <EmptyBlock msg="None of your cohorts are running right now." />
           ) : (

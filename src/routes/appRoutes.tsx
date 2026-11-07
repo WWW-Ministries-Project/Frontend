@@ -200,6 +200,10 @@ export interface AppRoute {
   instructorTab?: boolean;
   /** The label this page carries in the instructor sub navigation. */
   instructorLabel?: string;
+  /** The label this page carries when both the admin and instructor navs show
+   *  together, to tell it apart from its admin twin (e.g. "Teaching dashboard"
+   *  beside "Dashboard"). Falls back to `instructorLabel`. */
+  instructorLabelCombined?: string;
   children?: AppRoute[];
 }
 
@@ -1135,6 +1139,7 @@ export const routes: AppRoute[] = [
             allowInstructor: true,
             instructorTab: true,
             instructorLabel: "My teaching",
+            instructorLabelCombined: "Teaching dashboard",
           },
           {
             path: "programs",
