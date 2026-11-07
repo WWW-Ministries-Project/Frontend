@@ -5,7 +5,7 @@ import { useSomAccess } from "../utils/useSomAccess";
 import { CohortGradebook } from "./assessment/CohortGradebook";
 import { CohortRoster } from "./CohortWorkspace";
 import { useSomData } from "./somDataContext";
-import { formatLabel, needsAttention, personName, somPaths } from "./somUtils";
+import { adminSomNav, formatLabel, needsAttention, personName, type SomNav } from "./somUtils";
 import { CohortSessions } from "./teaching/CohortSessions";
 import { Btn, EmptyBlock, LoadError, WorkspaceHeader } from "./ui";
 
@@ -17,7 +17,7 @@ type Tab = (typeof TABS)[number];
  * roster and sessions for that one class. Opened from "My classes" and the
  * cohort's Classes tab; mirrors the prototype's class view.
  */
-export const ClassWorkspace = () => {
+export const ClassWorkspace = ({ nav = adminSomNav }: { nav?: SomNav } = {}) => {
   const { cohortId: cohortParam, id: classParam } = useParams();
   const cohortId = Number(cohortParam);
   const classId = Number(classParam);
@@ -47,7 +47,7 @@ export const ClassWorkspace = () => {
         {som.error ? (
           <LoadError msg={som.error} onRetry={som.refetch} />
         ) : (
-          <EmptyBlock msg="Class not found." action={<Btn to={somPaths.cohorts}>Back to my classes</Btn>} />
+          <EmptyBlock msg="Class not found." action={<Btn to={nav.cohorts}>Back to my classes</Btn>} />
         )}
       </div>
     );
@@ -57,9 +57,9 @@ export const ClassWorkspace = () => {
     <div className="flex min-h-full flex-col">
       <WorkspaceHeader
         crumbs={[
-          { label: "My classes", to: somPaths.cohorts },
-          { label: cohort.program.title, to: somPaths.program(cohort.program.id, "Cohorts") },
-          { label: cohort.name, to: somPaths.cohort(cohort.id) },
+          { label: "My classes", to: nav.cohorts },
+          { label: cohort.program.title, to: nav.program?.(cohort.program.id, "Cohorts") },
+          { label: cohort.name, to: nav.cohort(cohort.id) || undefined },
           { label: cls.name },
         ]}
         title={cls.name}

@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthWrapper";
 import { useSomAccess } from "../utils/useSomAccess";
 import { useSomData, type CohortRow } from "./somDataContext";
-import { formatLabel, isMyClass, personName, somPaths } from "./somUtils";
+import { adminSomNav, formatLabel, isMyClass, personName, type SomNav } from "./somUtils";
 import { EmptyBlock, PageHeader, ProgressBar, StatusPill, LoadError } from "./ui";
 
 /** Status tabs, in prototype order. "Completed" cohorts are shown as "Ended". */
@@ -30,10 +30,16 @@ type ProgramGroup = {
   learners: number;
 };
 
-export const CohortsPage = () => {
+export const CohortsPage = ({
+  nav = adminSomNav,
+  forceTeaching,
+}: { nav?: SomNav; forceTeaching?: boolean } = {}) => {
   const navigate = useNavigate();
   const { loading, cohorts, error, refetch } = useSomData();
-  const { teachingView } = useSomAccess();
+  const { teachingView: accessTeaching } = useSomAccess();
+  // The member portal always renders the teaching cut; the admin shell defers to
+  // the access hook (pure instructors and the "?view=teaching" admin cut).
+  const teachingView = forceTeaching ?? accessTeaching;
   const myId = Number(useAuth().user.id);
   const [tab, setTab] = useState<CohortStatus>(COHORT_STATUS.ONGOING);
 
@@ -135,13 +141,15 @@ export const CohortsPage = () => {
                       {g.learners === 1 ? "learner" : "learners"}
                     </span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => navigate(somPaths.program(g.id, "Cohorts"))}
-                    className="text-[13px] font-medium text-primary hover:underline"
-                  >
-                    View program →
-                  </button>
+                  {nav.program && (
+                    <button
+                      type="button"
+                      onClick={() => navigate(nav.program!(g.id, "Cohorts"))}
+                      className="text-[13px] font-medium text-primary hover:underline"
+                    >
+                      View program →
+                    </button>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,340px),1fr))] gap-4">
@@ -157,8 +165,8 @@ export const CohortsPage = () => {
                           : [];
                         navigate(
                           mine.length === 1
-                            ? somPaths.class(c.id, mine[0].id)
-                            : somPaths.cohort(c.id)
+                            ? nav.class(c.id, mine[0].id)
+                            : nav.cohort(c.id)
                         );
                       }}
                       className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-4 text-left transition hover:border-lightGray hover:shadow-sm"

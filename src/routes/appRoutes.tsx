@@ -87,6 +87,8 @@ import InstructorProg from "@/pages/MembersPage/Pages/InstructorProg.js";
 import InstructorAssMan from "@/pages/MembersPage/Pages/InstructorAssMan.js";
 import Instructor from "@/pages/MembersPage/Pages/Instructor.js";
 import InstructorCohort from "@/pages/MembersPage/Pages/InstructorCohort.js";
+import MemberMyClasses from "@/pages/MembersPage/Pages/school/MemberMyClasses";
+import MemberClassWorkspace from "@/pages/MembersPage/Pages/school/MemberClassWorkspace";
 import GradingPanel from "@/pages/MembersPage/Pages/GradingPanel.js";
 import ChurchAttendance from "@/pages/HomePage/pages/Attendance/ChurchAttendance.js";
 import EventAttendance from "@/pages/HomePage/pages/Attendance/EventAttendance";
@@ -1758,16 +1760,26 @@ export const routes: AppRoute[] = [
         isPrivate: false,
       },
       {
+        // Instructor area of the member portal. Supplies the School of Ministry
+        // data context so the reused admin teaching pages ("My classes" list and
+        // the class workspace) render inside the member top-nav shell. The legacy
+        // grading drill routes are kept for notification deep-links.
         path: relativePath.member.schoolOfMinistries.instructorPortal,
         name: "member_school_of_ministries",
         backLabel: "School of Ministry",
-        element: <Instructor />,
+        element: <SomDataProvider />,
         isPrivate: false,
         children: [
           {
             path: "",
             name: "instructor_assessment_management",
-            element: <InstructorProg />,
+            element: <MemberMyClasses />,
+            isPrivate: false,
+          },
+          {
+            path: "class/:cohortId/:id",
+            name: "instructor_assessment_management",
+            element: <MemberClassWorkspace />,
             isPrivate: false,
           },
           {

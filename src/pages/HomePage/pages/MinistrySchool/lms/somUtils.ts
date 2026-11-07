@@ -45,6 +45,27 @@ export const somPaths = {
   publicProgram: (title: string) => `/out/programs/${encodeURIComponent(title)}`,
 };
 
+/**
+ * The subset of navigation links the shared cohort/class pages follow. The admin
+ * shell uses `adminSomNav`; the member portal supplies its own so the same
+ * components (CohortsPage teaching view, ClassWorkspace) stay inside the member
+ * top-nav shell instead of jumping to the admin area. `program` is optional: a
+ * nav that omits it hides the "View program" link.
+ */
+export type SomNav = {
+  cohorts: string;
+  cohort: (id: number | string, tab?: string) => string;
+  class: (cohortId: number | string, classId: number | string) => string;
+  program?: (id: number | string, tab?: string) => string;
+};
+
+export const adminSomNav: SomNav = {
+  cohorts: somPaths.cohorts,
+  cohort: somPaths.cohort,
+  class: somPaths.class,
+  program: somPaths.program,
+};
+
 export const personName = (person?: SomPerson | null): string => {
   if (!person) return "Unassigned";
   const fromInfo = [person.user_info?.first_name, person.user_info?.last_name]
