@@ -77,11 +77,13 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
   };
 
   return (
-    <aside className="w-full  lg:flex-shrink-0 " aria-label={`${heading} sidebar`}>
+    <aside className="w-full  lg:flex-shrink-0 " aria-label={`${heading || "Course content"} sidebar`}>
       <div className="rounded-xl border border-lightGray bg-white p-4">
-        <h2 className="mb-4 text-xs font-semibold uppercase tracking-wider text-primaryGray">
-          {heading}
-        </h2>
+        {heading && (
+          <h2 className="mb-4 text-xs font-semibold uppercase tracking-wider text-primaryGray">
+            {heading}
+          </h2>
+        )}
 
         {progress !== undefined && (
           <div className="mb-4">
@@ -98,7 +100,7 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
           </div>
         )}
 
-        <nav className={navItems.some((n) => n.group) ? "space-y-1" : "space-y-6"} role="navigation" aria-label={heading}>
+        <nav className={navItems.some((n) => n.group) ? "space-y-1" : "space-y-6"} role="navigation" aria-label={heading || "Course content"}>
           {navItems.map((nav, index) => (
             <React.Fragment key={nav.id}>
             {nav.group && nav.group !== navItems[index - 1]?.group && (

@@ -58,6 +58,19 @@ type CompletionPrompt = {
   nextTopicName: string;
 };
 
+/** Learning-unit type → the badge label shown above the topic title. */
+const TOPIC_TYPE_LABEL: Record<string, string> = {
+  "lesson-note": "Reading",
+  video: "Video",
+  live: "Live session",
+  pdf: "Material",
+  ppt: "Material",
+  assignment: "Assignment",
+  "assignment-essay": "Assignment",
+  quiz: "Quiz",
+  essay: "Essay",
+};
+
 /**
  * EnrolledProgram Component
  * Displays a program's details with topics, assignments, and materials
@@ -194,6 +207,15 @@ const EnrolledProgram: React.FC = () => {
     [topics, selectedTopicId]
   );
 
+  const selectedNavItem = useMemo(
+    () => navItems.find((item) => String(item.id) === String(selectedTopicId)) ?? null,
+    [navItems, selectedTopicId]
+  );
+  const selectedTopicTypeLabel = selectedTopic
+    ? TOPIC_TYPE_LABEL[selectedTopic.learningUnit?.type ?? ""] ?? "Topic"
+    : null;
+  const selectedTopicMeta = selectedNavItem?.group ?? null;
+
   const selectedTopicIndex = useMemo(
     () => topics.findIndex((topic) => String(topic.id) === String(selectedTopicId)),
     [topics, selectedTopicId]
@@ -291,7 +313,7 @@ const EnrolledProgram: React.FC = () => {
               <CourseSidebar
                 navItems={navItems}
                 onSelect={handleTopicSelect}
-                heading="Course content"
+                heading=""
                 progress={progressPercentage}
               />
             </div>
@@ -306,62 +328,26 @@ const EnrolledProgram: React.FC = () => {
               <div className="">
                 {selectedTopic ? (
                   <div className="space-y-6">
-                    <div className="rounded-xl border border-lightGray bg-white p-4 shadow-sm">
-                      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                        <div className="space-y-2">
-                          <p className="text-xs font-semibold uppercase tracking-widest text-primaryGray/80">
-                            Learning Progress
-                          </p>
-                          <p className="text-sm font-medium text-primary">
-                            {completedTopics}/{topics.length} topics completed
-                          </p>
-                        </div>
-
-                        <div className="flex flex-wrap items-center gap-2">
-                          <Button
-                            value="Previous Topic"
-                            variant="secondary"
-                            className="min-w-[140px]"
-                            onClick={() => previousTopic && handleTopicSelect(previousTopic.id)}
-                            disabled={!previousTopic}
-                          />
-                          <Button
-                            value={nextTopic ? "Next Topic" : "Last Topic"}
-                            variant="primary"
-                            className="min-w-[140px]"
-                            onClick={() => nextTopic && handleTopicSelect(nextTopic.id)}
-                            disabled={!nextTopic}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="mt-4">
-                        <div className="mb-2 flex items-center justify-between text-xs font-medium text-primaryGray">
-                          <span>{progressPercentage}% complete</span>
-                          <span>Topic {Math.max(selectedTopicIndex + 1, 1)} of {topics.length}</span>
-                        </div>
-                        <div className="h-2 overflow-hidden rounded-full bg-lightGray/40">
-                          <div
-                            className="h-full rounded-full bg-primary transition-all duration-500"
-                            style={{ width: `${progressPercentage}%` }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
                     <div className="rounded-xl border border-lightGray bg-white p-5 shadow-sm">
-                      <div className="mb-4 flex flex-wrap items-center gap-2">
-                        <h2 className="text-xl font-semibold text-primary">{selectedTopic.name}</h2>
-                        <span className="rounded-full bg-lightGray/40 px-3 py-1 text-xs font-semibold text-primaryGray">
-                          Topic {Math.max(selectedTopicIndex + 1, 1)}
-                        </span>
+                      <div className="flex flex-wrap items-center gap-2 text-xs">
+                        {selectedTopicTypeLabel && (
+                          <span className="rounded-full bg-primary/10 px-2.5 py-0.5 font-semibold text-primary">
+                            {selectedTopicTypeLabel}
+                          </span>
+                        )}
+                        {selectedTopicMeta && (
+                          <span className="text-primaryGray">{selectedTopicMeta}</span>
+                        )}
                       </div>
-                      <div
-                        className="prose max-w-none text-primaryGray"
-                        dangerouslySetInnerHTML={{
-                          __html: DOMPurify.sanitize(String(selectedTopic.description ?? "")),
-                        }}
-                      />
+                      <h2 className="mt-2 text-xl font-semibold text-primary">{selectedTopic.name}</h2>
+                      {selectedTopic.description && (
+                        <div
+                          className="prose mt-3 max-w-none text-primaryGray"
+                          dangerouslySetInnerHTML={{
+                            __html: DOMPurify.sanitize(String(selectedTopic.description ?? "")),
+                          }}
+                        />
+                      )}
                     </div>
 
                     <LearningUnit
@@ -385,6 +371,21 @@ const EnrolledProgram: React.FC = () => {
 
                     refetch={refetch}
                     />
+
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <Button
+                        value="Previous"
+                        variant="secondary"
+                        onClick={() => previousTopic && handleTopicSelect(previousTopic.id)}
+                        disabled={!previousTopic}
+                      />
+                      <Button
+                        value={nextTopic ? "Next topic" : "Last topic"}
+                        variant="primary"
+                        onClick={() => nextTopic && handleTopicSelect(nextTopic.id)}
+                        disabled={!nextTopic}
+                      />
+                    </div>
                   </div>
                 ) : (
                   <div className="flex items-center justify-center h-[300px]">
