@@ -705,7 +705,7 @@ export const LearningUnits: React.FC<Props> = ({
   const canMoveToNextTopic = Boolean(topicCompleted && hasNextTopic && onGoToNextTopic);
 
   return (
-    <div className="space-y-5 rounded-xl border border-lightGray bg-white p-5 shadow-sm">
+    <div className="space-y-5">
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap items-center gap-2">
