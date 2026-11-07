@@ -24,6 +24,8 @@ type CourseSidebarProps = {
   onSelect?: (id: string | number) => void;
   /** When set, a progress bar heads the list (course player). */
   progress?: number;
+  /** Drop the card chrome (border/background/padding) to sit inside a host surface. */
+  bare?: boolean;
 };
 
 const CourseSidebar: React.FC<CourseSidebarProps> = ({
@@ -31,6 +33,7 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
   heading = "Topic",
   onSelect,
   progress,
+  bare = false,
 }) => {
   
   const renderIcon = (nav: NavItem) => {
@@ -78,7 +81,7 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
 
   return (
     <aside className="w-full  lg:flex-shrink-0 " aria-label={`${heading || "Course content"} sidebar`}>
-      <div className="rounded-xl border border-lightGray bg-white p-4">
+      <div className={bare ? "" : "rounded-xl border border-lightGray bg-white p-4"}>
         {heading && (
           <h2 className="mb-4 text-xs font-semibold uppercase tracking-wider text-primaryGray">
             {heading}

@@ -300,57 +300,55 @@ const EnrolledProgram: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Content Area */}
+      {/* Main Content Area — one unified panel holding the sidebar and the
+          topic content, matching the prototype's course player. */}
       <main className="mx-auto py-4 md:py-6">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-          {/* Topics Sidebar - Left */}
-          <aside
-            className="w-full lg:w-[280px] shrink-0 lg:sticky lg:top-28"
-            aria-label="Course topics navigation"
-          >
-            <div className="">
-              
+        <div className="rounded-2xl border border-lightGray bg-white p-4 shadow-sm md:p-6">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+            {/* Topics Sidebar - Left */}
+            <aside
+              className="w-full shrink-0 lg:sticky lg:top-28 lg:w-[280px] lg:border-r lg:border-lightGray lg:pr-6"
+              aria-label="Course topics navigation"
+            >
               <CourseSidebar
                 navItems={navItems}
                 onSelect={handleTopicSelect}
                 heading=""
                 progress={progressPercentage}
+                bare
               />
-            </div>
-          </aside>
+            </aside>
 
-          {/* Main Content - Center */}
-          <section 
-            className="flex-1 min-w-0"
-            aria-label="Topic content"
-          >
-            <div>
-              <div className="">
-                {selectedTopic ? (
-                  <div className="space-y-6">
-                    <div className="rounded-xl border border-lightGray bg-white p-5 shadow-sm">
-                      <div className="flex flex-wrap items-center gap-2 text-xs">
-                        {selectedTopicTypeLabel && (
-                          <span className="rounded-full bg-primary/10 px-2.5 py-0.5 font-semibold text-primary">
-                            {selectedTopicTypeLabel}
-                          </span>
-                        )}
-                        {selectedTopicMeta && (
-                          <span className="text-primaryGray">{selectedTopicMeta}</span>
-                        )}
-                      </div>
-                      <h2 className="mt-2 text-xl font-semibold text-primary">{selectedTopic.name}</h2>
-                      {selectedTopic.description && (
-                        <div
-                          className="prose mt-3 max-w-none text-primaryGray"
-                          dangerouslySetInnerHTML={{
-                            __html: DOMPurify.sanitize(String(selectedTopic.description ?? "")),
-                          }}
-                        />
+            {/* Main Content - Center */}
+            <section className="min-w-0 flex-1" aria-label="Topic content">
+              {selectedTopic ? (
+                <div className="space-y-6">
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2 text-xs">
+                      {selectedTopicTypeLabel && (
+                        <span className="rounded-full bg-primary/10 px-2.5 py-0.5 font-semibold text-primary">
+                          {selectedTopicTypeLabel}
+                        </span>
+                      )}
+                      {selectedTopicMeta && (
+                        <span className="text-primaryGray">{selectedTopicMeta}</span>
                       )}
                     </div>
+                    <h2 className="mt-2 text-xl font-semibold text-primary">{selectedTopic.name}</h2>
+                  </div>
 
-                    <LearningUnit
+                  {selectedTopic.description && (
+                    <div className="rounded-xl border border-lightGray bg-white p-5">
+                      <div
+                        className="prose max-w-none text-primaryGray"
+                        dangerouslySetInnerHTML={{
+                          __html: DOMPurify.sanitize(String(selectedTopic.description ?? "")),
+                        }}
+                      />
+                    </div>
+                  )}
+
+                  <LearningUnit
                     unit={selectedTopic.learningUnit ?? undefined}
                     topicId={selectedTopic.id}
                     topicName={selectedTopic.name}
@@ -409,8 +407,6 @@ const EnrolledProgram: React.FC = () => {
                     </div>
                   </div>
                 )}
-              </div>
-            </div>
             {/* <div className="w-full 2xl:hidden mt-6">
               <AssMatSidebar
                 materials={materials}
@@ -431,6 +427,7 @@ const EnrolledProgram: React.FC = () => {
               />
             </div>
           </aside> */}
+          </div>
         </div>
       </main>
       <Modal
