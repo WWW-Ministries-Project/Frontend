@@ -4,6 +4,7 @@ import CourseSidebar from "../Component/CourseSidebar";
 import { Link, useParams } from "react-router-dom";
 import DOMPurify from "dompurify";
 import { learnerPaths } from "./school/learnerPaths";
+import { LearnerShell } from "./school/LearnerShell";
 import LearningUnit from "@/pages/HomePage/pages/MinistrySchool/Components/LearningUnit";
 import { api, CertificateData, Topic } from "@/utils";
 import { useFetch } from "@/CustomHooks/useFetch";
@@ -278,7 +279,7 @@ const EnrolledProgram: React.FC = () => {
 
 
   return (
-    <div className="w-full pt-4 md:pt-6">
+    <LearnerShell>
       {/* Header Section */}
       <div className="flex flex-col gap-1">
         <nav aria-label="Breadcrumb" className="flex flex-wrap gap-1 text-[13px] text-primaryGray">
@@ -302,7 +303,7 @@ const EnrolledProgram: React.FC = () => {
 
       {/* Main Content Area — one unified panel holding the sidebar and the
           topic content, matching the prototype's course player. */}
-      <main className="mx-auto py-4 md:py-6">
+      <main className="w-full">
         <div className="rounded-2xl border border-lightGray bg-white p-4 shadow-sm md:p-6">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
             {/* Topics Sidebar - Left */}
@@ -514,7 +515,7 @@ const EnrolledProgram: React.FC = () => {
           </div>
         </div>
       </Modal>
-    </div>
+    </LearnerShell>
   );
 };
 
