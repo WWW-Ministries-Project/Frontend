@@ -10,6 +10,7 @@ import { useUserStore } from "@/store/userStore";
 import { api, ApplyResult, ClassOption, Programs, relativePath } from "@/utils";
 import { Badge } from "@/components/Badge";
 import {
+  CheckCircleIcon,
   Squares2X2Icon,
   Square3Stack3DIcon,
   UserGroupIcon,
@@ -30,6 +31,17 @@ const ProgramApply = () => {
   const user = useUserStore();
   const { data, loading, refetch } = useFetch(api.fetch.fetchAllApplicablePrograms);
   const programs = useMemo<Programs[]>(() => data?.data ?? [], [data?.data]);
+
+  // Programs the member is already enrolled in (an accepted application). Used to
+  // flag "Applied" on the cards so they don't apply twice; they can still view
+  // the details.
+  const { data: enrollmentData, refetch: refetchEnrollments } = useFetch(
+    api.fetch.fetchUserEnrolledPrograms
+  );
+  const appliedProgramIds = useMemo(
+    () => new Set((enrollmentData?.data ?? []).map((e) => String(e.program.id))),
+    [enrollmentData]
+  );
 
   const selectedClass = useMemo<ClassOption | undefined>(() => {
     return activeProgram?.courses?.find((course) => course.id === selectedClassId);
@@ -87,6 +99,7 @@ const ProgramApply = () => {
       if (result?.status === "ENROLLED") {
         showNotification("You're enrolled.", "success");
         refetch();
+        refetchEnrollments();
         return result;
       } else if (result?.status === "PENDING") {
         showNotification(
@@ -151,14 +164,24 @@ const ProgramApply = () => {
               ))}
             </div>
           ) : filteredPrograms.length > 0 ? (
-            filteredPrograms.map((program) => (
+            filteredPrograms.map((program) => {
+              const applied = appliedProgramIds.has(String(program.id));
+              return (
               <article
                 key={program.id}
                 className="rounded-xl border border-lightGray bg-white p-4 shadow-sm"
               >
-                <header className="space-y-1">
-                  <h2 className="text-lg font-semibold text-primary">{program.name}</h2>
-                  <p className="text-sm text-primaryGray">{program.description}</p>
+                <header className="flex items-start justify-between gap-3">
+                  <div className="space-y-1">
+                    <h2 className="text-lg font-semibold text-primary">{program.name}</h2>
+                    <p className="text-sm text-primaryGray">{program.description}</p>
+                  </div>
+                  {applied && (
+                    <span className="inline-flex flex-shrink-0 items-center gap-1 rounded-full bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-700">
+                      <CheckCircleIcon className="w-4" />
+                      Applied
+                    </span>
+                  )}
                 </header>
 
                 {!!program?.prerequisites?.length && (
@@ -227,10 +250,22 @@ const ProgramApply = () => {
                   >
                     View details
                   </button>
-                  <Button value="Apply" onClick={() => handleOpen(program)} />
+                  {applied ? (
+                    <span
+                      aria-disabled="true"
+                      title="You have already applied to this program"
+                      className="inline-flex cursor-default items-center gap-1.5 rounded-lg bg-green-50 px-4 py-2 text-sm font-semibold text-green-700"
+                    >
+                      <CheckCircleIcon className="w-5" />
+                      Applied
+                    </span>
+                  ) : (
+                    <Button value="Apply" onClick={() => handleOpen(program)} />
+                  )}
                 </div>
               </article>
-            ))
+              );
+            })
           ) : (
             <div className="rounded-xl border border-lightGray bg-white p-6 text-center">
               <EmptyState
