@@ -3,13 +3,13 @@ import { useMemo } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { useSomAccess } from "../utils/useSomAccess";
 import { CohortGradebook } from "./assessment/CohortGradebook";
-import { CohortRoster } from "./CohortWorkspace";
+import { CohortAssessments, CohortRoster } from "./CohortWorkspace";
 import { useSomData } from "./somDataContext";
 import { adminSomNav, formatLabel, needsAttention, personName, type SomNav } from "./somUtils";
 import { CohortSessions } from "./teaching/CohortSessions";
 import { Btn, EmptyBlock, LoadError, WorkspaceHeader } from "./ui";
 
-const TABS = ["Gradebook", "Roster", "Sessions & attendance"] as const;
+const TABS = ["Gradebook", "Assessments", "Roster", "Sessions & attendance"] as const;
 type Tab = (typeof TABS)[number];
 
 /**
@@ -87,6 +87,16 @@ export const ClassWorkspace = ({ nav = adminSomNav }: { nav?: SomNav } = {}) => 
             classes={[cls]}
             lockClassId={String(cls.id)}
             canManage={access.can("grade")}
+          />
+        )}
+
+        {tab === "Assessments" && (
+          <CohortAssessments
+            cohortId={cohort.id}
+            programId={cohort.program.id}
+            canManage={access.can("manage_assignments")}
+            showGrade={false}
+            showCurriculumLink={false}
           />
         )}
 
