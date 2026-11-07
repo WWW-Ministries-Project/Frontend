@@ -246,7 +246,7 @@ export const CohortWorkspace = () => {
   );
 };
 
-const CohortRoster = ({ roster }: { roster: EnrollmentRow[] }) => {
+export const CohortRoster = ({ roster }: { roster: EnrollmentRow[] }) => {
   const navigate = useNavigate();
   const [filter, setFilter] = useState<(typeof ROSTER_FILTERS)[number]>("All learners");
   const rows = roster

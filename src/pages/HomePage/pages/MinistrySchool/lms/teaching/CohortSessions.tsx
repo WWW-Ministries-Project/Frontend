@@ -114,11 +114,14 @@ export const CohortSessions = ({
   programId,
   classes,
   canManage,
+  lockClassId,
 }: {
   cohortId: number;
   programId: number;
   classes: SomClass[];
   canManage: boolean;
+  /** When set, scope sessions to this one class and preset the new-session class. */
+  lockClassId?: string;
 }) => {
   const { data, loading, refetch } = useFetch(
     api.fetch.fetchLmsSessions,
@@ -139,11 +142,14 @@ export const CohortSessions = ({
 
   const visible = useMemo(() => {
     const t = Date.now();
-    if (filter === "All") return sessions;
+    const base = lockClassId
+      ? sessions.filter((s) => String(s.courseId) === lockClassId)
+      : sessions;
+    if (filter === "All") return base;
     if (filter === "Past")
-      return sessions.filter((s) => new Date(s.starts_at).getTime() < t).slice().reverse();
-    return sessions.filter((s) => new Date(s.starts_at).getTime() >= t);
-  }, [sessions, filter]);
+      return base.filter((s) => new Date(s.starts_at).getTime() < t).slice().reverse();
+    return base.filter((s) => new Date(s.starts_at).getTime() >= t);
+  }, [sessions, filter, lockClassId]);
 
   const mutate = async (fn: () => Promise<unknown>, success: string, failure: string) => {
     setBusy(true);
@@ -154,7 +160,7 @@ export const CohortSessions = ({
   };
 
   const openCreate = () => {
-    setForm(EMPTY_FORM);
+    setForm({ ...EMPTY_FORM, courseId: lockClassId ?? "" });
     setFormError("");
     setEditing({ id: null });
   };
@@ -445,21 +451,23 @@ export const CohortSessions = ({
                 required
               />
             </label>
-            <label className="flex flex-col gap-1 text-sm">
-              <span className="font-medium text-primary">Class</span>
-              <select
-                value={form.courseId}
-                onChange={(e) => setForm({ ...form, courseId: e.target.value })}
-                className={INPUT}
-              >
-                <option value="">Whole cohort</option>
-                {classes.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </label>
+            {!lockClassId && (
+              <label className="flex flex-col gap-1 text-sm">
+                <span className="font-medium text-primary">Class</span>
+                <select
+                  value={form.courseId}
+                  onChange={(e) => setForm({ ...form, courseId: e.target.value })}
+                  className={INPUT}
+                >
+                  <option value="">Whole cohort</option>
+                  {classes.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <label className="flex flex-col gap-1 text-sm">
                 <span className="font-medium text-primary">Date</span>

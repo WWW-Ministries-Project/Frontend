@@ -57,7 +57,7 @@ import GradebookPage from "@/pages/HomePage/pages/MinistrySchool/lms/GradebookPa
 import SomDashboard from "@/pages/HomePage/pages/MinistrySchool/lms/SomDashboard";
 import { SomDataProvider } from "@/pages/HomePage/pages/MinistrySchool/lms/SomDataProvider";
 import MinistrySchoolAnalytics from "@/pages/HomePage/pages/MinistrySchool/pages/MinistrySchoolAnalytics";
-import { ViewClass } from "@/pages/HomePage/pages/MinistrySchool/pages/ViewClass";
+import { ClassWorkspace } from "@/pages/HomePage/pages/MinistrySchool/lms/ClassWorkspace";
 import ViewCertificate from "@/pages/HomePage/pages/MinistrySchool/pages/ViewCertificate";
 import ViewStudent from "@/pages/HomePage/pages/MinistrySchool/pages/ViewStudent";
 import { relativePath } from "@/utils/const";
@@ -1184,6 +1184,14 @@ export const routes: AppRoute[] = [
             allowInstructor: true,
           },
           {
+            path: "cohorts/:cohortId/classes/:id",
+            name: "Class",
+            element: <ClassWorkspace />,
+            isPrivate: true,
+            permissionNeeded: "view_school_of_ministry",
+            allowInstructor: true,
+          },
+          {
             path: "gradebook",
             name: "Gradebook",
             element: <GradebookPage />,
@@ -1286,14 +1294,6 @@ export const routes: AppRoute[] = [
             permissionNeeded: "view_school_of_ministry",
             allowInstructor: true,
             children: [
-              {
-                path: "cohorts/:cohortId/classes/:id",
-                name: "View Class",
-                element: <ViewClass />,
-                isPrivate: true,
-                permissionNeeded: "view_school_of_ministry",
-                allowInstructor: true,
-              },
               {
                 path: "cohorts/:cohortId/classes/:classId/student/:id",
                 name: "View Student",
