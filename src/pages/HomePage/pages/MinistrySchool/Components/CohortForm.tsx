@@ -16,7 +16,8 @@ interface IProps {
   onClose: () => void;
   cohort?: ICohortForm;
   programId: number;
-  onSuccess?: () => void;
+  /** Passed the created cohort on create so the setup wizard can chain into the class form. */
+  onSuccess?: (created?: { id: number }) => void;
 }
 
 export const CohortForm = ({ onClose, cohort, programId, onSuccess }: IProps) => {
@@ -62,9 +63,8 @@ export const CohortForm = ({ onClose, cohort, programId, onSuccess }: IProps) =>
   
   useEffect(() => {
     if (updatedData || postedData) {
-      if (onSuccess) {
-        onSuccess();
-      }
+      const created = (postedData as { data?: { id?: number } } | undefined)?.data;
+      onSuccess?.(created?.id ? { id: created.id } : undefined);
     }
   }, [updatedData, postedData, onSuccess]);
 
