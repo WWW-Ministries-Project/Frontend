@@ -97,9 +97,9 @@ export const CohortWorkspace = () => {
         status={cohort.timing.status}
         meta={[
           cohort.timing.label,
-          `${cohort.learnerCount} learners`,
+          `${cohort.learnerCount} learner${cohort.learnerCount === 1 ? "" : "s"}`,
           `${cohort.courses.length} class${cohort.courses.length === 1 ? "" : "es"}`,
-          `${cohort.attentionCount} need attention`,
+          `${cohort.attentionCount} at risk`,
           `Applications close ${fmtDate(cohort.applicationDeadline)}`,
         ]}
         actions={
