@@ -18,6 +18,7 @@ export const learnerPaths = {
   programDetails: (programId: number | string) =>
     abs(SOM.programDetailsPublic.replace(":programId", String(programId))),
   instructorPortal: abs(SOM.instructorPortal),
+  teachingDashboard: `${abs(SOM.instructorPortal)}/dashboard`,
 };
 
 /**
@@ -34,16 +35,27 @@ export const memberSomNav: SomNav = {
     `${learnerPaths.instructorPortal}/class/${cohortId}/${classId}`,
 };
 
-/** The learner menu, shared by the desktop dropdown and the mobile accordion. */
-export const learnerMenu = (isInstructor: boolean) => [
+export type LearnerMenuItem = { label: string; path: string; group?: string };
+
+/**
+ * The School of Ministry menu, shared by the desktop dropdown and the mobile
+ * accordion. Mirrors the prototype: the learner items, then a "Teaching" section
+ * (dashboard + classes) for instructors. Announcements are surfaced on the
+ * dashboard, not in this menu.
+ */
+export const learnerMenu = (isInstructor: boolean): LearnerMenuItem[] => [
   { label: "Dashboard", path: learnerPaths.dashboard },
   { label: "My programs", path: learnerPaths.myPrograms },
   { label: "Assignments", path: learnerPaths.assignments },
   { label: "Grades", path: learnerPaths.grades },
   { label: "Schedule", path: learnerPaths.schedule },
-  { label: "Announcements", path: learnerPaths.announcements },
   { label: "Browse programs", path: learnerPaths.browse },
-  ...(isInstructor ? [{ label: "Instructor portal", path: learnerPaths.instructorPortal }] : []),
+  ...(isInstructor
+    ? [
+        { label: "Teaching dashboard", path: learnerPaths.teachingDashboard, group: "Teaching" },
+        { label: "My classes", path: learnerPaths.instructorPortal, group: "Teaching" },
+      ]
+    : []),
 ];
 
 /**

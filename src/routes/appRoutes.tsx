@@ -89,6 +89,7 @@ import Instructor from "@/pages/MembersPage/Pages/Instructor.js";
 import InstructorCohort from "@/pages/MembersPage/Pages/InstructorCohort.js";
 import MemberMyClasses from "@/pages/MembersPage/Pages/school/MemberMyClasses";
 import MemberClassWorkspace from "@/pages/MembersPage/Pages/school/MemberClassWorkspace";
+import MemberTeachingDashboard from "@/pages/MembersPage/Pages/school/MemberTeachingDashboard";
 import GradingPanel from "@/pages/MembersPage/Pages/GradingPanel.js";
 import ChurchAttendance from "@/pages/HomePage/pages/Attendance/ChurchAttendance.js";
 import EventAttendance from "@/pages/HomePage/pages/Attendance/EventAttendance";
@@ -1774,6 +1775,12 @@ export const routes: AppRoute[] = [
             path: "",
             name: "instructor_assessment_management",
             element: <MemberMyClasses />,
+            isPrivate: false,
+          },
+          {
+            path: "dashboard",
+            name: "instructor_assessment_management",
+            element: <MemberTeachingDashboard />,
             isPrivate: false,
           },
           {

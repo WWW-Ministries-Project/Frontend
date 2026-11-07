@@ -8,7 +8,7 @@ import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSomAccess } from "../utils/useSomAccess";
 import { useSomData } from "./somDataContext";
-import { ATTENTION_RULE, isMyClass, needsAttention, somPaths } from "./somUtils";
+import { adminSomNav, ATTENTION_RULE, isMyClass, needsAttention, type SomNav } from "./somUtils";
 import { Avatar, Btn, EmptyBlock, Kpi, PageHeader, Panel, Pill, ProgressBar, SimpleTable, LoadError } from "./ui";
 
 const greeting = () => {
@@ -22,7 +22,7 @@ const greeting = () => {
  * the classes they personally run and adds the grading backlog from the
  * instructor overview.
  */
-export const InstructorDashboard = () => {
+export const InstructorDashboard = ({ nav = adminSomNav }: { nav?: SomNav } = {}) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const myId = Number(user.id);
@@ -130,7 +130,7 @@ export const InstructorDashboard = () => {
             value={toGrade}
             sub={me?.avgGradingHours != null ? `${me.avgGradingHours}h average turnaround` : "across my classes"}
             tone={toGrade ? "warn" : "default"}
-            to={gradingQueue[0] ? somPaths.cohort(gradingQueue[0].cohortId, "Gradebook") : undefined}
+            to={gradingQueue[0] ? nav.cohort(gradingQueue[0].cohortId, "Gradebook") : undefined}
           />
         </div>
 
@@ -138,7 +138,7 @@ export const InstructorDashboard = () => {
           <Panel
             title="At-risk learners"
             icon={<span className="size-2 rounded-full bg-red-600" aria-hidden />}
-            action={<Btn variant="ghost" to={somPaths.learners}>View all</Btn>}
+            action={nav.learners ? <Btn variant="ghost" to={nav.learners}>View all</Btn> : undefined}
           >
             {mine.attention.length === 0 ? (
               <p className="px-4 py-6 text-sm text-primaryGray">Everyone in your live classes is keeping pace.</p>
@@ -157,7 +157,13 @@ export const InstructorDashboard = () => {
                         <div className="min-w-0">
                           <button
                             type="button"
-                            onClick={() => navigate(somPaths.student(e.cohort.id, e.cls.id, e.id))}
+                            onClick={() =>
+                              navigate(
+                                nav.student
+                                  ? nav.student(e.cohort.id, e.cls.id, e.id)
+                                  : nav.cohort(e.cohort.id)
+                              )
+                            }
                             className="block truncate text-left font-medium text-primary hover:underline"
                           >
                             {e.name}
@@ -194,7 +200,13 @@ export const InstructorDashboard = () => {
                     render: (e) => (
                       <Btn
                         size="sm"
-                        onClick={() => navigate(somPaths.student(e.cohort.id, e.cls.id, e.id))}
+                        onClick={() =>
+                          navigate(
+                            nav.student
+                              ? nav.student(e.cohort.id, e.cls.id, e.id)
+                              : nav.cohort(e.cohort.id)
+                          )
+                        }
                       >
                         Reach out
                       </Btn>
@@ -225,7 +237,7 @@ export const InstructorDashboard = () => {
                     <li key={q.cohortId}>
                       <button
                         type="button"
-                        onClick={() => navigate(somPaths.cohort(q.cohortId, "Gradebook"))}
+                        onClick={() => navigate(nav.cohort(q.cohortId, "Gradebook"))}
                         className="flex w-full items-center justify-between gap-3 border-b border-gray-100 px-4 py-2.5 text-left last:border-0 hover:bg-gray-50"
                       >
                         <div className="min-w-0">
@@ -252,7 +264,7 @@ export const InstructorDashboard = () => {
                       <li key={s.id}>
                         <button
                           type="button"
-                          onClick={() => navigate(somPaths.cohort(s.cohortId, "Sessions & attendance"))}
+                          onClick={() => navigate(nav.cohort(s.cohortId, "Sessions & attendance"))}
                           className="flex w-full items-center gap-3 border-b border-gray-100 px-4 py-2.5 text-left last:border-0 hover:bg-gray-50"
                         >
                           <DateTile value={s.starts_at} />
@@ -278,7 +290,7 @@ export const InstructorDashboard = () => {
           </div>
         </div>
 
-        <Panel title="Live cohorts" action={<Btn variant="ghost" to={somPaths.cohorts}>All cohorts</Btn>}>
+        <Panel title="Live cohorts" action={<Btn variant="ghost" to={nav.cohorts}>All cohorts</Btn>}>
           {mine.live.length === 0 ? (
             <EmptyBlock msg="None of your cohorts are running right now." />
           ) : (
@@ -287,7 +299,7 @@ export const InstructorDashboard = () => {
                 <button
                   key={c.id}
                   type="button"
-                  onClick={() => navigate(somPaths.cohort(c.id))}
+                  onClick={() => navigate(nav.cohort(c.id))}
                   className="flex flex-col gap-2.5 border-b border-r border-gray-100 p-4 text-left hover:bg-gray-50"
                 >
                   <div>

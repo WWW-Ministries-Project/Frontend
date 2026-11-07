@@ -57,6 +57,14 @@ export type SomNav = {
   cohort: (id: number | string, tab?: string) => string;
   class: (cohortId: number | string, classId: number | string) => string;
   program?: (id: number | string, tab?: string) => string;
+  /** "View all" learners link; omitted navs hide the link (the member portal). */
+  learners?: string;
+  /** A single learner; omitted navs fall back to their class (the member portal). */
+  student?: (
+    cohortId: number | string,
+    classId: number | string,
+    enrollmentId: number | string
+  ) => string;
 };
 
 export const adminSomNav: SomNav = {
@@ -64,6 +72,8 @@ export const adminSomNav: SomNav = {
   cohort: somPaths.cohort,
   class: somPaths.class,
   program: somPaths.program,
+  learners: somPaths.learners,
+  student: somPaths.student,
 };
 
 export const personName = (person?: SomPerson | null): string => {
