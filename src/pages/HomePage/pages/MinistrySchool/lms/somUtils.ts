@@ -19,6 +19,8 @@ export const somPaths = {
   programs: `${SOM_BASE}/programs`,
   program: (id: number | string, tab?: string) =>
     `${SOM_BASE}/programs/${id}${tab ? `?tab=${encodeURIComponent(tab)}` : ""}`,
+  assessmentBuilder: (programId: number | string, topicId: number | string) =>
+    `${SOM_BASE}/programs/${programId}/assessments/${topicId}`,
   cohorts: `${SOM_BASE}/cohorts`,
   cohort: (id: number | string, tab?: string) =>
     `${SOM_BASE}/cohorts/${id}${tab ? `?tab=${encodeURIComponent(tab)}` : ""}`,
@@ -31,6 +33,7 @@ export const somPaths = {
   ) => `${SOM_BASE}/cohorts/${cohortId}/classes/${classId}/student/${enrollmentId}`,
   learners: `${SOM_BASE}/learners`,
   instructors: `${SOM_BASE}/instructors`,
+  gradebook: `${SOM_BASE}/gradebook`,
   library: `${SOM_BASE}/assessment-library`,
   contentLibrary: `${SOM_BASE}/content-library`,
   reports: `${SOM_BASE}/reports`,
@@ -42,6 +45,37 @@ export const somPaths = {
   publicProgram: (title: string) => `/out/programs/${encodeURIComponent(title)}`,
 };
 
+/**
+ * The subset of navigation links the shared cohort/class pages follow. The admin
+ * shell uses `adminSomNav`; the member portal supplies its own so the same
+ * components (CohortsPage teaching view, ClassWorkspace) stay inside the member
+ * top-nav shell instead of jumping to the admin area. `program` is optional: a
+ * nav that omits it hides the "View program" link.
+ */
+export type SomNav = {
+  cohorts: string;
+  cohort: (id: number | string, tab?: string) => string;
+  class: (cohortId: number | string, classId: number | string) => string;
+  program?: (id: number | string, tab?: string) => string;
+  /** "View all" learners link; omitted navs hide the link (the member portal). */
+  learners?: string;
+  /** A single learner; omitted navs fall back to their class (the member portal). */
+  student?: (
+    cohortId: number | string,
+    classId: number | string,
+    enrollmentId: number | string
+  ) => string;
+};
+
+export const adminSomNav: SomNav = {
+  cohorts: somPaths.cohorts,
+  cohort: somPaths.cohort,
+  class: somPaths.class,
+  program: somPaths.program,
+  learners: somPaths.learners,
+  student: somPaths.student,
+};
+
 export const personName = (person?: SomPerson | null): string => {
   if (!person) return "Unassigned";
   const fromInfo = [person.user_info?.first_name, person.user_info?.last_name]
@@ -50,6 +84,13 @@ export const personName = (person?: SomPerson | null): string => {
     .trim();
   return fromInfo || person.name || "Unnamed";
 };
+
+/** Whether a class is taught by the given user. Classes carry the instructor's
+ *  user id, so an instructor's own classes are those where the ids match. */
+export const isMyClass = (
+  cls: { instructor?: { id: number } | null },
+  userId: number
+): boolean => Boolean(cls.instructor && cls.instructor.id === userId);
 
 export const initials = (name: string): string => {
   const parts = name
@@ -114,6 +155,28 @@ export const durationInWeeks = (duration?: string | null): number | null => {
   if (unit.startsWith("m")) return Math.round(n * 4.345);
   return Math.round(n * 52);
 };
+
+/** Setup-wizard defaults for a program's first cohort (name, dates, duration). */
+export const suggestFirstCohort = (
+  programTitle: string,
+  existingCount: number,
+  now: Date = new Date()
+): { name: string; duration: string; startDate: string; applicationDeadline: string } => {
+  const start = new Date(now.getFullYear(), now.getMonth() + 1, 1); // first of next month
+  const deadline = new Date(start.getTime() - 7 * DAY_MS);
+  const iso = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  return {
+    name: `${programTitle} · Cohort ${existingCount + 1}`,
+    duration: "8 weeks",
+    startDate: iso(start),
+    applicationDeadline: iso(deadline),
+  };
+};
+
+/** Setup-wizard default class name: A, B, C … by how many classes a cohort already has. */
+export const suggestClassName = (existingCount: number): string =>
+  `Class ${"ABCDEFGHIJKLMNOPQRSTUVWXYZ"[Math.min(existingCount, 25)]}`;
 
 export type CohortTiming = {
   status: CohortStatus;

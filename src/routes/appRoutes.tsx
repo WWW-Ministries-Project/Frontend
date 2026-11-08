@@ -52,10 +52,12 @@ import LearnersPage from "@/pages/HomePage/pages/MinistrySchool/lms/LearnersPage
 import { LegacyCohortRedirect } from "@/pages/HomePage/pages/MinistrySchool/lms/LegacyRedirect";
 import ProgramsPage from "@/pages/HomePage/pages/MinistrySchool/lms/ProgramsPage";
 import ProgramWorkspace from "@/pages/HomePage/pages/MinistrySchool/lms/ProgramWorkspace";
+import AssessmentBuilder from "@/pages/HomePage/pages/MinistrySchool/lms/assessment/AssessmentBuilder";
+import GradebookPage from "@/pages/HomePage/pages/MinistrySchool/lms/GradebookPage";
 import SomDashboard from "@/pages/HomePage/pages/MinistrySchool/lms/SomDashboard";
 import { SomDataProvider } from "@/pages/HomePage/pages/MinistrySchool/lms/SomDataProvider";
 import MinistrySchoolAnalytics from "@/pages/HomePage/pages/MinistrySchool/pages/MinistrySchoolAnalytics";
-import { ViewClass } from "@/pages/HomePage/pages/MinistrySchool/pages/ViewClass";
+import { ClassWorkspace } from "@/pages/HomePage/pages/MinistrySchool/lms/ClassWorkspace";
 import ViewCertificate from "@/pages/HomePage/pages/MinistrySchool/pages/ViewCertificate";
 import ViewStudent from "@/pages/HomePage/pages/MinistrySchool/pages/ViewStudent";
 import { relativePath } from "@/utils/const";
@@ -75,6 +77,7 @@ import { VisitorRegistration } from "@/pages/Registration/VisitorRegistration.js
 import EnrolledProgram from "@/pages/MembersPage/Pages/EnrolledProgram.js";
 import LearnerDashboard from "@/pages/MembersPage/Pages/school/LearnerDashboard";
 import MyPrograms from "@/pages/MembersPage/Pages/school/MyPrograms";
+import ProgramDetailsPage from "@/pages/MembersPage/Pages/school/ProgramDetailsPage";
 import LearnerAssignments from "@/pages/MembersPage/Pages/school/LearnerAssignments";
 import LearnerSubmission from "@/pages/MembersPage/Pages/school/LearnerSubmission";
 import LearnerGrades from "@/pages/MembersPage/Pages/school/LearnerGrades";
@@ -84,6 +87,9 @@ import InstructorProg from "@/pages/MembersPage/Pages/InstructorProg.js";
 import InstructorAssMan from "@/pages/MembersPage/Pages/InstructorAssMan.js";
 import Instructor from "@/pages/MembersPage/Pages/Instructor.js";
 import InstructorCohort from "@/pages/MembersPage/Pages/InstructorCohort.js";
+import MemberMyClasses from "@/pages/MembersPage/Pages/school/MemberMyClasses";
+import MemberClassWorkspace from "@/pages/MembersPage/Pages/school/MemberClassWorkspace";
+import MemberTeachingDashboard from "@/pages/MembersPage/Pages/school/MemberTeachingDashboard";
 import GradingPanel from "@/pages/MembersPage/Pages/GradingPanel.js";
 import ChurchAttendance from "@/pages/HomePage/pages/Attendance/ChurchAttendance.js";
 import EventAttendance from "@/pages/HomePage/pages/Attendance/EventAttendance";
@@ -189,6 +195,18 @@ export interface AppRoute {
   /** A pure redirect: never a navigation entry, so it does not count when
    *  deciding whether a parent has anything the user can open. */
   redirectOnly?: boolean;
+  /** Reachable by a School of Ministry instructor who teaches but has no
+   *  whole-school role, even without the page's usual permission. */
+  allowInstructor?: boolean;
+  /** Shown in the sub navigation when the module is viewed as an instructor
+   *  (My teaching / My classes). Pages without it drop out of that nav. */
+  instructorTab?: boolean;
+  /** The label this page carries in the instructor sub navigation. */
+  instructorLabel?: string;
+  /** The label this page carries when both the admin and instructor navs show
+   *  together, to tell it apart from its admin twin (e.g. "Teaching dashboard"
+   *  beside "Dashboard"). Falls back to `instructorLabel`. */
+  instructorLabelCombined?: string;
   children?: AppRoute[];
 }
 
@@ -1112,6 +1130,7 @@ export const routes: AppRoute[] = [
         isPrivate: true,
         permissionNeeded: "view_school_of_ministry",
         sideTab: true,
+        allowInstructor: true,
         children: [
           {
             path: "",
@@ -1120,6 +1139,10 @@ export const routes: AppRoute[] = [
             isPrivate: true,
             permissionNeeded: "view_school_of_ministry",
             sideTab: true,
+            allowInstructor: true,
+            instructorTab: true,
+            instructorLabel: "My teaching",
+            instructorLabelCombined: "Teaching dashboard",
           },
           {
             path: "programs",
@@ -1135,6 +1158,14 @@ export const routes: AppRoute[] = [
             element: <ProgramWorkspace />,
             isPrivate: true,
             permissionNeeded: "view_school_of_ministry",
+            allowInstructor: true,
+          },
+          {
+            path: "programs/:id/assessments/:topicId",
+            name: "Assessment builder",
+            element: <AssessmentBuilder />,
+            isPrivate: true,
+            permissionNeeded: "view_school_of_ministry",
           },
           {
             path: "cohorts",
@@ -1143,6 +1174,9 @@ export const routes: AppRoute[] = [
             isPrivate: true,
             permissionNeeded: "view_school_of_ministry",
             sideTab: true,
+            allowInstructor: true,
+            instructorTab: true,
+            instructorLabel: "My classes",
           },
           {
             path: "cohorts/:id",
@@ -1150,6 +1184,23 @@ export const routes: AppRoute[] = [
             element: <CohortWorkspace />,
             isPrivate: true,
             permissionNeeded: "view_school_of_ministry",
+            allowInstructor: true,
+          },
+          {
+            path: "cohorts/:cohortId/classes/:id",
+            name: "Class",
+            element: <ClassWorkspace />,
+            isPrivate: true,
+            permissionNeeded: "view_school_of_ministry",
+            allowInstructor: true,
+          },
+          {
+            path: "gradebook",
+            name: "Gradebook",
+            element: <GradebookPage />,
+            isPrivate: true,
+            permissionNeeded: "view_school_of_ministry",
+            allowInstructor: true,
           },
           {
             path: "learners",
@@ -1173,7 +1224,6 @@ export const routes: AppRoute[] = [
             element: <AssessmentLibraryPage />,
             isPrivate: true,
             permissionNeeded: "view_school_of_ministry",
-            sideTab: true,
           },
           {
             path: "content-library",
@@ -1181,7 +1231,6 @@ export const routes: AppRoute[] = [
             element: <ContentLibraryPage />,
             isPrivate: true,
             permissionNeeded: "view_school_of_ministry",
-            sideTab: true,
           },
           {
             path: "reports",
@@ -1197,7 +1246,7 @@ export const routes: AppRoute[] = [
             element: <Instructor isAdmin />,
             isPrivate: true,
             permissionNeeded: "view_school_of_ministry",
-            sideTab: true,
+            allowInstructor: true,
             children: [
               {
                 path: "",
@@ -1205,6 +1254,7 @@ export const routes: AppRoute[] = [
                 element: <InstructorProg />,
                 isPrivate: true,
                 permissionNeeded: "view_school_of_ministry",
+                allowInstructor: true,
               },
               {
                 path: relativePath.home.ministrySchool.instructorCohort,
@@ -1212,6 +1262,7 @@ export const routes: AppRoute[] = [
                 element: <InstructorCohort />,
                 isPrivate: true,
                 permissionNeeded: "view_school_of_ministry",
+                allowInstructor: true,
               },
               {
                 path: relativePath.home.ministrySchool.instructorAssMan,
@@ -1219,6 +1270,7 @@ export const routes: AppRoute[] = [
                 element: <InstructorAssMan />,
                 isPrivate: true,
                 permissionNeeded: "view_school_of_ministry",
+                allowInstructor: true,
               },
               {
                 path: relativePath.home.ministrySchool.instructorGradingPanel,
@@ -1226,6 +1278,7 @@ export const routes: AppRoute[] = [
                 element: <GradingPanel />,
                 isPrivate: true,
                 permissionNeeded: "view_school_of_ministry",
+                allowInstructor: true,
               },
             ],
           },
@@ -1235,7 +1288,6 @@ export const routes: AppRoute[] = [
             element: <MinistrySchoolAnalytics />,
             isPrivate: true,
             permissionNeeded: "view_school_of_ministry",
-            sideTab: true,
           },
           {
             path: "",
@@ -1243,20 +1295,15 @@ export const routes: AppRoute[] = [
             element: <ViewPageTemplate />,
             isPrivate: true,
             permissionNeeded: "view_school_of_ministry",
+            allowInstructor: true,
             children: [
-              {
-                path: "cohorts/:cohortId/classes/:id",
-                name: "View Class",
-                element: <ViewClass />,
-                isPrivate: true,
-                permissionNeeded: "view_school_of_ministry",
-              },
               {
                 path: "cohorts/:cohortId/classes/:classId/student/:id",
                 name: "View Student",
                 element: <ViewStudent />,
                 isPrivate: true,
                 permissionNeeded: "view_school_of_ministry",
+                allowInstructor: true,
               },
             ],
           },
@@ -1658,6 +1705,13 @@ export const routes: AppRoute[] = [
         isPrivate: false,
       },
       {
+        path: relativePath.member.schoolOfMinistries.programDetailsPublic,
+        name: "member_school_of_ministries",
+        backLabel: "School of Ministry",
+        element: <ProgramDetailsPage />,
+        isPrivate: false,
+      },
+      {
         path: relativePath.member.schoolOfMinistries.myEnrolledPrograms,
         name: "member_school_of_ministries",
         backLabel: "School of Ministry",
@@ -1707,16 +1761,32 @@ export const routes: AppRoute[] = [
         isPrivate: false,
       },
       {
+        // Instructor area of the member portal. Supplies the School of Ministry
+        // data context so the reused admin teaching pages ("My classes" list and
+        // the class workspace) render inside the member top-nav shell. The legacy
+        // grading drill routes are kept for notification deep-links.
         path: relativePath.member.schoolOfMinistries.instructorPortal,
         name: "member_school_of_ministries",
         backLabel: "School of Ministry",
-        element: <Instructor />,
+        element: <SomDataProvider />,
         isPrivate: false,
         children: [
           {
             path: "",
             name: "instructor_assessment_management",
-            element: <InstructorProg />,
+            element: <MemberMyClasses />,
+            isPrivate: false,
+          },
+          {
+            path: "dashboard",
+            name: "instructor_assessment_management",
+            element: <MemberTeachingDashboard />,
+            isPrivate: false,
+          },
+          {
+            path: "class/:cohortId/:id",
+            name: "instructor_assessment_management",
+            element: <MemberClassWorkspace />,
             isPrivate: false,
           },
           {

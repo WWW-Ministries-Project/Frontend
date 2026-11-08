@@ -150,6 +150,7 @@ import {
 import type {
   AiChatbotConfig,
   AiCredentialRecord,
+  AiSettingRecord,
   AiUsageHistoryResponse,
   AiUsageSummary,
 } from "./ai/interfaces";
@@ -1440,6 +1441,11 @@ export class ApiCalls {
 
   fetchAiChatbotConfig = (): Promise<ApiResponse<AiChatbotConfig>> => {
     return this.fetchFromApi("ai/chatbot/config");
+  };
+
+  // Configurable AI runtime settings (models, limits, tool rounds, quotas).
+  fetchAiSettings = (): Promise<ApiResponse<AiSettingRecord[]>> => {
+    return this.fetchFromApi("ai/settings");
   };
 
   // Assistant "For you" task feed (branch-scoped via buildBranchQuery).

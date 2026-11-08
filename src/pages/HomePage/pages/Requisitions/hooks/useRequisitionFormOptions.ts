@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useFetch } from "@/CustomHooks/useFetch";
+import { STALE, useFetch } from "@/CustomHooks/useFetch";
 import { useStore } from "@/store/useStore";
 import useSettingsStore from "../../Settings/utils/settingsStore";
 import { api } from "@/utils/api/apiCalls";
@@ -57,6 +57,9 @@ export const useRequisitionFormOptions = (
     api.fetch.fetchDepartments as (
       query?: Record<string, string | number>,
     ) => Promise<ApiResponse<DepartmentType[]>>,
+    undefined,
+    false,
+    { staleTime: STALE.reference },
   );
 
   const { data: eventsData, loading: eventsLoading } = useFetch<

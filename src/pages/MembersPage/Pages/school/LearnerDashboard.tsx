@@ -1,4 +1,4 @@
-import { useFetch } from "@/CustomHooks/useFetch";
+import { STALE, useFetch } from "@/CustomHooks/useFetch";
 import {
   Btn,
   EmptyBlock,
@@ -12,6 +12,7 @@ import {
 import { api } from "@/utils/api/apiCalls";
 import { Link } from "react-router-dom";
 import { learnerPaths } from "./learnerPaths";
+import { LearnerShell } from "./LearnerShell";
 import {
   ASSIGNMENT_STATE,
   SESSION_MODE,
@@ -37,11 +38,9 @@ const LearnerDashboard = () => {
   const { enrollments, active, loading, error, refetch } = useLearnerOverview();
   const { data: sessionsData } = useFetch(api.fetch.fetchLearnerSessions, {
     from: new Date().toISOString().slice(0, 10),
-  });
-  const { data: announcementsData } = useFetch(api.fetch.fetchLearnerAnnouncements);
+  }, false, { staleTime: STALE.short });
 
   const sessions = (sessionsData?.data ?? []).filter((s) => !s.cancelled).slice(0, 3);
-  const latest = announcementsData?.data?.[0] ?? null;
   const assignments = flattenAssignments(enrollments);
   const dueSoon = assignments.filter(isOutstanding).slice(0, 4);
   const dueThisWeek = assignments.filter((a) => assignmentState(a) === "due").length;
@@ -52,11 +51,15 @@ const LearnerDashboard = () => {
   const attended = active.find((e) => e.attendance !== null) ?? null;
 
   if (error && !enrollments.length) {
-    return <LoadError msg="We could not load your learning right now." onRetry={() => refetch()} />;
+    return (
+      <LearnerShell>
+        <LoadError msg="We could not load your learning right now." onRetry={() => refetch()} />
+      </LearnerShell>
+    );
   }
 
   return (
-    <div className="flex flex-col gap-5">
+    <LearnerShell>
       <PageHeader
         eyebrow={today}
         title="My learning"
@@ -81,12 +84,14 @@ const LearnerDashboard = () => {
               label="Current grade"
               value={pct(graded?.finalGrade)}
               sub={graded ? `Pass mark ${graded.grading.passMark}%` : "No grades yet"}
+              tone={graded ? "good" : undefined}
               to={learnerPaths.grades}
             />
             <Kpi
               label="Due this week"
               value={dueThisWeek}
               sub={dueSoon[0]?.dueDate ? `Next: ${shortDate(dueSoon[0].dueDate)}` : "Nothing due"}
+              tone={dueThisWeek ? "warn" : undefined}
               to={learnerPaths.assignments}
             />
             <Kpi
@@ -115,7 +120,7 @@ const LearnerDashboard = () => {
                   )}
                 </p>
                 <div className="flex max-w-md items-center gap-2.5">
-                  <ProgressBar value={current.progress.percent} />
+                  <ProgressBar value={current.progress.percent} tone="gold" />
                   <span className="text-[13px] font-semibold text-primary">
                     {current.progress.percent}%
                   </span>
@@ -189,26 +194,9 @@ const LearnerDashboard = () => {
               )}
             </Panel>
           </div>
-
-          <Panel
-            title="Latest announcement"
-            action={<Btn variant="ghost" to={learnerPaths.announcements}>View all</Btn>}
-          >
-            {latest ? (
-              <div className="flex flex-col gap-1 px-4 py-3.5">
-                <p className="text-sm font-semibold text-primary">{latest.title}</p>
-                <p className="whitespace-pre-line text-[13px] text-primaryGray">{latest.body}</p>
-                <p className="text-xs text-mainGray">
-                  {latest.sentByName ?? "School of Ministry"} · {shortDate(latest.sentAt)}
-                </p>
-              </div>
-            ) : (
-              <p className="px-4 py-6 text-sm text-primaryGray">No announcements yet.</p>
-            )}
-          </Panel>
         </>
       )}
-    </div>
+    </LearnerShell>
   );
 };
 

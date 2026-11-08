@@ -170,8 +170,8 @@ export const ForYouTab = ({ greetingName }: ForYouTabProps) => {
 
   return (
     <div className="flex flex-col gap-4 px-5 py-5">
-      <div className="flex flex-col gap-2 rounded-xl border border-[#D8DAE5] bg-[#F8F9FC] p-4">
-        <p className="text-base font-semibold text-[#080D2D]">
+      <div className="flex flex-col gap-2 rounded-xl border border-lightGray bg-inputBackground p-4">
+        <p className="text-base font-semibold text-primary">
           {greeting}, {greetingName}.
         </p>
         <p className="text-sm text-gray-600">
@@ -187,7 +187,7 @@ export const ForYouTab = ({ greetingName }: ForYouTabProps) => {
               {done} of {summary.total + done} done today
             </p>
             <div className="h-1.5 overflow-hidden rounded-full bg-gray-200">
-              <div className="h-full rounded-full bg-[#080D2D] transition-[width]" style={{ width: `${progressPct}%` }} />
+              <div className="h-full rounded-full bg-primary transition-[width]" style={{ width: `${progressPct}%` }} />
             </div>
           </div>
         ) : null}
@@ -199,12 +199,12 @@ export const ForYouTab = ({ greetingName }: ForYouTabProps) => {
         <p className="py-6 text-center text-sm text-gray-500">Loading your tasks…</p>
       ) : groups.length === 0 ? (
         <div className="flex flex-col items-center gap-2 py-8 text-center">
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F0FDF4] text-[#15803D]">
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-green-50 text-green-700">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true">
               <path d="M5 12.5l4.5 4.5L19 7.5" />
             </svg>
           </span>
-          <p className="text-base font-semibold text-[#080D2D]">You’re all caught up</p>
+          <p className="text-base font-semibold text-primary">You’re all caught up</p>
           <p className="text-sm text-gray-600">I’ll remind you when something new needs you.</p>
         </div>
       ) : (

@@ -6,6 +6,7 @@ import SkeletonLoader from "@/pages/HomePage/Components/reusable/SkeletonLoader"
 import { COHORT_STATUS } from "@/utils/api/ministrySchool/interfaces";
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { InstructorDashboard } from "./InstructorDashboard";
 import { useSomData } from "./somDataContext";
 import {
   ATTENTION_RULE,
@@ -17,7 +18,8 @@ import {
 } from "./somUtils";
 import { Avatar, Btn, EmptyBlock, Kpi, PageHeader, Panel, Pill, ProgressBar, StatusPill, LoadError } from "./ui";
 
-export const SomDashboard = () => {
+/** The whole-school dashboard (admins and whole-school roles). */
+const AdminDashboard = () => {
   const navigate = useNavigate();
   const { loading, programs, cohorts, enrollments, instructors, error, refetch } = useSomData();
 
@@ -31,10 +33,16 @@ export const SomDashboard = () => {
       .filter((e) => needsAttention(e.health))
       .sort((a, b) => a.completion_percent - b.completion_percent);
     const completed = enrollments.filter((e) => e.completion_status === "COMPLETED").length;
+    const avgProgress = liveEnrollments.length
+      ? Math.round(
+          liveEnrollments.reduce((sum, e) => sum + (e.completion_percent ?? 0), 0) /
+            liveEnrollments.length
+        )
+      : 0;
     const unassigned = cohorts
       .filter((c) => c.timing.status !== COHORT_STATUS.COMPLETED)
       .flatMap((c) => c.courses.filter((cls) => !cls.instructor?.id).map((cls) => ({ cls, cohort: c })));
-    return { live, upcoming, liveEnrollments, attention, completed, unassigned };
+    return { live, upcoming, liveEnrollments, attention, completed, avgProgress, unassigned };
   }, [cohorts, enrollments]);
 
   // Manage-only endpoints: view-only users never call them.
@@ -89,6 +97,12 @@ export const SomDashboard = () => {
             value={stats.liveEnrollments.length}
             sub={`in ${stats.live.length} live cohort${stats.live.length === 1 ? "" : "s"}`}
             to={somPaths.learners}
+          />
+          <Kpi
+            label="Average progress"
+            value={`${stats.avgProgress}%`}
+            sub={stats.live.length ? "across live cohorts" : "no live cohorts"}
+            to={somPaths.cohorts}
           />
           <Kpi
             label="Need attention"
@@ -277,9 +291,9 @@ export const SomDashboard = () => {
                     <span>{c.timing.label}</span>
                     <span>{c.learnerCount} learners</span>
                   </div>
-                  <ProgressBar value={c.timing.pct} />
+                  <ProgressBar value={c.timing.pct} tone="gold" />
                   {c.attentionCount > 0 && (
-                    <span className="text-xs font-semibold text-red-700">{c.attentionCount} need attention</span>
+                    <span className="text-xs font-semibold text-red-700">{c.attentionCount} at risk</span>
                   )}
                   <span className="text-xs text-mainGray">
                     {c.courses.map((cls) => personName(cls.instructor)).filter((n, i, a) => a.indexOf(n) === i).join(", ")}
@@ -292,6 +306,12 @@ export const SomDashboard = () => {
       </div>
     </PageOutline>
   );
+};
+
+/** Instructors who teach get "My teaching"; whole-school admins who also teach reach it via the combined nav. */
+export const SomDashboard = () => {
+  const { teachingView } = useSomAccess();
+  return teachingView ? <InstructorDashboard /> : <AdminDashboard />;
 };
 
 const DateTile = ({ value }: { value: string }) => {

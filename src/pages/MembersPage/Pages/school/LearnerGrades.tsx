@@ -11,6 +11,7 @@ import {
 } from "@/pages/HomePage/pages/MinistrySchool/lms/ui";
 import type { LearnerAssessment, LearnerEnrollment } from "@/utils";
 import { learnerPaths } from "./learnerPaths";
+import { LearnerShell } from "./LearnerShell";
 import { pct, useLearnerOverview } from "./learnerUtils";
 
 const CATEGORY_LABEL: Record<string, string> = { quiz: "Quizzes", essay: "Essays", exam: "Exams" };
@@ -139,10 +140,10 @@ const LearnerGrades = () => {
   const { enrollments, loading, error, refetch } = useLearnerOverview();
 
   return (
-    <div className="flex flex-col gap-4">
+    <LearnerShell>
       <PageHeader
         title="Grades"
-        subtitle="Scores appear here as soon as your instructor grades your work."
+        subtitle="Grades appear once your instructor releases them for the class."
       />
       {error && !enrollments.length ? (
         <LoadError msg="We could not load your grades." onRetry={() => refetch()} />
@@ -151,7 +152,7 @@ const LearnerGrades = () => {
       ) : (
         enrollments.map((e) => <ProgramGrades key={e.enrollmentId} enrollment={e} />)
       )}
-    </div>
+    </LearnerShell>
   );
 };
 

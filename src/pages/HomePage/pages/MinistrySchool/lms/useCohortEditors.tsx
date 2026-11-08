@@ -35,13 +35,33 @@ const toClassForm = (cls: SomClass): IClassForm => ({
   branch_id: "",
 });
 
+/** Options for opening the cohort form, used by the program setup wizard. */
+type NewCohortOptions = {
+  /** Suggested values for a create form (no id ⇒ stays in create mode). */
+  prefill?: ICohortForm;
+  /** Open the class form for the new cohort as soon as it is created. */
+  chainClass?: boolean;
+  /** Suggested values for that chained class form. */
+  classPrefill?: Partial<IClassForm>;
+};
+
 /** Create / edit / delete for cohorts and their classes, reusing the existing forms. */
 export const useCohortEditors = ({ onChanged }: { onChanged: () => void }) => {
-  const [cohortModal, setCohortModal] = useState<{ programId: number; cohort?: ICohortForm } | null>(null);
-  const [classModal, setClassModal] = useState<{ cohortId: number; cls?: IClassForm } | null>(null);
+  const [cohortModal, setCohortModal] = useState<
+    { programId: number; cohort?: ICohortForm; chainClass?: boolean; classPrefill?: Partial<IClassForm> } | null
+  >(null);
+  const [classModal, setClassModal] = useState<
+    { cohortId: number; cls?: IClassForm; prefill?: Partial<IClassForm> } | null
+  >(null);
   const [savingClass, setSavingClass] = useState(false);
 
-  const newCohort = (programId: number) => setCohortModal({ programId });
+  const newCohort = (programId: number, opts?: NewCohortOptions) =>
+    setCohortModal({
+      programId,
+      cohort: opts?.prefill,
+      chainClass: opts?.chainClass,
+      classPrefill: opts?.classPrefill,
+    });
   const editCohort = (cohort: SomCohort) =>
     setCohortModal({ programId: cohort.programId, cohort: toCohortForm(cohort) });
   const deleteCohort = (cohort: { id: number; name: string }, after?: () => void) =>
@@ -56,7 +76,8 @@ export const useCohortEditors = ({ onChanged }: { onChanged: () => void }) => {
       }
     });
 
-  const newClass = (cohortId: number) => setClassModal({ cohortId });
+  const newClass = (cohortId: number, prefill?: Partial<IClassForm>) =>
+    setClassModal({ cohortId, prefill });
   const editClass = (cls: SomClass) => setClassModal({ cohortId: cls.cohortId, cls: toClassForm(cls) });
   const deleteClass = (cls: { id: number; name: string }, after?: () => void) =>
     showDeleteDialog({ name: cls.name, id: cls.id }, async () => {
@@ -104,9 +125,15 @@ export const useCohortEditors = ({ onChanged }: { onChanged: () => void }) => {
             onClose={() => setCohortModal(null)}
             cohort={cohortModal.cohort}
             programId={cohortModal.programId}
-            onSuccess={() => {
+            onSuccess={(created) => {
+              const chain = cohortModal.chainClass;
+              const classPrefill = cohortModal.classPrefill;
               setCohortModal(null);
               onChanged();
+              // Setup wizard: step straight from the new cohort into its first class.
+              if (chain && created?.id) {
+                setClassModal({ cohortId: created.id, prefill: classPrefill });
+              }
             }}
           />
         )}
@@ -116,6 +143,7 @@ export const useCohortEditors = ({ onChanged }: { onChanged: () => void }) => {
           <ClassForm
             onClose={() => setClassModal(null)}
             initialData={classModal.cls}
+            prefill={classModal.prefill}
             onSubmit={submitClass}
             loading={savingClass}
           />

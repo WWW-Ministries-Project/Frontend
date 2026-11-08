@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { useDelete } from "@/CustomHooks/useDelete";
-import { useFetch } from "@/CustomHooks/useFetch";
+import { STALE, useFetch } from "@/CustomHooks/useFetch";
 import { encodeQuery, showDeleteDialog, showNotification } from "@/pages/HomePage/utils";
 import { api } from "@/utils";
 import type { IMarket } from "@/utils/api/marketPlace/interface";
@@ -30,7 +30,12 @@ export function MarketPlace() {
   const [tab, setTab] = useState<MarketState>("Active");
   const [modal, setModal] = useState<MarketModalMode | null>(null);
 
-  const { data: marketsRes, refetch } = useFetch(api.fetch.fetchMarkets);
+  const { data: marketsRes, refetch } = useFetch(
+    api.fetch.fetchMarkets,
+    undefined,
+    false,
+    { staleTime: STALE.reference }
+  );
   const { data: ordersRes, refetch: refetchOrders } = useFetch(
     api.fetch.fetchAllOrders,
     undefined,

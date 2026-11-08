@@ -92,7 +92,15 @@ export const SuggestTimeDialog = ({
         { label: "Send suggestion", onClick: send, tone: "primary" },
       ]}
     >
-      <SlotPicker label={`Free sessions for ${person.name}`} slots={slots} value={slot} onChange={setSlot} />
+      <SlotPicker
+        label={`Free sessions for ${person.name}`}
+        slots={slots}
+        value={slot}
+        onChange={(value) => {
+          setSlot(value);
+          setErrors([]);
+        }}
+      />
       <Field label={`Note to ${firstName(booking.requester)}`}>
         <TextArea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Optional" maxLength={300} />
       </Field>
@@ -151,7 +159,10 @@ export const DeclineDialog = ({
       <Field label="Reason">
         <SelectInput
           value={reason}
-          onChange={(e) => setReason(e.target.value)}
+          onChange={(e) => {
+            setReason(e.target.value);
+            setErrors([]);
+          }}
           hasError={errors.length > 0 && !reason}
           options={[{ value: "", label: "Choose a reason" }, ...DECLINE_REASONS.map((r) => ({ value: r, label: r }))]}
         />
@@ -298,7 +309,15 @@ export const BookDialog = ({ data, onClose, onBooked }: { data: AppointmentsData
       <FieldGrid>
         <div className="flex flex-col gap-1">
           <span className="text-sm text-primary">Member *</span>
-          <MemberPicker options={membersOptions} value={member} onChange={setMember} hasError={errors.length > 0 && !member} />
+          <MemberPicker
+            options={membersOptions}
+            value={member}
+            onChange={(value) => {
+              setMember(value);
+              setErrors([]);
+            }}
+            hasError={errors.length > 0 && !member}
+          />
         </div>
         <Field label="Phone">
           <TextInput type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="024 555 0123" maxLength={20} />
@@ -309,6 +328,7 @@ export const BookDialog = ({ data, onClose, onBooked }: { data: AppointmentsData
             onChange={(e) => {
               setAttendeeId(e.target.value);
               setSlot(null);
+              setErrors([]);
             }}
             hasError={errors.length > 0 && !attendeeId}
             options={[
@@ -320,7 +340,10 @@ export const BookDialog = ({ data, onClose, onBooked }: { data: AppointmentsData
         <Field label="Reason *">
           <SelectInput
             value={reasonId}
-            onChange={(e) => setReasonId(e.target.value)}
+            onChange={(e) => {
+              setReasonId(e.target.value);
+              setErrors([]);
+            }}
             hasError={errors.length > 0 && !reasonId}
             options={[
               { value: "", label: "Choose a reason" },
@@ -334,7 +357,10 @@ export const BookDialog = ({ data, onClose, onBooked }: { data: AppointmentsData
               label="Time *"
               slots={slots}
               value={slot}
-              onChange={setSlot}
+              onChange={(value) => {
+                setSlot(value);
+                setErrors([]);
+              }}
               help="Next 3 weeks, using their schedule and time off."
             />
           </FullRow>
@@ -362,7 +388,9 @@ type DayDraft = { on: boolean; ranges: { from: string; to: string }[] };
 
 const TIMES = (() => {
   const out: { value: string; label: string }[] = [];
-  for (let m = 6 * 60; m <= 21 * 60; m += 30) out.push({ value: fromMin(m), label: t12(fromMin(m)) });
+  // 6:00 AM – 11:30 PM so late-evening schedules (e.g. imported from mobile) are
+  // viewable and editable here, not just the daytime range.
+  for (let m = 6 * 60; m <= 23 * 60 + 30; m += 30) out.push({ value: fromMin(m), label: t12(fromMin(m)) });
   return out;
 })();
 
@@ -395,7 +423,10 @@ export const ScheduleDialog = ({
 
   const du = Number(duration);
   const bf = Number(buffer);
-  const update = (d: number, patch: Partial<DayDraft>) => setDays((prev) => ({ ...prev, [d]: { ...prev[d], ...patch } }));
+  const update = (d: number, patch: Partial<DayDraft>) => {
+    setErrors([]);
+    setDays((prev) => ({ ...prev, [d]: { ...prev[d], ...patch } }));
+  };
   const updateRange = (d: number, i: number, patch: Partial<{ from: string; to: string }>) =>
     update(d, { ranges: days[d].ranges.map((r, j) => (j === i ? { ...r, ...patch } : r)) });
 
@@ -518,8 +549,8 @@ export const ScheduleDialog = ({
                     type="button"
                     onClick={() => {
                       const last = day.ranges[day.ranges.length - 1];
-                      const from = fromMin(Math.min(toMin(last.to) + 60, 20 * 60));
-                      update(d, { ranges: [...day.ranges, { from, to: fromMin(Math.min(toMin(from) + 120, 21 * 60)) }] });
+                      const from = fromMin(Math.min(toMin(last.to) + 60, 22 * 60));
+                      update(d, { ranges: [...day.ranges, { from, to: fromMin(Math.min(toMin(from) + 120, 23 * 60 + 30)) }] });
                     }}
                     className="self-start text-xs font-medium text-primary underline"
                   >
@@ -537,14 +568,20 @@ export const ScheduleDialog = ({
         <Field label="Session length">
           <SelectInput
             value={duration}
-            onChange={(e) => setDuration(e.target.value)}
+            onChange={(e) => {
+              setDuration(e.target.value);
+              setErrors([]);
+            }}
             options={[15, 30, 45, 60, 90].map((v) => ({ value: String(v), label: `${v} minutes` }))}
           />
         </Field>
         <Field label="Break between sessions">
           <SelectInput
             value={buffer}
-            onChange={(e) => setBuffer(e.target.value)}
+            onChange={(e) => {
+              setBuffer(e.target.value);
+              setErrors([]);
+            }}
             options={[0, 5, 10, 15, 30].map((v) => ({ value: String(v), label: v ? `${v} minutes` : "None" }))}
           />
         </Field>
@@ -552,7 +589,10 @@ export const ScheduleDialog = ({
           <Field label="People per session">
             <SelectInput
               value={max}
-              onChange={(e) => setMax(e.target.value)}
+              onChange={(e) => {
+                setMax(e.target.value);
+                setErrors([]);
+              }}
               options={[1, 2, 3, 4, 5].map((v) => ({ value: String(v), label: v === 1 ? "1 (one-to-one)" : String(v) }))}
             />
           </Field>
@@ -618,10 +658,25 @@ export const TimeOffDialog = ({ person, data, onClose }: { person: ApptStaff; da
     >
       <FieldGrid>
         <Field label="From *">
-          <TextInput type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
+          <TextInput
+            type="date"
+            value={from}
+            onChange={(e) => {
+              setFrom(e.target.value);
+              setErrors([]);
+            }}
+          />
         </Field>
         <Field label="To *">
-          <TextInput type="date" value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} />
+          <TextInput
+            type="date"
+            value={to}
+            min={from || undefined}
+            onChange={(e) => {
+              setTo(e.target.value);
+              setErrors([]);
+            }}
+          />
         </Field>
         <FullRow>
           <div className="flex flex-col gap-1">

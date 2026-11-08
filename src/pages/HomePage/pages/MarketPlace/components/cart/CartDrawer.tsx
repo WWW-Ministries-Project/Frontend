@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { useFetch } from "@/CustomHooks/useFetch";
+import { STALE, useFetch } from "@/CustomHooks/useFetch";
 import { api, relativePath } from "@/utils";
 
 import { useCart } from "../../utils/cartSlice";
@@ -38,7 +38,7 @@ export default function CartDrawer() {
     api.fetch.fetchDeliveryConfig,
     undefined,
     true,
-    { silent: true }
+    { silent: true, staleTime: STALE.config }
   );
   const deliveryRequested = useRef(false);
   useEffect(() => {

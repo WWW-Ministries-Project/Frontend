@@ -1,5 +1,5 @@
 import { useSomAccess } from "../utils/useSomAccess";
-import { useFetch } from "@/CustomHooks/useFetch";
+import { STALE, useFetch } from "@/CustomHooks/useFetch";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import SkeletonLoader from "@/pages/HomePage/Components/reusable/SkeletonLoader";
 import { api } from "@/utils";
@@ -43,7 +43,7 @@ export const InstructorsPage = () => {
   // The overview spans every program, so it needs the whole school.
   const canManage = useSomAccess().viewsAll;
   const som = useSomData();
-  const overview = useFetch(api.fetch.fetchInstructorsOverview, undefined, !canManage);
+  const overview = useFetch(api.fetch.fetchInstructorsOverview, undefined, !canManage, { staleTime: STALE.short });
   const [search, setSearch] = useState("");
   const q = search.trim().toLowerCase();
 

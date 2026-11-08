@@ -4,12 +4,13 @@ import { RouteAccessProvider } from "../context/RouteAccessContext";
 import { hasRequiredAccess } from "../utils/accessControl";
 import { routes } from "./appRoutes";
 
-const renderRoutes = (routes, permissions, accessPermissions) =>
+const renderRoutes = (routes, permissions, accessPermissions, isInstructor) =>
   routes.map((route, i) => {
     const hasRenderableElement = Boolean(route.element);
     const isForbidden =
       route.isPrivate &&
       hasRenderableElement &&
+      !(isInstructor && route.allowInstructor) &&
       !hasRequiredAccess(route.permissionNeeded, accessPermissions, permissions);
 
     const routeElement = hasRenderableElement ? (
@@ -27,18 +28,20 @@ const renderRoutes = (routes, permissions, accessPermissions) =>
         element={isForbidden ? <Navigate to="/home/access-denied" /> : routeElement}
       >
         {route.children &&
-          renderRoutes(route.children, permissions, accessPermissions)}
+          renderRoutes(route.children, permissions, accessPermissions, isInstructor)}
       </Route>
     );
   });
 
 export const RenderRoutes = () => {
   const {
-    user: { permissions, access_permissions },
+    user: { permissions, access_permissions, instructor },
   } = useAuth();
 
   return (
-    <Routes>{renderRoutes(routes, permissions, access_permissions)}</Routes>
+    <Routes>
+      {renderRoutes(routes, permissions, access_permissions, Boolean(instructor))}
+    </Routes>
   );
 };
 

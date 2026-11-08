@@ -53,6 +53,10 @@ export const AppointmentDrawer = ({
   const sla = settings.replyDeadlineHours;
   const person = data.personOf(booking);
   const slot = slotOf(booking);
+  // A pending request whose slot is already in the past can't be confirmed
+  // as-is — only re-timed, reassigned or declined.
+  const slotPassed =
+    Boolean(slot.date) && new Date(`${slot.date}T${slot.end || slot.start || "23:59"}:00`) < now;
   const away = booking.status === "PENDING" ? awayOn(person, booking.date) : undefined;
   const overdue = isOverdue(booking, sla, now);
   const outcomeDue = needsOutcome(booking, now);
@@ -71,6 +75,11 @@ export const AppointmentDrawer = ({
       }
     : outcomeDue
     ? { tone: "warning", text: "This appointment has passed. Record whether it happened." }
+    : booking.status === "PENDING" && slotPassed
+    ? {
+        tone: "warning",
+        text: `This time (${fmtDL(slot.date)}, ${t12(slot.start)}) has already passed. Suggest a new time, reassign, or decline — it can’t be confirmed as-is.`,
+      }
     : booking.status === "RESCHEDULED" && booking.proposal
     ? {
         tone: "info",
@@ -179,7 +188,8 @@ export const AppointmentDrawer = ({
       ...(canReassign ? [{ label: "Reassign", onClick: () => setReassigning(true) }] : []),
       { label: "Decline", onClick: () => onDialog("decline"), tone: "danger" },
       { label: "Suggest time", onClick: () => onDialog("suggest") },
-      { label: "Accept", onClick: accept, tone: "primary" },
+      // A past-dated request can't be confirmed as-is — accept is hidden.
+      ...(slotPassed ? [] : [{ label: "Accept", onClick: accept, tone: "primary" as const }]),
     ];
   } else if (booking.status === "RESCHEDULED" && (canReassign || access.forOthers("respond", booking.attendeeId))) {
     buttons = [

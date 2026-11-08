@@ -1,14 +1,23 @@
 import { useFetch } from "@/CustomHooks/useFetch";
 import SkeletonLoader from "@/pages/HomePage/Components/reusable/SkeletonLoader";
 import { api } from "@/utils";
-import type { LearningUnit, SomCohort, Topic } from "@/utils/api/ministrySchool/interfaces";
-import { useMemo } from "react";
+import {
+  COHORT_STATUS,
+  COHORT_STATUS_VALUES,
+  type CohortStatus,
+  type LearningUnit,
+  type SomCohort,
+  type Topic,
+} from "@/utils/api/ministrySchool/interfaces";
+import { cn } from "@/utils/cn";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ProgramAssessments } from "./assessment/ProgramAssessments";
 import { ProgramInstructorsPanel } from "./people/ProgramInstructorsPanel";
 import { ProgramCertificates } from "./assessment/ProgramCertificates";
 import { GradingModelPanel } from "./curriculum/GradingModelPanel";
 import { ModuleBoard } from "./curriculum/ModuleBoard";
+import { ProgramSetupChecklist } from "./ProgramSetupChecklist";
 import { useSomData } from "./somDataContext";
 import {
   audienceLabel,
@@ -17,11 +26,15 @@ import {
   isAssessmentUnit,
   personName,
   somPaths,
+  suggestClassName,
+  suggestFirstCohort,
 } from "./somUtils";
 import {
   Btn,
   EmptyBlock,
+  KebabMenu,
   LoadError,
+  type MenuAction,
   Panel,
   Pill,
   SimpleTable,
@@ -60,6 +73,17 @@ export const ProgramWorkspace = () => {
   const full = som.programs.find((p) => p.id === programId);
   const cohortRows = som.cohorts.filter((c) => c.program.id === programId);
 
+  // Program cohorts are grouped by lifecycle (prototype: Upcoming / Ongoing / Completed).
+  const [cohortTab, setCohortTab] = useState<CohortStatus>(COHORT_STATUS.ONGOING);
+  const cohortCounts = useMemo(() => {
+    const counts: Record<CohortStatus, number> = { Upcoming: 0, Ongoing: 0, Completed: 0 };
+    cohortRows.forEach((c) => {
+      counts[c.timing.status] += 1;
+    });
+    return counts;
+  }, [cohortRows]);
+  const shownCohorts = cohortRows.filter((c) => c.timing.status === cohortTab);
+
   const refreshAll = () => {
     refetch();
     som.refetch();
@@ -74,6 +98,13 @@ export const ProgramWorkspace = () => {
     },
   });
   const cohortEditors = useCohortEditors({ onChanged: refreshAll });
+
+  const [optimisticPublished, setOptimisticPublished] = useState(false);
+  useEffect(() => setOptimisticPublished(false), [programId]);
+
+  // Guided setup for a freshly created program (opened with ?setup=1).
+  const inSetup = params.get("setup") === "1";
+  const [setupCollapsed, setSetupCollapsed] = useState(false);
 
   const tabParam = params.get("tab") as Tab | null;
   const tab: Tab = tabParam && TABS.includes(tabParam) ? tabParam : "Overview";
@@ -105,11 +136,69 @@ export const ProgramWorkspace = () => {
   const summary = full?.enrollment_summary;
   const title = detail.title;
 
+  // Setup checklist state, ticked off from the program's real data.
+  const moduleCount = full?.program_details?.module_count ?? 0;
+  const unitCount = topics.length;
+  const classCount = cohortRows.reduce((n, c) => n + c.courses.length, 0);
+  const firstCohort = cohortRows[0];
+
+  // Reflect a publish immediately: the full-details refetch is slow, so the
+  // status badge would otherwise keep showing "Draft" for several seconds.
+  const programStatus = optimisticPublished
+    ? "PUBLISHED"
+    : full?.program_details?.status;
+  const isDraft = programStatus === "DRAFT";
+
+  const handlePublish = async () => {
+    if (!full) return;
+    const ok = await programEditor.publish(full);
+    if (ok) setOptimisticPublished(true);
+  };
+
+  const startFirstCohort = () =>
+    cohortEditors.newCohort(programId, {
+      prefill: {
+        ...suggestFirstCohort(title, cohortRows.length),
+        description: "",
+        status: COHORT_STATUS.UPCOMING,
+        branch_id: "",
+      },
+      chainClass: true,
+      classPrefill: {
+        name: suggestClassName(0),
+        capacity: 20,
+        schedule: "Saturdays 09:00",
+        classFormat: "In_Person",
+      },
+    });
+
+  const addFirstClass = () => {
+    if (!firstCohort) return;
+    cohortEditors.newClass(firstCohort.id, {
+      name: suggestClassName(firstCohort.courses.length),
+      capacity: 20,
+      schedule: "Saturdays 09:00",
+      classFormat: "In_Person",
+    });
+  };
+
+  const finishSetup = () => {
+    params.delete("setup");
+    setParams(params, { replace: true });
+  };
+
   return (
     <div className="flex min-h-full flex-col">
       <WorkspaceHeader
         crumbs={[{ label: "Programs", to: somPaths.programs }, { label: title }]}
         title={title}
+        status={
+          programStatus === "PUBLISHED"
+            ? "Published"
+            : programStatus === "DRAFT"
+              ? "Draft"
+              : undefined
+        }
         meta={[
           `${topics.length} units`,
           `${assessments.length} assessed`,
@@ -117,25 +206,52 @@ export const ProgramWorkspace = () => {
           `${summary?.total_enrolled_members ?? 0} learners`,
         ]}
         actions={
-          (canDesign || canManageCohorts) && (
-            <>
-              {canDesign && (
-                <Btn variant="onDark" onClick={() => full && programEditor.openEdit(full)}>
-                  Edit
-                </Btn>
-              )}
-              {canManageCohorts && (
-                <Btn variant="onDarkSolid" onClick={() => cohortEditors.newCohort(programId)}>
-                  + New cohort
-                </Btn>
-              )}
-            </>
-          )
+          <>
+            <Btn variant="onDark" to={somPaths.publicProgram(title)}>
+              Public page
+            </Btn>
+            {canDesign && (
+              <Btn variant="onDark" onClick={() => full && programEditor.openEdit(full)}>
+                Edit
+              </Btn>
+            )}
+            {canDesign && programStatus === "DRAFT" && (
+              <Btn variant="onDarkSolid" onClick={handlePublish}>
+                Publish
+              </Btn>
+            )}
+            {canManageCohorts && (
+              <Btn variant="onDarkSolid" onClick={() => cohortEditors.newCohort(programId)}>
+                + New cohort
+              </Btn>
+            )}
+          </>
         }
         tabs={[...TABS]}
         activeTab={tab}
         onTab={setTab}
       />
+
+      {inSetup && (canDesign || canManageCohorts) && (
+        <ProgramSetupChecklist
+          moduleCount={moduleCount}
+          unitCount={unitCount}
+          cohortCount={cohortRows.length}
+          classCount={classCount}
+          collapsed={setupCollapsed}
+          canDesign={canDesign}
+          canManageCohorts={canManageCohorts}
+          isDraft={isDraft}
+          onToggleCollapsed={() => setSetupCollapsed((v) => !v)}
+          onGoCurriculum={() => setTab("Curriculum")}
+          onGoCohorts={() => setTab("Cohorts")}
+          onCreateCohort={startFirstCohort}
+          onAddClass={addFirstClass}
+          onPublish={handlePublish}
+          onOpenCohort={() => firstCohort && navigate(somPaths.cohort(firstCohort.id))}
+          onFinish={finishSetup}
+        />
+      )}
 
       <div className="app-page-padding flex flex-col gap-4">
         {som.error && <LoadError msg={som.error} onRetry={som.refetch} />}
@@ -192,10 +308,10 @@ export const ProgramWorkspace = () => {
 
         {tab === "Assessments" && (
           <ProgramAssessments
+            programId={programId}
             topics={topics}
             canManage={canDesign}
             onChanged={refreshAll}
-            onOpenCurriculum={() => setTab("Curriculum")}
           />
         )}
 
@@ -209,10 +325,44 @@ export const ProgramWorkspace = () => {
                 </Btn>
               )}
             </div>
-            {cohortRows.length === 0 && (
+            <div role="tablist" aria-label="Cohort status" className="flex gap-1 overflow-x-auto border-b border-gray-200">
+              {COHORT_STATUS_VALUES.map((s) => {
+                const selected = cohortTab === s;
+                return (
+                  <button
+                    key={s}
+                    type="button"
+                    role="tab"
+                    aria-selected={selected}
+                    onClick={() => setCohortTab(s)}
+                    className={cn(
+                      "-mb-px flex items-center gap-2 whitespace-nowrap border-b-2 px-3.5 py-2.5 text-sm",
+                      selected ? "border-primary font-semibold text-primary" : "border-transparent text-primaryGray hover:text-primary"
+                    )}
+                  >
+                    {s}
+                    <span
+                      className={cn(
+                        "min-w-[20px] rounded-full px-1.5 text-xs font-semibold",
+                        selected ? "bg-primary text-white" : "bg-gray-100 text-primaryGray"
+                      )}
+                    >
+                      {cohortCounts[s]}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            {som.loading && cohortRows.length === 0 ? (
+              <SkeletonLoader />
+            ) : cohortRows.length === 0 ? (
               <EmptyBlock msg="No cohorts yet. Create the first intake for this program." />
+            ) : (
+              shownCohorts.length === 0 && (
+                <EmptyBlock msg={`No ${cohortTab.toLowerCase()} cohorts.`} />
+              )
             )}
-            {cohortRows.map((c) => (
+            {shownCohorts.map((c) => (
               <CohortCard
                 key={c.id}
                 cohort={c}
@@ -298,15 +448,18 @@ export const CohortCard = ({
       </span>
     }
     action={
-      <div className="flex flex-wrap justify-end gap-1.5">
-        {canManage && (
-          <>
-            <Btn size="sm" onClick={onAddClass}>+ Class</Btn>
-            <Btn size="sm" onClick={onEdit}>Edit</Btn>
-          </>
-        )}
-        {canDelete && <Btn size="sm" className="text-red-700" onClick={onDelete}>Delete</Btn>}
+      <div className="flex flex-wrap items-center justify-end gap-1.5">
+        {canManage && <Btn size="sm" onClick={onAddClass}>+ Class</Btn>}
         <Btn size="sm" variant="primary" onClick={onOpen}>Open cohort</Btn>
+        {(canManage || canDelete) && (
+          <KebabMenu
+            label="Cohort actions"
+            actions={[
+              ...(canManage ? [{ label: "Edit", onClick: onEdit }] : []),
+              ...(canDelete ? [{ label: "Delete", onClick: onDelete, danger: true }] : []),
+            ] as MenuAction[]}
+          />
+        )}
       </div>
     }
   >

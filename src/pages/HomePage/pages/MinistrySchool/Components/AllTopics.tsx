@@ -317,7 +317,7 @@ const AllTopics = ({ topics, programId, refetchProgram }: IProps) => {
         </div>
       </div>
       {/* Topic creation */}
-      <Modal open={isTopicModalOpen} onClose={() => setIsTopicModalOpen(false)} className="w-[80vw] h-full">
+      <Modal open={isTopicModalOpen} onClose={() => setIsTopicModalOpen(false)} className="w-[80vw] h-[80vh]">
         <TopicBasicInfoForm
           onClose={() => setIsTopicModalOpen(false)}
           topicToEdit={

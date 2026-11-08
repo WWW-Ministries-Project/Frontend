@@ -1,5 +1,5 @@
 import { Modal } from "@/components/Modal";
-import { useFetch } from "@/CustomHooks/useFetch";
+import { STALE, useFetch } from "@/CustomHooks/useFetch";
 import { showNotification } from "@/pages/HomePage/utils";
 import { api } from "@/utils";
 import type { LibraryItem, LibraryType } from "@/utils/api/ministrySchool/interfaces";
@@ -32,16 +32,18 @@ const field = "h-10 w-full rounded-lg border border-lightGray bg-inputBackground
 type Props = {
   programId: number;
   modules: { id: number; title: string }[];
+  /** Pre-selects a module when opened from a specific module's adder row. */
+  defaultModuleId?: number | null;
   open: boolean;
   onClose: () => void;
   onAdded: () => void;
 };
 
-const PickerBody = ({ programId, modules, onClose, onAdded }: Omit<Props, "open">) => {
-  const { data, loading, error, refetch } = useFetch(api.fetch.fetchContentLibrary);
+const PickerBody = ({ programId, modules, defaultModuleId, onClose, onAdded }: Omit<Props, "open">) => {
+  const { data, loading, error, refetch } = useFetch(api.fetch.fetchContentLibrary, undefined, false, { staleTime: STALE.reference });
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [moduleId, setModuleId] = useState("");
+  const [moduleId, setModuleId] = useState(defaultModuleId != null ? String(defaultModuleId) : "");
   const [title, setTitle] = useState("");
   const [saving, setSaving] = useState(false);
 

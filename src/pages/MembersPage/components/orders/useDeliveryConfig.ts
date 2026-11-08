@@ -1,4 +1,4 @@
-import { useFetch } from "@/CustomHooks/useFetch";
+import { STALE, useFetch } from "@/CustomHooks/useFetch";
 import { PICKUP_LOCATION } from "@/pages/HomePage/pages/MarketPlace/utils/marketplaceModel";
 import { api } from "@/utils";
 
@@ -11,7 +11,7 @@ export const useDeliveryConfig = () => {
     api.fetch.fetchDeliveryConfig,
     undefined,
     false,
-    { silent: true }
+    { silent: true, staleTime: STALE.config }
   );
   const config = !error ? data?.data : undefined;
   const fee = Math.max(0, Number(config?.delivery_fee) || 0);

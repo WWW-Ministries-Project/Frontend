@@ -150,6 +150,7 @@ export const relativePath = {
       allPrograms: "school-of-ministries/programs",
       myClass: "school-of-ministries/my-class",
       myEnrolledPrograms: "school-of-ministries/programs/my-enrolled-programs",
+      programDetailsPublic: "school-of-ministries/programs/:programId/details",
       programDetails: "school-of-ministries/programs/my-enrolled-programs/:programId",
       instructorPortal: "school-of-ministries/programs/instructor-portal",
       instructorCohort: ":programId/cohort",

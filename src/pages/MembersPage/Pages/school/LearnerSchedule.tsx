@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useFetch } from "@/CustomHooks/useFetch";
+import { STALE, useFetch } from "@/CustomHooks/useFetch";
 import {
   EmptyBlock,
   LoadError,
@@ -10,6 +10,7 @@ import {
 import { safeHttpUrl } from "@/pages/HomePage/pages/MinistrySchool/lms/somUtils";
 import { api } from "@/utils/api/apiCalls";
 import type { AttendanceStatus, LearnerSession } from "@/utils";
+import { LearnerShell } from "./LearnerShell";
 import { SESSION_MODE, calendarLink, dayParts, timeRange } from "./learnerUtils";
 
 const ATTENDANCE: Record<AttendanceStatus, { label: string; tone: Tone }> = {
@@ -77,7 +78,7 @@ const SessionRow = ({ s, past }: { s: LearnerSession; past: boolean }) => {
 };
 
 const LearnerSchedule = () => {
-  const { data, loading, error, refetch } = useFetch(api.fetch.fetchLearnerSessions);
+  const { data, loading, error, refetch } = useFetch(api.fetch.fetchLearnerSessions, undefined, false, { staleTime: STALE.short });
   const [tab, setTab] = useState<"Upcoming" | "Past">("Upcoming");
 
   const now = Date.now();
@@ -88,7 +89,7 @@ const LearnerSchedule = () => {
   const shown = tab === "Upcoming" ? upcoming : past;
 
   return (
-    <div className="flex flex-col gap-4">
+    <LearnerShell>
       <PageHeader
         title="Schedule"
         subtitle="Live sessions for your class. Attendance is taken at each one."
@@ -130,7 +131,7 @@ const LearnerSchedule = () => {
           ))}
         </div>
       )}
-    </div>
+    </LearnerShell>
   );
 };
 

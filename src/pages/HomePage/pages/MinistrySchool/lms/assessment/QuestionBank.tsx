@@ -1,5 +1,5 @@
 import { Modal } from "@/components/Modal";
-import { useFetch } from "@/CustomHooks/useFetch";
+import { STALE, useFetch } from "@/CustomHooks/useFetch";
 import SkeletonLoader from "@/pages/HomePage/Components/reusable/SkeletonLoader";
 import { showDeleteDialog } from "@/pages/HomePage/utils";
 import { api } from "@/utils";
@@ -13,7 +13,7 @@ import type {
 import { useMemo, useState } from "react";
 import { runAction } from "../runAction";
 import { makeId } from "../somUtils";
-import { Btn, EmptyBlock, Panel, Pill, SimpleTable, type Tone } from "../ui";
+import { Btn, EmptyBlock, FilterChips, Panel, Pill, SimpleTable, type Tone } from "../ui";
 
 const QUESTION_TYPE_LABEL: Record<QuestionType, string> = {
   MULTIPLE_CHOICE: "Multiple choice",
@@ -52,7 +52,7 @@ export const QuestionBank = ({ canManage }: { canManage: boolean }) => {
   const [search, setSearch] = useState("");
   const [type, setType] = useState<QuestionType | "">("");
   const [tag, setTag] = useState("");
-  const { data, loading, refetch } = useFetch(api.fetch.fetchQuestionBank);
+  const { data, loading, refetch } = useFetch(api.fetch.fetchQuestionBank, undefined, false, { staleTime: STALE.reference });
   const [draft, setDraft] = useState<Draft | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -136,12 +136,11 @@ export const QuestionBank = ({ canManage }: { canManage: boolean }) => {
             </option>
           ))}
         </select>
-        <select aria-label="Tag" value={tag} onChange={(e) => setTag(e.target.value)} className="h-9 rounded-lg border border-lightGray bg-white px-2 text-sm">
-          <option value="">All tags</option>
-          {tags.map((t) => (
-            <option key={t}>{t}</option>
-          ))}
-        </select>
+        <FilterChips
+          options={[{ value: "All", label: "All" }, ...tags.map((t) => ({ value: t, label: t }))]}
+          value={tag || "All"}
+          onChange={(v) => setTag(v === "All" ? "" : v)}
+        />
         {canManage && (
           <Btn size="sm" variant="primary" className="ml-auto" onClick={() => setDraft(emptyDraft())}>
             + Question

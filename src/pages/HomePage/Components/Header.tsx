@@ -12,6 +12,7 @@ import { BranchSwitcher } from "./BranchSwitcher";
 import { useAuth } from "../../../context/AuthWrapper";
 import { decodeToken } from "../../../utils/helperFunctions";
 import { relativePath } from "@/utils";
+import { encodeQuery } from "@/pages/HomePage/utils";
 import { activeMenuPath, learnerMenu } from "@/pages/MembersPage/Pages/school/learnerPaths";
 import { Bars3Icon, ChevronDownIcon, Squares2X2Icon } from "@heroicons/react/24/outline";
 
@@ -187,6 +188,11 @@ export const Header = ({ handleShowNav }: IProps) => {
         ]
       : []),
   ];
+  /** Section heading to show before this school item, if it starts a group. */
+  const schoolGroupStart = (index: number) => {
+    const group = schoolItems[index].group;
+    return group && schoolItems[index - 1]?.group !== group ? group : null;
+  };
   const isMoreItemActive = (item: MoreItem) =>
     item.exact ? location.pathname.replace(/\/$/, "") === item.path : isActive(item.path);
   /** Group heading to show before this item, if it starts a group. */
@@ -205,6 +211,17 @@ export const Header = ({ handleShowNav }: IProps) => {
     setIsMoreMenuOpen(false);
     setIsMarketMenuOpen(false);
     setIsProfileMenuOpen(false);
+  };
+
+  const handleViewProfile = () => {
+    setIsProfileMenuOpen(false);
+    if (isMemberRoute) {
+      navigate(relativePath.member.profile);
+      return;
+    }
+    if (token?.id) {
+      navigate(`${relativePath.home.main}/members/${encodeQuery(token.id)}`);
+    }
   };
 
   const handleChangePassword = () => {
@@ -441,19 +458,28 @@ export const Header = ({ handleShowNav }: IProps) => {
                 onClose={() => setIsSchoolMenuOpen(false)}
                 triggerRef={schoolButtonRef}
               >
-                {schoolItems.map(item => (
-                  <button
-                    role="menuitem"
-                    tabIndex={0}
-                    key={item.label}
-                    onClick={() => handleNavigate(item.path)}
-                    aria-current={activeSchoolPath === item.path ? "page" : undefined}
-                    className={`block w-full text-left px-4 py-3 text-sm hover:bg-gray-100 ${
-                      activeSchoolPath === item.path ? "text-primary font-semibold" : ""
-                    }`}
-                  >
-                    {item.label}
-                  </button>
+                {schoolItems.map((item, index) => (
+                  <Fragment key={item.path}>
+                    {schoolGroupStart(index) && (
+                      <p
+                        role="presentation"
+                        className="mt-1 border-t border-gray-200 px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wide text-gray-500"
+                      >
+                        {schoolGroupStart(index)}
+                      </p>
+                    )}
+                    <button
+                      role="menuitem"
+                      tabIndex={0}
+                      onClick={() => handleNavigate(item.path)}
+                      aria-current={activeSchoolPath === item.path ? "page" : undefined}
+                      className={`block w-full text-left px-4 py-3 text-sm hover:bg-gray-100 ${
+                        activeSchoolPath === item.path ? "text-primary font-semibold" : ""
+                      }`}
+                    >
+                      {item.label}
+                    </button>
+                  </Fragment>
                 ))}
               </AccessibleMenu>
             </div>
@@ -556,6 +582,14 @@ export const Header = ({ handleShowNav }: IProps) => {
               </p>
               <ThemeModeSelector className="w-full min-w-[140px]" />
             </div>
+            <button
+              role="menuitem"
+              onClick={handleViewProfile}
+              disabled={!isMemberRoute && !token?.id}
+              className="w-full text-left px-4 py-3 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              My profile
+            </button>
             {isMinistryWorker && (
               <button
                 role="menuitem"
@@ -694,17 +728,23 @@ export const Header = ({ handleShowNav }: IProps) => {
                   isMobileSchoolOpen ? "max-h-96" : "max-h-0"
                 }`}
               >
-                {schoolItems.map(item => (
-                  <button
-                    key={item.label}
-                    onClick={() => handleNavigate(item.path)}
-                    aria-current={activeSchoolPath === item.path ? "page" : undefined}
-                    className={`block w-full text-left px-6 py-2 text-sm hover:bg-gray-100 ${
-                      activeSchoolPath === item.path ? "text-primary font-semibold" : ""
-                    }`}
-                  >
-                    {item.label}
-                  </button>
+                {schoolItems.map((item, index) => (
+                  <Fragment key={item.path}>
+                    {schoolGroupStart(index) && (
+                      <p className="px-6 pb-1 pt-3 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                        {schoolGroupStart(index)}
+                      </p>
+                    )}
+                    <button
+                      onClick={() => handleNavigate(item.path)}
+                      aria-current={activeSchoolPath === item.path ? "page" : undefined}
+                      className={`block w-full text-left px-6 py-2 text-sm hover:bg-gray-100 ${
+                        activeSchoolPath === item.path ? "text-primary font-semibold" : ""
+                      }`}
+                    >
+                      {item.label}
+                    </button>
+                  </Fragment>
                 ))}
               </div>
             </div>

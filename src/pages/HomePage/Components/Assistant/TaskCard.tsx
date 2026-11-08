@@ -4,11 +4,11 @@ import { cn } from "@/utils/cn";
 import type { AiTask, AiTaskAction, AiTaskType } from "@/utils/api/ai/tasksInterfaces";
 
 const TYPE_STYLES: Record<AiTaskType, { label: string; className: string }> = {
-  approval: { label: "Approval", className: "bg-[#FFFBEB] text-[#B45309] border-[#FDE68A]" },
-  report: { label: "Report", className: "bg-[#EFF6FF] text-[#1D4ED8] border-[#BFDBFE]" },
-  followup: { label: "Follow-up", className: "bg-[#F0FDF4] text-[#15803D] border-[#BBF7D0]" },
-  finance: { label: "Finance", className: "bg-[#F3F4F6] text-[#374151] border-[#E5E7EB]" },
-  asset: { label: "Assets", className: "bg-[#F3F4F6] text-[#374151] border-[#E5E7EB]" },
+  approval: { label: "Approval", className: "bg-amber-50 text-amber-700 border-amber-200" },
+  report: { label: "Report", className: "bg-blue-50 text-blue-700 border-blue-200" },
+  followup: { label: "Follow-up", className: "bg-green-50 text-green-700 border-green-200" },
+  finance: { label: "Finance", className: "bg-gray-100 text-gray-700 border-gray-200" },
+  asset: { label: "Assets", className: "bg-gray-100 text-gray-700 border-gray-200" },
 };
 
 const SNOOZE_OPTIONS: { key: string; label: string }[] = [
@@ -45,13 +45,13 @@ export const TaskCard = ({ task, onAction, onSnooze }: TaskCardProps) => {
   const [showSnooze, setShowSnooze] = useState(false);
 
   return (
-    <article className="flex flex-col gap-3 rounded-xl border border-[#D8DAE5] bg-white p-4">
+    <article className="flex flex-col gap-3 rounded-xl border border-lightGray bg-white p-4">
       <div className="flex items-start gap-2">
         <div className="flex min-w-0 flex-1 flex-col gap-2">
           <span className={cn("self-start rounded-full border px-2 text-xs font-semibold leading-5", type.className)}>
             {type.label}
           </span>
-          <h3 className="text-base font-semibold leading-6 text-[#080D2D]">{task.title}</h3>
+          <h3 className="text-base font-semibold leading-6 text-primary">{task.title}</h3>
           {task.meta ? <p className="text-sm text-gray-600">{task.meta}</p> : null}
         </div>
         <button
@@ -59,7 +59,7 @@ export const TaskCard = ({ task, onAction, onSnooze }: TaskCardProps) => {
           onClick={() => setShowSnooze((prev) => !prev)}
           aria-label="Snooze"
           title="Snooze"
-          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[10px] border border-[#D8DAE5] bg-white text-gray-600 hover:bg-[#F8F9FC] hover:text-[#080D2D]"
+          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[10px] border border-lightGray bg-white text-gray-600 hover:bg-inputBackground hover:text-primary"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">
             <circle cx="12" cy="12" r="9" />
@@ -92,7 +92,7 @@ export const TaskCard = ({ task, onAction, onSnooze }: TaskCardProps) => {
                   setShowSnooze(false);
                   onSnooze(task, snoozeDate(option.key).toISOString(), option.label);
                 }}
-                className="min-h-[40px] rounded-lg border border-[#080D2D]/30 bg-white px-4 py-2 text-sm font-medium text-[#080D2D] hover:bg-[#F8F9FC]"
+                className="min-h-[40px] rounded-lg border border-primary/30 bg-white px-4 py-2 text-sm font-medium text-primary hover:bg-inputBackground"
               >
                 {option.label}
               </button>
@@ -100,7 +100,7 @@ export const TaskCard = ({ task, onAction, onSnooze }: TaskCardProps) => {
             <button
               type="button"
               onClick={() => setShowSnooze(false)}
-              className="min-h-[40px] rounded-lg bg-transparent px-4 py-2 text-sm font-medium text-gray-600 hover:bg-[#080D2D]/5"
+              className="min-h-[40px] rounded-lg bg-transparent px-4 py-2 text-sm font-medium text-gray-600 hover:bg-primary/5"
             >
               Cancel
             </button>
@@ -116,8 +116,8 @@ export const TaskCard = ({ task, onAction, onSnooze }: TaskCardProps) => {
               className={cn(
                 "min-h-[40px] rounded-lg px-4 py-2 text-sm font-medium",
                 index === 0
-                  ? "bg-[#080D2D] text-white hover:bg-[#080D2D]/90"
-                  : "border border-[#080D2D]/30 bg-white text-[#080D2D] hover:bg-[#F8F9FC]"
+                  ? "bg-primary text-white hover:bg-primary/90"
+                  : "border border-primary/30 bg-white text-primary hover:bg-inputBackground"
               )}
             >
               {action.label}

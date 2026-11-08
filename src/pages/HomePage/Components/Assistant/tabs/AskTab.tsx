@@ -1,9 +1,9 @@
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, useEffect, useRef } from "react";
 
 import { AiStructuredMessage } from "@/pages/HomePage/pages/AI/components/AiStructuredMessage";
 import { useAssistantStore } from "@/store/assistantStore";
 import { api } from "@/utils";
-import type { AiChatbotConfig, AiChatbotRequest } from "@/utils/api/ai/interfaces";
+import type { AiChatbotRequest } from "@/utils/api/ai/interfaces";
 import { ApiError } from "@/utils/api/errors/ApiError";
 import { notify } from "@/components/feedback";
 
@@ -21,41 +21,15 @@ const createIdempotencyKey = () => {
   return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 };
 
-// Local fallback when the model is unavailable or returns nothing.
-const cannedReply = (question: string): string => {
-  const q = question.toLowerCase();
-  if (/draft|message|write|welcome/.test(q)) {
-    return "Here's a starting draft:\n\n“Hi {first name}, thank you for worshipping with us last Sunday — it was a joy to have you. If you'd like to connect or join a life center near you, just reply to this message.”\n\nNothing is sent until you approve it in Communication.";
-  }
-  if (/report/.test(q)) {
-    return "I can summarise your module data into a report once an AI credential is active. Open AI Console to set one up, or try again shortly.";
-  }
-  if (/visitor/.test(q)) {
-    return "I can summarise this week's visitors and flag anyone outside the follow-up window once connected to your data. Try again shortly.";
-  }
-  return "I can help with approvals, reports, visitor follow-ups and reminders. Ask what needs your attention today — if the assistant is unavailable, open AI Console to check the provider setup.";
-};
+// Shown only when the model is unavailable or returns nothing. We never
+// fabricate an answer: say what happened and where to look.
+const UNAVAILABLE_REPLY =
+  "I couldn't get a response just now. The assistant may be unavailable — check the provider setup in AI Console, then try again.";
 
 export const AskTab = () => {
   const { msgs, draft, busy, conversationId, setDraft, pushMsg, setBusy, setConversationId } =
     useAssistantStore();
-  const [config, setConfig] = useState<AiChatbotConfig | null>(null);
   const bodyEndRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    let active = true;
-    api.fetch
-      .fetchAiChatbotConfig()
-      .then((res) => {
-        if (active) setConfig(res.data);
-      })
-      .catch(() => {
-        /* config is optional; Ask still works with the default model + fallback */
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
 
   useEffect(() => {
     bodyEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -69,10 +43,13 @@ export const AskTab = () => {
     setDraft("");
     setBusy(true);
 
+    // Open-ended chat: no module/page context is sent. The model decides which
+    // data to fetch via its tools, and conversation history is threaded
+    // server-side from conversation_id. We only pass the access scope.
     const payload: AiChatbotRequest = {
       message,
       conversation_id: conversationId,
-      context: { ...(config?.default_context ?? {}), scope: "admin" },
+      context: { scope: "admin" },
     };
 
     try {
@@ -84,7 +61,7 @@ export const AskTab = () => {
       const reply = (data.reply || "").trim();
       pushMsg({
         role: "ai",
-        text: reply || cannedReply(message),
+        text: reply || UNAVAILABLE_REPLY,
         display: reply ? data.display : undefined,
       });
     } catch (error) {
@@ -93,8 +70,13 @@ export const AskTab = () => {
           title: "AI quota reached",
           message: "You've hit the monthly assistant limit. Try again after it resets.",
         });
+        pushMsg({
+          role: "ai",
+          text: "You've reached the monthly assistant limit. Try again after it resets.",
+        });
+      } else {
+        pushMsg({ role: "ai", text: UNAVAILABLE_REPLY });
       }
-      pushMsg({ role: "ai", text: cannedReply(message) });
     } finally {
       setBusy(false);
     }
@@ -113,7 +95,7 @@ export const AskTab = () => {
         {empty ? (
           <div className="flex flex-col gap-4 pt-2">
             <div className="flex flex-col gap-1">
-              <p className="text-base font-semibold text-[#080D2D]">Ask about your work</p>
+              <p className="text-base font-semibold text-primary">Ask about your work</p>
               <p className="text-sm text-gray-600">
                 I can see what your role can see. I’ll always ask before sending anything.
               </p>
@@ -124,7 +106,7 @@ export const AskTab = () => {
                   key={label}
                   type="button"
                   onClick={() => void send(label)}
-                  className="rounded-lg border border-[#D8DAE5] bg-white px-3.5 py-2.5 text-left text-sm text-[#080D2D] transition hover:border-[#080D2D] hover:bg-[#F8F9FC]"
+                  className="rounded-lg border border-lightGray bg-white px-3.5 py-2.5 text-left text-sm text-primary transition hover:border-primary hover:bg-inputBackground"
                 >
                   {label}
                 </button>
@@ -137,16 +119,16 @@ export const AskTab = () => {
           message.role === "user" ? (
             <div
               key={index}
-              className="ml-auto max-w-[85%] whitespace-pre-wrap rounded-[12px] rounded-br-[4px] bg-[#080D2D] px-3.5 py-2.5 text-sm text-white"
+              className="ml-auto max-w-[85%] whitespace-pre-wrap rounded-[12px] rounded-br-[4px] bg-primary px-3.5 py-2.5 text-sm text-white"
             >
               {message.text}
             </div>
           ) : (
             <div key={index} className="flex max-w-[92%] gap-2">
-              <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-[#080D2D] text-white">
+              <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-primary text-white">
                 <BotMark />
               </span>
-              <div className="min-w-0 rounded-[12px] rounded-bl-[4px] border border-gray-200 bg-[#F8F9FC] px-3.5 py-2.5 text-sm text-[#080D2D]">
+              <div className="min-w-0 rounded-[12px] rounded-bl-[4px] border border-gray-200 bg-inputBackground px-3.5 py-2.5 text-sm text-primary">
                 <AiStructuredMessage display={message.display} fallbackText={message.text} />
               </div>
             </div>
@@ -167,13 +149,13 @@ export const AskTab = () => {
             onChange={(event) => setDraft(event.target.value)}
             placeholder="Ask anything about your tasks…"
             aria-label="Message the assistant"
-            className="h-10 min-w-0 flex-1 rounded-lg border border-gray-300 px-3 text-sm text-[#080D2D] outline-none focus:border-[#080D2D] focus:shadow-[0_0_0_4px_rgba(8,13,45,0.08)]"
+            className="h-10 min-w-0 flex-1 rounded-lg border border-gray-300 px-3 text-sm text-primary outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgb(var(--color-primary)/0.08)]"
           />
           <button
             type="submit"
             aria-label="Send"
             disabled={!draft.trim() || busy}
-            className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-[#080D2D] text-white transition hover:bg-[#080D2D]/90 disabled:opacity-60"
+            className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-primary text-white transition hover:bg-primary/90 disabled:opacity-60"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" aria-hidden="true">
               <path d="M4 12l16-8-6 16-2-7z" />

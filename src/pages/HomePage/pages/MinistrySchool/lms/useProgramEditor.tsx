@@ -13,7 +13,7 @@ import { createLmsActionTracker } from "../utils/lmsGuardrails";
 
 type EditableProgram = Pick<
   SomProgramFull,
-  "id" | "title" | "description" | "member_required" | "leader_required" | "ministry_required"
+  "id" | "title" | "description" | "member_required" | "leader_required" | "ministry_required" | "program_details"
 > & {
   topics: { name: string }[];
   prerequisitePrograms: Array<{ prerequisiteId?: number; id?: number; prerequisite?: { id: number; title: string }; title?: string }>;
@@ -24,6 +24,9 @@ const toFormProgram = (p: EditableProgram): ProgramResponse =>
   ({
     ...p,
     topics: p.topics,
+    grading_mode: (p.program_details?.grading_mode as ProgramResponse["grading_mode"]) ?? "PASS_FAIL",
+    auto_enroll: p.program_details?.auto_enroll ?? true,
+    status: p.program_details?.status as ProgramResponse["status"],
     prerequisitePrograms: p.prerequisitePrograms.map((pr) => ({
       id: pr.prerequisiteId ?? pr.prerequisite?.id ?? pr.id ?? 0,
       title: pr.prerequisite?.title ?? pr.title ?? "",
@@ -34,10 +37,13 @@ export const useProgramEditor = ({
   allPrograms,
   onSaved,
   onDeleted,
+  onCreated,
 }: {
   allPrograms: { id: number; title: string }[];
   onSaved?: () => void;
   onDeleted?: () => void;
+  /** Called after a program is created (not edited), with its new id — used to open the setup flow. */
+  onCreated?: (program: { id: number }) => void;
 }) => {
   const { activeBranchId } = useBranchStore();
   const [open, setOpen] = useState(false);
@@ -67,12 +73,15 @@ export const useProgramEditor = ({
     const payload: ProgramsPayloadType = {
       title: value.title,
       description: value.description,
-      topics: value.topics,
       prerequisites: value.isPrerequisitesChecked ? value.prerequisites : [],
       member_required: value.member_required,
       leader_required: value.leader_required,
       ministry_required: value.ministry_required,
+      grading_mode: value.grading_mode,
+      auto_enroll: value.auto_enroll,
       ...(value.branch_id !== "" ? { branch_id: value.branch_id } : {}),
+      // New programs are saved as drafts; the curriculum is built before publish.
+      ...(editing ? {} : { status: "DRAFT" }),
     };
 
     const tracker = createLmsActionTracker(
@@ -81,15 +90,18 @@ export const useProgramEditor = ({
     );
     setSaving(true);
     try {
+      let createdId: number | undefined;
       if (editing) {
         await api.put.updateProgram(payload, { id: String(editing.id) });
       } else {
-        await api.post.createProgram(payload);
+        const res = await api.post.createProgram(payload);
+        createdId = (res as { data?: { id?: number } } | undefined)?.data?.id;
       }
       tracker.success();
       showNotification(editing ? "Program updated" : "Program created", "success");
       close();
       onSaved?.();
+      if (createdId) onCreated?.({ id: createdId });
     } catch (error) {
       tracker.failure({ error });
       showNotification(
@@ -98,6 +110,38 @@ export const useProgramEditor = ({
       );
     } finally {
       setSaving(false);
+    }
+  };
+
+  const publish = async (program: EditableProgram): Promise<boolean> => {
+    const tracker = createLmsActionTracker("admin.program.update", {
+      programId: String(program.id),
+    });
+    try {
+      // Omit prerequisites so the update keeps the program's existing ones
+      // (updateProgram replaces prerequisites whenever that key is present).
+      await api.put.updateProgram(
+        {
+          title: program.title,
+          description: program.description,
+          member_required: program.member_required,
+          leader_required: program.leader_required,
+          ministry_required: program.ministry_required,
+          status: "PUBLISHED",
+        },
+        { id: String(program.id) }
+      );
+      tracker.success();
+      showNotification("Program published", "success");
+      onSaved?.();
+      return true;
+    } catch (error) {
+      tracker.failure({ error });
+      showNotification(
+        error instanceof Error ? error.message : "Could not publish the program",
+        "error"
+      );
+      return false;
     }
   };
 
@@ -131,5 +175,5 @@ export const useProgramEditor = ({
     </Modal>
   );
 
-  return { openCreate, openEdit, confirmDelete, modal };
+  return { openCreate, openEdit, publish, confirmDelete, modal };
 };

@@ -97,9 +97,9 @@ export const CohortWorkspace = () => {
         status={cohort.timing.status}
         meta={[
           cohort.timing.label,
-          `${cohort.learnerCount} learners`,
+          `${cohort.learnerCount} learner${cohort.learnerCount === 1 ? "" : "s"}`,
           `${cohort.courses.length} class${cohort.courses.length === 1 ? "" : "es"}`,
-          `${cohort.attentionCount} need attention`,
+          `${cohort.attentionCount} at risk`,
           `Applications close ${fmtDate(cohort.applicationDeadline)}`,
         ]}
         actions={
@@ -246,7 +246,7 @@ export const CohortWorkspace = () => {
   );
 };
 
-const CohortRoster = ({ roster }: { roster: EnrollmentRow[] }) => {
+export const CohortRoster = ({ roster }: { roster: EnrollmentRow[] }) => {
   const navigate = useNavigate();
   const [filter, setFilter] = useState<(typeof ROSTER_FILTERS)[number]>("All learners");
   const rows = roster
@@ -314,7 +314,18 @@ const CohortRoster = ({ roster }: { roster: EnrollmentRow[] }) => {
                 </div>
               ),
             },
-            { key: "d", header: "Enrolled", render: (e) => <span className="text-primaryGray">{fmtDate(e.enrolledAt)}</span> },
+            {
+              key: "d",
+              header: "Enrolled",
+              render: (e) => (
+                <div className="flex flex-col items-start gap-1">
+                  <span className="text-primaryGray">{fmtDate(e.enrolledAt)}</span>
+                  <Pill tone={e.enrolled_source === "MANUAL" ? "indigo" : "blue"}>
+                    {e.enrolled_source === "MANUAL" ? "Manual" : "Auto"}
+                  </Pill>
+                </div>
+              ),
+            },
             { key: "s", header: "Status", render: (e) => <StatusPill status={e.health} /> },
           ]}
         />
@@ -324,14 +335,20 @@ const CohortRoster = ({ roster }: { roster: EnrollmentRow[] }) => {
   );
 };
 
-const CohortAssessments = ({
+export const CohortAssessments = ({
   cohortId,
   programId,
   canManage,
+  showGrade = true,
+  showCurriculumLink = true,
 }: {
   cohortId: number;
   programId: number;
   canManage: boolean;
+  /** Admin-only shortcut into the grading page; hidden in the member class view. */
+  showGrade?: boolean;
+  /** Admin-only empty-state link into the curriculum editor. */
+  showCurriculumLink?: boolean;
 }) => {
   const navigate = useNavigate();
   const { data, loading, refetch } = useFetch(api.fetch.fetchCohortAssignments, {
@@ -387,7 +404,11 @@ const CohortAssessments = ({
           empty={
             <EmptyBlock
               msg="This program has no quizzes or essays yet."
-              action={<Btn size="sm" to={somPaths.program(programId, "Curriculum")}>Open curriculum</Btn>}
+              action={
+                showCurriculumLink ? (
+                  <Btn size="sm" to={somPaths.program(programId, "Curriculum")}>Open curriculum</Btn>
+                ) : undefined
+              }
             />
           }
           columns={[
@@ -433,13 +454,15 @@ const CohortAssessments = ({
                         Open
                       </Btn>
                     ))}
-                  <Btn
-                    size="sm"
-                    variant="primary"
-                    onClick={() => navigate(somPaths.grading(programId, cohortId, r.topic.id))}
-                  >
-                    Grade
-                  </Btn>
+                  {showGrade && (
+                    <Btn
+                      size="sm"
+                      variant="primary"
+                      onClick={() => navigate(somPaths.grading(programId, cohortId, r.topic.id))}
+                    >
+                      Grade
+                    </Btn>
+                  )}
                 </div>
               ),
             },

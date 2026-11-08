@@ -93,12 +93,15 @@ export type ExtensionPayload = {
 export type ProgramsPayloadType = {
   title: string;
   description: string;
-  topics: string[];
-  prerequisites: string[];
+  topics?: string[];
+  prerequisites?: string[];
   member_required: boolean;
   leader_required: boolean;
   ministry_required: boolean;
   branch_id?: number;
+  grading_mode?: GradingMode;
+  auto_enroll?: boolean;
+  status?: "DRAFT" | "PUBLISHED";
 };
 
 export const COHORT_STATUS = {
@@ -151,6 +154,9 @@ export type ProgramResponse = {
   topics: Topic[];
   cohorts: CohortType[];
   prerequisitePrograms: { id: number; title: string }[];
+  grading_mode?: GradingMode;
+  auto_enroll?: boolean;
+  status?: "DRAFT" | "PUBLISHED";
 };
 
 // export type Topic = {
@@ -351,6 +357,11 @@ export type ClassOption = {
   facilitator: string
   enrolled: number
   capacity: number
+  // Delivery details (backend additive): mode pill, where, and start date.
+  mode?: ClassFormat | null
+  location?: string | null
+  meetingLink?: string | null
+  startDate?: string | null
 }
 
 export type Programs = {
@@ -365,6 +376,17 @@ export type Programs = {
   prerequisites: string[] | undefined
   courses: ClassOption[]
   completed?: boolean
+  // Marketing/details fields (backend additive) for the learner program page.
+  outcomes?: string[]
+  eligibilitySummary?: string | null
+  instructors?: {
+    id: number
+    name: string
+    photo?: string | null
+    role?: string | null
+    isLead?: boolean
+    bio?: string | null
+  }[]
 }
 
 export type LessonNoteLearningUnit = {
@@ -377,7 +399,18 @@ export type LessonNoteLearningUnit = {
 export type MediaLearningUnit = {
   type: "video" | "live" | "in-person";
   data: {
-    value: string;
+    /** Legacy flat value; kept for back-compat with older units. */
+    value?: string;
+    /** video */
+    url?: string;
+    /** live */
+    meetingLink?: string;
+    /** in-person */
+    venue?: string;
+    /** live / in-person session start, ISO string */
+    startsAt?: string;
+    /** live: whether attendance is taken for the session */
+    takeAttendance?: boolean;
   };
 };
 
@@ -385,6 +418,7 @@ export type FileLearningUnit = {
   type: "pdf" | "ppt";
   data: {
     link: string;
+    fileName?: string;
   };
 };
 
@@ -393,11 +427,39 @@ export type AssignmentOption = {
   text: string;
 };
 
+export type AssignmentQuestionType =
+  | "MULTIPLE_CHOICE"
+  | "TRUE_FALSE"
+  | "SHORT_ANSWER"
+  | "ESSAY";
+
 export type AssignmentQuestion = {
   id: string;
+  /** Defaults to MULTIPLE_CHOICE when absent (legacy questions). */
+  type?: AssignmentQuestionType;
   question: string;
+  points?: number;
+  /** Present for MULTIPLE_CHOICE / TRUE_FALSE; empty for open questions. */
   options: AssignmentOption[];
   correctOptionId: string | null;
+};
+
+/** Assessment status in the builder — absent/"published" is live (back-compat). */
+export type AssessmentStatus = "draft" | "published";
+export type AssessmentLatePolicy = "accept" | "penalty" | "lock";
+export type AssessmentShowAnswers = "immediately" | "after_due" | "never";
+
+/**
+ * Builder-authored settings stored inside a quiz/essay unit's `data` JSON.
+ * All optional and additive; the backend persists them as-is.
+ */
+export type AssessmentSettings = {
+  status?: AssessmentStatus;
+  /** Minutes; null/absent = no time limit. */
+  timeLimit?: number | null;
+  latePolicy?: AssessmentLatePolicy;
+  showAnswers?: AssessmentShowAnswers;
+  shuffle?: boolean;
 };
 
 export type AssignmentLearningUnit = {
@@ -407,7 +469,9 @@ export type AssignmentLearningUnit = {
     maxAttempt?: number;
     maxAttempts?: number;
     passMark?: number;
-  };
+    /** Display weight, e.g. "10%". */
+    weight?: string;
+  } & AssessmentSettings;
 };
 
 export type AssignmentEssayLearningUnit = {
@@ -417,7 +481,8 @@ export type AssignmentEssayLearningUnit = {
     maxAttempt?: number;
     maxAttempts?: number;
     passMark?: number;
-  };
+    weight?: string;
+  } & AssessmentSettings;
 };
 
 export type TopicSubmission = {
@@ -581,6 +646,14 @@ export type SomEnrollment = {
   enrolledAt: string;
   completed: boolean | null;
   completedAt: string | null;
+  /** How the learner joined: auto-enrolled on apply, or staff-enrolled/approved. */
+  enrolled_source?: "AUTO" | "MANUAL";
+  /** Weighted grade % (null in pass/fail mode or before any grade), from the gradebook. */
+  grade_percent?: number | null;
+  /** Attendance % (null until attendance is taken). */
+  attendance_percent?: number | null;
+  /** Count of missing/overdue assessments. */
+  missing_count?: number;
   user: SomPerson | null;
   progress: {
     id: number;
@@ -667,6 +740,14 @@ export type SomProgramFull = {
   cohorts: SomCohort[];
   instructors: SomInstructor[];
   enrolled_members: SomEnrolledMember[];
+  /** Backend additive: publish status, grading model and module count. */
+  program_details?: {
+    status?: string;
+    grading_mode?: string;
+    auto_enroll?: boolean;
+    pass_mark?: number;
+    module_count?: number;
+  };
   enrollment_summary: {
     total_topics: number;
     total_cohorts: number;
@@ -788,6 +869,15 @@ export type GradeOverridePayload = {
   note?: string;
 };
 
+/** An inline note a grader pins to a quoted span of the submission. */
+export type SubmissionInlineComment = {
+  id: string;
+  text: string;
+  /** The span of the submission the comment refers to. */
+  quote?: string;
+  kind?: "praise" | "improve";
+};
+
 export type GradingSubmission = {
   id: number;
   attempt: number;
@@ -798,6 +888,8 @@ export type GradingSubmission = {
   score: number | null;
   feedback: string | null;
   rubricScores: Record<string, string> | null;
+  /** Inline comments saved on a previous grading pass. */
+  inline_comments?: SubmissionInlineComment[] | null;
   learnerName: string;
   className: string;
   enrollmentId: number;
@@ -946,6 +1038,8 @@ export type InstructorOverview = {
   liveClasses: number;
   learners: number;
   toGrade: number;
+  /** The grading backlog grouped by cohort (backend additive). */
+  gradingQueue?: { cohortId: number; cohortName: string; programTitle: string; pending: number }[];
   avgGradingHours: number | null;
   gradedCount: number;
   formats: ClassFormat[];
@@ -962,6 +1056,8 @@ export type LibraryItem = {
   pages: number | null;
   tags: string[] | null;
   usedBy: number;
+  /** Distinct number of programs this item is used in (backend additive). */
+  usedInPrograms?: number;
   createdAt: string;
   updatedAt: string;
 };
@@ -1087,4 +1183,6 @@ export type LearnerSubmission = {
   quiz: { prompt: string; yours: string | null; correct: string | null; isCorrect: boolean }[] | null;
   rubric: { label: string; level: string | null; factor: number | null; weight: number }[] | null;
   rubricScore: number | null;
+  /** Inline Strength / To-improve comments from grading (empty while the grade is held). */
+  comments?: SubmissionInlineComment[];
 };

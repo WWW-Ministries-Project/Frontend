@@ -1,7 +1,7 @@
 import { pictureInstance } from "@/axiosInstance";
 import { Modal } from "@/components/Modal";
 import { useSomAccess } from "../../utils/useSomAccess";
-import { useFetch } from "@/CustomHooks/useFetch";
+import { STALE, useFetch } from "@/CustomHooks/useFetch";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import SkeletonLoader from "@/pages/HomePage/Components/reusable/SkeletonLoader";
 import { showDeleteDialog, showNotification } from "@/pages/HomePage/utils";
@@ -16,7 +16,18 @@ import { validateUploadFile } from "@/utils/uploadValidation";
 import { ChangeEvent, useMemo, useState } from "react";
 import { runAction } from "../runAction";
 import { fmtDate, safeHttpUrl } from "../somUtils";
-import { Btn, EmptyBlock, LoadError, PageHeader, Panel, Pill, SimpleTable, type Tone } from "../ui";
+import {
+  Btn,
+  EmptyBlock,
+  FilterChips,
+  KebabMenu,
+  LoadError,
+  PageHeader,
+  Pill,
+  Thumbnail,
+  type ChipOption,
+  type Tone,
+} from "../ui";
 
 const TYPE_LABEL: Record<LibraryType, string> = {
   VIDEO: "Video",
@@ -35,6 +46,51 @@ const TYPE_TONE: Record<LibraryType, Tone> = {
   IMAGE: "green",
 };
 const TYPES = Object.keys(TYPE_LABEL) as LibraryType[];
+
+/** Small glyph shown in the card thumbnail per content type. */
+const TypeGlyph = ({ type }: { type: LibraryType }) => {
+  const common = {
+    width: 30,
+    height: 30,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 1.6,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+    "aria-hidden": true,
+  };
+  switch (type) {
+    case "VIDEO":
+      return (
+        <svg {...common}>
+          <polygon points="5 3 19 12 5 21 5 3" />
+        </svg>
+      );
+    case "IMAGE":
+      return (
+        <svg {...common}>
+          <rect x="3" y="3" width="18" height="18" rx="2" />
+          <circle cx="8.5" cy="8.5" r="1.5" />
+          <path d="m21 15-5-5L5 21" />
+        </svg>
+      );
+    case "LINK":
+      return (
+        <svg {...common}>
+          <path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.5 1.5" />
+          <path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7L12 19" />
+        </svg>
+      );
+    default:
+      return (
+        <svg {...common}>
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+          <path d="M14 2v6h6" />
+        </svg>
+      );
+  }
+};
 
 const UPLOAD_MIME_TYPES = [
   "application/pdf",
@@ -384,7 +440,7 @@ const LibraryEditor = ({
 export const ContentLibraryPage = () => {
   // Shared by every program: whole-school designers only.
   const canManage = useSomAccess().canAll("design_curriculum");
-  const { data, loading, error, refetch } = useFetch(api.fetch.fetchContentLibrary, undefined, !canManage);
+  const { data, loading, error, refetch } = useFetch(api.fetch.fetchContentLibrary, undefined, !canManage, { staleTime: STALE.reference });
   const [search, setSearch] = useState("");
   const [type, setType] = useState<LibraryType | "">("");
   const [tag, setTag] = useState("");
@@ -392,6 +448,18 @@ export const ContentLibraryPage = () => {
 
   const all = useMemo(() => data?.data ?? [], [data]);
   const tags = useMemo(() => Array.from(new Set(all.flatMap((i) => i.tags ?? []))).sort(), [all]);
+  const typeOptions = useMemo<ChipOption<LibraryType | "">[]>(() => {
+    const counts = new Map<LibraryType, number>();
+    all.forEach((i) => counts.set(i.type, (counts.get(i.type) ?? 0) + 1));
+    return [
+      { value: "", label: "All", count: all.length },
+      ...TYPES.filter((t) => counts.has(t)).map((t) => ({
+        value: t,
+        label: TYPE_LABEL[t],
+        count: counts.get(t),
+      })),
+    ];
+  }, [all]);
   const term = search.trim().toLowerCase();
   const rows = all.filter(
     (i) =>
@@ -428,135 +496,106 @@ export const ContentLibraryPage = () => {
           <EmptyBlock msg="The content library is available to School of Ministry managers." />
         ) : (
           <>
-            <div className="flex flex-wrap items-center gap-2">
-              <input
-                type="search"
-                aria-label="Search content"
-                placeholder="Search title or tag"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="h-9 w-full rounded-lg border border-lightGray bg-white px-3 text-sm tablet:w-56"
-              />
-              <select
-                aria-label="Type"
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <input
+                  type="search"
+                  aria-label="Search content"
+                  placeholder="Search title or tag"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="h-9 w-full rounded-lg border border-lightGray bg-white px-3 text-sm tablet:w-56"
+                />
+                <select
+                  aria-label="Tag"
+                  value={tag}
+                  onChange={(e) => setTag(e.target.value)}
+                  className="h-9 rounded-lg border border-lightGray bg-white px-2 text-sm"
+                >
+                  <option value="">All tags</option>
+                  {tags.map((t) => (
+                    <option key={t}>{t}</option>
+                  ))}
+                </select>
+              </div>
+              <FilterChips<LibraryType | "">
+                options={typeOptions}
                 value={type}
-                onChange={(e) => setType(e.target.value as LibraryType | "")}
-                className="h-9 rounded-lg border border-lightGray bg-white px-2 text-sm"
-              >
-                <option value="">All types</option>
-                {TYPES.map((t) => (
-                  <option key={t} value={t}>
-                    {TYPE_LABEL[t]}
-                  </option>
-                ))}
-              </select>
-              <select
-                aria-label="Tag"
-                value={tag}
-                onChange={(e) => setTag(e.target.value)}
-                className="h-9 rounded-lg border border-lightGray bg-white px-2 text-sm"
-              >
-                <option value="">All tags</option>
-                {tags.map((t) => (
-                  <option key={t}>{t}</option>
-                ))}
-              </select>
+                onChange={setType}
+              />
             </div>
 
             {error && !data ? (
               <LoadError msg="Could not load the content library." onRetry={() => refetch()} />
             ) : loading && !data ? (
               <SkeletonLoader no={3} />
+            ) : rows.length === 0 ? (
+              <EmptyBlock
+                msg={
+                  all.length
+                    ? "No content matches these filters."
+                    : "The library is empty. Add files and videos to reuse them across programs."
+                }
+              />
             ) : (
-              <Panel>
-                <SimpleTable<LibraryItem>
-                  rows={rows}
-                  rowKey={(i) => i.id}
-                  minWidth={820}
-                  empty={
-                    <EmptyBlock
-                      msg={
-                        all.length
-                          ? "No content matches these filters."
-                          : "The library is empty. Add files and videos to reuse them across programs."
-                      }
-                    />
-                  }
-                  columns={[
-                    {
-                      key: "title",
-                      header: "Title",
-                      className: "max-w-[360px]",
-                      render: (i) => {
-                        const meta = itemMeta(i);
-                        return (
-                          <div className="flex items-start gap-2.5">
-                            <Pill tone={TYPE_TONE[i.type]} className="mt-0.5">
-                              {TYPE_LABEL[i.type]}
-                            </Pill>
-                            <div className="flex min-w-0 flex-col">
-                              <span className="line-clamp-2 font-medium">{i.title}</span>
-                              {meta && <span className="text-xs text-mainGray">{meta}</span>}
-                            </div>
-                          </div>
-                        );
-                      },
-                    },
-                    {
-                      key: "tags",
-                      header: "Tags",
-                      render: (i) => (
+              <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-4">
+                {rows.map((i) => {
+                  const meta = itemMeta(i);
+                  const href = safeHttpUrl(i.url);
+                  return (
+                    <div
+                      key={i.id}
+                      className="flex flex-col gap-2.5 rounded-xl border border-gray-200 bg-white p-3 transition hover:shadow-md"
+                    >
+                      <Thumbnail
+                        badge={<Pill tone={TYPE_TONE[i.type]}>{TYPE_LABEL[i.type]}</Pill>}
+                        icon={<TypeGlyph type={i.type} />}
+                      />
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex min-w-0 flex-col">
+                          <span className="line-clamp-2 font-semibold text-primary">{i.title}</span>
+                          <span className="text-xs text-mainGray">
+                            {meta ? `${meta} · ` : ""}updated {fmtDate(i.updatedAt)}
+                          </span>
+                        </div>
+                        <KebabMenu
+                          label={`Actions for ${i.title}`}
+                          actions={[
+                            { label: "Edit", onClick: () => setEditing(draftFrom(i)) },
+                            { label: "Delete", danger: true, onClick: () => remove(i) },
+                          ]}
+                        />
+                      </div>
+                      {(i.tags ?? []).length > 0 && (
                         <div className="flex flex-wrap gap-1">
                           {(i.tags ?? []).map((t) => (
-                            <span key={t} className="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-primaryGray">
+                            <Pill key={t} tone="gray">
                               {t}
-                            </span>
+                            </Pill>
                           ))}
                         </div>
-                      ),
-                    },
-                    {
-                      key: "used",
-                      header: "Used in",
-                      render: (i) => (
-                        <span className={cn("whitespace-nowrap", !i.usedBy && "text-mainGray")}>
-                          {i.usedBy ? `${i.usedBy} unit${i.usedBy === 1 ? "" : "s"}` : "Not used"}
+                      )}
+                      <div className="mt-auto flex items-center justify-between gap-2 pt-1">
+                        <span className={cn("text-xs", !i.usedBy && "text-mainGray")}>
+                          {i.usedBy ? `Used in ${i.usedBy} unit${i.usedBy === 1 ? "" : "s"}` : "Not used"}
+                          {i.usedInPrograms != null && i.usedInPrograms > 0 && ` · ${i.usedInPrograms} program${i.usedInPrograms === 1 ? "" : "s"}`}
                         </span>
-                      ),
-                    },
-                    { key: "updated", header: "Updated", render: (i) => <span className="whitespace-nowrap">{fmtDate(i.updatedAt)}</span> },
-                    {
-                      key: "actions",
-                      header: <span className="sr-only">Actions</span>,
-                      className: "text-right",
-                      render: (i) => {
-                        const href = safeHttpUrl(i.url);
-                        return (
-                          <div className="flex justify-end gap-1.5">
-                            {href && (
-                              <a
-                                href={href}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                aria-label={`Open ${i.title} in a new tab`}
-                                className="inline-flex h-8 items-center rounded-lg border border-lightGray bg-white px-3 text-sm font-medium text-primary hover:bg-gray-50"
-                              >
-                                Open
-                              </a>
-                            )}
-                            <Btn size="sm" onClick={() => setEditing(draftFrom(i))}>
-                              Edit
-                            </Btn>
-                            <Btn size="sm" className="text-red-700" onClick={() => remove(i)}>
-                              Delete
-                            </Btn>
-                          </div>
-                        );
-                      },
-                    },
-                  ]}
-                />
-              </Panel>
+                        {href && (
+                          <a
+                            href={href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label={`Open ${i.title} in a new tab`}
+                            className="inline-flex h-8 items-center rounded-lg border border-lightGray bg-white px-3 text-sm font-medium text-primary hover:bg-gray-50"
+                          >
+                            Open
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </>
         )}

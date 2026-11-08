@@ -8,7 +8,7 @@ import { api } from "@/utils";
 import type { GradingCategory, LmsReports, SessionMode } from "@/utils/api/ministrySchool/interfaces";
 import type { QueryType } from "@/utils/interfaces";
 import { ReactNode, useMemo, useState } from "react";
-import { Btn, EmptyBlock, Kpi, LoadError, PageHeader, Panel } from "../ui";
+import { BarChart, Btn, EmptyBlock, Kpi, LoadError, PageHeader, Panel, Pill } from "../ui";
 
 const MODE_LABEL: Record<SessionMode, string> = {
   IN_PERSON: "In person",
@@ -114,18 +114,6 @@ const ReportBody = ({ report }: { report: LmsReports }) => {
   const { totals, completionByProgram, attendanceByMode, passRateByType, gradingTurnaround, enrollmentsByMonth } = report;
   const overall = totals.enrollments > 0 ? Math.round((totals.completed / totals.enrollments) * 100) : null;
   const maxMonth = Math.max(1, ...enrollmentsByMonth.map((m) => m.count));
-  const turnaroundBars: Bar[] =
-    gradingTurnaround.graded > 0
-      ? [
-          {
-            key: "within",
-            label: "Graded within 4 days",
-            pct: gradingTurnaround.within4Days ?? 0,
-            value: pctText(gradingTurnaround.within4Days),
-            sub: "Target: under 4 days",
-          },
-        ]
-      : [];
 
   return (
     <div className="flex flex-col gap-5">
@@ -137,42 +125,54 @@ const ReportBody = ({ report }: { report: LmsReports }) => {
 
       <div className="grid gap-4 laptop:grid-cols-2">
         <Panel title="Completion rate by program" bodyClassName="p-4">
-          <BarList
-            empty="No programs with enrollments."
-            bars={completionByProgram.map((p) => ({
-              key: p.programId,
-              label: p.title,
-              pct: p.rate ?? 0,
-              value: pctText(p.rate),
-              sub: `${p.completed}/${p.enrolled}`,
-            }))}
-          />
+          {completionByProgram.length ? (
+            <BarChart
+              max={100}
+              data={completionByProgram.map((p) => ({
+                label: p.title,
+                value: p.rate ?? 0,
+                display: pctText(p.rate),
+                tone: "primary",
+                trailing: <span className="text-xs font-normal text-mainGray">{p.completed}/{p.enrolled}</span>,
+              }))}
+            />
+          ) : (
+            <p className="py-4 text-center text-sm text-mainGray">No programs with enrollments.</p>
+          )}
         </Panel>
 
         <Panel title="Attendance by delivery mode" bodyClassName="p-4">
-          <BarList
-            empty="No sessions yet."
-            bars={attendanceByMode.map((a) => ({
-              key: a.mode,
-              label: MODE_LABEL[a.mode] ?? a.mode,
-              pct: a.records > 0 ? a.rate ?? 0 : 0,
-              value: a.records > 0 ? pctText(a.rate) : "—",
-              sub: a.records > 0 ? `${a.records} records` : "No attendance recorded",
-            }))}
-          />
+          {attendanceByMode.length ? (
+            <BarChart
+              max={100}
+              data={attendanceByMode.map((a) => ({
+                label: a.records > 0 ? `${a.records} records` : "No attendance recorded",
+                value: a.records > 0 ? a.rate ?? 0 : 0,
+                display: a.records > 0 ? pctText(a.rate) : "—",
+                tone: "gold",
+                trailing: <Pill>{MODE_LABEL[a.mode] ?? a.mode}</Pill>,
+              }))}
+            />
+          ) : (
+            <p className="py-4 text-center text-sm text-mainGray">No sessions yet.</p>
+          )}
         </Panel>
 
         <Panel title="Pass rate by assessment type" bodyClassName="p-4">
-          <BarList
-            empty="Nothing graded yet."
-            bars={passRateByType.map((p) => ({
-              key: p.category,
-              label: CATEGORY_LABEL[p.category] ?? p.category,
-              pct: p.rate ?? 0,
-              value: pctText(p.rate),
-              sub: `${p.graded} graded`,
-            }))}
-          />
+          {passRateByType.length ? (
+            <BarChart
+              max={100}
+              data={passRateByType.map((p) => ({
+                label: CATEGORY_LABEL[p.category] ?? p.category,
+                value: p.rate ?? 0,
+                display: pctText(p.rate),
+                tone: "primary",
+                trailing: <span className="text-xs font-normal text-mainGray">{p.graded} graded</span>,
+              }))}
+            />
+          ) : (
+            <p className="py-4 text-center text-sm text-mainGray">Nothing graded yet.</p>
+          )}
         </Panel>
 
         <Panel title="Grading turnaround" bodyClassName="flex flex-col gap-4 p-4">
@@ -192,7 +192,18 @@ const ReportBody = ({ report }: { report: LmsReports }) => {
                   <dd className="text-lg font-semibold text-primary">{gradingTurnaround.graded}</dd>
                 </div>
               </dl>
-              <BarList empty="" bars={turnaroundBars} />
+              <BarChart
+                max={100}
+                data={[
+                  {
+                    label: "Graded within 4 days",
+                    value: gradingTurnaround.within4Days ?? 0,
+                    display: pctText(gradingTurnaround.within4Days),
+                    tone: "primary",
+                    trailing: <span className="text-xs font-normal text-mainGray">Target: under 4 days</span>,
+                  },
+                ]}
+              />
             </>
           ) : (
             <p className="py-4 text-center text-sm text-mainGray">Nothing graded yet.</p>

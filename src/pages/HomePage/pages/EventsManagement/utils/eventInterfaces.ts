@@ -52,7 +52,7 @@ export interface eventType {
   event_type?: "ACTIVITY" | "PROGRAM" | "SERVICE" | "other" | "OTHER";
   start_time: string; // Format: "HH:mm"
   end_time: string; // Format: "HH:mm"
-  event_name?: string;
+  event_name?: string | null;
   event_name_id?: number | string;
   requires_registration?: boolean;
   registration_end_date?: string | null;

@@ -1,5 +1,5 @@
 import { HeaderControls } from "@/components/HeaderControls";
-import { useFetch } from "@/CustomHooks/useFetch";
+import { STALE, useFetch } from "@/CustomHooks/useFetch";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import { api } from "@/utils";
 import { IMarket, IOrders, PaymentStatus } from "@/utils/api/marketPlace/interface";
@@ -51,7 +51,12 @@ export const MarketplaceAnalytics = () => {
     page: 1,
     take: 5000,
   });
-  const { data: marketsResponse } = useFetch(api.fetch.fetchMarkets);
+  const { data: marketsResponse } = useFetch(
+    api.fetch.fetchMarkets,
+    undefined,
+    false,
+    { staleTime: STALE.reference }
+  );
 
   const orders = useMemo(() => {
     if (!Array.isArray(ordersResponse?.data)) return [];

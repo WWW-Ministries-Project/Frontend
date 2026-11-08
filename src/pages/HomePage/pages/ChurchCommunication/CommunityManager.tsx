@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { notify } from "@/components/feedback";
-import { useFetch } from "@/CustomHooks/useFetch";
+import { cachedFetch, STALE, useFetch } from "@/CustomHooks/useFetch";
 import { confirmAction } from "@/pages/HomePage/utils/helperFunctions";
 import { api } from "@/utils/api/apiCalls";
 import type {
@@ -235,8 +235,9 @@ const CommunityManager = () => {
     setTried(false);
     setErrors([]);
     if (!departments.length) {
-      api.fetch
-        .fetchDepartments()
+      cachedFetch(api.fetch.fetchDepartments, undefined, {
+        staleTime: STALE.reference,
+      })
         .then((response) => setDepartments(response.data ?? []))
         .catch(() => undefined);
     }

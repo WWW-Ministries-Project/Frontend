@@ -75,23 +75,23 @@ export const SettingsView = () => {
       <button
         type="button"
         onClick={() => setView("main")}
-        className="self-start text-sm text-gray-600 hover:text-[#080D2D]"
+        className="self-start text-sm text-gray-600 hover:text-primary"
       >
         ← Back
       </button>
       <div className="flex flex-col gap-1">
-        <h3 className="text-base font-semibold text-[#080D2D]">Reminder settings</h3>
+        <h3 className="text-base font-semibold text-primary">Reminder settings</h3>
         <p className="text-sm text-gray-600">Choose when I remind you and how loudly. These apply to you only.</p>
       </div>
 
       <fieldset disabled={loading} className="contents">
-        <div className={cn("rounded-xl border border-[#D8DAE5]", loading && "opacity-60")}>
+        <div className={cn("rounded-xl border border-lightGray", loading && "opacity-60")}>
           {TOGGLES.map((row, index) => {
             const on = prefs[row.key];
             return (
               <div key={row.key} className={cn("flex items-center gap-4 p-4", index > 0 && "border-t border-gray-200")}>
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
-                  <p className="text-sm font-medium text-[#080D2D]">{row.label}</p>
+                  <p className="text-sm font-medium text-primary">{row.label}</p>
                   <p className="text-xs text-gray-500">{row.desc}</p>
                 </div>
                 <button
@@ -102,7 +102,7 @@ export const SettingsView = () => {
                   onClick={() => void persist({ [row.key]: !on } as AiPreferencesPatch)}
                   className={cn(
                     "relative h-6 w-10 flex-shrink-0 rounded-full transition-colors",
-                    on ? "bg-[#080D2D]" : "bg-[#D8DAE5]"
+                    on ? "bg-primary" : "bg-lightGray"
                   )}
                 >
                   <span
@@ -119,12 +119,12 @@ export const SettingsView = () => {
 
         <div className={cn("flex flex-col gap-4", loading && "opacity-60")}>
           {SELECTS.map((row) => (
-            <label key={row.key} className="flex flex-col gap-1 text-sm font-medium text-[#080D2D]">
+            <label key={row.key} className="flex flex-col gap-1 text-sm font-medium text-primary">
               {row.label}
               <select
                 value={prefs[row.key]}
                 onChange={(event) => void persist({ [row.key]: event.target.value } as AiPreferencesPatch)}
-                className="h-10 rounded-lg border border-gray-300 px-3 text-sm font-normal text-[#080D2D]"
+                className="h-10 rounded-lg border border-gray-300 px-3 text-sm font-normal text-primary"
               >
                 {row.options.map((option) => (
                   <option key={option} value={option}>

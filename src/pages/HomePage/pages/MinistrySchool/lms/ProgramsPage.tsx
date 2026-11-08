@@ -5,7 +5,7 @@ import { useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useSomData } from "./somDataContext";
 import { audienceLabel, isAssessmentUnit, somPaths } from "./somUtils";
-import { Btn, EmptyBlock, PageHeader, Panel, Pill, SimpleTable, type Column, LoadError } from "./ui";
+import { Btn, EmptyBlock, KebabMenu, PageHeader, Panel, Pill, SimpleTable, type Column, LoadError } from "./ui";
 import { useProgramEditor } from "./useProgramEditor";
 import { useSomAccess } from "../utils/useSomAccess";
 
@@ -19,7 +19,13 @@ export const ProgramsPage = () => {
   const canEdit = som.can("design_curriculum");
   const canDelete = som.canDelete;
   const { loading, programs, cohorts, refetch, error } = useSomData();
-  const editor = useProgramEditor({ allPrograms: programs, onSaved: refetch, onDeleted: refetch });
+  const editor = useProgramEditor({
+    allPrograms: programs,
+    onSaved: refetch,
+    onDeleted: refetch,
+    // A new program drops straight into guided setup on its Curriculum tab.
+    onCreated: (p) => navigate(`${somPaths.program(p.id, "Curriculum")}&setup=1`),
+  });
 
   useEffect(() => {
     if (params.get("new") === "1" && canCreate) {
@@ -77,41 +83,44 @@ export const ProgramsPage = () => {
       header: "Curriculum",
       render: (r) => (
         <span className="whitespace-nowrap text-primaryGray">
-          {r.units} units · {r.assessments} assessed
+          {r.program.program_details?.module_count ?? 0} modules · {r.units} units
+        </span>
+      ),
+    },
+    {
+      key: "grading",
+      header: "Grading",
+      render: (r) => (
+        <span className="whitespace-nowrap text-primaryGray">
+          {r.program.program_details?.grading_mode === "WEIGHTED"
+            ? "Weighted"
+            : r.program.program_details?.grading_mode === "PASS_FAIL"
+              ? "Pass / fail"
+              : "—"}
         </span>
       ),
     },
     { key: "who", header: "Who can join", render: (r) => <span className="text-primaryGray">{audienceLabel(r.program)}</span> },
     { key: "cohorts", header: "Cohorts", className: "text-right", render: (r) => r.cohortCount },
     { key: "learners", header: "Learners", className: "text-right", render: (r) => r.learners },
-    ...(canEdit || canDelete
-      ? [
-          {
-            key: "actions",
-            header: <span className="sr-only">Actions</span>,
-            className: "text-right",
-            render: (r: Row) => (
-              <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
-                {canEdit && (
-                  <Btn size="sm" variant="secondary" onClick={() => editor.openEdit(r.program)}>
-                    Edit
-                  </Btn>
-                )}
-                {canDelete && (
-                  <Btn
-                    size="sm"
-                    variant="secondary"
-                    className="text-red-700"
-                    onClick={() => editor.confirmDelete(r.program)}
-                  >
-                    Delete
-                  </Btn>
-                )}
-              </div>
-            ),
-          },
-        ]
-      : []),
+    {
+      key: "actions",
+      header: <span className="sr-only">Actions</span>,
+      className: "text-right",
+      render: (r: Row) => (
+        <div className="flex justify-end">
+          <KebabMenu
+            actions={[
+              { label: "View", onClick: () => navigate(somPaths.program(r.program.id)) },
+              ...(canEdit ? [{ label: "Edit", onClick: () => editor.openEdit(r.program) }] : []),
+              ...(canDelete
+                ? [{ label: "Delete", onClick: () => editor.confirmDelete(r.program), danger: true }]
+                : []),
+            ]}
+          />
+        </div>
+      ),
+    },
   ];
 
   return (

@@ -8,6 +8,7 @@ import {
   ProgressBar,
 } from "@/pages/HomePage/pages/MinistrySchool/lms/ui";
 import { formatLabel } from "@/pages/HomePage/pages/MinistrySchool/lms/somUtils";
+import { LearnerShell } from "./LearnerShell";
 import { learnerPaths } from "./learnerPaths";
 import { shortDate, useLearnerOverview } from "./learnerUtils";
 
@@ -23,7 +24,7 @@ const MyPrograms = () => {
   );
 
   return (
-    <div className="flex flex-col gap-5">
+    <LearnerShell>
       <PageHeader
         title="My programs"
         subtitle="Programs you're enrolled in, and the ones you've completed."
@@ -93,7 +94,7 @@ const MyPrograms = () => {
                   </span>
                   <span>{e.progress.percent}% complete</span>
                 </div>
-                <ProgressBar value={e.progress.percent} />
+                <ProgressBar value={e.progress.percent} tone="gold" />
                 {e.class.instructor?.name && (
                   <p className="text-xs text-primaryGray">Instructor: {e.class.instructor.name}</p>
                 )}
@@ -110,7 +111,7 @@ const MyPrograms = () => {
           })}
         </div>
       )}
-    </div>
+    </LearnerShell>
   );
 };
 

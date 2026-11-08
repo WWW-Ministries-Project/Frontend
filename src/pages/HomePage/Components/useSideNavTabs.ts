@@ -22,9 +22,14 @@ export const useSideNavTabs = () => {
   const groups: AppRoute[][] = useMemo(
     () =>
       groupSideTabs(
-        filterRoutesByAccess(sideTabs, user.access_permissions, user.permissions)
+        filterRoutesByAccess(
+          sideTabs,
+          user.access_permissions,
+          user.permissions,
+          Boolean(user.instructor)
+        )
       ),
-    [user.access_permissions, user.permissions]
+    [user.access_permissions, user.permissions, user.instructor]
   );
 
   const tabs: AppRoute[] = useMemo(() => groups.flat(), [groups]);

@@ -1,14 +1,15 @@
 import ProgramApply from "@/pages/HomePage/pages/MinistrySchool/pages/ProgramApply";
 import { PageHeader } from "@/pages/HomePage/pages/MinistrySchool/lms/ui";
+import { LearnerShell } from "./school/LearnerShell";
 
 const AllPrograms = () => (
-  <div className="flex flex-col gap-5">
+  <LearnerShell>
     <PageHeader
       title="Browse programs"
-      subtitle="Programs open for enrolment. Eligible applicants are enrolled automatically; others go to the School of Ministry office for review."
+      subtitle="Programs open for enrolment. Eligible applicants are enrolled automatically."
     />
     <ProgramApply />
-  </div>
+  </LearnerShell>
 );
 
 export default AllPrograms;
