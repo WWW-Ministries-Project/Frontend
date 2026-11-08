@@ -4,7 +4,7 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 import { useAccessControl } from "@/CustomHooks/useAccessControl";
 import { useDelete } from "@/CustomHooks/useDelete";
-import { useFetch } from "@/CustomHooks/useFetch";
+import { STALE, useFetch } from "@/CustomHooks/useFetch";
 import { usePictureUpload } from "@/CustomHooks/usePictureUpload";
 import { usePost } from "@/CustomHooks/usePost";
 import { usePut } from "@/CustomHooks/usePut";
@@ -42,6 +42,7 @@ export function AddProduct() {
   const { data: categories } = useFetch(api.fetch.fetchProductCategories);
   const { data: marketsRes } = useFetch(api.fetch.fetchMarkets, undefined, false, {
     silent: true,
+    staleTime: STALE.reference,
   });
   const { data: product, refetch } = useFetch(
     api.fetch.fetchProductById,

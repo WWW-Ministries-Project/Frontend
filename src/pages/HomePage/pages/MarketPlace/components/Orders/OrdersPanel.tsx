@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { notify } from "@/components/feedback";
 import { Modal } from "@/components/Modal";
 import { useAccessControl } from "@/CustomHooks/useAccessControl";
-import { useFetch } from "@/CustomHooks/useFetch";
+import { STALE, useFetch } from "@/CustomHooks/useFetch";
 import {
   encodeQuery,
   showDeleteDialog,
@@ -92,7 +92,7 @@ export function OrdersPanel({ marketId, initialTab, title, subtitle }: IProps) {
     marketId ? api.fetch.fetchOrdersByMarket : api.fetch.fetchAllOrders,
     ordersQuery
   );
-  const { data: marketsRes } = useFetch(api.fetch.fetchMarkets, undefined, false, { silent: true });
+  const { data: marketsRes } = useFetch(api.fetch.fetchMarkets, undefined, false, { silent: true, staleTime: STALE.reference });
 
   const rows = useMemo(() => ordersRes?.data || [], [ordersRes]);
   const markets = useMemo(() => marketsRes?.data || [], [marketsRes]);

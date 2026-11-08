@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 
 import { useAccessControl } from "@/CustomHooks/useAccessControl";
-import { useFetch } from "@/CustomHooks/useFetch";
+import { STALE, useFetch } from "@/CustomHooks/useFetch";
 import { SelectField } from "@/pages/HomePage/Components/reusable/SelectField";
 import { notify } from "@/components/feedback";
 import { useStore } from "@/store/useStore";
@@ -123,6 +123,7 @@ export function CreateOrderForMemberModal({ marketId, onClose, onCreated }: IPro
   );
   const { data: deliveryRes } = useFetch(api.fetch.fetchDeliveryConfig, undefined, false, {
     silent: true,
+    staleTime: STALE.config,
   });
   const deliveryEnabled = Boolean(deliveryRes?.data?.delivery_enabled);
   const deliveryFee = Number(deliveryRes?.data?.delivery_fee) || 0;

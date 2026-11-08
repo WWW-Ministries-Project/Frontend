@@ -1,5 +1,6 @@
 import { useBranchStore } from "@/store/useBranchStore";
 import { api } from "@/utils/api/apiCalls";
+import { cachedFetch, STALE } from "@/CustomHooks/useFetch";
 import { ApiError } from "@/utils/api/errors/ApiError";
 import type { MembersType } from "@/utils/api/members/interfaces";
 import type { PositionType } from "@/utils/api/settings/positionInterfaces";
@@ -89,16 +90,21 @@ export const useApprovals = () => {
   useEffect(() => {
     WORKFLOW_KEYS.forEach((key) => void load(key));
 
-    api.fetch
-      .fetchMembersForOptions()
+    cachedFetch(api.fetch.fetchMembersForOptions, undefined, {
+      staleTime: STALE.reference,
+    })
       .then((res) => mounted.current && setMembers(toPeople(res.data)))
       .catch(() => undefined);
-    api.fetch
-      .fetchMembersForOptions({ permission_domain: "Financials", minimum_access: "view" })
+    cachedFetch(
+      api.fetch.fetchMembersForOptions,
+      { permission_domain: "Financials", minimum_access: "view" },
+      { staleTime: STALE.reference }
+    )
       .then((res) => mounted.current && setFinanceMembers(toPeople(res.data).filter((p) => p.active)))
       .catch(() => undefined);
-    api.fetch
-      .fetchPositions()
+    cachedFetch(api.fetch.fetchPositions, undefined, {
+      staleTime: STALE.reference,
+    })
       .then((res) => mounted.current && setPositions(Array.isArray(res.data) ? res.data : []))
       .catch(() => undefined);
   }, [load]);

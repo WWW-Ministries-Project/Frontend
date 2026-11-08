@@ -1,5 +1,5 @@
 import { Modal } from "@/components/Modal";
-import { useFetch } from "@/CustomHooks/useFetch";
+import { STALE, useFetch } from "@/CustomHooks/useFetch";
 import SkeletonLoader from "@/pages/HomePage/Components/reusable/SkeletonLoader";
 import { showConfirmDialog, showNotification } from "@/pages/HomePage/utils";
 import { api } from "@/utils";
@@ -105,9 +105,9 @@ export const AssessmentBuilder = () => {
   const [mode, setMode] = useState<"edit" | "preview">("edit");
   const [saving, setSaving] = useState(false);
 
-  const { data, loading, refetch } = useFetch(api.fetch.fetchProgramById, { id: String(id) });
-  const { data: rubricData } = useFetch(api.fetch.fetchRubrics);
-  const { data: bankData } = useFetch(api.fetch.fetchQuestionBank);
+  const { data, loading, refetch } = useFetch(api.fetch.fetchProgramById, { id: String(id) }, false, { staleTime: STALE.reference });
+  const { data: rubricData } = useFetch(api.fetch.fetchRubrics, undefined, false, { staleTime: STALE.reference });
+  const { data: bankData } = useFetch(api.fetch.fetchQuestionBank, undefined, false, { staleTime: STALE.reference });
   const [bankOpen, setBankOpen] = useState(false);
   const [picked, setPicked] = useState<number[]>([]);
 

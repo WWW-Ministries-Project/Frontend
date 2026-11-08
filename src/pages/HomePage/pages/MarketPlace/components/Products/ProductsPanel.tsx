@@ -3,7 +3,7 @@ import { useCallback, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { useAccessControl } from "@/CustomHooks/useAccessControl";
-import { useFetch } from "@/CustomHooks/useFetch";
+import { STALE, useFetch } from "@/CustomHooks/useFetch";
 import { InlineAlert } from "@/components/feedback";
 import { encodeQuery } from "@/pages/HomePage/utils";
 import { api } from "@/utils";
@@ -93,7 +93,8 @@ export function ProductsPanel({
   const { data: marketsRes, refetch: refetchMarkets } = useFetch(
     api.fetch.fetchMarkets,
     undefined,
-    Boolean(marketId)
+    Boolean(marketId),
+    { staleTime: STALE.reference }
   );
   const markets: IMarket[] | undefined = marketId ? undefined : marketsRes?.data;
   // Products belong to a market: with none, adding a product can't start.

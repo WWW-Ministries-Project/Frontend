@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useFetch } from "@/CustomHooks/useFetch";
+import { STALE, useFetch } from "@/CustomHooks/useFetch";
 import {
   EmptyBlock,
   LoadError,
@@ -78,7 +78,7 @@ const SessionRow = ({ s, past }: { s: LearnerSession; past: boolean }) => {
 };
 
 const LearnerSchedule = () => {
-  const { data, loading, error, refetch } = useFetch(api.fetch.fetchLearnerSessions);
+  const { data, loading, error, refetch } = useFetch(api.fetch.fetchLearnerSessions, undefined, false, { staleTime: STALE.short });
   const [tab, setTab] = useState<"Upcoming" | "Past">("Upcoming");
 
   const now = Date.now();

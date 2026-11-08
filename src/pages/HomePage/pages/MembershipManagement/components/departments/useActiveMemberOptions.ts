@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-import { useFetch } from "@/CustomHooks/useFetch";
+import { STALE, useFetch } from "@/CustomHooks/useFetch";
 import { useStore } from "@/store/useStore";
 import { api } from "@/utils/api/apiCalls";
 
@@ -18,6 +18,7 @@ export const useActiveMemberOptions = (enabled: boolean): MemberOption[] => {
   const shellOptions = useStore((state) => state.membersOptions);
   const { data } = useFetch(api.fetch.fetchMembersForOptions, undefined, !enabled, {
     silent: true,
+    staleTime: STALE.reference,
   });
 
   return useMemo(() => {

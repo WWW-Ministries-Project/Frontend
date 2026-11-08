@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { notify } from "@/components/feedback";
 import { confirmAction } from "@/pages/HomePage/utils/helperFunctions";
 import { api } from "@/utils/api/apiCalls";
+import { cachedFetch, STALE } from "@/CustomHooks/useFetch";
 import type { CommunityPerson } from "@/utils/api/community/interfaces";
 import type {
   AudienceCount,
@@ -118,8 +119,9 @@ export const MessageCompose = ({
 
   useEffect(() => {
     let cancelled = false;
-    api.fetch
-      .fetchDepartments()
+    cachedFetch(api.fetch.fetchDepartments, undefined, {
+      staleTime: STALE.reference,
+    })
       .then(
         (response) =>
           !cancelled &&

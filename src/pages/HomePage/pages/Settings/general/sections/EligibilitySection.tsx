@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { UiButton } from "@/pages/HomePage/pages/MembershipManagement/components/membershipUi";
 import { api } from "@/utils/api/apiCalls";
+import { cachedFetch, STALE } from "@/CustomHooks/useFetch";
 
 import { ELIG_ROLES, selectClass } from "../generalModel";
 import { Card, CardHead, LoadFailed, ProgramChip, RowsSkeleton, SectionTitle } from "../generalUi";
@@ -23,7 +24,7 @@ const useEligibilityOptions = () => {
     try {
       const [programsResponse, positionsResponse] = await Promise.all([
         api.fetch.fetchAllPrograms(),
-        api.fetch.fetchPositions(),
+        cachedFetch(api.fetch.fetchPositions, undefined, { staleTime: STALE.reference }),
       ]);
       setPrograms((programsResponse.data ?? []).map((program) => ({ id: program.id, name: program.title })));
       setPositions((positionsResponse.data ?? []).map((position) => ({ id: position.id, name: position.name })));
