@@ -7,8 +7,8 @@ const ACTIONS: QuickAction[] = [
   { label: "Book an appointment", to: relativePath.member.appointments },
   { label: "Join a Life Center", to: relativePath.member.lifeCenter },
   { label: "Browse Market Place", to: relativePath.member.market },
-  { label: "Give", desc: "Coming soon" },
-  { label: "Redeem pledge", desc: "Coming soon" },
+  { label: "Give", to: relativePath.member.giving },
+  { label: "Redeem pledge", to: relativePath.member.pledges },
 ];
 
 export const QuickActions = () => {
