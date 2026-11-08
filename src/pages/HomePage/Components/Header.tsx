@@ -12,6 +12,7 @@ import { BranchSwitcher } from "./BranchSwitcher";
 import { useAuth } from "../../../context/AuthWrapper";
 import { decodeToken } from "../../../utils/helperFunctions";
 import { relativePath } from "@/utils";
+import { encodeQuery } from "@/pages/HomePage/utils";
 import { activeMenuPath, learnerMenu } from "@/pages/MembersPage/Pages/school/learnerPaths";
 import { Bars3Icon, ChevronDownIcon, Squares2X2Icon } from "@heroicons/react/24/outline";
 
@@ -210,6 +211,17 @@ export const Header = ({ handleShowNav }: IProps) => {
     setIsMoreMenuOpen(false);
     setIsMarketMenuOpen(false);
     setIsProfileMenuOpen(false);
+  };
+
+  const handleViewProfile = () => {
+    setIsProfileMenuOpen(false);
+    if (isMemberRoute) {
+      navigate(relativePath.member.profile);
+      return;
+    }
+    if (token?.id) {
+      navigate(`${relativePath.home.main}/members/${encodeQuery(token.id)}`);
+    }
   };
 
   const handleChangePassword = () => {
@@ -570,6 +582,14 @@ export const Header = ({ handleShowNav }: IProps) => {
               </p>
               <ThemeModeSelector className="w-full min-w-[140px]" />
             </div>
+            <button
+              role="menuitem"
+              onClick={handleViewProfile}
+              disabled={!isMemberRoute && !token?.id}
+              className="w-full text-left px-4 py-3 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              My profile
+            </button>
             {isMinistryWorker && (
               <button
                 role="menuitem"

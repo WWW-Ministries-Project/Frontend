@@ -1,14 +1,6 @@
 import { ReactNode, isValidElement, useState } from "react";
-import SlantTabs from "@/pages/HomePage/Components/reusable/SlantTabs";
+import { BandTabs } from "@/pages/HomePage/pages/MembershipManagement/components/membershipUi";
 import { formatDate, formatPhoneNumber } from "@/utils";
-import {
-  UserIcon,
-  PhoneIcon,
-  BuildingLibraryIcon,
-  BriefcaseIcon,
-  UsersIcon,
-  AcademicCapIcon,
-} from "@heroicons/react/24/outline";
 
 import { useOutletContext } from "react-router-dom";
 import { FamilyInformation, FamilyMemberView } from "./FamilyInformation";
@@ -45,13 +37,23 @@ const toTitleCase = (value?: string | null): string => {
     .replace(/\b\w/g, (char) => char.toUpperCase());
 };
 
+/** Member-portal profile tabs, matching the admin profile's BandTabs. */
+const MEMBER_INFO_TABS: { key: string; label: string }[] = [
+  { key: "Basic Information", label: "Basic" },
+  { key: "Contact Information", label: "Contact" },
+  { key: "Church Information", label: "Church" },
+  { key: "Employment/Schooling Information", label: "Employment" },
+  { key: "Family Information", label: "Family" },
+  { key: "Enrolled Programs", label: "Programs" },
+];
+
 export function MemberInformation() {
   const { details: user, loading } = useOutletContext<{
     details?: IMemberInfo;
     loading?: boolean;
   }>();
 
-  const [selectedTab, setSelectedTab] = useState("Basic Information");
+  const [selectedTab, setSelectedTab] = useState<string>("Basic Information");
 
   if (!user) {
     return (
@@ -60,10 +62,6 @@ export function MemberInformation() {
       </div>
     );
   }
-
-  const handleTabSelect = (tab: string) => {
-    setSelectedTab(tab);
-  };
 
   // Derive membership status for display
   const membershipType =
@@ -81,36 +79,15 @@ export function MemberInformation() {
 
   return (
     <div className="bg-white rounded-b-lg  p-6 pt-0 mx-auto text-gray-800 ">
-      <SlantTabs
-        className="mt-4"
-        tabs={[
-          "Basic Information",
-          "Contact Information",
-          "Church Information",
-          "Employment/Schooling Information",
-          "Family Information",
-          "Enrolled Programs",
-        ]}
-        selectedTab={selectedTab}
-        onTabSelect={handleTabSelect}
-        tabLabels={{
-          "Basic Information": "Basic",
-          "Contact Information": "Contact",
-          "Church Information": "Church",
-          "Employment/Schooling Information": "Employment",
-          "Family Information": "Family",
-          "Enrolled Programs": "Programs",
-        }}
-        tabIcons={{
-          "Basic Information": <UserIcon className="h-4 w-4" />,
-          "Contact Information": <PhoneIcon className="h-4 w-4" />,
-          "Church Information": <BuildingLibraryIcon className="h-4 w-4" />,
-          "Employment/Schooling Information": <BriefcaseIcon className="h-4 w-4" />,
-          "Family Information": <UsersIcon className="h-4 w-4" />,
-          "Enrolled Programs": <AcademicCapIcon className="h-4 w-4" />,
-        }}
-      />
-      
+      <div className="-mx-6 bg-primary px-4 pt-3 sm:px-6">
+        <BandTabs
+          tabs={MEMBER_INFO_TABS}
+          value={selectedTab}
+          onChange={setSelectedTab}
+          ariaLabel="Profile sections"
+        />
+      </div>
+
       {selectedTab === "Basic Information" && (
         <>
           {/* Personal Information */}
