@@ -113,7 +113,7 @@ export const useProgramEditor = ({
     }
   };
 
-  const publish = async (program: EditableProgram) => {
+  const publish = async (program: EditableProgram): Promise<boolean> => {
     const tracker = createLmsActionTracker("admin.program.update", {
       programId: String(program.id),
     });
@@ -134,12 +134,14 @@ export const useProgramEditor = ({
       tracker.success();
       showNotification("Program published", "success");
       onSaved?.();
+      return true;
     } catch (error) {
       tracker.failure({ error });
       showNotification(
         error instanceof Error ? error.message : "Could not publish the program",
         "error"
       );
+      return false;
     }
   };
 

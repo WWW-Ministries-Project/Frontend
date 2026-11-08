@@ -10,7 +10,7 @@ import {
   type Topic,
 } from "@/utils/api/ministrySchool/interfaces";
 import { cn } from "@/utils/cn";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ProgramAssessments } from "./assessment/ProgramAssessments";
 import { ProgramInstructorsPanel } from "./people/ProgramInstructorsPanel";
@@ -99,6 +99,9 @@ export const ProgramWorkspace = () => {
   });
   const cohortEditors = useCohortEditors({ onChanged: refreshAll });
 
+  const [optimisticPublished, setOptimisticPublished] = useState(false);
+  useEffect(() => setOptimisticPublished(false), [programId]);
+
   // Guided setup for a freshly created program (opened with ?setup=1).
   const inSetup = params.get("setup") === "1";
   const [setupCollapsed, setSetupCollapsed] = useState(false);
@@ -138,7 +141,19 @@ export const ProgramWorkspace = () => {
   const unitCount = topics.length;
   const classCount = cohortRows.reduce((n, c) => n + c.courses.length, 0);
   const firstCohort = cohortRows[0];
-  const isDraft = full?.program_details?.status === "DRAFT";
+
+  // Reflect a publish immediately: the full-details refetch is slow, so the
+  // status badge would otherwise keep showing "Draft" for several seconds.
+  const programStatus = optimisticPublished
+    ? "PUBLISHED"
+    : full?.program_details?.status;
+  const isDraft = programStatus === "DRAFT";
+
+  const handlePublish = async () => {
+    if (!full) return;
+    const ok = await programEditor.publish(full);
+    if (ok) setOptimisticPublished(true);
+  };
 
   const startFirstCohort = () =>
     cohortEditors.newCohort(programId, {
@@ -178,9 +193,9 @@ export const ProgramWorkspace = () => {
         crumbs={[{ label: "Programs", to: somPaths.programs }, { label: title }]}
         title={title}
         status={
-          full?.program_details?.status === "PUBLISHED"
+          programStatus === "PUBLISHED"
             ? "Published"
-            : full?.program_details?.status === "DRAFT"
+            : programStatus === "DRAFT"
               ? "Draft"
               : undefined
         }
@@ -200,8 +215,8 @@ export const ProgramWorkspace = () => {
                 Edit
               </Btn>
             )}
-            {canDesign && full?.program_details?.status === "DRAFT" && (
-              <Btn variant="onDarkSolid" onClick={() => full && programEditor.publish(full)}>
+            {canDesign && programStatus === "DRAFT" && (
+              <Btn variant="onDarkSolid" onClick={handlePublish}>
                 Publish
               </Btn>
             )}
@@ -232,7 +247,7 @@ export const ProgramWorkspace = () => {
           onGoCohorts={() => setTab("Cohorts")}
           onCreateCohort={startFirstCohort}
           onAddClass={addFirstClass}
-          onPublish={() => full && programEditor.publish(full)}
+          onPublish={handlePublish}
           onOpenCohort={() => firstCohort && navigate(somPaths.cohort(firstCohort.id))}
           onFinish={finishSetup}
         />
@@ -338,7 +353,9 @@ export const ProgramWorkspace = () => {
                 );
               })}
             </div>
-            {cohortRows.length === 0 ? (
+            {som.loading && cohortRows.length === 0 ? (
+              <SkeletonLoader />
+            ) : cohortRows.length === 0 ? (
               <EmptyBlock msg="No cohorts yet. Create the first intake for this program." />
             ) : (
               shownCohorts.length === 0 && (
