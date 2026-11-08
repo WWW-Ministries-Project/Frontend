@@ -20,6 +20,9 @@ export interface ApiResponse<T> {
   data: T;
   message?: string;
   meta?: IPaginationMeta;
+  /** Extra top-level fields some endpoints return alongside `data` (e.g. the
+   *  appointment booking-options `policy`), preserved by the fetch executor. */
+  policy?: unknown;
 }
 
 export type QueryType = Record<string, string | number>;

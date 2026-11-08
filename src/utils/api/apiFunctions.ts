@@ -35,6 +35,7 @@ export const fetchData = async <T>(
       } & IPaginationMeta
     > = await axios.get(url);
     const statusCounts = response.data.meta?.status_counts;
+    const policy = (response.data as { policy?: unknown }).policy;
     return {
       data: response.data.data,
       meta: {
@@ -45,6 +46,9 @@ export const fetchData = async <T>(
         totalPages: response.data.totalPages,
         ...(statusCounts ? { status_counts: statusCounts } : {}),
       },
+      // Preserve extra top-level fields (e.g. booking-options `policy`) that
+      // would otherwise be dropped by only forwarding `data`.
+      ...(policy !== undefined ? { policy } : {}),
       status: response.status,
       error: "",
       success: true,
