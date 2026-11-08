@@ -127,38 +127,36 @@ const ProgramApply = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {Array.from({ length: 3 }).map((_, index) => (
-          <div key={index} className="animate-pulse rounded-xl border border-lightGray bg-white p-5">
-            <div className="mb-3 h-3 w-1/3 rounded bg-lightGray/70" />
-            <div className="mb-3 h-5 w-2/3 rounded bg-lightGray" />
-            <div className="mb-2 h-3 w-full rounded bg-lightGray/80" />
-            <div className="mb-6 h-3 w-5/6 rounded bg-lightGray/70" />
-            <div className="h-9 w-full rounded bg-lightGray/50" />
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  if (!programs.length) {
-    return (
-      <div className="rounded-xl border border-lightGray bg-white p-6 text-center">
-        <EmptyState
-          scope="section"
-          title="No Programs Available"
-          description="Programs will appear here once they are published."
-        />
-      </div>
-    );
-  }
+  // Only show the full-page skeleton on the very first load. A background
+  // refetch (e.g. after enrolling) must not unmount the tree, or the apply
+  // modal would remount and lose its Success step.
+  const showInitialLoading = loading && !data;
 
   return (
     <>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {programs.map((program) => {
+      {showInitialLoading ? (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <div key={index} className="animate-pulse rounded-xl border border-lightGray bg-white p-5">
+              <div className="mb-3 h-3 w-1/3 rounded bg-lightGray/70" />
+              <div className="mb-3 h-5 w-2/3 rounded bg-lightGray" />
+              <div className="mb-2 h-3 w-full rounded bg-lightGray/80" />
+              <div className="mb-6 h-3 w-5/6 rounded bg-lightGray/70" />
+              <div className="h-9 w-full rounded bg-lightGray/50" />
+            </div>
+          ))}
+        </div>
+      ) : !programs.length ? (
+        <div className="rounded-xl border border-lightGray bg-white p-6 text-center">
+          <EmptyState
+            scope="section"
+            title="No Programs Available"
+            description="Programs will appear here once they are published."
+          />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {programs.map((program) => {
           const applied = appliedProgramIds.has(String(program.id));
           const { starts, modes } = programSchedule(program);
           return (
@@ -210,7 +208,8 @@ const ProgramApply = () => {
             </article>
           );
         })}
-      </div>
+        </div>
+      )}
 
       <Modal
         open={open}

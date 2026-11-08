@@ -1163,6 +1163,33 @@ export const LearningUnits: React.FC<Props> = ({
             </div>
           )}
 
+          {essaySubmissionStatus === "GRADED" && (
+            <div className="rounded-xl border border-green-200 bg-green-50 p-4 text-sm">
+              <div className="flex items-center justify-between gap-3">
+                <p className="font-semibold text-green-800">Your result</p>
+                {typeof submission?.score === "number" && (
+                  <span className="rounded-full bg-green-100 px-3 py-0.5 text-sm font-semibold text-green-800">
+                    {submission.score}%
+                  </span>
+                )}
+              </div>
+              {submission?.feedback ? (
+                <div className="mt-3 space-y-1">
+                  <p className="text-[11px] font-semibold uppercase tracking-widest text-green-700/80">
+                    Facilitator feedback
+                  </p>
+                  <p className="whitespace-pre-line break-words text-green-900">
+                    {submission.feedback}
+                  </p>
+                </div>
+              ) : (
+                <p className="mt-2 text-green-900/80">
+                  No written feedback was left.
+                </p>
+              )}
+            </div>
+          )}
+
           <div className={`space-y-3 ${isSubmissionLocked ? "pointer-events-none opacity-65" : ""}`}>
             <div className="space-y-1.5">
               <label
