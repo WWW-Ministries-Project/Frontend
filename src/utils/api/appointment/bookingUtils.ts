@@ -761,11 +761,14 @@ export const buildBookableDays = (
     extraBookedSessions = [],
     currentAppointment,
     windowDays = BOOKING_WINDOW_DAYS,
+    minNoticeHours = 0,
     now = new Date(),
   }: {
     extraBookedSessions?: BookedSession[];
     currentAppointment?: CurrentAppointmentSlot;
     windowDays?: number;
+    /** Members can't book a session starting sooner than this many hours away. */
+    minNoticeHours?: number;
     now?: Date;
   } = {}
 ): BookableDay[] => {
@@ -780,6 +783,8 @@ export const buildBookableDays = (
 
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const minTime =
+    minNoticeHours > 0 ? new Date(now.getTime() + minNoticeHours * 36e5) : null;
   const days: BookableDay[] = [];
 
   for (let offset = 0; offset < windowDays; offset += 1) {
@@ -801,6 +806,9 @@ export const buildBookableDays = (
           const key = `${session.start}-${session.end}`;
           if (seen.has(key)) return;
           if (offset === 0 && timeToMinutes(session.start) <= nowMinutes) {
+            return;
+          }
+          if (minTime && new Date(`${dateValue}T${session.start}:00`) < minTime) {
             return;
           }
           seen.add(key);
