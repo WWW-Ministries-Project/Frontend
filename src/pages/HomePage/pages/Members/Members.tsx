@@ -62,8 +62,12 @@ const crumbs = [{ label: "Home", link: "/home" }, { label: "Members" }];
 
 const countText = (count: number) => `${count} ${count === 1 ? "member" : "members"}`;
 
-/** The directory stat cards count active members only. */
-const ACTIVE_STATS_QUERY: QueryType = { active_only: "true" };
+/**
+ * The directory stat cards count the whole directory (every non-guest member),
+ * matching the list total and the headline. No `active_only` and no branch
+ * filter, so online + inhouse + unspecified reconciles with the list.
+ */
+const DIRECTORY_STATS_QUERY: QueryType = {};
 
 const isUnconfirmed = (member: DirectoryMember) =>
   !member.status || member.status === "UNCONFIRMED";
@@ -160,13 +164,13 @@ export function Members() {
     undefined,
     true
   );
-  const { data: activeStatsResponse, refetch: refetchActiveStats } = useFetch(
+  const { data: directoryStatsResponse, refetch: refetchDirectoryStats } = useFetch(
     api.fetch.fetchUserStats,
-    ACTIVE_STATS_QUERY,
+    DIRECTORY_STATS_QUERY,
     false,
     { silent: true }
   );
-  const activeStats = activeStatsResponse?.data ?? null;
+  const directoryStats = directoryStatsResponse?.data ?? null;
 
   const rows = useMemo(() => {
     if (impossibleView) return [];
@@ -255,10 +259,10 @@ export function Members() {
     setSelected(new Map());
     refetchMembers();
     refetchMembersOptions();
-    refetchActiveStats();
+    refetchDirectoryStats();
     const stats = await refetchUserStats();
     if (stats) store.setUserStats(stats.data);
-  }, [refetchActiveStats, refetchMembers, refetchMembersOptions, refetchUserStats, store]);
+  }, [refetchDirectoryStats, refetchMembers, refetchMembersOptions, refetchUserStats, store]);
 
   const runAction = async (
     action: () => Promise<BulkOutcome>,
@@ -462,8 +466,11 @@ export function Members() {
     });
   };
 
-  const headerTotal =
-    (activeStats?.online?.total_members ?? 0) + (activeStats?.inhouse?.total_members ?? 0);
+  // Headline = the directory's real member count, from the list's own
+  // status_counts.all, so it always agrees with the table total below.
+  // (The stats endpoint only buckets ONLINE/IN_HOUSE membership types, so it
+  // undercounts members with no/other type; don't use it for the headline.)
+  const headerTotal = statusCounts?.all ?? total;
   const initialLoading = membersLoading && membersResponse === null;
   const pageStart = (currentPage - 1) * PAGE_SIZE + 1;
   const countLabel = total
@@ -506,7 +513,7 @@ export function Members() {
           }
         />
 
-        <DirectoryStats stats={activeStats} />
+        <DirectoryStats stats={directoryStats} />
 
         {showFilter && (
           <MembersFilter

@@ -1,17 +1,30 @@
 import type { FamilyRelation } from "@/utils/familyRelations";
 
+type genderBreakdown = {
+  Male: number;
+  Female: number;
+  Total: number;
+  // Members whose gender is neither Male nor Female; needed so the age/gender
+  // breakdown reconciles with total_members.
+  Other?: number;
+};
 type statsType = {
   total_members: number;
   total_males: number;
   total_females: number;
+  total_others?: number;
   stats: {
-    adults: { Male: number; Female: number; Total: number };
-    children: { Male: number; Female: number; Total: number };
+    adults: genderBreakdown;
+    children: genderBreakdown;
   };
 };
 export type UserStatsType = {
+  // Authoritative directory total (online + inhouse + unspecified).
+  total_members?: number;
   online: statsType;
   inhouse: statsType;
+  // Members with no/other membership_type (and members without a profile row).
+  unspecified?: statsType;
 };
 
 export type activateMemberPayloadType = {
