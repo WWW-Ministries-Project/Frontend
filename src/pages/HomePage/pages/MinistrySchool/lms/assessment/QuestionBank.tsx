@@ -1,5 +1,5 @@
 import { Modal } from "@/components/Modal";
-import { useFetch } from "@/CustomHooks/useFetch";
+import { STALE, useFetch } from "@/CustomHooks/useFetch";
 import SkeletonLoader from "@/pages/HomePage/Components/reusable/SkeletonLoader";
 import { showDeleteDialog } from "@/pages/HomePage/utils";
 import { api } from "@/utils";
@@ -52,7 +52,7 @@ export const QuestionBank = ({ canManage }: { canManage: boolean }) => {
   const [search, setSearch] = useState("");
   const [type, setType] = useState<QuestionType | "">("");
   const [tag, setTag] = useState("");
-  const { data, loading, refetch } = useFetch(api.fetch.fetchQuestionBank);
+  const { data, loading, refetch } = useFetch(api.fetch.fetchQuestionBank, undefined, false, { staleTime: STALE.reference });
   const [draft, setDraft] = useState<Draft | null>(null);
   const [saving, setSaving] = useState(false);
 

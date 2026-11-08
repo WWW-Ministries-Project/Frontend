@@ -1,5 +1,5 @@
 import { useAuth } from "@/context/AuthWrapper";
-import { useFetch } from "@/CustomHooks/useFetch";
+import { STALE, useFetch } from "@/CustomHooks/useFetch";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import SkeletonLoader from "@/pages/HomePage/Components/reusable/SkeletonLoader";
 import { api } from "@/utils";
@@ -57,8 +57,8 @@ export const InstructorDashboard = ({ nav = adminSomNav }: { nav?: SomNav } = {}
     const from = new Date(dayKey);
     return { from: from.toISOString(), to: new Date(from.getTime() + 14 * 86_400_000).toISOString() };
   }, [dayKey]);
-  const { data: sessionData } = useFetch(api.fetch.fetchLmsSessions, sessionQuery, !canSeeSessions);
-  const { data: overviewData } = useFetch(api.fetch.fetchInstructorsOverview);
+  const { data: sessionData } = useFetch(api.fetch.fetchLmsSessions, sessionQuery, !canSeeSessions, { staleTime: STALE.short });
+  const { data: overviewData } = useFetch(api.fetch.fetchInstructorsOverview, undefined, false, { staleTime: STALE.short });
 
   const me = (overviewData?.data ?? []).find((r) => r.userId === myId);
   const toGrade = me?.toGrade ?? 0;

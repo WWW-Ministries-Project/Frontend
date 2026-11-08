@@ -1,5 +1,5 @@
 import { Modal } from "@/components/Modal";
-import { useFetch } from "@/CustomHooks/useFetch";
+import { STALE, useFetch } from "@/CustomHooks/useFetch";
 import SkeletonLoader from "@/pages/HomePage/Components/reusable/SkeletonLoader";
 import type { UserType } from "@/pages/HomePage/pages/Members/utils/membersInterfaces";
 import { showDeleteDialog } from "@/pages/HomePage/utils";
@@ -213,7 +213,8 @@ const AddInstructorsModal = ({
   const { data: membersData, loading } = useFetch(
     api.fetch.fetchMembersForOptions,
     undefined,
-    membersOptions.length > 0
+    membersOptions.length > 0,
+    { staleTime: STALE.reference }
   );
 
   useEffect(() => {

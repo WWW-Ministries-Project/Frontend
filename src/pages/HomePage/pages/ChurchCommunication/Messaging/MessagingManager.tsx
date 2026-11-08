@@ -88,12 +88,24 @@ const MessagingManager = () => {
   const s: MessagingSettings | undefined = settings.data?.data;
   const storeMissing = !!s && (!s.app_store_url || !s.play_store_url);
 
-  // Keep "Sending" rows moving without a manual refresh.
+  // Keep "Sending" rows moving without a manual refresh. Back off the poll
+  // (5s → 30s cap) and stop after 5 min so a stuck QUEUED row can't poll the
+  // backend forever — a manual refresh is still available.
   const anySending = rows.some((row) => row.status === "QUEUED");
   useEffect(() => {
     if (!anySending) return;
-    const timer = setInterval(() => dispatches.refetch(), 5000);
-    return () => clearInterval(timer);
+    let delay = 5000;
+    const maxDelay = 30000;
+    const deadline = Date.now() + 5 * 60 * 1000;
+    let timer: ReturnType<typeof setTimeout>;
+    const tick = () => {
+      if (Date.now() > deadline) return;
+      dispatches.refetch();
+      delay = Math.min(delay * 2, maxDelay);
+      timer = setTimeout(tick, delay);
+    };
+    timer = setTimeout(tick, delay);
+    return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [anySending]);
 

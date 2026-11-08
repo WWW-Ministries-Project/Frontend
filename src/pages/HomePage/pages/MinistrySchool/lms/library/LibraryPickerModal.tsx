@@ -1,5 +1,5 @@
 import { Modal } from "@/components/Modal";
-import { useFetch } from "@/CustomHooks/useFetch";
+import { STALE, useFetch } from "@/CustomHooks/useFetch";
 import { showNotification } from "@/pages/HomePage/utils";
 import { api } from "@/utils";
 import type { LibraryItem, LibraryType } from "@/utils/api/ministrySchool/interfaces";
@@ -40,7 +40,7 @@ type Props = {
 };
 
 const PickerBody = ({ programId, modules, defaultModuleId, onClose, onAdded }: Omit<Props, "open">) => {
-  const { data, loading, error, refetch } = useFetch(api.fetch.fetchContentLibrary);
+  const { data, loading, error, refetch } = useFetch(api.fetch.fetchContentLibrary, undefined, false, { staleTime: STALE.reference });
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [moduleId, setModuleId] = useState(defaultModuleId != null ? String(defaultModuleId) : "");

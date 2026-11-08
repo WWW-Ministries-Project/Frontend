@@ -1,7 +1,7 @@
 import EmptyState from "@/components/EmptyState";
 import { Modal } from "@/components/Modal";
 import { Button } from "@/components";
-import { useFetch } from "@/CustomHooks/useFetch";
+import { STALE, useFetch } from "@/CustomHooks/useFetch";
 import { ProgramDetailsModal } from "@/pages/MembersPage/Component/ProgramDetailsModal";
 import { learnerPaths } from "@/pages/MembersPage/Pages/school/learnerPaths";
 import { showNotification } from "@/pages/HomePage/utils";
@@ -44,7 +44,7 @@ const ProgramApply = () => {
   const navigate = useNavigate();
 
   const user = useUserStore();
-  const { data, loading, refetch } = useFetch(api.fetch.fetchAllApplicablePrograms);
+  const { data, loading, refetch } = useFetch(api.fetch.fetchAllApplicablePrograms, undefined, false, { staleTime: STALE.reference });
   const programs = useMemo<Programs[]>(() => data?.data ?? [], [data?.data]);
 
   // Programs the member is already enrolled in (an accepted application). Used to

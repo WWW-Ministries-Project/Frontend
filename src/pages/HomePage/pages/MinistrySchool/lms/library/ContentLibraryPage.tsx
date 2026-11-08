@@ -1,7 +1,7 @@
 import { pictureInstance } from "@/axiosInstance";
 import { Modal } from "@/components/Modal";
 import { useSomAccess } from "../../utils/useSomAccess";
-import { useFetch } from "@/CustomHooks/useFetch";
+import { STALE, useFetch } from "@/CustomHooks/useFetch";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import SkeletonLoader from "@/pages/HomePage/Components/reusable/SkeletonLoader";
 import { showDeleteDialog, showNotification } from "@/pages/HomePage/utils";
@@ -440,7 +440,7 @@ const LibraryEditor = ({
 export const ContentLibraryPage = () => {
   // Shared by every program: whole-school designers only.
   const canManage = useSomAccess().canAll("design_curriculum");
-  const { data, loading, error, refetch } = useFetch(api.fetch.fetchContentLibrary, undefined, !canManage);
+  const { data, loading, error, refetch } = useFetch(api.fetch.fetchContentLibrary, undefined, !canManage, { staleTime: STALE.reference });
   const [search, setSearch] = useState("");
   const [type, setType] = useState<LibraryType | "">("");
   const [tag, setTag] = useState("");

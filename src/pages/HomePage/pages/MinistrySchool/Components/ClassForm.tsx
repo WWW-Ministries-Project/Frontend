@@ -4,7 +4,7 @@ import { FormHeader, FormLayout, FullWidth } from "@/components/ui";
 import { Actions } from "@/components/ui/form/Actions";
 import { BranchSelectField } from "@/components/BranchSelectField";
 import { useBranchStore, ALL_BRANCHES } from "@/store/useBranchStore";
-import { useFetch } from "@/CustomHooks/useFetch";
+import { STALE, useFetch } from "@/CustomHooks/useFetch";
 import { useStore } from "@/store/useStore";
 import type { UserType } from "@/pages/HomePage/pages/Members/utils/membersInterfaces";
 import { api } from "@/utils/api/apiCalls";
@@ -34,7 +34,8 @@ export const ClassForm = ({
   const { data: membersOptionsData } = useFetch(
     api.fetch.fetchMembersForOptions,
     undefined,
-    membersOptions.length > 0
+    membersOptions.length > 0,
+    { staleTime: STALE.reference }
   );
 
   useEffect(() => {

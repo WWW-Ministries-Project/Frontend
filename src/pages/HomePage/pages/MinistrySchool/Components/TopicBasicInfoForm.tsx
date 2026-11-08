@@ -1,5 +1,5 @@
 import TextEditor from "@/components/TextEditor";
-import { useFetch } from "@/CustomHooks/useFetch";
+import { STALE, useFetch } from "@/CustomHooks/useFetch";
 import { showNotification } from "@/pages/HomePage/utils";
 import { api, LearningUnitType, Topic } from "@/utils";
 import type { AssignmentQuestionType } from "@/utils/api/ministrySchool/interfaces";
@@ -173,7 +173,7 @@ const TopicBasicInfoForm = ({
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const { data: rubricResponse } = useFetch(api.fetch.fetchRubrics);
+  const { data: rubricResponse } = useFetch(api.fetch.fetchRubrics, undefined, false, { staleTime: STALE.reference });
   const rubrics = useMemo(() => rubricResponse?.data ?? [], [rubricResponse]);
 
   // Creating a new unit with a type preset by the curriculum adders.

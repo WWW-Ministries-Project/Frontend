@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import DOMPurify from "dompurify";
 import { CheckCircleIcon } from "@heroicons/react/24/solid";
 import { Modal } from "@/components/Modal";
-import { useFetch } from "@/CustomHooks/useFetch";
+import { STALE, useFetch } from "@/CustomHooks/useFetch";
 import { ProgramDetailsModal } from "@/pages/MembersPage/Component/ProgramDetailsModal";
 import { showNotification } from "@/pages/HomePage/utils";
 import { useUserStore } from "@/store/userStore";
@@ -39,7 +39,7 @@ const ProgramDetailsPage = () => {
   const navigate = useNavigate();
   const user = useUserStore();
 
-  const { data, loading, refetch } = useFetch(api.fetch.fetchAllApplicablePrograms);
+  const { data, loading, refetch } = useFetch(api.fetch.fetchAllApplicablePrograms, undefined, false, { staleTime: STALE.reference });
   const programs = useMemo<Programs[]>(() => data?.data ?? [], [data?.data]);
   const program = useMemo(
     () => programs.find((item) => String(item.id) === String(programId)),

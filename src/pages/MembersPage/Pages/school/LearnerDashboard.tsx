@@ -1,4 +1,4 @@
-import { useFetch } from "@/CustomHooks/useFetch";
+import { STALE, useFetch } from "@/CustomHooks/useFetch";
 import {
   Btn,
   EmptyBlock,
@@ -38,7 +38,7 @@ const LearnerDashboard = () => {
   const { enrollments, active, loading, error, refetch } = useLearnerOverview();
   const { data: sessionsData } = useFetch(api.fetch.fetchLearnerSessions, {
     from: new Date().toISOString().slice(0, 10),
-  });
+  }, false, { staleTime: STALE.short });
 
   const sessions = (sessionsData?.data ?? []).filter((s) => !s.cancelled).slice(0, 3);
   const assignments = flattenAssignments(enrollments);

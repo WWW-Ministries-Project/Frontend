@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { useFetch } from "@/CustomHooks/useFetch";
+import { STALE, useFetch } from "@/CustomHooks/useFetch";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import { encodeQuery } from "@/pages/HomePage/utils";
 import { api } from "@/utils";
@@ -105,7 +105,7 @@ export const MarketplaceOverview = () => {
   const navigate = useNavigate();
   const [marketId, setMarketId] = useState("");
 
-  const { data: marketsRes } = useFetch(api.fetch.fetchMarkets, undefined, false, { silent: true });
+  const { data: marketsRes } = useFetch(api.fetch.fetchMarkets, undefined, false, { silent: true, staleTime: STALE.reference });
   const markets = useMemo(() => marketsRes?.data || [], [marketsRes]);
 
   const overviewQuery = useMemo(() => (marketId ? { market_id: marketId } : undefined), [marketId]);

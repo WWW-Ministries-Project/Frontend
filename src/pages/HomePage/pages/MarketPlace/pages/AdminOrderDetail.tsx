@@ -6,7 +6,7 @@ import HubtelLogo from "@/assets/hubtel-logo.jpg";
 import PaystackLogo from "@/assets/Paystack-logo.png";
 import { Modal } from "@/components/Modal";
 import { useAccessControl } from "@/CustomHooks/useAccessControl";
-import { useFetch } from "@/CustomHooks/useFetch";
+import { STALE, useFetch } from "@/CustomHooks/useFetch";
 import PageOutline from "@/pages/HomePage/Components/PageOutline";
 import {
   decodeQuery,
@@ -64,6 +64,7 @@ export const AdminOrderDetail = () => {
   const { data, loading, refetch } = useFetch(api.fetch.fetchOrderById, query);
   const { data: deliveryRes } = useFetch(api.fetch.fetchDeliveryConfig, undefined, false, {
     silent: true,
+    staleTime: STALE.config,
   });
 
   const detail = data?.data as IOrderDetail | undefined;

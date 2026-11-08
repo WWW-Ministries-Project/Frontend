@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { ALL_BRANCHES, useBranchStore, type ActiveBranchId } from "@/store/useBranchStore";
 import { api } from "@/utils/api/apiCalls";
+import { cachedFetch, STALE } from "@/CustomHooks/useFetch";
 import type { AssignableUser } from "@/utils/api/settings/accessLevelAssignmentInterfaces";
 import type { Branch } from "@/utils/api/settings/branchInterfaces";
 
@@ -70,8 +71,9 @@ export const useMemberOptions = (enabled: boolean) => {
     if (!enabled || loaded.current) return;
     loaded.current = true;
     let alive = true;
-    api.fetch
-      .fetchMembersForOptions()
+    cachedFetch(api.fetch.fetchMembersForOptions, undefined, {
+      staleTime: STALE.reference,
+    })
       .then((response) => {
         if (!alive || !Array.isArray(response.data)) return;
         setMembers(

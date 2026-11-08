@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { api } from "@/utils/api/apiCalls";
+import { cachedFetch, STALE } from "@/CustomHooks/useFetch";
 
 export interface MemberOption {
   id: number;
@@ -14,8 +15,9 @@ export const useMemberOptions = () => {
 
   useEffect(() => {
     let cancelled = false;
-    api.fetch
-      .fetchMembersForOptions()
+    cachedFetch(api.fetch.fetchMembersForOptions, undefined, {
+      staleTime: STALE.reference,
+    })
       .then((response) => {
         if (cancelled) return;
         const list = (response.data ?? [])

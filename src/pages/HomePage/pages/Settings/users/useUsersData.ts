@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { notify } from "@/components/feedback";
 import { useBranchStore } from "@/store/useBranchStore";
 import { api } from "@/utils/api/apiCalls";
+import { cachedFetch, STALE } from "@/CustomHooks/useFetch";
 import type { MembersType } from "@/utils/api/members/interfaces";
 import type { AssignableUser } from "@/utils/api/settings/accessLevelAssignmentInterfaces";
 import type { BranchAccessGrant } from "@/utils/interfaces";
@@ -60,8 +61,10 @@ export const useUsersData = () => {
   /** Members (with or without an account); loaded once, on demand. */
   const loadMembers = useCallback((force = false) => {
     if (membersRequest.current && !force) return membersRequest.current;
-    membersRequest.current = api.fetch
-      .fetchMembersForOptions()
+    membersRequest.current = cachedFetch(api.fetch.fetchMembersForOptions, undefined, {
+      staleTime: STALE.reference,
+      force,
+    })
       .then((res) => setMembers(res.data ?? []))
       .catch(() => {
         membersRequest.current = null;

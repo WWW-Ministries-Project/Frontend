@@ -1,6 +1,6 @@
 import { createContext, useContext, useMemo } from "react";
 
-import { useFetch } from "@/CustomHooks/useFetch";
+import { STALE, useFetch } from "@/CustomHooks/useFetch";
 import { api, type IDeliveryConfig, type IMarket, type IProductTypeResponse } from "@/utils";
 
 export interface StorefrontData {
@@ -21,9 +21,13 @@ export const StorefrontContext = createContext<StorefrontData | null>(null);
  */
 export function useStorefrontFetch(skip = false): StorefrontData {
   const products = useFetch(api.fetch.fetchAllProducts, undefined, skip);
-  const markets = useFetch(api.fetch.fetchMarkets, undefined, skip, { silent: true });
+  const markets = useFetch(api.fetch.fetchMarkets, undefined, skip, {
+    silent: true,
+    staleTime: STALE.reference,
+  });
   const delivery = useFetch(api.fetch.fetchDeliveryConfig, undefined, skip, {
     silent: true,
+    staleTime: STALE.config,
   });
 
   return useMemo(

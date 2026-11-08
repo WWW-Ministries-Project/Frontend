@@ -1,5 +1,5 @@
 import { Modal } from "@/components/Modal";
-import { useFetch } from "@/CustomHooks/useFetch";
+import { STALE, useFetch } from "@/CustomHooks/useFetch";
 import SkeletonLoader from "@/pages/HomePage/Components/reusable/SkeletonLoader";
 import { showDeleteDialog } from "@/pages/HomePage/utils";
 import { api } from "@/utils";
@@ -22,7 +22,7 @@ const criterion = (label = "", weight = 25): RubricCriterion => ({ id: makeId(),
 type Draft = { id?: number; title: string; criteria: RubricCriterion[]; levels: RubricLevel[] };
 
 export const Rubrics = ({ canManage }: { canManage: boolean }) => {
-  const { data, loading, refetch } = useFetch(api.fetch.fetchRubrics);
+  const { data, loading, refetch } = useFetch(api.fetch.fetchRubrics, undefined, false, { staleTime: STALE.reference });
   const [draft, setDraft] = useState<Draft | null>(null);
   const [saving, setSaving] = useState(false);
 
