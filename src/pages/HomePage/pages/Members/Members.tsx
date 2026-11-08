@@ -58,7 +58,12 @@ import {
 } from "./Components/directory/directoryHelpers";
 import { MembersTable } from "./Components/directory/MembersTable";
 
-const crumbs = [{ label: "Home", link: "/home" }, { label: "Members" }];
+const MEMBERS_CRUMBS = [{ label: "Home", link: "/home" }, { label: "Members" }];
+const CHILDREN_CRUMBS = [
+  { label: "Home", link: "/home" },
+  { label: "Membership", link: "/home/membership" },
+  { label: "Children" },
+];
 
 const countText = (count: number) => `${count} ${count === 1 ? "member" : "members"}`;
 
@@ -72,7 +77,8 @@ const DIRECTORY_STATS_QUERY: QueryType = {};
 const isUnconfirmed = (member: DirectoryMember) =>
   !member.status || member.status === "UNCONFIRMED";
 
-export function Members() {
+export function Members({ childrenOnly = false }: { childrenOnly?: boolean } = {}) {
+  const crumbs = childrenOnly ? CHILDREN_CRUMBS : MEMBERS_CRUMBS;
   const location = useLocation();
   const task = location.state?.task;
   const navigate = useNavigate();
@@ -144,13 +150,14 @@ export function Members() {
       {};
     return {
       ...base,
+      ...(childrenOnly ? { child: "true" } : {}),
       ...(sort !== "name" ? { sort } : {}),
       include_status_counts: "true",
       page: pageParam,
       take: String(PAGE_SIZE),
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tabQuery, pageParam, sort]);
+  }, [tabQuery, pageParam, sort, childrenOnly]);
 
   const {
     data: membersResponse,
@@ -167,7 +174,8 @@ export function Members() {
   const { data: directoryStatsResponse, refetch: refetchDirectoryStats } = useFetch(
     api.fetch.fetchUserStats,
     DIRECTORY_STATS_QUERY,
-    false,
+    // The children directory hides the family-type summary, so skip the fetch.
+    childrenOnly,
     { silent: true }
   );
   const directoryStats = directoryStatsResponse?.data ?? null;
@@ -482,8 +490,16 @@ export function Members() {
     <PageOutline crumbs={crumbs}>
       <div className="flex flex-col gap-6">
         <PageHeading
-          title={`Church Memberships (${headerTotal})`}
-          subtitle="Find members, move them through the membership journey and keep their records current."
+          title={
+            childrenOnly
+              ? `Children (${headerTotal})`
+              : `Church Memberships (${headerTotal})`
+          }
+          subtitle={
+            childrenOnly
+              ? "Members aged 18 and under across the church."
+              : "Find members, move them through the membership journey and keep their records current."
+          }
           actions={
             <>
               <FilterToggleButton
@@ -513,7 +529,7 @@ export function Members() {
           }
         />
 
-        <DirectoryStats stats={directoryStats} />
+        {!childrenOnly && <DirectoryStats stats={directoryStats} />}
 
         {showFilter && (
           <MembersFilter
