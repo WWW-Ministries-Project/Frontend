@@ -337,6 +337,23 @@ const AppointmentBookingForm = ({
     [availabilityResponse, membersLookup]
   );
 
+  // Booking policy from the booking-options response (how far ahead members may
+  // book, and the minimum notice). Falls back to the local window/no-notice when
+  // the API doesn't send it, so an older backend keeps working unchanged.
+  const bookingPolicy = useMemo(() => {
+    const raw = (
+      availabilityResponse as {
+        policy?: { bookAheadDays?: number; minNoticeHours?: number };
+      } | null
+    )?.policy;
+    const bookAheadDays = Number(raw?.bookAheadDays);
+    const minNoticeHours = Number(raw?.minNoticeHours);
+    return {
+      windowDays: bookAheadDays > 0 ? bookAheadDays : BOOKING_WINDOW_DAYS,
+      minNoticeHours: minNoticeHours > 0 ? minNoticeHours : 0,
+    };
+  }, [availabilityResponse]);
+
   const currentAppointmentSlot = useMemo(
     () =>
       appointment?.id
@@ -357,13 +374,15 @@ const AppointmentBookingForm = ({
         acc[staff.staffId] = buildBookableDays(staff, {
           extraBookedSessions: bookedSessions,
           currentAppointment: currentAppointmentSlot,
+          windowDays: bookingPolicy.windowDays,
+          minNoticeHours: bookingPolicy.minNoticeHours,
           now,
         });
         return acc;
       },
       {}
     );
-  }, [bookedSessions, currentAppointmentSlot, staffAvailability]);
+  }, [bookedSessions, currentAppointmentSlot, staffAvailability, bookingPolicy]);
 
   const [initialValues] = useState<BookingFlowValues>(() => ({
     fullName: appointment?.fullName ?? user?.name ?? "",
@@ -546,6 +565,7 @@ const AppointmentBookingForm = ({
         const isOther = values.reasonKey === OTHER_REASON_KEY;
         const noteLength = values.note.length;
         const step1Valid = Boolean(values.reasonKey) && isNoteValid(values.note);
+        const windowWeeks = Math.max(1, Math.round(bookingPolicy.windowDays / 7));
 
         const noteError =
           getIn(touched, "note") && typeof errors.note === "string"
@@ -556,7 +576,9 @@ const AppointmentBookingForm = ({
             ? errors.reasonKey
             : "";
         const staffError =
-          getIn(touched, "staffId") && typeof errors.staffId === "string"
+          !values.staffId &&
+          getIn(touched, "staffId") &&
+          typeof errors.staffId === "string"
             ? errors.staffId
             : "";
         const dateError =
@@ -565,7 +587,9 @@ const AppointmentBookingForm = ({
             : "";
         const rawSessionError = getIn(errors, "session");
         const sessionError =
-          getIn(touched, "session") && typeof rawSessionError === "string"
+          !values.session &&
+          getIn(touched, "session") &&
+          typeof rawSessionError === "string"
             ? rawSessionError
             : "";
 
@@ -869,12 +893,12 @@ const AppointmentBookingForm = ({
                       id="booking-staff-title"
                       className="text-base font-semibold text-primary"
                     >
-                      Who you'll see
+                      Who you&apos;ll see
                     </h3>
 
                     {availabilityLoading && staffAvailability.length === 0 ? (
                       <div className="space-y-2" aria-busy="true">
-                        <span className="sr-only">Loading who's available…</span>
+                        <span className="sr-only">Loading who&apos;s available…</span>
                         {[0, 1, 2].map((key) => (
                           <div
                             key={key}
@@ -969,7 +993,7 @@ const AppointmentBookingForm = ({
                                 >
                                   {isDisabled
                                     ? "No open times"
-                                    : `${pluralTimes(openTimes)} in the next 4 weeks`}
+                                    : `${pluralTimes(openTimes)} in the next ${windowWeeks} weeks`}
                                 </span>
                               </span>
                               {isSelected && (
@@ -999,12 +1023,12 @@ const AppointmentBookingForm = ({
 
                     {!values.staffId ? (
                       <p className="text-sm text-primaryGray">
-                        Choose who you'd like to see to view their open times.
+                        Choose who you&apos;d like to see to view their open times.
                       </p>
                     ) : days.length === 0 ? (
                       <p className="text-sm text-primaryGray">
                         {selectedStaff?.staffName || "This person"} has no open
-                        times in the next {BOOKING_WINDOW_DAYS / 7} weeks.
+                        times in the next {windowWeeks} weeks.
                       </p>
                     ) : (
                       <>
