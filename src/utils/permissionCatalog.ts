@@ -412,6 +412,14 @@ export const PERMISSION_CATALOG: Record<string, ModuleCatalog> = {
       act("manage_credentials", "Manage AI credentials", 3, { explicit: true }),
     ],
   },
+  // Mirrors the Backend's src/permissions/catalog.ts Data_Quality block.
+  Data_Quality: {
+    scopes: ["branch"],
+    actions: [
+      act("view_duplicates", "View duplicate records", 1),
+      act("merge_duplicates", "Merge duplicate records", 2),
+    ],
+  },
 };
 
 const SCOPE_LABEL: Record<ScopeValue, string> = {

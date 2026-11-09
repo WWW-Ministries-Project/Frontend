@@ -46,6 +46,7 @@ export const CANONICAL_PERMISSION_DOMAINS = [
   "Messaging",
   "Reports",
   "Rides",
+  "Data_Quality",
 ] as const;
 
 export type PermissionDomain = (typeof CANONICAL_PERMISSION_DOMAINS)[number];
@@ -117,6 +118,7 @@ const DOMAIN_ALIASES: Record<PermissionDomain, string[]> = {
   Messaging: ["Messaging"],
   Reports: ["Reports", "Report"],
   Rides: ["Rides", "Ride to church", "Ride"],
+  Data_Quality: ["Data_Quality", "Data Quality", "DataQuality"],
 };
 
 // Domains added after access levels were already saved fall back to a broader
@@ -145,6 +147,10 @@ const DOMAIN_FALLBACKS: Partial<Record<PermissionDomain, PermissionDomain[]>> = 
   // administrators keep access until AI is set explicitly. Mirrors
   // PERMISSION_KEY_ALIASES in the Backend's authorization.ts.
   AI: ["Settings", "Access_rights"],
+  // Data Quality shipped after access levels were saved, so Settings/Access-
+  // rights administrators keep access until it is set explicitly. Mirrors
+  // PERMISSION_KEY_ALIASES in the Backend's authorization.ts.
+  Data_Quality: ["Settings", "Access_rights"],
 };
 
 /** Domains that are no longer offered in the access-level editor but may
