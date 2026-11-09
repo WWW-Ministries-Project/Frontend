@@ -10,6 +10,8 @@ export interface MembershipAnalyticsFilterState {
   membershipType: string;
   department: string;
   scope: MembersScope;
+  /** false (default) = adults only, matching the Church Directory. */
+  includeChildren: boolean;
 }
 
 /** Period filters that differ from the default (year, cumulative, this year). */
@@ -28,6 +30,8 @@ export const countActiveAnalyticsFilters = (state: MembershipAnalyticsFilterStat
     Boolean(state.membershipType),
     Boolean(state.department),
     state.scope !== "active",
+    // Default excludes children, so including them is the non-default choice.
+    state.includeChildren,
   ].filter(Boolean).length;
 };
 

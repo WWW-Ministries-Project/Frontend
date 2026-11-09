@@ -45,6 +45,11 @@ const SCOPE_OPTIONS: SelectOption[] = [
   { value: "all", label: "Include inactive" },
 ];
 
+const CHILDREN_OPTIONS: SelectOption[] = [
+  { value: "exclude", label: "Adults only (exclude children)" },
+  { value: "include", label: "Include children" },
+];
+
 const weekOptionsFor = (year: string, month: string): SelectOption[] => {
   const y = Number(year);
   const m = Number(month);
@@ -223,6 +228,15 @@ export const AnalyticsFilterPanel = ({
         value={value.scope}
         onChange={(event) =>
           onChange({ ...value, scope: event.target.value as MembersScope })
+        }
+      />
+    </Field>
+    <Field label="Children">
+      <SelectInput
+        options={CHILDREN_OPTIONS}
+        value={value.includeChildren ? "include" : "exclude"}
+        onChange={(event) =>
+          onChange({ ...value, includeChildren: event.target.value === "include" })
         }
       />
     </Field>
