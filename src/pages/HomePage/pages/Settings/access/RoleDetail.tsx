@@ -510,6 +510,7 @@ const RoleDetail = () => {
   const role = useMemo(() => roles.find((r) => String(r.id) === roleId), [roles, roleId]);
   const base = useMemo(() => draftFromAccessRight(role), [role]);
   const [draft, setDraft] = useState<RoleDraft | null>(null);
+  const [pqDraft, setPqDraft] = useState("");
   const [pq, setPq] = useState("");
   const [onlyWithAccess, setOnlyWithAccess] = useState<"all" | "with">("all");
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
@@ -521,6 +522,7 @@ const RoleDetail = () => {
   // A new role starts with a clean draft and filters.
   useEffect(() => {
     setDraft(null);
+    setPqDraft("");
     setPq("");
     setOnlyWithAccess("all");
     setExpanded({});
@@ -744,8 +746,9 @@ const RoleDetail = () => {
     <>
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
         <SearchInput
-          value={pq}
-          onChange={setPq}
+          value={pqDraft}
+          onChange={setPqDraft}
+          onSearch={() => setPq(pqDraft.trim())}
           placeholder="Find a module"
           ariaLabel="Find a module"
           className="w-full max-w-[360px] flex-none"

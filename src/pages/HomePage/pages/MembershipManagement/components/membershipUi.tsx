@@ -300,30 +300,74 @@ export const BandTabs = <K extends string>({
 export const SearchInput = ({
   value,
   onChange,
+  onSearch,
   placeholder,
   ariaLabel,
   className,
+  searchLabel = "Search",
 }: {
   value: string;
   onChange: (value: string) => void;
+  /**
+   * When provided, the field becomes submit-based: typing only updates the box,
+   * and the search fires on Enter or the Search button — never per keystroke.
+   * Without it the field keeps the old live behaviour.
+   */
+  onSearch?: () => void;
   placeholder: string;
   ariaLabel: string;
   className?: string;
-}) => (
-  <div className={cn("flex h-10 flex-[1_1_260px] items-center", className)}>
-    <span className="flex h-10 w-11 flex-shrink-0 items-center justify-center rounded-l-lg border border-lightGray bg-lightGray/30">
-      <img src={SearchIcon} alt="" className="h-4" />
-    </span>
-    <input
-      type="search"
-      value={value}
-      onChange={(event) => onChange(event.target.value)}
-      placeholder={placeholder}
-      aria-label={ariaLabel}
-      className="h-10 min-w-0 flex-1 rounded-r-lg border border-l-0 border-gray-500/35 bg-white px-3 text-sm text-primary outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgb(var(--color-shadow)_/_0.08)]"
-    />
-  </div>
-);
+  searchLabel?: string;
+}) => {
+  // Legacy live mode: fires on every keystroke via onChange.
+  if (!onSearch) {
+    return (
+      <div className={cn("flex h-10 flex-[1_1_260px] items-center", className)}>
+        <span className="flex h-10 w-11 flex-shrink-0 items-center justify-center rounded-l-lg border border-lightGray bg-lightGray/30">
+          <img src={SearchIcon} alt="" className="h-4" />
+        </span>
+        <input
+          type="search"
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          placeholder={placeholder}
+          aria-label={ariaLabel}
+          className="h-10 min-w-0 flex-1 rounded-r-lg border border-l-0 border-gray-500/35 bg-white px-3 text-sm text-primary outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgb(var(--color-shadow)_/_0.08)]"
+        />
+      </div>
+    );
+  }
+
+  // Submit mode: Enter (form submit) or the Search button runs the search.
+  return (
+    <form
+      role="search"
+      onSubmit={(event) => {
+        event.preventDefault();
+        onSearch();
+      }}
+      className={cn("flex h-10 flex-[1_1_260px] items-center", className)}
+    >
+      <span className="flex h-10 w-11 flex-shrink-0 items-center justify-center rounded-l-lg border border-lightGray bg-lightGray/30">
+        <img src={SearchIcon} alt="" className="h-4" />
+      </span>
+      <input
+        type="search"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        aria-label={ariaLabel}
+        className="h-10 min-w-0 flex-1 border border-l-0 border-gray-500/35 bg-white px-3 text-sm text-primary outline-none focus:border-primary focus:shadow-[0_0_0_4px_rgb(var(--color-shadow)_/_0.08)]"
+      />
+      <button
+        type="submit"
+        className="h-10 flex-shrink-0 rounded-r-lg bg-primary px-4 text-sm font-semibold text-white outline-none transition hover:bg-primary/90 focus:shadow-[0_0_0_4px_rgb(var(--color-shadow)_/_0.08)]"
+      >
+        {searchLabel}
+      </button>
+    </form>
+  );
+};
 
 const controlClass = (hasError?: boolean) =>
   cn(

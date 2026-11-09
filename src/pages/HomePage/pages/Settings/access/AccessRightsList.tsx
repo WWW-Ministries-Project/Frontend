@@ -127,6 +127,7 @@ const AccessRightsList = () => {
   const canEdit = canManage("Access_rights");
   const scope = useBranchScope();
   const { roles, users, loading, reloadRoles } = useAccessData();
+  const [qDraft, setQDraft] = useState("");
   const [q, setQ] = useState("");
   const [newOpen, setNewOpen] = useState(false);
 
@@ -171,7 +172,7 @@ const AccessRightsList = () => {
         </div>
       )}
       <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
-        <SearchInput value={q} onChange={setQ} placeholder="Search roles" ariaLabel="Search roles" className="w-full max-w-[360px] flex-none" />
+        <SearchInput value={qDraft} onChange={setQDraft} onSearch={() => setQ(qDraft.trim())} placeholder="Search roles" ariaLabel="Search roles" className="w-full max-w-[360px] flex-none" />
         <div className="flex flex-wrap items-center gap-3 text-xs text-gray-600">
           {LEVELS.map((lv, i) => (
             <span key={lv.value} className="inline-flex items-center gap-1.5">

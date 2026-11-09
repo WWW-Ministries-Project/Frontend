@@ -87,6 +87,7 @@ const SermonManager = () => {
   };
 
   const [tab, setTab] = useState<Tab>("sermons");
+  const [queryDraft, setQueryDraft] = useState("");
   const [query, setQuery] = useState("");
   const [filters, setFilters] = useState<Filters>(NO_FILTERS);
   const [showFilters, setShowFilters] = useState(false);
@@ -377,8 +378,9 @@ const SermonManager = () => {
 
           <div className="flex flex-wrap items-center gap-3">
             <SearchInput
-              value={query}
-              onChange={setQuery}
+              value={queryDraft}
+              onChange={setQueryDraft}
+              onSearch={() => setQuery(queryDraft.trim())}
               placeholder="Search sermons"
               ariaLabel="Search sermons"
               className="max-w-[420px]"

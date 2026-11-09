@@ -441,7 +441,8 @@ export const ContentLibraryPage = () => {
   // Shared by every program: whole-school designers only.
   const canManage = useSomAccess().canAll("design_curriculum");
   const { data, loading, error, refetch } = useFetch(api.fetch.fetchContentLibrary, undefined, !canManage, { staleTime: STALE.reference });
-  const [search, setSearch] = useState("");
+  const [searchDraft, setSearchDraft] = useState("");
+  const [search, setSearch] = useState(""); // applied term the filter below reads
   const [type, setType] = useState<LibraryType | "">("");
   const [tag, setTag] = useState("");
   const [editing, setEditing] = useState<Draft | null>(null);
@@ -498,14 +499,29 @@ export const ContentLibraryPage = () => {
           <>
             <div className="flex flex-col gap-3">
               <div className="flex flex-wrap items-center gap-2">
-                <input
-                  type="search"
-                  aria-label="Search content"
-                  placeholder="Search title or tag"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="h-9 w-full rounded-lg border border-lightGray bg-white px-3 text-sm tablet:w-56"
-                />
+                <form
+                  role="search"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    setSearch(searchDraft.trim());
+                  }}
+                  className="flex w-full tablet:w-auto"
+                >
+                  <input
+                    type="search"
+                    aria-label="Search content"
+                    placeholder="Search title or tag"
+                    value={searchDraft}
+                    onChange={(e) => setSearchDraft(e.target.value)}
+                    className="h-9 w-full rounded-l-lg border border-lightGray bg-white px-3 text-sm tablet:w-56"
+                  />
+                  <button
+                    type="submit"
+                    className="h-9 flex-shrink-0 rounded-r-lg bg-primary px-4 text-sm font-semibold text-white"
+                  >
+                    Search
+                  </button>
+                </form>
                 <select
                   aria-label="Tag"
                   value={tag}

@@ -71,7 +71,8 @@ const GivingContributions = () => {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [showF, setShowF] = useState(Boolean(initialOpt));
-  const [q, setQ] = useState("");
+  const [qDraft, setQDraft] = useState("");
+  const [q, setQ] = useState(""); // applied search term used by the filter below
   const [tab, setTab] = useState<Tab>("all");
   const [limit, setLimit] = useState(PAGE);
   const [drawer, setDrawer] = useState<string | null>(null);
@@ -102,6 +103,7 @@ const GivingContributions = () => {
     setChannel("");
     setFrom("");
     setTo("");
+    setQDraft("");
     setQ("");
     setLimit(PAGE);
   };
@@ -255,7 +257,7 @@ const GivingContributions = () => {
             title="Refine contributions"
             helper="Filters combine with the search and status tabs."
             onReset={resetFilters}
-            resetDisabled={!filterCount && !q}
+            resetDisabled={!filterCount && !q && !qDraft}
           >
             <Field label="Giving option">
               <SelectInput
@@ -336,9 +338,10 @@ const GivingContributions = () => {
               }))}
             />
             <SearchInput
-              value={q}
-              onChange={(v) => {
-                setQ(v);
+              value={qDraft}
+              onChange={setQDraft}
+              onSearch={() => {
+                setQ(qDraft.trim());
                 setLimit(PAGE);
               }}
               placeholder="Search donor or reference"

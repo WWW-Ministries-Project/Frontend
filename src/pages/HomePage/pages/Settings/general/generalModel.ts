@@ -130,7 +130,8 @@ export const ELIG_ROLES: { key: EligibilityRoleKey; label: string }[] = [
 
 /** Church-wide reports a department can be responsible for, in display order. */
 export const REPORT_TYPES: { key: ReportConfigKey; label: string; description: string }[] = [
-  { key: "membership", label: "Membership", description: "New members, confirmations, transfers and profile health. Monthly." },
+  { key: "membership", label: "Membership", description: "New members, confirmations, transfers and profile health (adults only — children are reported separately). Monthly." },
+  { key: "children", label: "Children", description: "Members under 18: count, age bands, gender and safeguarding data such as emergency contacts. Monthly." },
   { key: "visitors", label: "Visitors & follow-up", description: "First-time visitors, follow-up progress and conversion. Weekly, with a monthly roll-up." },
   { key: "events", label: "Events", description: "Events held, registrations and turn-up. Monthly." },
   { key: "attendance", label: "Church attendance", description: "Service headcounts, worker check-ins and punctuality. Weekly, with a monthly roll-up." },

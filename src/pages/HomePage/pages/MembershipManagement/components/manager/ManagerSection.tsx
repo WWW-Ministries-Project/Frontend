@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useState } from "react";
 
 import {
   SearchInput,
@@ -22,21 +22,29 @@ export const ManagerSection = ({
   query: string;
   onQueryChange: (value: string) => void;
   children: ReactNode;
-}) => (
-  <div className="flex flex-col gap-4">
-    <SectionHeading title={title} description={description}>
-      {toggle}
-      <SearchInput
-        className="max-w-[420px]"
-        value={query}
-        onChange={onQueryChange}
-        placeholder="Search by name, ID or phone"
-        ariaLabel="Search records"
-      />
-    </SectionHeading>
-    {children}
-  </div>
-);
+}) => {
+  // Typing only updates this draft; the applied `query` used by the list
+  // filter changes on Enter / the Search button.
+  const [draft, setDraft] = useState(query);
+  useEffect(() => setDraft(query), [query]);
+
+  return (
+    <div className="flex flex-col gap-4">
+      <SectionHeading title={title} description={description}>
+        {toggle}
+        <SearchInput
+          className="max-w-[420px]"
+          value={draft}
+          onChange={setDraft}
+          onSearch={() => onQueryChange(draft.trim())}
+          placeholder="Search by name, ID or phone"
+          ariaLabel="Search records"
+        />
+      </SectionHeading>
+      {children}
+    </div>
+  );
+};
 
 /** Empty state that distinguishes "nothing here" from "nothing matches". */
 export const ManagerEmpty = ({

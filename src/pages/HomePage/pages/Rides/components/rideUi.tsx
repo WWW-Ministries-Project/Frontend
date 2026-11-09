@@ -127,30 +127,74 @@ export const SeatBar = ({
 export const SearchField = ({
   value,
   onChange,
+  onSearch,
   placeholder,
   label,
   className,
+  searchLabel = "Search",
 }: {
   value: string;
   onChange: (value: string) => void;
+  /**
+   * When provided, the field becomes submit-based: typing only updates the box,
+   * and the search fires on Enter or the Search button — never per keystroke.
+   * Without it the field keeps the old live behaviour.
+   */
+  onSearch?: () => void;
   placeholder: string;
   label: string;
   className?: string;
-}) => (
-  <div className={cn("flex w-full", className)}>
-    <span className="flex h-10 w-10 flex-none items-center justify-center rounded-l-lg border border-r-0 border-lightGray bg-lightGray/30">
-      <MagnifyingGlassIcon className="h-4 w-4 text-primaryGray" aria-hidden="true" />
-    </span>
-    <input
-      type="search"
-      value={value}
-      onChange={(event) => onChange(event.target.value)}
-      placeholder={placeholder}
-      aria-label={label}
-      className="h-10 min-w-0 flex-1 rounded-r-lg border border-lightGray bg-white px-3 text-sm text-primary placeholder:text-mainGray focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10"
-    />
-  </div>
-);
+  searchLabel?: string;
+}) => {
+  // Legacy live mode: fires on every keystroke via onChange.
+  if (!onSearch) {
+    return (
+      <div className={cn("flex w-full", className)}>
+        <span className="flex h-10 w-10 flex-none items-center justify-center rounded-l-lg border border-r-0 border-lightGray bg-lightGray/30">
+          <MagnifyingGlassIcon className="h-4 w-4 text-primaryGray" aria-hidden="true" />
+        </span>
+        <input
+          type="search"
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          placeholder={placeholder}
+          aria-label={label}
+          className="h-10 min-w-0 flex-1 rounded-r-lg border border-lightGray bg-white px-3 text-sm text-primary placeholder:text-mainGray focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10"
+        />
+      </div>
+    );
+  }
+
+  // Submit mode: Enter (form submit) or the Search button runs the search.
+  return (
+    <form
+      role="search"
+      onSubmit={(event) => {
+        event.preventDefault();
+        onSearch();
+      }}
+      className={cn("flex w-full", className)}
+    >
+      <span className="flex h-10 w-10 flex-none items-center justify-center rounded-l-lg border border-r-0 border-lightGray bg-lightGray/30">
+        <MagnifyingGlassIcon className="h-4 w-4 text-primaryGray" aria-hidden="true" />
+      </span>
+      <input
+        type="search"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        aria-label={label}
+        className="h-10 min-w-0 flex-1 border border-lightGray bg-white px-3 text-sm text-primary placeholder:text-mainGray focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10"
+      />
+      <button
+        type="submit"
+        className="h-10 flex-shrink-0 rounded-r-lg bg-primary px-4 text-sm font-semibold text-white outline-none transition hover:bg-primary/90 focus:ring-4 focus:ring-primary/10"
+      >
+        {searchLabel}
+      </button>
+    </form>
+  );
+};
 
 interface SegmentedProps<T extends string> {
   value: T;

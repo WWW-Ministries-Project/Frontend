@@ -59,6 +59,7 @@ export const Guests = () => {
   const navigate = useNavigate();
   const { activeBranchId } = useBranchStore();
   const [tab, setTab] = useState<GuestTab>("all");
+  const [searchDraft, setSearchDraft] = useState("");
   const [search, setSearch] = useState("");
 
   const query = useMemo(
@@ -141,8 +142,9 @@ export const Guests = () => {
             onChange={setTab}
           />
           <SearchInput
-            value={search}
-            onChange={setSearch}
+            value={searchDraft}
+            onChange={setSearchDraft}
+            onSearch={() => setSearch(searchDraft.trim())}
             placeholder="Search by name, email or phone"
             ariaLabel="Search guests"
             className="max-w-[420px]"

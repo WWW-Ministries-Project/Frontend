@@ -21,7 +21,8 @@ All responses use the usual envelope `{ message, data }`. Errors: `400` validati
 
 | `report_key` | Module (permission domain) |
 |---|---|
-| `membership` | `Membership_Management` (→ `Members`) |
+| `membership` | `Membership_Management` (→ `Members`) — adults only; children are excluded |
+| `children` | `Membership_Management` (→ `Members`) — members under 18, reported separately |
 | `visitors` | `Visitors` |
 | `events` | `Events` |
 | `attendance` | `Church_Attendance` |

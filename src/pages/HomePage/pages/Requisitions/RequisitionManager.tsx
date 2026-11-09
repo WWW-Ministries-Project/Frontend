@@ -113,7 +113,8 @@ const RequisitionManager = ({ section }: { section: Section }) => {
   );
 
   const [tab, setTab] = useState<string | null>(null);
-  const [q, setQ] = useState("");
+  const [qDraft, setQDraft] = useState("");
+  const [q, setQ] = useState(""); // applied search term used by the filter below
   const [filters, setFilters] = useState<Filters>(NO_FILTERS);
   const [showFilters, setShowFilters] = useState(false);
   const [limit, setLimit] = useState(PAGE);
@@ -604,9 +605,10 @@ const RequisitionManager = ({ section }: { section: Section }) => {
           helper="Filters combine with the search and tabs. Dates are when it was submitted."
           onReset={() => {
             setFilters(NO_FILTERS);
+            setQDraft("");
             setQ("");
           }}
-          resetDisabled={!isFiltered}
+          resetDisabled={!isFiltered && !qDraft}
         >
           <Field label="Department">
             <SelectInput
@@ -868,9 +870,10 @@ const RequisitionManager = ({ section }: { section: Section }) => {
                 }))}
               />
               <SearchInput
-                value={q}
-                onChange={(value) => {
-                  setQ(value);
+                value={qDraft}
+                onChange={setQDraft}
+                onSearch={() => {
+                  setQ(qDraft.trim());
                   setLimit(PAGE);
                 }}
                 placeholder="Search ID, item or person"

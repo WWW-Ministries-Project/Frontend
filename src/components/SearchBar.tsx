@@ -40,25 +40,30 @@ export const SearchBar = (props: IProps): JSX.Element => {
       <div className={"flex w-full max-w-xl items-center bg-white " + className}>
         <form
           onSubmit={handleSubmit}
+          role="search"
           className="flex w-full items-center font-normal leading-6 text-primary"
         >
-          <img
-            role="submit button"
-            src={search}
-            alt="search"
-            className="inline rounded-l-lg border border-lightGray bg-lightGray/30 p-3 text-lightGray"
-          />
+          <span className="inline-flex items-center rounded-l-lg border border-lightGray bg-lightGray/30 p-3">
+            <img src={search} alt="" className="h-4" />
+          </span>
 
           <input
             id={id || "search"}
             type="text"
             placeholder={placeholder}
             name="search"
-            className="app-input rounded-l-none border-l-0"
+            className="app-input rounded-none border-l-0 border-r-0"
             value={value ?? ""}
             onChange={onChange}
             autoComplete="off"
           />
+
+          <button
+            type="submit"
+            className="h-full flex-shrink-0 rounded-r-lg bg-primary px-4 text-sm font-semibold text-white outline-none transition hover:bg-primary/90"
+          >
+            Search
+          </button>
         </form>
       </div>
     </>

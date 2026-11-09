@@ -70,6 +70,7 @@ const RideFindPage = () => {
   const point =
     catalog?.pickup_points.find((item) => item.id === paramId) ?? null;
 
+  const [queryDraft, setQueryDraft] = useState("");
   const [query, setQuery] = useState("");
   const [result, setResult] = useState<RideSearchResult | null>(null);
   const [searching, setSearching] = useState(false);
@@ -389,8 +390,9 @@ const RideFindPage = () => {
           </p>
         </div>
         <SearchField
-          value={query}
-          onChange={setQuery}
+          value={queryDraft}
+          onChange={setQueryDraft}
+          onSearch={() => setQuery(queryDraft.trim())}
           placeholder="Search landmarks or areas"
           label="Search pickup points"
           className="max-w-[420px]"

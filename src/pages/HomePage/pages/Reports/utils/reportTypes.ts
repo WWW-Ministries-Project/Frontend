@@ -124,6 +124,7 @@ export type ReportSection =
 export type ReportStatus = "Draft" | "Submitted" | "Returned" | "Approved";
 export type DeptReportId =
   | "membership"
+  | "children"
   | "visitors"
   | "events"
   | "attendance"
