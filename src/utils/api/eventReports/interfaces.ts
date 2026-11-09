@@ -116,6 +116,8 @@ export type EventReportDetail = {
     status_label: "Pending approval" | "Approved" | "Returned";
     generated_at: string | null;
     generated_by_name: string | null;
+    /** Head of the department responsible for event reports (Settings › Reports). */
+    prepared_by_name: string | null;
     acted_at: string | null;
     acted_by_name: string | null;
   } | null;

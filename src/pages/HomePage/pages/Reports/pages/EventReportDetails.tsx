@@ -372,7 +372,7 @@ const EventReportDetails = () => {
         eyebrow={`Event report · ${EVENT_TYPE_LABEL[type]}`}
         title={eventName}
         status={status}
-        meta={[fmtEventDate(currentDate), fmtEventTime(report.start_time, report.end_time), report.location || "", report.generated_at ? `Generated ${fmtDateTime(report.generated_at)}` : ""].filter(Boolean)}
+        meta={[fmtEventDate(currentDate), fmtEventTime(report.start_time, report.end_time), report.location || "", report.report?.prepared_by_name ? `Prepared by ${report.report.prepared_by_name}` : "", report.generated_at ? `Generated ${fmtDateTime(report.generated_at)}` : ""].filter(Boolean)}
         tab={tab}
         onTab={setTab}
         tabs={[
