@@ -49,7 +49,8 @@ const emptyDraft = (): Draft => {
 };
 
 export const QuestionBank = ({ canManage }: { canManage: boolean }) => {
-  const [search, setSearch] = useState("");
+  const [searchDraft, setSearchDraft] = useState("");
+  const [search, setSearch] = useState(""); // applied term the filter below reads
   const [type, setType] = useState<QuestionType | "">("");
   const [tag, setTag] = useState("");
   const { data, loading, refetch } = useFetch(api.fetch.fetchQuestionBank, undefined, false, { staleTime: STALE.reference });
@@ -116,13 +117,29 @@ export const QuestionBank = ({ canManage }: { canManage: boolean }) => {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2">
-        <input
-          type="search"
-          placeholder="Search questions"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="h-9 w-56 rounded-lg border border-lightGray bg-white px-3 text-sm"
-        />
+        <form
+          role="search"
+          onSubmit={(e) => {
+            e.preventDefault();
+            setSearch(searchDraft.trim());
+          }}
+          className="flex"
+        >
+          <input
+            type="search"
+            aria-label="Search questions"
+            placeholder="Search questions"
+            value={searchDraft}
+            onChange={(e) => setSearchDraft(e.target.value)}
+            className="h-9 w-56 rounded-l-lg border border-lightGray bg-white px-3 text-sm"
+          />
+          <button
+            type="submit"
+            className="h-9 flex-shrink-0 rounded-r-lg bg-primary px-4 text-sm font-semibold text-white"
+          >
+            Search
+          </button>
+        </form>
         <select
           aria-label="Type"
           value={type}

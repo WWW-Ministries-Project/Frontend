@@ -123,7 +123,8 @@ const AssetManager = () => {
   const active = stock.checks.find((c) => c.status === "open") ?? null;
 
   const [tab, setTab] = useState<Tab>("all");
-  const [q, setQ] = useState("");
+  const [qDraft, setQDraft] = useState("");
+  const [q, setQ] = useState(""); // applied search term used by the filter below
   const [filters, setFilters] = useState<Filters>(NO_FILTERS);
   const [showFilters, setShowFilters] = useState(false);
   const [view, setViewState] = useState<"table" | "cards">(readView);
@@ -504,9 +505,10 @@ const AssetManager = () => {
           helper="Filters combine with the search and status tabs."
           onReset={() => {
             setFilters(NO_FILTERS);
+            setQDraft("");
             setQ("");
           }}
-          resetDisabled={!filterCount && !q}
+          resetDisabled={!filterCount && !q && !qDraft}
         >
           <Field label="Category">
             <SelectInput
@@ -593,9 +595,10 @@ const AssetManager = () => {
           <PillTabs tabs={tabs} value={tab} onChange={pickTab} ariaLabel="Asset status" />
           <div className="flex max-w-[480px] flex-[1_1_320px] items-center gap-2">
             <SearchInput
-              value={q}
-              onChange={(value) => {
-                setQ(value);
+              value={qDraft}
+              onChange={setQDraft}
+              onSearch={() => {
+                setQ(qDraft.trim());
                 setLimit(PAGE);
               }}
               placeholder="Search name, ID, supplier"
@@ -800,6 +803,7 @@ const AssetManager = () => {
             notify.success({ title: "Asset updated", message: row.name });
           } else {
             setTab("all");
+            setQDraft("");
             setQ("");
             notify.success({
               title: `Asset added as ${row.code}`,

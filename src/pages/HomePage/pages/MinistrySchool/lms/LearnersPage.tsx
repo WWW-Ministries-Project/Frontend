@@ -48,6 +48,8 @@ export const LearnersPage = () => {
   const canDecide = useSomAccess().canAll("decide_applications");
   const [f, setF] = useState<Filters>(EMPTY);
   const set = (patch: Partial<Filters>) => setF((p) => ({ ...p, ...patch }));
+  // f.q is the applied search term; qDraft is what the user is typing.
+  const [qDraft, setQDraft] = useState("");
 
   // Options derived from the data actually present.
   const programOpts = useMemo(() => {
@@ -141,19 +143,34 @@ export const LearnersPage = () => {
         <ReviewQueue canManage={canDecide} programFilter={f.prog || undefined} onDecided={refetch} />
 
         <div className="flex flex-wrap items-center gap-2">
-          <label className="relative block min-w-0 flex-1 basis-60">
-            <span aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-mainGray">
-              ⌕
-            </span>
-            <input
-              type="search"
-              value={f.q}
-              onChange={(e) => set({ q: e.target.value })}
-              placeholder="Search learners by name"
-              aria-label="Search learners"
-              className="h-10 w-full rounded-lg border border-lightGray bg-white pl-8 pr-3 text-sm"
-            />
-          </label>
+          <form
+            role="search"
+            onSubmit={(e) => {
+              e.preventDefault();
+              set({ q: qDraft.trim() });
+            }}
+            className="flex min-w-0 flex-1 basis-60 items-center"
+          >
+            <div className="relative min-w-0 flex-1">
+              <span aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-mainGray">
+                ⌕
+              </span>
+              <input
+                type="search"
+                value={qDraft}
+                onChange={(e) => setQDraft(e.target.value)}
+                placeholder="Search learners by name"
+                aria-label="Search learners"
+                className="h-10 w-full rounded-l-lg border border-lightGray bg-white pl-8 pr-3 text-sm"
+              />
+            </div>
+            <button
+              type="submit"
+              className="h-10 flex-shrink-0 rounded-r-lg bg-primary px-4 text-sm font-semibold text-white"
+            >
+              Search
+            </button>
+          </form>
           <select aria-label="Program" value={f.prog} onChange={(e) => set({ prog: e.target.value, coh: "" })} className={selectCls}>
             <option value="">All programs</option>
             {programOpts.map(([id, title]) => (
@@ -194,7 +211,10 @@ export const LearnersPage = () => {
           {active && (
             <button
               type="button"
-              onClick={() => set({ q: "", prog: "", coh: "", stat: "", multi: "any" })}
+              onClick={() => {
+                setQDraft("");
+                set({ q: "", prog: "", coh: "", stat: "", multi: "any" });
+              }}
               className="font-medium text-primary underline"
             >
               Clear filters

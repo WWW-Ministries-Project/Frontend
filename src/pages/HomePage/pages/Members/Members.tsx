@@ -213,11 +213,11 @@ export function Members({ childrenOnly = false }: { childrenOnly?: boolean } = {
     setSearchDraft(activeSearch);
   }, [activeSearch]);
 
-  useEffect(() => {
+  // Search runs on Enter or the Search button, not while typing.
+  const handleSearch = useCallback(() => {
     const term = searchDraft.trim();
     if (term === activeSearch) return;
-    const timer = window.setTimeout(() => updateQuery({ search: term || null }), 400);
-    return () => window.clearTimeout(timer);
+    updateQuery({ search: term || null });
   }, [searchDraft, activeSearch, updateQuery]);
 
   useEffect(() => {
@@ -560,6 +560,7 @@ export function Members({ childrenOnly = false }: { childrenOnly?: boolean } = {
             <SearchInput
               value={searchDraft}
               onChange={setSearchDraft}
+              onSearch={handleSearch}
               placeholder="Search by name, member ID, email or phone"
               ariaLabel="Search members"
               className="max-w-[520px] flex-[1_1_280px]"

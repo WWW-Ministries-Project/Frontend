@@ -53,6 +53,7 @@ export const DepartmentsAndMinistries = () => {
   const { activeBranchId } = useBranchStore();
 
   const [tab, setTab] = useState<StatusTab>("all");
+  const [searchDraft, setSearchDraft] = useState("");
   const [search, setSearch] = useState("");
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<DepartmentRecord | null>(null);
@@ -186,8 +187,9 @@ export const DepartmentsAndMinistries = () => {
         <div className="flex flex-wrap items-center gap-3">
           <PillTabs tabs={tabs} value={tab} onChange={setTab} ariaLabel="Department status" />
           <SearchInput
-            value={search}
-            onChange={setSearch}
+            value={searchDraft}
+            onChange={setSearchDraft}
+            onSearch={() => setSearch(searchDraft.trim())}
             placeholder="Search departments or heads"
             ariaLabel="Search departments"
             className="max-w-[420px]"

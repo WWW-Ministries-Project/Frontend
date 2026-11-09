@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 import { Button } from "@/components";
 import { SearchBar } from "@/components/SearchBar";
 import DateFilter from "@/pages/HomePage/Components/reusable/DateFilter";
@@ -22,8 +24,14 @@ export const EventsManagerHeader = (props: IProps) => {
     props.onFilter(val);
   };
 
+  // Typing only updates the draft; the search commits on Enter or the button.
+  const [searchDraft, setSearchDraft] = useState(props.filterEvents);
+  useEffect(() => {
+    setSearchDraft(props.filterEvents);
+  }, [props.filterEvents]);
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    props.onSearch(e.target.value);
+    setSearchDraft(e.target.value);
   };
 
   return (
@@ -66,8 +74,9 @@ export const EventsManagerHeader = (props: IProps) => {
         <SearchBar
           className="max-w-[40.9%] min-w-[100px] h-10 "
           placeholder="Search events here..."
-          value={props.filterEvents}
+          value={searchDraft}
           onChange={handleSearchChange}
+          onSubmit={() => props.onSearch(searchDraft.trim())}
           id="searchMembers"
         />
       )}

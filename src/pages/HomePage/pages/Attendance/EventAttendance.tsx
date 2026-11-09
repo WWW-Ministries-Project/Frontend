@@ -83,6 +83,7 @@ export default function EventAttendance() {
     linkedQuery ? { ...defaultFilters(), month: "" } : defaultFilters()
   );
   const [tab, setTab] = useState<Tab>("all");
+  const [queryDraft, setQueryDraft] = useState(linkedQuery || "");
   const [query, setQuery] = useState(linkedQuery || "");
   const [groupBy, setGroupBy] = useState<GroupBy>("event");
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
@@ -343,6 +344,7 @@ export default function EventAttendance() {
             helper="Filters combine with the search and status tabs."
             onReset={() => {
               setFilters(defaultFilters());
+              setQueryDraft("");
               setQuery("");
               setTab("all");
               setSelected([]);
@@ -426,9 +428,10 @@ export default function EventAttendance() {
         <div className="flex flex-wrap items-center gap-3">
           <SearchInput
             className="max-w-[420px]"
-            value={query}
-            onChange={(value) => {
-              setQuery(value);
+            value={queryDraft}
+            onChange={setQueryDraft}
+            onSearch={() => {
+              setQuery(queryDraft.trim());
               setSelected([]);
             }}
             placeholder="Search by name or member ID"
@@ -543,6 +546,7 @@ export default function EventAttendance() {
               <UiButton
                 onClick={() => {
                   setFilters(defaultFilters());
+                  setQueryDraft("");
                   setQuery("");
                   setTab("all");
                 }}

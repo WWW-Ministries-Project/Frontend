@@ -141,14 +141,13 @@ export const AllStudents = ({
     setSearchInput(effectiveQuery.search);
   }, [effectiveQuery.search]);
 
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      if (searchInput === effectiveQuery.search) return;
-      updateQuery({ search: searchInput, page: 1 });
-    }, 350);
-
-    return () => window.clearTimeout(timer);
-  }, [effectiveQuery.search, searchInput, updateQuery]);
+  // searchInput is the draft; the applied term lives in effectiveQuery.search
+  // and is only updated on submit (Enter or the Search button).
+  const submitSearch = () => {
+    const next = searchInput.trim();
+    if (next === effectiveQuery.search) return;
+    updateQuery({ search: next, page: 1 });
+  };
 
   const handleViewStudent = (student: Student) => {
     const state: StudentDetailsState = {
@@ -303,13 +302,28 @@ export const AllStudents = ({
         <div className="grid w-full gap-3 md:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-1">
             <label className="text-xs font-medium text-primaryGray">Search</label>
-            <input
-              type="text"
-              placeholder="Search students..."
-              className="h-10 w-full rounded-lg border border-lightGray px-3 text-sm"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-            />
+            <form
+              role="search"
+              onSubmit={(e) => {
+                e.preventDefault();
+                submitSearch();
+              }}
+              className="flex"
+            >
+              <input
+                type="search"
+                placeholder="Search students..."
+                className="h-10 w-full rounded-l-lg border border-lightGray px-3 text-sm"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+              />
+              <button
+                type="submit"
+                className="h-10 flex-shrink-0 rounded-r-lg bg-primary px-4 text-sm font-semibold text-white"
+              >
+                Search
+              </button>
+            </form>
           </div>
 
           {advancedOpsEnabled && (

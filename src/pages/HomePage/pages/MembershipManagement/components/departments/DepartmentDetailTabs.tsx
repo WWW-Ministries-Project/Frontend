@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 import {
   CellText,
   GridTable,
@@ -64,6 +66,11 @@ export const DepartmentMembersTab = ({
   onMakeHead: (member: DepartmentMemberRow) => void;
   onRemove: (member: DepartmentMemberRow) => void;
 }) => {
+  // Typing only updates this draft; the applied `search` (which drives the
+  // debounced server fetch in the parent) changes on Enter / the Search button.
+  const [searchDraft, setSearchDraft] = useState(search);
+  useEffect(() => setSearchDraft(search), [search]);
+
   const positionLabel = (member: DepartmentMemberRow) =>
     member.id === headId
       ? "Head of department"
@@ -115,8 +122,9 @@ export const DepartmentMembersTab = ({
         description="Select a member to open their profile."
       >
         <SearchInput
-          value={search}
-          onChange={onSearch}
+          value={searchDraft}
+          onChange={setSearchDraft}
+          onSearch={() => onSearch(searchDraft.trim())}
           placeholder="Search by name or member ID"
           ariaLabel="Search department members"
           className="max-w-[420px]"

@@ -133,7 +133,8 @@ const AssetReconciliation = () => {
   const requested = (params.get("view") as View) || (checkId && !admin ? "count" : "home");
   const deptParam = params.get("dept");
 
-  const [q, setQ] = useState("");
+  const [qDraft, setQDraft] = useState("");
+  const [q, setQ] = useState(""); // applied search term used by the count list filter
   const [filter, setFilter] = useState<Filter>("todo");
   const [limit, setLimit] = useState(PAGE);
   const [busy, setBusy] = useState(false);
@@ -171,6 +172,7 @@ const AssetReconciliation = () => {
     if (next.view !== "home") p.set("view", next.view);
     if (next.dept !== undefined && next.dept !== null && next.dept !== "") p.set("dept", next.dept);
     setParams(p);
+    setQDraft("");
     setQ("");
     setLimit(PAGE);
     if (next.filter) setFilter(next.filter);
@@ -603,7 +605,17 @@ const AssetReconciliation = () => {
                 ]}
               />
             )}
-            <SearchInput className="flex-[1_1_200px]" value={q} onChange={setQ} placeholder="Name or asset ID on the tag" ariaLabel="Find asset" />
+            <SearchInput
+              className="flex-[1_1_200px]"
+              value={qDraft}
+              onChange={setQDraft}
+              onSearch={() => {
+                setQ(qDraft.trim());
+                setLimit(PAGE);
+              }}
+              placeholder="Name or asset ID on the tag"
+              ariaLabel="Find asset"
+            />
           </div>
         </div>
 

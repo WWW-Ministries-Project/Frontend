@@ -51,6 +51,7 @@ const EventReports = () => {
   // Reports.event_generate; roles saved before actions keep Events manage.
   const canGenerate = hasAction("Reports.event_generate") || (legacy && canManage("Events"));
 
+  const [searchDraft, setSearchDraft] = useState("");
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<StatusFilter>("all");
   const [group, setGroup] = useState<Group>("date");
@@ -169,8 +170,9 @@ const EventReports = () => {
       <div className="flex flex-wrap items-center gap-3">
         <SearchInput
           className="max-w-[420px]"
-          value={search}
-          onChange={setSearch}
+          value={searchDraft}
+          onChange={setSearchDraft}
+          onSearch={() => setSearch(searchDraft.trim())}
           placeholder="Search event, type or location"
           ariaLabel="Search event reports"
         />
