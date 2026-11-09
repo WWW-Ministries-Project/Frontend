@@ -51,6 +51,7 @@ const UsersPage = () => {
   const [tab, setTab] = useState<Tab>(
     TABS.some((t) => t.key === initialTab) ? (initialTab as Tab) : "all"
   );
+  const [queryDraft, setQueryDraft] = useState("");
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [openId, setOpenId] = useState<number | null>(null);
@@ -249,8 +250,9 @@ const UsersPage = () => {
           }))}
         />
         <SearchInput
-          value={query}
-          onChange={setQuery}
+          value={queryDraft}
+          onChange={setQueryDraft}
+          onSearch={() => setQuery(queryDraft.trim())}
           placeholder="Search name, email or ID"
           ariaLabel="Search users"
           className="w-full max-w-[320px] flex-none"
