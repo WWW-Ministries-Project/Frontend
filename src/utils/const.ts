@@ -22,6 +22,7 @@ export const relativePath = {
     membership: {
       main: "membership",
       churchDirectory: "church-directory",
+      children: "children",
       departments: {
         main: "departments-and-ministries",
         details: "departments-and-ministries/:id",

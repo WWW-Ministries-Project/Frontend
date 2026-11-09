@@ -317,6 +317,14 @@ export const routes: AppRoute[] = [
             permissionNeeded: "view_members",
           },
           {
+            path: relativePath.home.membership.children,
+            name: "Children",
+            element: <Members childrenOnly />,
+            isPrivate: true,
+            permissionNeeded: "view_members",
+            sideTab: true,
+          },
+          {
             path: relativePath.home.membership.departments.main,
             name: "Departments and Ministries",
             element: <DepartmentsAndMinistries />,
