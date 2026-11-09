@@ -19,6 +19,7 @@ import ResetPassword from "../pages/Authentication/pages/ResetPassword/ResetPass
 import ErrorPage from "../pages/ErrorPage.jsx";
 import { HomePage } from "../pages/HomePage/HomePage";
 import { Members } from "../pages/HomePage/pages/Members/Members";
+import { DataQuality } from "../pages/HomePage/pages/Members/pages/DataQuality";
 import { ManageMember } from "../pages/HomePage/pages/Members/pages/ManageMember";
 import UnderConstruction from "../pages/UnderConstruction/UnderConstruction";
 
@@ -402,6 +403,14 @@ export const routes: AppRoute[] = [
             element: <MembershipAnalytics />,
             isPrivate: true,
             permissionNeeded: "view_members",
+            sideTab: true,
+          },
+          {
+            path: relativePath.home.membership.dataQuality,
+            name: "Data Quality",
+            element: <DataQuality />,
+            isPrivate: true,
+            permissionNeeded: "view_data_quality",
             sideTab: true,
           },
           {
