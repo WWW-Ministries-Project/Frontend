@@ -86,6 +86,7 @@ import type {
   IProductTypeResponse,
 } from "./marketPlace/interface";
 import { IFamilyInformationRaw, IMemberInfo, MembersType, UserStatsType } from "./members/interfaces";
+import type { DuplicateChildrenResponse } from "./dataQuality/interfaces";
 import {
   CertificateData,
   CohortAssignment,
@@ -239,6 +240,13 @@ export class ApiCalls {
 
   fetchUserStats = (query?: QueryType): Promise<ApiResponse<UserStatsType>> => {
     return this.fetchFromApi("user/stats-users", query);
+  };
+
+  // Data Quality — duplicate member records
+  fetchDuplicateChildren = (
+    query?: QueryType
+  ): Promise<ApiResponse<DuplicateChildrenResponse>> => {
+    return this.fetchFromApi("user/data-quality/duplicate-children", query);
   };
 
   // Visit Management

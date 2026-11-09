@@ -4,6 +4,10 @@ import type {
   EventReportSignOffPayload,
 } from "./reports/interfaces";
 import type { RequisitionReminderResponse } from "./requisitions/interfaces";
+import type {
+  MergeChildrenPayload,
+  MergeChildrenResult,
+} from "./dataQuality/interfaces";
 import type { ApiResponse, QueryType } from "../interfaces";
 import type {
   VisitorFollowUpConfig,
@@ -249,6 +253,16 @@ export class ApiCreationCalls {
   ): Promise<ApiResponse<T>> {
     return this.apiExecution.postData(path, payload);
   }
+
+  // Data Quality — merge a confirmed duplicate pair
+  mergeDuplicateChildren = (
+    payload: MergeChildrenPayload
+  ): Promise<ApiResponse<MergeChildrenResult>> => {
+    return this.postToApi<MergeChildrenResult>(
+      "user/data-quality/merge-children",
+      payload
+    );
+  };
 
   private async postToApiWithOptions<T>(
     path: string,

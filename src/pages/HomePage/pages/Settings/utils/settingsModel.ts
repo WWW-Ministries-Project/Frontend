@@ -77,6 +77,7 @@ export const MODULES: SettingsModule[] = [
   { key: "Positions", label: "Positions", description: "Positions and their hierarchy", group: "Administration" },
   { key: "Settings", label: "Settings", description: "Branches, general configuration and logs", group: "Administration" },
   { key: "AI", label: "AI", description: "Assistant workflows, AI credentials and usage", group: "Administration" },
+  { key: "Data_Quality", label: "Data quality", description: "Find and merge duplicate member records", group: "Administration", extra: "new", why: "New module. Until now this borrowed Settings." },
 ];
 
 export const MODULE_GROUPS: ModuleGroup[] = NAV_GROUPS;
