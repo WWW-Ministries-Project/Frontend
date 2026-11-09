@@ -47,6 +47,7 @@ import {
   extractVisitors,
   getMemberDepartments,
   getMemberJoinDate,
+  isChild,
   MemberRecord,
   safeString,
 } from "../components/analytics/memberAnalyticsData";
@@ -56,6 +57,8 @@ const createDefaultFilterState = (): MembershipAnalyticsFilterState => ({
   membershipType: "",
   department: "",
   scope: "active",
+  // Adults only by default, matching the Church Directory.
+  includeChildren: false,
 });
 
 export const MembershipAnalytics = () => {
@@ -107,6 +110,14 @@ export const MembershipAnalytics = () => {
     return membersResponse.data as MemberRecord[];
   }, [membersResponse]);
 
+  // Everything below works off this set, so the "Children" toggle flows into
+  // every KPI and chart. Children are dropped unless the user opts to include
+  // them (default: adults only).
+  const scopedMembers = useMemo(
+    () => (filterState.includeChildren ? members : members.filter((m) => !isChild(m))),
+    [filterState.includeChildren, members]
+  );
+
   const visitors = useMemo(
     () => extractVisitors(visitorsResponse?.data),
     [visitorsResponse]
@@ -120,13 +131,13 @@ export const MembershipAnalytics = () => {
   const departmentOptions = useMemo(() => {
     const names = storeDepartments.length
       ? storeDepartments.map((department) => department.name)
-      : members.flatMap((member) => getMemberDepartments(member));
+      : scopedMembers.flatMap((member) => getMemberDepartments(member));
     return Array.from(new Set(names.filter(Boolean))).sort((a, b) => a.localeCompare(b));
-  }, [members, storeDepartments]);
+  }, [scopedMembers, storeDepartments]);
 
   const earliestMemberJoinDate = useMemo(
-    () => getEarliestIsoDate(members.map((member) => getMemberJoinDate(member))),
-    [members]
+    () => getEarliestIsoDate(scopedMembers.map((member) => getMemberJoinDate(member))),
+    [scopedMembers]
   );
 
   const effectiveDateRange = useMemo(() => {
@@ -142,7 +153,7 @@ export const MembershipAnalytics = () => {
   // Type + department filters, ignoring date and active scope.
   const typeDeptMembers = useMemo(
     () =>
-      members.filter((member) => {
+      scopedMembers.filter((member) => {
         if (
           membershipType &&
           safeString(member.membership_type).toUpperCase() !== membershipType
@@ -152,7 +163,7 @@ export const MembershipAnalytics = () => {
         if (department && !getMemberDepartments(member).includes(department)) return false;
         return true;
       }),
-    [department, members, membershipType]
+    [department, scopedMembers, membershipType]
   );
 
   const inScope = useCallback(
@@ -181,12 +192,12 @@ export const MembershipAnalytics = () => {
   );
   const allOfType = useMemo(
     () =>
-      members.filter(
+      scopedMembers.filter(
         (member) =>
           !membershipType ||
           safeString(member.membership_type).toUpperCase() === membershipType
       ),
-    [members, membershipType]
+    [scopedMembers, membershipType]
   );
 
   const filteredVisitors = useMemo(
