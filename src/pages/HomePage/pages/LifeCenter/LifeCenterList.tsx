@@ -52,6 +52,7 @@ const LifeCenterList = () => {
 
   const { centers, meetings, souls, roles, loaded, refetch } = useLifeCenterOverview(y0, today);
 
+  const [qDraft, setQDraft] = useState("");
   const [q, setQ] = useState("");
   const [showF, setShowF] = useState(false);
   const [f, setF] = useState<Filters>({ day: "", status: "" });
@@ -246,8 +247,9 @@ const LifeCenterList = () => {
       {!empty && (
         <div className="flex flex-wrap items-center justify-between gap-3">
           <SearchInput
-            value={q}
-            onChange={setQ}
+            value={qDraft}
+            onChange={setQDraft}
+            onSearch={() => setQ(qDraft.trim())}
             placeholder="Search name, area or leader"
             ariaLabel="Search life centers"
             className="max-w-[420px] flex-[1_1_240px]"

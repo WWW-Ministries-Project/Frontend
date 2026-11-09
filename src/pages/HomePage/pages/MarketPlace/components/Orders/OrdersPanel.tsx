@@ -100,7 +100,8 @@ export function OrdersPanel({ marketId, initialTab, title, subtitle }: IProps) {
   const tabs = useMemo(() => orderTabsFor(orders), [orders]);
 
   const [tab, setTab] = useState(initialTab || "All");
-  const [query, setQuery] = useState("");
+  const [queryDraft, setQueryDraft] = useState("");
+  const [query, setQuery] = useState(""); // applied search term used by the visible filter below
   const [market, setMarket] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<OrderFilterValues>(EMPTY_ORDER_FILTERS);
@@ -448,17 +449,30 @@ export function OrdersPanel({ marketId, initialTab, title, subtitle }: IProps) {
               );
             })}
           </div>
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
+          <form
+            role="search"
+            onSubmit={(e) => {
+              e.preventDefault();
+              setQuery(queryDraft.trim());
               clearSelection();
             }}
-            placeholder="Order # or customer"
-            aria-label="Search orders"
-            className="h-10 w-full rounded-lg border border-lightGray px-3 text-sm sm:w-56"
-          />
+            className="flex h-10 w-full sm:w-auto"
+          >
+            <input
+              type="search"
+              value={queryDraft}
+              onChange={(e) => setQueryDraft(e.target.value)}
+              placeholder="Order # or customer"
+              aria-label="Search orders"
+              className="h-10 w-full rounded-l-lg border border-r-0 border-lightGray px-3 text-sm sm:w-56"
+            />
+            <button
+              type="submit"
+              className="h-10 flex-shrink-0 rounded-r-lg bg-primary px-4 text-sm font-semibold text-white"
+            >
+              Search
+            </button>
+          </form>
           {!marketId && (
             <select
               value={market}

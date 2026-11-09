@@ -82,6 +82,7 @@ const AppointmentManager = () => {
   const wide = useViewportWidth() >= WIDE_TABLE_MIN;
 
   const [tab, setTab] = useState<Tab>("pending");
+  const [queryDraft, setQueryDraft] = useState("");
   const [query, setQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState(NO_FILTERS);
@@ -284,9 +285,10 @@ const AppointmentManager = () => {
           helper="Filters combine with the search and tabs."
           onReset={() => {
             setFilters(NO_FILTERS);
+            setQueryDraft("");
             setQuery("");
           }}
-          resetDisabled={!filterCount && !query}
+          resetDisabled={!filterCount && !query && !queryDraft}
         >
           <Field label="With">
             <SelectInput
@@ -379,8 +381,9 @@ const AppointmentManager = () => {
           tabs={TABS.map((t) => ({ key: t.key, label: t.label, count: t.counted && byTab[t.key].length ? byTab[t.key].length : null }))}
         />
         <SearchInput
-          value={query}
-          onChange={setQuery}
+          value={queryDraft}
+          onChange={setQueryDraft}
+          onSearch={() => setQuery(queryDraft.trim())}
           placeholder="Search requester or reason"
           ariaLabel="Search appointments"
           className="max-w-full sm:max-w-[360px]"

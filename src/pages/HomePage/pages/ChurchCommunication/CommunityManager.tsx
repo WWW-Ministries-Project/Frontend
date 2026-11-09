@@ -93,15 +93,6 @@ interface MessageDraft {
   comments: boolean;
 }
 
-const useDebounced = <T,>(value: T, delay = 300) => {
-  const [debounced, setDebounced] = useState(value);
-  useEffect(() => {
-    const timer = setTimeout(() => setDebounced(value), delay);
-    return () => clearTimeout(timer);
-  }, [value, delay]);
-  return debounced;
-};
-
 const CommunityManager = () => {
   // The API resolves the role's Community actions for the active branch
   // (including the audit-log rule for roles saved before actions existed).
@@ -113,19 +104,19 @@ const CommunityManager = () => {
 
   const [tab, setTab] = useState<Tab>("posts");
   const [q, setQ] = useState("");
+  const [appliedQ, setAppliedQ] = useState("");
   const [type, setType] = useState("");
   const [status, setStatus] = useState("");
   const [take, setTake] = useState(PAGE_SIZE);
   const [reportTab, setReportTab] = useState<ReportTab>("PENDING");
-  const debouncedQ = useDebounced(q.trim());
 
   const postsQuery = useMemo(() => {
     const query: Record<string, string | number> = { skip: 0, take };
-    if (debouncedQ) query.q = debouncedQ;
+    if (appliedQ) query.q = appliedQ;
     if (type) query.type = type;
     if (status) query.status = status;
     return query;
-  }, [debouncedQ, type, status, take]);
+  }, [appliedQ, type, status, take]);
 
   const stats = useFetch(api.fetch.fetchCommunityAdminStats, undefined, false, { silent: true });
   const posts = useFetch(api.fetch.fetchCommunityAdminPosts, postsQuery, false, { silent: true });
@@ -154,7 +145,7 @@ const CommunityManager = () => {
   useEffect(() => {
     loadAudit();
   }, [loadAudit]);
-  useEffect(() => setTake(PAGE_SIZE), [debouncedQ, type, status]);
+  useEffect(() => setTake(PAGE_SIZE), [appliedQ, type, status]);
 
   const postRows: CommunityAdminPost[] = posts.data?.data ?? [];
   const postTotal = posts.data?.meta?.total ?? postRows.length;
@@ -317,7 +308,7 @@ const CommunityManager = () => {
   const engagementOf = (post: CommunityAdminPost) =>
     `${plural(totalReactions(post), "reaction")} · ${plural(post.commentCount, "comment")}`;
 
-  const filtersOn = !!(debouncedQ || type || status);
+  const filtersOn = !!(appliedQ || type || status);
   const pendingCount = s?.pendingReview ?? 0;
 
   return (
@@ -377,6 +368,7 @@ const CommunityManager = () => {
             <SearchInput
               value={q}
               onChange={setQ}
+              onSearch={() => setAppliedQ(q.trim())}
               placeholder="Search posts or authors"
               ariaLabel="Search posts"
               className="max-w-[420px]"

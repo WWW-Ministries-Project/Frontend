@@ -44,7 +44,8 @@ export const InstructorsPage = () => {
   const canManage = useSomAccess().viewsAll;
   const som = useSomData();
   const overview = useFetch(api.fetch.fetchInstructorsOverview, undefined, !canManage, { staleTime: STALE.short });
-  const [search, setSearch] = useState("");
+  const [searchDraft, setSearchDraft] = useState("");
+  const [search, setSearch] = useState(""); // applied term the filters below read
   const q = search.trim().toLowerCase();
 
   const overviewRows = useMemo(
@@ -83,14 +84,29 @@ export const InstructorsPage = () => {
           actions={<Btn to={`${somPaths.dashboard}/instructor-portal`}>Open grading portal</Btn>}
         />
 
-        <input
-          type="search"
-          aria-label="Search instructors"
-          placeholder="Search name or email"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="h-9 w-full rounded-lg border border-lightGray bg-white px-3 text-sm sm:w-64"
-        />
+        <form
+          role="search"
+          onSubmit={(e) => {
+            e.preventDefault();
+            setSearch(searchDraft.trim());
+          }}
+          className="flex w-full sm:w-auto"
+        >
+          <input
+            type="search"
+            aria-label="Search instructors"
+            placeholder="Search name or email"
+            value={searchDraft}
+            onChange={(e) => setSearchDraft(e.target.value)}
+            className="h-9 w-full rounded-l-lg border border-lightGray bg-white px-3 text-sm sm:w-64"
+          />
+          <button
+            type="submit"
+            className="h-9 flex-shrink-0 rounded-r-lg bg-primary px-4 text-sm font-semibold text-white"
+          >
+            Search
+          </button>
+        </form>
 
         {canManage ? (
           overview.loading && !overview.data ? (

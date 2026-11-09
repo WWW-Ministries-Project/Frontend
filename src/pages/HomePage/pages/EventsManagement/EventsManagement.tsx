@@ -77,6 +77,7 @@ const EventsManagement = () => {
   const eventFilter = params.get("event") ?? "";
   const [view, setView] = useState<View>(readView);
   const [type, setType] = useState<TypeFilter>("all");
+  const [queryDraft, setQueryDraft] = useState("");
   const [query, setQuery] = useState("");
   const [showPast, setShowPast] = useState(false);
   const [selDay, setSelDay] = useState(month === monthKeyOf(today) ? today : `${month}-01`);
@@ -332,8 +333,9 @@ const EventsManagement = () => {
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
         <Segmented ariaLabel="Type" items={TYPE_TABS} value={type} onChange={setType} scroll />
         <SearchInput
-          value={query}
-          onChange={setQuery}
+          value={queryDraft}
+          onChange={setQueryDraft}
+          onSearch={() => setQuery(queryDraft.trim())}
           placeholder="Search events or places"
           ariaLabel="Search events"
           className="max-w-[340px] flex-[1_1_240px]"

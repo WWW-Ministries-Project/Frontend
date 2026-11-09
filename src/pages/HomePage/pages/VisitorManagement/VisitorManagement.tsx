@@ -58,6 +58,7 @@ export function VisitorManagement() {
   const navigate = useNavigate();
   const access = useVisitorAccess();
 
+  const [queryDraft, setQueryDraft] = useState("");
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState<StageTab>("all");
   const [groupBy, setGroupBy] = useState<GroupBy>("date");
@@ -132,6 +133,7 @@ export function VisitorManagement() {
   const hasQuery = Boolean(query.trim()) || filterCount > 0 || tab !== "all";
 
   const resetAll = () => {
+    setQueryDraft("");
     setQuery("");
     setTab("all");
     setFilters(EMPTY_FILTERS);
@@ -271,8 +273,9 @@ export function VisitorManagement() {
 
         <div className="flex flex-wrap items-center gap-3">
           <SearchInput
-            value={query}
-            onChange={setQuery}
+            value={queryDraft}
+            onChange={setQueryDraft}
+            onSearch={() => setQuery(queryDraft.trim())}
             placeholder="Search by name, phone or email"
             ariaLabel="Search visitors"
             className="max-w-[420px]"

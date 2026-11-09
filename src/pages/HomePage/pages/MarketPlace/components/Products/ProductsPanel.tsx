@@ -78,7 +78,8 @@ export function ProductsPanel({
   const canManageMarkets = hasAction("Marketplace.manage_markets");
 
   const [tab, setTab] = useState<ProductTab>(initialTab);
-  const [query, setQuery] = useState("");
+  const [queryDraft, setQueryDraft] = useState("");
+  const [query, setQuery] = useState(""); // applied search term used by the list filter below
   const [marketFilter, setMarketFilter] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -267,14 +268,29 @@ export function ProductsPanel({
             onChange={setTab}
           />
         </div>
-        <input
-          type="search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search products"
-          aria-label="Search products"
-          className="h-[38px] w-full rounded-lg border border-lightGray px-3 text-sm sm:w-[220px]"
-        />
+        <form
+          role="search"
+          onSubmit={(e) => {
+            e.preventDefault();
+            setQuery(queryDraft.trim());
+          }}
+          className="flex h-[38px] w-full sm:w-auto"
+        >
+          <input
+            type="search"
+            value={queryDraft}
+            onChange={(e) => setQueryDraft(e.target.value)}
+            placeholder="Search products"
+            aria-label="Search products"
+            className="h-[38px] w-full rounded-l-lg border border-r-0 border-lightGray px-3 text-sm sm:w-[220px]"
+          />
+          <button
+            type="submit"
+            className="h-[38px] flex-shrink-0 rounded-r-lg bg-primary px-4 text-sm font-semibold text-white"
+          >
+            Search
+          </button>
+        </form>
         {showMarket && (
           <select
             value={marketFilter}

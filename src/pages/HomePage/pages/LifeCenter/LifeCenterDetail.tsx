@@ -156,6 +156,7 @@ export const LifeCenterDetailView = ({
   const [tabState, setTab] = useState<Tab>("overview");
   const tab = section ?? tabState;
   const [mShow, setMShow] = useState(10);
+  const [sqDraft, setSqDraft] = useState("");
   const [sq, setSq] = useState("");
   const [drawer, setDrawer] = useState<MeetingType | null>(null);
   const [meetDialog, setMeetDialog] = useState<{ open: boolean; meeting: MeetingType | null }>({ open: false, meeting: null });
@@ -499,8 +500,9 @@ export const LifeCenterDetailView = ({
       {!embedded && <TabHeading {...soulsHead} />}
       {souls.length > 0 && (
         <SearchInput
-          value={sq}
-          onChange={setSq}
+          value={sqDraft}
+          onChange={setSqDraft}
+          onSearch={() => setSq(sqDraft.trim())}
           placeholder="Search name, phone or who won them"
           ariaLabel="Search souls won"
           className="max-w-[420px] flex-none"
