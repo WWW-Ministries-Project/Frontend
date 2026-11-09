@@ -86,7 +86,10 @@ import type {
   IProductTypeResponse,
 } from "./marketPlace/interface";
 import { IFamilyInformationRaw, IMemberInfo, MembersType, UserStatsType } from "./members/interfaces";
-import type { DuplicateChildrenResponse } from "./dataQuality/interfaces";
+import type {
+  DuplicateChildrenResponse,
+  BulkMergeJob,
+} from "./dataQuality/interfaces";
 import {
   CertificateData,
   CohortAssignment,
@@ -247,6 +250,15 @@ export class ApiCalls {
     query?: QueryType
   ): Promise<ApiResponse<DuplicateChildrenResponse>> => {
     return this.fetchFromApi("user/data-quality/duplicate-children", query);
+  };
+
+  // Data Quality — poll a background bulk-merge job
+  fetchBulkMergeJob = (
+    jobId: string
+  ): Promise<ApiResponse<BulkMergeJob>> => {
+    return this.fetchFromApi(
+      `user/data-quality/merge-children/jobs/${jobId}`
+    );
   };
 
   // Visit Management

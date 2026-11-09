@@ -7,6 +7,8 @@ import type { RequisitionReminderResponse } from "./requisitions/interfaces";
 import type {
   MergeChildrenPayload,
   MergeChildrenResult,
+  BulkMergePayload,
+  BulkMergeJob,
 } from "./dataQuality/interfaces";
 import type { ApiResponse, QueryType } from "../interfaces";
 import type {
@@ -260,6 +262,16 @@ export class ApiCreationCalls {
   ): Promise<ApiResponse<MergeChildrenResult>> => {
     return this.postToApi<MergeChildrenResult>(
       "user/data-quality/merge-children",
+      payload
+    );
+  };
+
+  // Data Quality — start a background bulk merge; returns the job to poll
+  bulkMergeDuplicateChildren = (
+    payload: BulkMergePayload
+  ): Promise<ApiResponse<BulkMergeJob>> => {
+    return this.postToApi<BulkMergeJob>(
+      "user/data-quality/merge-children/bulk",
       payload
     );
   };

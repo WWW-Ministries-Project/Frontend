@@ -51,3 +51,33 @@ export interface MergeChildrenResult {
   removed_id: number;
   edges_repointed: number;
 }
+
+// Bulk merge: runs as a background job so the user can keep working.
+export interface BulkMergePayload {
+  pairs: MergeChildrenPayload[];
+}
+
+export type BulkMergeItemStatus = "merged" | "failed";
+
+export interface BulkMergeItemResult {
+  keep_id: number;
+  remove_id: number;
+  status: BulkMergeItemStatus;
+  edges_repointed?: number;
+  error?: string;
+}
+
+export type BulkMergeJobStatus = "running" | "completed";
+
+export interface BulkMergeJob {
+  id: string;
+  status: BulkMergeJobStatus;
+  total: number;
+  processed: number;
+  succeeded: number;
+  failed: number;
+  results: BulkMergeItemResult[];
+  created_by: number | null;
+  started_at: string;
+  finished_at: string | null;
+}
