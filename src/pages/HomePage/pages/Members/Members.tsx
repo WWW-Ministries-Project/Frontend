@@ -72,7 +72,9 @@ const countText = (count: number) => `${count} ${count === 1 ? "member" : "membe
  * matching the list total and the headline. No `active_only` and no branch
  * filter, so online + inhouse + unspecified reconciles with the list.
  */
-const DIRECTORY_STATS_QUERY: QueryType = {};
+// The strip is only shown on the Church Directory, which excludes children, so
+// the family-type counts exclude them too and reconcile with the list total.
+const DIRECTORY_STATS_QUERY: QueryType = { exclude_children: "true" };
 
 const isUnconfirmed = (member: DirectoryMember) =>
   !member.status || member.status === "UNCONFIRMED";
@@ -150,7 +152,8 @@ export function Members({ childrenOnly = false }: { childrenOnly?: boolean } = {
       {};
     return {
       ...base,
-      ...(childrenOnly ? { child: "true" } : {}),
+      // Children have their own section; the Church Directory excludes them.
+      ...(childrenOnly ? { child: "true" } : { exclude_children: "true" }),
       ...(sort !== "name" ? { sort } : {}),
       include_status_counts: "true",
       page: pageParam,

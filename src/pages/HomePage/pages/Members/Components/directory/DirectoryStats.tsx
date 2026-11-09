@@ -15,7 +15,7 @@ const GroupLine = ({ label, group }: { label: string; group: Group }) => {
     `${males} M`,
     `${females} F`,
     ...(others > 0 ? [`${others} O`] : []),
-    `${children} children`,
+    ...(children > 0 ? [`${children} children`] : []),
   ].join(" · ");
 
   return (
