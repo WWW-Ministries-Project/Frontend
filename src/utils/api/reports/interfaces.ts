@@ -6,6 +6,7 @@
 /** Church-wide reports, each prepared by the department set in Settings. */
 export type ChurchReportKey =
   | "membership"
+  | "children"
   | "visitors"
   | "events"
   | "attendance"
