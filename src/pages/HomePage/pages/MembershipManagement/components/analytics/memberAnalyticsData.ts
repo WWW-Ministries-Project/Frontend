@@ -124,6 +124,22 @@ export const getAge = (member: MemberRecord): number | null => {
   return age;
 };
 
+/**
+ * A child by the same rule as the Church Directory: born in or after
+ * (current year − 18). A missing date of birth is treated as an adult, so the
+ * toggle never hides members whose age is simply unknown (mirrors the backend's
+ * buildNonChildWhere, which keeps null-DOB rows in the non-child set).
+ */
+export const isChild = (member: MemberRecord): boolean => {
+  const birthDate = toDateTime(
+    safeString(member.date_of_birth) ||
+      safeString(member.dob) ||
+      safeString(member.birth_date)
+  );
+  if (!birthDate) return false;
+  return birthDate.year >= DateTime.now().year - 18;
+};
+
 export const MARITAL_LABELS: Record<string, string> = {
   SINGLE: "Single",
   MARRIED: "Married",
