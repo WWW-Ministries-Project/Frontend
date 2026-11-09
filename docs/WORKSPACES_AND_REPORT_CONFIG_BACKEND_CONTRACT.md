@@ -59,7 +59,7 @@ The client shows Home plus the workspaces of the active branch's role; with "All
 }
 ```
 
-`ReportKey = "membership" | "visitors" | "events" | "attendance" | "assets" | "finance" | "lifecenters"`. Before anything is saved every owner is `null` and `due_day` is `5`. `departments` is limited to the caller's branches.
+`ReportKey = "membership" | "children" | "visitors" | "events" | "attendance" | "assets" | "finance" | "lifecenters"` (`membership` counts adults only; `children` covers members under 18). Before anything is saved every owner is `null` and `due_day` is `5`. `departments` is limited to the caller's branches.
 
 ### `POST settings/upsert-report-config` (Settings manage)
 

@@ -1,6 +1,7 @@
 /** Church-wide reports a department can be made responsible for. */
 export type ReportConfigKey =
   | "membership"
+  | "children"
   | "visitors"
   | "events"
   | "attendance"
