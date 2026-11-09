@@ -24,12 +24,16 @@ const LAUNCHER_STYLES = `
 .wwm-bot-float{position:absolute;left:4px;top:0;width:64px;height:64px;animation:wwmBotFloat 3.2s ease-in-out infinite;transition:transform .2s ease}
 .wwm-bot-btn:hover .wwm-bot-float{animation-duration:1.4s}
 .wwm-bot-btn:active .wwm-bot-float{transform:scale(.94)}
-.wwm-bot-btn.wwm-bot-dragging .wwm-bot-float{animation:none;transform:scale(1.05)}
 .wwm-bot-eye{transform-box:fill-box;transform-origin:center;animation:wwmBotBlink 4.5s infinite}
 .wwm-bot-ant{transform-box:fill-box;transform-origin:center;animation:wwmBotAnt 1.6s ease-in-out infinite}
 .wwm-bot-ring{position:absolute;left:8px;top:4px;width:56px;height:56px;border:2px solid rgb(var(--color-primary)/0.25);border-radius:999px;animation:wwmBotRing 2.8s ease-out infinite}
 .wwm-bot-shadow{position:absolute;left:18px;bottom:4px;width:36px;height:8px;border-radius:999px;background:rgb(var(--color-primary)/0.25);animation:wwmBotShadow 3.2s ease-in-out infinite}
 .wwm-bot-tip{opacity:0;transform-origin:bottom right;animation:wwmBotTip 14s ease-in-out 3s infinite}
+/* While dragging: freeze the bob/scale animations so the bot tracks the cursor
+   exactly, and hide the tooltip so it never blocks the pointer. */
+.wwm-bot-dragging-wrap .wwm-bot-float{animation:none!important;transform:none!important;transition:none!important}
+.wwm-bot-dragging-wrap .wwm-bot-shadow,.wwm-bot-dragging-wrap .wwm-bot-ring{animation:none!important}
+.wwm-bot-dragging-wrap .wwm-bot-tip{display:none!important}
 @keyframes wwmBotFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
 @keyframes wwmBotBlink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(0.1)}}
 @keyframes wwmBotAnt{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.55;transform:scale(1.35)}}
@@ -40,22 +44,21 @@ const LAUNCHER_STYLES = `
 `;
 
 const POS_STORAGE_KEY = "wwm-assistant-pos";
-// Fallback offsets (match the old fixed bottom-6 right-6 position).
-const EDGE_GAP = 24;
-// Footprint used for viewport clamping (button is 72×88).
-const BOT_W = 72;
-const BOT_H = 88;
+// Gap kept between the bot and the viewport edges.
+const EDGE_GAP = 16;
 // Pointer travel (px) past which a press is treated as a drag, not a click.
 const DRAG_THRESHOLD = 4;
 
 type Pos = { x: number; y: number };
+type Size = { w: number; h: number };
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(Math.max(value, min), max);
 
-const clampToViewport = (pos: Pos): Pos => ({
-  x: clamp(pos.x, EDGE_GAP, Math.max(EDGE_GAP, window.innerWidth - BOT_W - EDGE_GAP)),
-  y: clamp(pos.y, EDGE_GAP, Math.max(EDGE_GAP, window.innerHeight - BOT_H - EDGE_GAP)),
+// Keep the whole widget (tooltip + bot) on screen, using its measured size.
+const clampToViewport = (pos: Pos, size: Size): Pos => ({
+  x: clamp(pos.x, EDGE_GAP, Math.max(EDGE_GAP, window.innerWidth - size.w - EDGE_GAP)),
+  y: clamp(pos.y, EDGE_GAP, Math.max(EDGE_GAP, window.innerHeight - size.h - EDGE_GAP)),
 });
 
 const readStoredPos = (): Pos | null => {
@@ -64,7 +67,7 @@ const readStoredPos = (): Pos | null => {
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (typeof parsed?.x === "number" && typeof parsed?.y === "number") {
-      return clampToViewport(parsed);
+      return { x: parsed.x, y: parsed.y };
     }
   } catch {
     /* ignore corrupt/unavailable storage */
@@ -90,34 +93,57 @@ export const AssistantLauncher = ({ taskCount, onOpen, hidden }: AssistantLaunch
   const [pos, setPos] = useState<Pos | null>(null);
   const [dragging, setDragging] = useState(false);
 
-  // Drag bookkeeping that must not trigger re-renders.
+  const containerRef = useRef<HTMLDivElement>(null);
+  // Pointer offset from the CONTAINER's top-left (not the button) so the widget
+  // tracks the cursor without jumping by the tooltip's height.
   const grabOffset = useRef<Pos>({ x: 0, y: 0 });
   const startPoint = useRef<Pos>({ x: 0, y: 0 });
+  const sizeRef = useRef<Size>({ w: 72, h: 88 });
   const movedRef = useRef(false);
 
-  // Restore the saved position once mounted (localStorage is client-only).
-  useEffect(() => {
-    const stored = readStoredPos();
-    if (stored) setPos(stored);
+  const measure = useCallback(() => {
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (rect && rect.width && rect.height) {
+      sizeRef.current = { w: rect.width, h: rect.height };
+    }
+    return rect;
   }, []);
+
+  // Restore the saved position once mounted (localStorage is client-only). Clamp
+  // against the measured size so a resized/rotated screen cannot hide it.
+  useEffect(() => {
+    measure();
+    const stored = readStoredPos();
+    if (stored) setPos(clampToViewport(stored, sizeRef.current));
+  }, [measure]);
 
   // Keep the bot on-screen if the window is resized smaller.
   useEffect(() => {
-    const onResize = () => setPos((prev) => (prev ? clampToViewport(prev) : prev));
+    const onResize = () => {
+      measure();
+      setPos((prev) => (prev ? clampToViewport(prev, sizeRef.current) : prev));
+    };
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
-  }, []);
+  }, [measure]);
 
-  const handlePointerDown = useCallback((event: ReactPointerEvent<HTMLButtonElement>) => {
-    // Only the primary button / touch / pen starts a drag.
-    if (event.button !== 0) return;
-    const rect = event.currentTarget.getBoundingClientRect();
-    grabOffset.current = { x: event.clientX - rect.left, y: event.clientY - rect.top };
-    startPoint.current = { x: event.clientX, y: event.clientY };
-    movedRef.current = false;
-    setDragging(true);
-    event.currentTarget.setPointerCapture(event.pointerId);
-  }, []);
+  const handlePointerDown = useCallback(
+    (event: ReactPointerEvent<HTMLButtonElement>) => {
+      if (event.button !== 0) return; // primary button / touch / pen only
+      const rect = measure();
+      if (!rect) return;
+      grabOffset.current = { x: event.clientX - rect.left, y: event.clientY - rect.top };
+      startPoint.current = { x: event.clientX, y: event.clientY };
+      movedRef.current = false;
+      setDragging(true);
+      try {
+        event.currentTarget.setPointerCapture(event.pointerId);
+      } catch {
+        /* capture unsupported — drag still works via document-less move events */
+      }
+    },
+    [measure],
+  );
 
   const handlePointerMove = useCallback(
     (event: ReactPointerEvent<HTMLButtonElement>) => {
@@ -127,30 +153,36 @@ export const AssistantLauncher = ({ taskCount, onOpen, hidden }: AssistantLaunch
       if (!movedRef.current && Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
       movedRef.current = true;
       setPos(
-        clampToViewport({
-          x: event.clientX - grabOffset.current.x,
-          y: event.clientY - grabOffset.current.y,
-        }),
+        clampToViewport(
+          {
+            x: event.clientX - grabOffset.current.x,
+            y: event.clientY - grabOffset.current.y,
+          },
+          sizeRef.current,
+        ),
       );
     },
     [dragging],
   );
 
-  const endDrag = useCallback((event: ReactPointerEvent<HTMLButtonElement>) => {
-    if (!dragging) return;
-    setDragging(false);
-    try {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    } catch {
-      /* pointer already released */
-    }
-    if (movedRef.current) {
-      setPos((prev) => {
-        if (prev) storePos(prev);
-        return prev;
-      });
-    }
-  }, [dragging]);
+  const endDrag = useCallback(
+    (event: ReactPointerEvent<HTMLButtonElement>) => {
+      if (!dragging) return;
+      setDragging(false);
+      try {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      } catch {
+        /* pointer already released */
+      }
+      if (movedRef.current) {
+        setPos((prev) => {
+          if (prev) storePos(prev);
+          return prev;
+        });
+      }
+    },
+    [dragging],
+  );
 
   const handleClick = useCallback(() => {
     // Swallow the click that ends a drag so moving the bot never opens it.
@@ -170,15 +202,21 @@ export const AssistantLauncher = ({ taskCount, onOpen, hidden }: AssistantLaunch
     ? { left: pos.x, top: pos.y, right: "auto", bottom: "auto" }
     : undefined;
 
+  const base = "pointer-events-none fixed z-[100] flex flex-col items-end gap-2";
+  const containerClass = [
+    base,
+    positioned ? "" : "bottom-6 right-6",
+    dragging ? "wwm-bot-dragging-wrap" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
     <div
+      ref={containerRef}
       data-screen-label="AI bot"
       style={containerStyle}
-      className={
-        positioned
-          ? "pointer-events-none fixed z-[100] flex flex-col items-end gap-2"
-          : "pointer-events-none fixed bottom-6 right-6 z-[100] flex flex-col items-end gap-2"
-      }
+      className={containerClass}
     >
       <style>{LAUNCHER_STYLES}</style>
       <div
